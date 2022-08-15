@@ -2294,6 +2294,7 @@ function initialize(player)
    faplayer.item_selection = faplayer.item_selection or false
    faplayer.item_cache = faplayer.item_cache or {}
    faplayer.zoom = faplayer.zoom or 1
+   faplayer.tutorial_line = faplayer.tutorial_line or 0
 
    faplayer.nearby = faplayer.nearby or {
       index = 0,
@@ -5115,4 +5116,38 @@ script.on_event("nudge-right", function(event)
    nudge_key(defines.direction.east,event)
 end)
 
+
+script.on_event("tutorial-info", function(event)
+   printout({"access.tutorial_word"}, pindex)
+end)
+
+script.on_event("tutorial-repeat-line", function(event)
+   pindex = event.player_index
+   read_tutorial_line(players[pindex].tutorial_line)
+end)
+
+script.on_event("tutorial-next-line", function(event)
+   pindex = event.player_index
+   players[pindex].tutorial_line = players[pindex].tutorial_line + 1
+   read_tutorial_line(players[pindex].tutorial_line)
+end)
+
+script.on_event("tutorial-prev-line", function(event)
+   pindex = event.player_index
+   local t_line = players[pindex].tutorial_line
+   if t_line > 0 then
+      t_line = t_line -1 
+   end
+   players[pindex].tutorial_line = t_line
+   read_tutorial_line(t_line)
+end)
+
+function read_tutorial_line(line_no)
+   --todo 1. Open the localized tutorial text file if it not open already
+   
+   --todo 2. Check if the line exists
+   
+   --3. Printout the line
+   printout(t_line, pindex)
+end
 

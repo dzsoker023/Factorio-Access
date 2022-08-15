@@ -573,6 +573,34 @@ data:extend({
 
 {
     type = "custom-input",
+    name = "tutorial-info",
+    key_sequence = "H",
+    consuming = "none"
+},
+
+{
+    type = "custom-input",
+    name = "tutorial-repeat-line",
+    key_sequence = "H + HOME",
+    consuming = "none"
+},
+
+{
+    type = "custom-input",
+    name = "tutorial-next-line",
+    key_sequence = "H + PAGEDOWN",
+    consuming = "none"
+},
+
+{
+    type = "custom-input",
+    name = "tutorial-prev-line",
+    key_sequence = "H + PAGEUP",
+    consuming = "none"
+},
+
+{
+    type = "custom-input",
     name = "open-structure-travel",
     key_sequence = "CONTROL + S",
     consuming = "none"
