@@ -2673,7 +2673,6 @@ function read_belt_slot(pindex, start_phrase)
    printout(result, pindex)
 end
 
-
 function reset_rotation(pindex)
    players[pindex].building_direction = dirs.north
 end
@@ -2886,7 +2885,6 @@ function factorio_default_sort(k1, k2)
       return k1.name < k2.name
    end
 end
-
 
 function get_recipes(pindex, building, load_all)
    if not building then
@@ -4586,7 +4584,6 @@ spider = nil
    
 end
 
-
 --Update the position info and cursor info during smooth walking.
 script.on_event(defines.events.on_player_changed_position,function(event)
    local pindex = event.player_index
@@ -4664,8 +4661,6 @@ script.on_event(defines.events.on_player_changed_position,function(event)
       end
    end
 end)
-
-
 
 function menu_cursor_move(direction,pindex)
    players[pindex].preferences.inventory_wraps_around = true--laterdo make this a setting to toggle
@@ -4906,7 +4901,6 @@ function menu_cursor_up(pindex)
    end
    
 end
-
 
 --menu_down
 function menu_cursor_down(pindex)
@@ -5478,20 +5472,6 @@ function menu_cursor_right(pindex)
    end
 end
 
--- function schedule(ticks_in_the_future,func_to_call, data_to_pass)
-   -- if type(_G[func_to_call]) ~= "function" then
-      -- Crash()
-   -- end
-   -- if ticks_in_the_future <=0 then  
-      -- _G[func_to_call](data_to_pass)
-      -- return
-   -- end
-   -- local tick = game.tick + ticks_in_the_future
-   -- local schedule = global.scheduled_events
-   -- schedule[tick] = schedule[tick] or {}
-   -- table.insert(schedule[tick], {func_to_call,data_to_pass})
--- end
-
 function schedule(ticks_in_the_future,func_to_call, data_to_pass_1, data_to_pass_2, data_to_pass_3)
    if type(_G[func_to_call]) ~= "function" then
       Crash()
@@ -5584,7 +5564,6 @@ script.on_event(defines.events.on_player_joined_game,function(event)
       on_player_join(event.player_index)
    end
 end)
-
 
 function on_initial_joining_tick(event)
    if not game.is_multiplayer() then
@@ -6210,10 +6189,10 @@ end)
 script.on_event("cursor-left", function(event)
    move_key(defines.direction.west,event)
 end)
+
 script.on_event("cursor-right", function(event)
    move_key(defines.direction.east,event)
 end)
-
 
 --Read coordinates of the cursor. Extra info as well such as entity part if an entity is selected, and heading and speed info for vehicles.
 script.on_event("read-cursor-coords", function(event)
@@ -6750,14 +6729,6 @@ script.on_event("scan-facing-direction", function(event)
       schedule(2,"rescan",pindex, dir, false)
    end
 end)
-
---Sound and visual effects for the scanner
-function run_scanner_effects(pindex)
-   --Scanner visual and sound effects
-   game.get_player(pindex).play_sound{path = "scanner-pulse"}
-   rendering.draw_circle{color = {1, 1, 1},radius = 1,width =  4,target = game.get_player(pindex).position, surface = game.get_player(pindex).surface, draw_on_ground = true, time_to_live = 60}
-   rendering.draw_circle{color = {1, 1, 1},radius = 2,width =  8,target = game.get_player(pindex).position, surface = game.get_player(pindex).surface, draw_on_ground = true, time_to_live = 60}
-end
 
 script.on_event("a-scan-list-main-up-key", function(event)
    --laterdo: find a more elegant scan list solution here. It depends on hardcoded keybindings and alphabetically named event handling
@@ -10892,7 +10863,6 @@ script.on_init(function()
    ensure_global_structures_are_up_to_date()
 end)
 
-
 script.on_event(defines.events.on_cutscene_cancelled, function(event)
    pindex = event.player_index
    check_for_player(pindex)
@@ -12025,10 +11995,10 @@ end)
 script.on_event("nudge-left", function(event)
    nudge_key(defines.direction.west,event)
 end)
+
 script.on_event("nudge-right", function(event)
    nudge_key(defines.direction.east,event)
 end)
-
 
 script.on_event("alternative-menu-up", function(event)
    local pindex = event.player_index
@@ -15078,7 +15048,7 @@ function snap_place_steam_engine_to_a_boiler(pindex)
 end
 
 --If the cursor is over a water tile, this function is called to check if it is open water or a shore.
-function identify_water_shores(pindex)--****todo test
+function identify_water_shores(pindex)--
    local p = game.get_player(pindex)
    local water_tile_names = {"water", "deepwater", "water-green", "deepwater-green", "water-shallow", "water-mud", "water-wube"}
    local pos = players[pindex].cursor_pos
@@ -15240,7 +15210,7 @@ script.on_event("nearest-damaged-ent-info", function(event)
    read_nearest_damaged_ent_info(players[pindex].cursor_pos,pindex)
 end)
 
-function read_nearest_damaged_ent_info(pos,pindex)--****
+function read_nearest_damaged_ent_info(pos,pindex)--
    local p = game.get_player(pindex)
    --Scan for ents of your force
    local ents = p.surface.find_entities_filtered{position = players[pindex].cursor_pos, radius = 1000, force = p.force}
@@ -15293,7 +15263,7 @@ script.on_event("cursor-pollution-info", function(event)
    read_pollution_level_at_position(players[pindex].cursor_pos,pindex)
 end)
 
-function read_pollution_level_at_position(pos,pindex)--****
+function read_pollution_level_at_position(pos,pindex)--
    local p = game.get_player(pindex)
    local pol = p.surface.get_pollution(pos)
    local result = " pollution detected"

@@ -384,6 +384,14 @@ function rescan(pindex,filter_dir, mute)
    end
 end
    
+--Sound and visual effects for the scanner
+function run_scanner_effects(pindex)
+   --Scanner visual and sound effects
+   game.get_player(pindex).play_sound{path = "scanner-pulse"}
+   rendering.draw_circle{color = {1, 1, 1},radius = 1,width =  4,target = game.get_player(pindex).position, surface = game.get_player(pindex).surface, draw_on_ground = true, time_to_live = 60}
+   rendering.draw_circle{color = {1, 1, 1},radius = 2,width =  8,target = game.get_player(pindex).position, surface = game.get_player(pindex).surface, draw_on_ground = true, time_to_live = 60}
+end
+
 --Sort scanner list entries by distance from the reference position, or by total count
 function scan_sort(pindex)
    for i, name in ipairs(players[pindex].nearby.ents   ) do
