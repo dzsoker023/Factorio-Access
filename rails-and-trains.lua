@@ -1,5 +1,6 @@
 --Here: Functions relating to rails, trains, signals, other vehicles
 --Does not include event handlers
+local util = require('util')
 
 dirs = defines.direction
 
@@ -881,7 +882,7 @@ function identify_rail_segment_end_object(rail, dir_ahead, accept_only_forward, 
    
    if rail == nil or rail.valid == false then
       --Error
-      result_entity = segment_last_rail
+      result_entity = nil
       result_entity_label = "missing rail"
       return result_entity, result_entity_label, result_extra, result_is_forward
    end
@@ -4246,6 +4247,8 @@ end
 
 function nearby_train_schedule_read_this_stop(train_stop)
    local result = "Reading parked train: "
+   local found_any = false
+
    --Locate the nearby train
    local train = train_stop.get_stopped_train()
    if train == nil or not train.valid then
@@ -4268,7 +4271,6 @@ function nearby_train_schedule_read_this_stop(train_stop)
       return result
    else
       local records = schedule.records
-      local found_any = false
       result = "Reading parked train, "
       for i,r in ipairs(records) do
          if r.station == train_stop.backer_name then

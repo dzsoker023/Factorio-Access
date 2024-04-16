@@ -1,5 +1,7 @@
 --Here: Functions relating worker robots, roboports, logistic systems, blueprints and other planners, ghosts
 --Does not include event handlers directly, but can have functions called by them.
+local localising = require('localising')
+local util = require('util')
 
 dirs = defines.direction
 MAX_STACK_COUNT = 10
@@ -686,22 +688,22 @@ function get_unit_or_stack_count(count,stack_size,precise)
    local new_count = "unknown amount of"
    local units = " units "
    if count == nil then
-      new_count = "no"
+      count = 0
    elseif count == 0 then 
       units = " units "
-      new_count = 0
+      new_count = "0"
    elseif count == 1 then 
       units = " unit "
-      new_count = 1
+      new_count = "1"
    elseif count < stack_size  then 
       units = " units "
-      new_count = count
+      new_count = tostring(count)
    elseif count == stack_size then
       units = " stack "
-      new_count = 1
+      new_count = "1"
    elseif count > stack_size then
       units = " stacks "
-      new_count = math.floor(count / stack_size)
+      new_count = tostring(math.floor(count / stack_size))
    end
    result = new_count .. units
    if precise and count > stack_size and count % stack_size > 0 then
@@ -1023,7 +1025,7 @@ function chest_logistic_request_increment_min(item_stack,chest,pindex)
    end
    
    --Read new status
-   chest_logistic_request_read(item_stack,chest,pindex,false)
+   chest_logistic_request_read(item_stack,chest,pindex)
 end
 
 --Decrements min value
@@ -1067,7 +1069,7 @@ function chest_logistic_request_decrement_min(item_stack,chest, pindex)
    end
    
    --Read new status
-   chest_logistic_request_read(item_stack,chest,pindex,false)
+   chest_logistic_request_read(item_stack,chest,pindex)
 end
 
 function send_selected_stack_to_logistic_trash(pindex)
@@ -1983,10 +1985,10 @@ function get_blueprint_corners(pindex, draw_rect)
    end
    local pos = players[pindex].cursor_pos
    local ents = bp.get_blueprint_entities()
-   local west_most_x = nil 
-   local east_most_x = nil
-   local north_most_y = nil
-   local south_most_y = nil
+   local west_most_x = 0
+   local east_most_x = 0
+   local north_most_y = 0
+   local south_most_y = 0
    
    --Empty blueprint: Just circle the cursor 
    if bp.is_blueprint_setup() == false then
@@ -2063,10 +2065,10 @@ function get_blueprint_width_and_height(pindex)--****bug here: need to add 1 if 
    end
    local pos = players[pindex].cursor_pos
    local ents = bp.get_blueprint_entities()
-   local west_most_x = nil 
-   local east_most_x = nil
-   local north_most_y = nil
-   local south_most_y = nil
+   local west_most_x = 0
+   local east_most_x = 0
+   local north_most_y = 0
+   local south_most_y = 0
    
    --Empty blueprint
    if bp.is_blueprint_setup() == false then
@@ -2458,6 +2460,7 @@ function blueprint_menu(menu_index, pindex, clicked, other_input)
          local result = "Create a copy of this blueprint"
          printout(result, pindex)
       else
+---@diagnostic disable-next-line: undefined-field
          p.insert(table.deepcopy(bp))
          local result = "Blue print copy inserted to inventory"
          printout(result, pindex)
@@ -2625,7 +2628,9 @@ end
 
 function blueprint_book_set_name(pindex, new_name)
    local bp_data = players[pindex].blueprint_book_menu.book_data
-   bp_data.blueprint_book.label = label
+   bp_data.blueprint_book.label = new_name
+   -- TODO: stack is a global but too generically named to find.  If it's not
+   -- this is nil and that's bad.
    set_stack_bp_from_data(stack,bp_data)
 end
 
@@ -2640,7 +2645,7 @@ function blueprint_book_get_item_count(pindex)
 end
 
 function blueprint_book_data_get_item_count(book_data)
-   local items = bp_data.blueprint_book.blueprints
+   local items = book_data.blueprint_book.blueprints
    if items == nil or items == {} then
       return 0 
    else
@@ -2726,7 +2731,10 @@ function blueprint_book_menu(pindex, menu_index, list_mode, left_clicked, right_
             if label == nil then
                label = ""
             end
-            name = "Blueprint book " .. label .. ", with " .. blueprint_book_data_get_item_count(book_data) .. " items "
+            -- TODO: nil in the following line used to be an undefined global
+            -- book_data.  Someone needs to determine what that's supposed to
+            -- be.
+            name = "Blueprint book " .. label .. ", with " .. blueprint_book_data_get_item_count(nil) .. " items "
          else
             name = "unknown item " .. item.item
          end
