@@ -251,7 +251,7 @@ function scan_area(x,y,w,h, pindex, filter_direction, start_with_existing_list, 
          else
          ent2 = surf.get_closest(pos, k2.ents)
          end
-         return distance(pos, ent1.position) < distance(pos, ent2.position)
+         return util.distance(pos, ent1.position) < util.distance(pos, ent2.position)
       end)
 
    else
