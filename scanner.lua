@@ -1,5 +1,6 @@
 --Here: Functions relating to the scanner tool
 --Does not include event handlers directly, but can have functions called by them.
+local util = require('util')
 
 --Find islands of resources or water or trees to create the aggregate entries in the scanner list. Does not run for every scan.
 function find_islands(surf, area, pindex)
