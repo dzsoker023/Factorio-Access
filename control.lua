@@ -6176,6 +6176,13 @@ script.on_event("pause-game-fa", function(event)
          end
       end
    end
+   
+   --Close any open screens
+   for i, elem in ipairs(get_iterable_array(game.get_player(pindex).gui.children)) do
+      if elem.get_mod() == "FactorioAccess" or elem.get_mod() == nil then
+         elem.clear()
+      end
+   end
 end)
 
 script.on_event("cursor-up", function(event)
