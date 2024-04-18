@@ -1,13 +1,17 @@
 --Here: localisation functions, including event handlers
 local localising = {}
 --Returns the localised name of an object as a string. Used for ents and items and fluids
+---@return string
 function localising.get(object,pindex)
+      -- Everything, everything uses this function without checking the return
+      -- values. Use really annoying strings to make it very clear there's a
+      -- bug.
    if pindex == nil then
       game.print("localising: pindex is nil error")
-      return nil
+      return "NOT LOCALIZED!"
    end
    if object == nil then
-      return nil
+      return "LOCALIZED OBJECT IS NIL!"
    end
    if object.valid and string.sub(object.object_name,-9) ~= "Prototype" then
       object = object.prototype

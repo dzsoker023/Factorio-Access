@@ -1,5 +1,8 @@
 --Here: Functions relating to circuit networks, virtual signals, wiring and unwiring buildings, and the such.
 --Does not include event handlers directly, but can have functions called by them.
+local localising = require('localising')
+local util = require('util')
+
 local dcb = defines.control_behavior
 
 function drag_wire_and_read(pindex)
@@ -84,7 +87,8 @@ function drag_wire_and_read(pindex)
    else
       p.play_sound{path = "utility/cannot_build"}
    end
-   players[pindex].last_wire_ent = c_ent
+   -- used to be c_int, but that's an undefined global, which is nil.
+   players[pindex].last_wire_ent = nil
 end
 
 --*** later: test ent.circuit_connection_definitions
@@ -1385,8 +1389,8 @@ function build_signal_selector(pindex)
       group_index = 1, 
       group_names = item_group_names, 
       signals = {},
-      ent = ent,
-      editing_first_slot = nil
+      ent = nil,
+      editing_first_slot = nil,
    }
    --Populate signal groups 
    local items = get_iterable_array(game.item_prototypes)
@@ -1461,7 +1465,7 @@ end
 
 --For an enabled condition, updates the relevant signal from the signal selector. For a constant combinator, the selected signal gets added.
 function apply_selected_signal_to_enabled_condition(pindex, ent, first)
-   local start_phrase = start_phrase_in or ""
+   local start_phrase = ""
    local prototype, signal_type = get_selected_signal_slot_with_type(pindex)
    if prototype == nil or prototype.valid == false then
       game.get_player(pindex).play_sound{path = "utility/cannot_build"}
