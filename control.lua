@@ -11745,6 +11745,13 @@ script.on_event(defines.events.on_gui_confirmed,function(event)
       if p.gui.screen["blueprint-edit-export"] ~= nil then
          p.gui.screen["blueprint-edit-export"].destroy()
       end
+   else
+      --Stray text box, so do nothing and destroy it
+      if event.element.parent then
+         event.element.parent.destroy()
+      else
+         event.element.destroy()
+      end
    end
    players[pindex].last_menu_search_tick = event.tick
 end)   
