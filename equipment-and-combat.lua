@@ -1,5 +1,6 @@
 --Here: functions relating to combat, repair packs 
 --Does not include event handlers, guns and equipment, repair work (but maybe it could?)
+local util = require('util')
 
 --Tries to equip a stack. For now called only for a stack in hand when the only the inventory is open.
 function equip_it(stack,pindex)

@@ -1,8 +1,17 @@
 # Welcome to Factorio Access BETA!
 
-This is the BETA VERSION for an accessibility mod for the popular game Factorio. The goal of this mod is to make the game completely accessible to the blind and visually impaired. This beta version is the current main repository for the mod, while the original repository is on hold.
+This is the BETA VERSION for an accessibility mod for the popular game Factorio. The goal of this mod is to make the game completely accessible to the blind and visually impaired. This beta version is the current main repository for the mod, while the original repository for the alpha version is on hold. This mod is an unofficial Factorio project by volunteers.
 
 This "read me" file covers the basics of the mod, which include the installation guide, the mod controls, and links to other information sources.
+
+# More info at the wiki
+
+For information about the mod and the game, please check out our own [Factorio Access Wiki](https://github.com/Factorio-Access/FactorioAccess/wiki) being written by the developers.
+
+Factorio also has an [official wiki](https://wiki.factorio.com/).
+
+# Frequently Asked Questions
+Please check the [Factorio Access Wiki main page](https://github.com/Factorio-Access/FactorioAccess/wiki) for frequently asked questions section.
 
 # Installing Factorio
 The game can be purchased from Factorio.com or from Steam. We recommend installing it using ONLY one of the three options below.
@@ -76,15 +85,6 @@ To install a mod release, follow the instructions below:
 4. If you want to use a virtual python environment, or an executable, run build_main.py. If not, run pip to install requirements.txt by:  "pip install -r requirements.txt"
 5. Run the executable or main.py
 6. If it complains it can't find your Factorio installation then add the path to the Factorio executable as an argument when launching.
-
-# More info at the wiki
-
-For information about the mod and the game, please check out our own [Factorio Access Wiki](https://github.com/Factorio-Access/FactorioAccess/wiki) being written by the developers.
-
-Factorio also has an [official wiki](https://wiki.factorio.com/).
-
-# Frequently Asked Questions
-Please check the [Factorio Access Wiki main page](https://github.com/Factorio-Access/FactorioAccess/wiki) for frequently asked questions section.
 
 # Factorio Access Controls
 

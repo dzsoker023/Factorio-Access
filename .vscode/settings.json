@@ -1,0 +1,31 @@
+{
+   "editor.insertSpaces": true,
+   "editor.tabSize": 3,
+   "Lua.diagnostics.globals": [
+      "commands",
+      "defines",
+      "data",
+      "game",
+      "global",
+      "localised_print",
+      "rcon",
+      "remote",
+      "rendering",
+      "script",
+      "settings",
+      "players",
+      "printout",
+      "get_selected_ent",
+      "direction_lookup",
+      "cursor_highlight",
+      "sync_build_cursor_graphics",
+      "get_direction_of_that_from_this",
+      "clear_obstacles_in_rectangle",
+      "ENT_TYPES_YOU_CAN_BUILD_OVER"
+   ],
+   "Lua.diagnostics.disable": [
+      "lowercase-global",
+      "deprecated",
+      "need-check-nil"
+   ],
+}
