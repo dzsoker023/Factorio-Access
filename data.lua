@@ -4,11 +4,9 @@
 data.raw.character.character.has_belt_immunity = true
 
 --Create resource map node entities as aggregate entities
-local resource_map_node = table.deepcopy(data.raw.container) 
+local resource_map_node = {}
 resource_map_node.name = "map-node"
 resource_map_node.type = "simple-entity-with-force"
---resource_map_node.inventory_size = 0
-
 resource_map_node.collision_box = {{-0, -0}, {0, 0}}
 resource_map_node.collision_mask = {}
 resource_map_node.selection_box = nil
@@ -59,6 +57,7 @@ stack_filter_inserter.collision_mask = {"object-layer", "floor-layer", "water-ti
 
 --Add new radar type that does long distance scanning
 local ar_tint = {r=0.5,g=0.5,b=0.5,a=0.9}
+
 local access_radar = table.deepcopy(data.raw["radar"]["radar"])
 access_radar.icons = {
   {

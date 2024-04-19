@@ -1825,6 +1825,7 @@ end
 -------------Blueprints------------
 
 function get_bp_data_for_edit(stack)
+---@diagnostic disable-next-line: param-type-mismatch
    return game.json_to_table(game.decode_string(string.sub(stack.export_stack(),2)))
 end
 
@@ -1981,10 +1982,10 @@ function get_blueprint_corners(pindex, draw_rect)
    local p = game.get_player(pindex)
    local bp = p.cursor_stack
    if bp == nil or bp.valid_for_read == false or bp.is_blueprint == false then
-      return nil, nil
+      error("invalid call. no blueprint")
    end
    local pos = players[pindex].cursor_pos
-   local ents = bp.get_blueprint_entities()
+   local ents = bp.get_blueprint_entities() or {}
    local west_most_x = 0
    local east_most_x = 0
    local north_most_y = 0
@@ -2071,12 +2072,12 @@ function get_blueprint_width_and_height(pindex)--****bug here: need to add 1 if 
    local south_most_y = 0
    
    --Empty blueprint
-   if bp.is_blueprint_setup() == false then
+   if not ents or bp.is_blueprint_setup() == false then
       return 0, 0
    end
    
    --Find the blueprint borders and corners 
-   for i, ent in ipairs(ents) do 
+   for i, ent in ipairs(ents) do
       local ent_width = game.entity_prototypes[ent.name].tile_width
       local ent_height = game.entity_prototypes[ent.name].tile_height
       if ent.direction == dirs.east or ent.direction == dirs.west then
@@ -2338,7 +2339,7 @@ function blueprint_menu(menu_index, pindex, clicked, other_input)
          printout(result, pindex)
       else
          --Create a table of entity counts
-         local ents = bp.get_blueprint_entities()
+         local ents = bp.get_blueprint_entities() or {}
          local ent_counts = {}
          local unique_ent_count = 0
          --p.print("blueprint total entity count: " .. #ents)--
@@ -2376,7 +2377,7 @@ function blueprint_menu(menu_index, pindex, clicked, other_input)
          printout(result, pindex)
       else
          --Create a table of entity counts
-         local ents = bp.get_blueprint_entities()
+         local ents = bp.get_blueprint_entities() or {}
          local ent_counts = {}
          local unique_ent_count = 0
          --p.print("blueprint total entity count: " .. #ents)--
@@ -2460,7 +2461,6 @@ function blueprint_menu(menu_index, pindex, clicked, other_input)
          local result = "Create a copy of this blueprint"
          printout(result, pindex)
       else
----@diagnostic disable-next-line: undefined-field
          p.insert(table.deepcopy(bp))
          local result = "Blue print copy inserted to inventory"
          printout(result, pindex)
