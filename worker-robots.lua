@@ -2246,6 +2246,7 @@ function blueprint_menu(menu_index, pindex, clicked, other_input)
    local index = menu_index
    local other = other_input or -1
    local p = game.get_player(pindex)
+   ---@type LuaItemStack
    local bp = p.cursor_stack
    
    if bp.is_blueprint_setup() == false then
@@ -2608,7 +2609,7 @@ function blueprint_menu_down(pindex)
 end
 
 function get_bp_book_data_for_edit(stack)
-   --return game.json_to_table(game.decode_string(string.sub(stack.export_stack(),2)))
+   ---@diagnostic disable-next-line: param-type-mismatch
    return game.json_to_table(game.decode_string(string.sub(stack.export_stack(),2)))
 end
 

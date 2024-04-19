@@ -2,17 +2,6 @@
    "editor.insertSpaces": true,
    "editor.tabSize": 3,
    "Lua.diagnostics.globals": [
-      "commands",
-      "defines",
-      "data",
-      "game",
-      "global",
-      "localised_print",
-      "rcon",
-      "remote",
-      "rendering",
-      "script",
-      "settings",
       "players",
       "printout",
       "get_selected_ent",
@@ -28,4 +17,9 @@
       "deprecated",
       "need-check-nil"
    ],
+   "Lua.workspace.library": [
+      "c:\\Program Files\\Factorio\\data"
+   ],
+   "Lua.workspace.checkThirdParty": "ApplyInMemory",
+   "Lua.runtime.version": "Lua 5.2",
 }
