@@ -602,6 +602,7 @@ data:extend({
     type = "custom-input",
     name = "increase-inventory-bar-by-1",
     key_sequence = "PAGEUP",
+    alternative_key_sequence = "ALT + UP",
     consuming = "none"
 },
 
@@ -609,6 +610,7 @@ data:extend({
     type = "custom-input",
     name = "increase-inventory-bar-by-5",
     key_sequence = "SHIFT + PAGEUP",
+    alternative_key_sequence = "SHIFT + UP",
     consuming = "none"
 },
 
@@ -616,6 +618,7 @@ data:extend({
     type = "custom-input",
     name = "increase-inventory-bar-by-100",
     key_sequence = "CONTROL + PAGEUP",
+    alternative_key_sequence = "CTRL + UP",
     consuming = "none"
 },
 
@@ -623,6 +626,7 @@ data:extend({
     type = "custom-input",
     name = "decrease-inventory-bar-by-1",
     key_sequence = "PAGEDOWN",
+    alternative_key_sequence = "ALT + DOWN",
     consuming = "none"
 },
 
@@ -630,6 +634,7 @@ data:extend({
     type = "custom-input",
     name = "decrease-inventory-bar-by-5",
     key_sequence = "SHIFT + PAGEDOWN",
+    alternative_key_sequence = "SHIFT + DOWN",
     consuming = "none"
 },
 
@@ -637,6 +642,7 @@ data:extend({
     type = "custom-input",
     name = "decrease-inventory-bar-by-100",
     key_sequence = "CONTROL + PAGEDOWN",
+    alternative_key_sequence = "CTRL + DOWN",
     consuming = "none"
 },
 
@@ -644,6 +650,7 @@ data:extend({
     type = "custom-input",
     name = "increase-train-wait-times-by-5",
     key_sequence = "PAGEUP",
+    alternative_key_sequence = "ALT + UP",
     consuming = "none"
 },
 
@@ -651,6 +658,7 @@ data:extend({
     type = "custom-input",
     name = "increase-train-wait-times-by-60",
     key_sequence = "CONTROL + PAGEUP",
+    alternative_key_sequence = "CTRL + UP",
     consuming = "none"
 },
 
@@ -658,6 +666,7 @@ data:extend({
     type = "custom-input",
     name = "decrease-train-wait-times-by-5",
     key_sequence = "PAGEDOWN",
+    alternative_key_sequence = "ALT + DOWN",
     consuming = "none"
 },
 
@@ -665,6 +674,7 @@ data:extend({
     type = "custom-input",
     name = "decrease-train-wait-times-by-60",
     key_sequence = "CONTROL + PAGEDOWN",
+    alternative_key_sequence = "CTRL + DOWN",
     consuming = "none"
 },
 
