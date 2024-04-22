@@ -1,9 +1,28 @@
 --Here: Functions relating to circuit networks, virtual signals, wiring and unwiring buildings, and the such.
 --Does not include event handlers directly, but can have functions called by them.
+local circular = require('ds/circular-options-list')
 local localising = require('localising')
 local util = require('util')
 
 local dcb = defines.control_behavior
+
+-- Later, we will move this list to somewhere more convenient.  Currently, this
+-- is demonstrational, and we aren't rolling out a full descriptor-based system
+-- at this time.  Instead, we just handle inserters this way.
+local INSERTER_READ_MODES = circular.kv_list({
+   -- (circuit_read_hand_contents, circuit_read_hand_mode) to a set of labels
+   -- for each.
+   { { false,  circular.ANY }, {
+      label = "None",
+      disabled = true,
+   } },
+   { { true, dcb.inserter.hand_read_mode.hold  }, {
+      label = "Reading held items",
+   }},
+   {{ true, dcb.inserter.hand_read_mode.pulse }, {
+      label = "pulsing passing items"
+   } },
+}, circular.tuples)
 
 function drag_wire_and_read(pindex)
    --Start/end dragging wire 
@@ -312,13 +331,8 @@ function get_circuit_read_mode_name(ent)
    local result = "None"
    local control = ent.get_control_behavior()
    if ent.type == "inserter" then
-      if control.circuit_read_hand_contents == true then
-         if control.circuit_hand_read_mode == dcb.inserter.hand_read_mode.hold then
-            result = "Reading held items" 
-         elseif control.circuit_hand_read_mode == dcb.inserter.hand_read_mode.pulse then
-            result = "pulsing passing items" 
-         end
-      end
+      local cur = circular.current(INSERTER_READ_MODES, { control.circuit_read_hand_contents, control.circuit_hand_read_mode })
+      result = cur.value.label
    elseif ent.type == "transport-belt" then
       if control.read_contents == true then
          if control.read_contents_mode == dcb.transport_belt.content_read_mode.hold then
@@ -365,18 +379,13 @@ function toggle_circuit_read_mode(ent)
    local control = ent.get_control_behavior()
    if ent.type == "inserter" then
       changed = true
-      if control.circuit_read_hand_contents == false then
-         control.circuit_read_hand_contents = true
-         control.circuit_hand_read_mode = dcb.inserter.hand_read_mode.hold
-         result = "Reading held items" 
-      elseif control.circuit_hand_read_mode == dcb.inserter.hand_read_mode.hold then
-         control.circuit_read_hand_contents = true
-         control.circuit_hand_read_mode = dcb.inserter.hand_read_mode.pulse
-         result = "pulsing passing items"
-      else --if control.circuit_hand_read_mode == dcb.inserter.hand_read_mode.pulse then
-         control.circuit_read_hand_contents = false
-         result = "None"
+      local key = { control.circuit_read_hand_contents, control.circuit_hand_read_mode }
+      local new  = circular.next(INSERTER_READ_MODES, key)
+      control.circuit_read_hand_contents = new.key[1]
+      if not new.value.disabled then
+         control.circuit_hand_read_mode = new.key[2]
       end
+      result = new.value.label
    elseif ent.type == "transport-belt" then 
       changed = true
       if control.read_contents == false then
