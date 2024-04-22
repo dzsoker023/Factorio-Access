@@ -319,6 +319,7 @@ end
    end
 end
 
+--Call the appropriate function after a keypress for modifying a logistic request
 function logistics_request_increment_min_handler(pindex)
    if not players[pindex].in_menu or players[pindex].menu == "inventory" then
       --Personal logistics
@@ -392,6 +393,7 @@ function logistics_request_increment_min_handler(pindex)
    end
 end
 
+--Call the appropriate function after a keypress for modifying a logistic request
 function logistics_request_decrement_min_handler(pindex)
    if not players[pindex].in_menu or players[pindex].menu == "inventory" then
       --Personal logistics
@@ -465,6 +467,7 @@ function logistics_request_decrement_min_handler(pindex)
    end
 end
 
+--Call the appropriate function after a keypress for modifying a logistic request
 function logistics_request_increment_max_handler(pindex)
    if not players[pindex].in_menu or players[pindex].menu == "inventory" then
       --Personal logistics
@@ -504,6 +507,7 @@ function logistics_request_increment_max_handler(pindex)
    end
 end
 
+--Call the appropriate function after a keypress for modifying a logistic request
 function logistics_request_decrement_max_handler(pindex)
    if not players[pindex].in_menu or players[pindex].menu == "inventory" then
       --Personal logistics
@@ -543,6 +547,7 @@ function logistics_request_decrement_max_handler(pindex)
    end
 end
 
+--Call the appropriate function after a keypress for modifying a logistic request
 function logistics_request_toggle_handler(pindex)
    local ent = game.get_player(pindex).opened
    if not players[pindex].in_menu or players[pindex].menu == "inventory" then

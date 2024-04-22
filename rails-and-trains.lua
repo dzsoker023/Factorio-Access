@@ -3470,6 +3470,7 @@ function get_heading(ent)
    return heading
 end
 
+--Translates a vehicle orientation into a heading direction, with all directions having equal bias.
 function get_heading_value(ent)
    local heading = nil
    if ent == nil then
@@ -3498,6 +3499,7 @@ function get_heading_value(ent)
    return heading
 end
 
+--Loads and opens the rail builder menu
 function rail_builder_open(pindex, rail)
    if players[pindex].vanilla_mode then
       return 
@@ -3543,7 +3545,7 @@ function rail_builder_open(pindex, rail)
    rail_builder(pindex, false)
 end
 
-
+--Resets and closes the rail builder menu
 function rail_builder_close(pindex, mute_in)
    local mute = mute_in or false
    --Set the player menu tracker to none
@@ -3559,7 +3561,7 @@ function rail_builder_close(pindex, mute_in)
    end
 end
 
-
+--Moves up the rail builder menu
 function rail_builder_up(pindex)
    --Decrement the index
    players[pindex].rail_builder.index = players[pindex].rail_builder.index - 1
@@ -3577,7 +3579,7 @@ function rail_builder_up(pindex)
    rail_builder(pindex, false)
 end
 
-
+--Moves down the rail buidler menu
 function rail_builder_down(pindex)
    --Increment the index
    players[pindex].rail_builder.index = players[pindex].rail_builder.index + 1
@@ -3594,7 +3596,6 @@ function rail_builder_down(pindex)
    --Load menu 
    rail_builder(pindex, false)
 end
-
 
 --Builder menu to build rail structures
 function rail_builder(pindex, clicked_in)
@@ -3952,6 +3953,7 @@ function train_menu(menu_index, pindex, clicked, other_input)
 end
 TRAIN_MENU_LENGTH = 8
 
+--Loads and opens the train menu
 function train_menu_open(pindex)
    if players[pindex].vanilla_mode then
       return 
@@ -3971,7 +3973,7 @@ function train_menu_open(pindex)
    train_menu(players[pindex].train_menu.index, pindex, false)
 end
 
-
+--Resets and closes the train menu
 function train_menu_close(pindex, mute_in)
    local mute = mute_in
    --Set the player menu tracker to none
@@ -4230,6 +4232,7 @@ function train_stop_menu_down(pindex)
    train_stop_menu(players[pindex].train_stop_menu.index, pindex, false)
 end
 
+--For the selected train stop, changes assigned wait time in seconds for the parked train. The increment is a positive or negative integer. 
 function nearby_train_schedule_change_wait_time(increment,pindex)
    local seconds = players[pindex].train_stop_menu.wait_time_seconds
    if seconds == nil then 
@@ -4245,6 +4248,7 @@ function nearby_train_schedule_change_wait_time(increment,pindex)
    printout(players[pindex].train_stop_menu.wait_time_seconds .. " seconds wait time set.",pindex)
 end
 
+--Returns an info string on what the parked train at this stop is scheduled to do at this stop.
 function nearby_train_schedule_read_this_stop(train_stop)
    local result = "Reading parked train: "
    local found_any = false
@@ -4299,6 +4303,7 @@ function nearby_train_schedule_read_this_stop(train_stop)
    return result
 end
 
+--Returns an info string after adding this train stop to the parked train.
 function nearby_train_schedule_add_stop(train_stop, wait_condition_type, wait_time_seconds)
    local result = "initial"
    --Locate the nearby train
@@ -4340,6 +4345,7 @@ function nearby_train_schedule_add_stop(train_stop, wait_condition_type, wait_ti
    return result
 end
 
+--Returns an info string after updating every entry for this train stop for the parked train.
 function nearby_train_schedule_update_stop(train_stop, wait_condition_type, wait_time_seconds)
    local result = "initial"
    --Locate the nearby train
@@ -4398,6 +4404,7 @@ function nearby_train_schedule_update_stop(train_stop, wait_condition_type, wait
    return result
 end
 
+--Returns an info string after removing every entry for this train stop for the parked train.
 function nearby_train_schedule_remove_stop(train_stop)
    local result = "initial"
    --Locate the nearby train
@@ -5143,7 +5150,7 @@ function halve_vehicle_speed(pindex)
    end
 end
 
---Interfacing with Pavement Driving Assist
+--Pavement Driving Assist: Read CC state
 function fa_pda_get_state_of_cruise_control(pindex)
    if remote.interfaces.PDA and remote.interfaces.PDA.get_state_of_cruise_control then
       return remote.call("PDA", "get_state_of_cruise_control",pindex)
@@ -5152,6 +5159,7 @@ function fa_pda_get_state_of_cruise_control(pindex)
    end
 end
 
+--Pavement Driving Assist: Set CC state
 function fa_pda_set_state_of_cruise_control(pindex,new_state)
    if remote.interfaces.PDA and remote.interfaces.PDA.set_state_of_cruise_control then
       remote.call("PDA", "set_state_of_cruise_control",pindex,new_state)
@@ -5161,6 +5169,7 @@ function fa_pda_set_state_of_cruise_control(pindex,new_state)
    end
 end
 
+--Pavement Driving Assist: Read CC speed limit in kmh
 function fa_pda_get_cruise_control_limit(pindex)
    if remote.interfaces.PDA and remote.interfaces.PDA.get_cruise_control_limit then
       return remote.call("PDA", "get_cruise_control_limit",pindex)
@@ -5169,6 +5178,7 @@ function fa_pda_get_cruise_control_limit(pindex)
    end
 end
 
+--Pavement Driving Assist: Set CC speed limit in kmh
 function fa_pda_set_cruise_control_limit(pindex,new_value)
    if remote.interfaces.PDA and remote.interfaces.PDA.set_cruise_control_limit then
       remote.call("PDA", "set_cruise_control_limit",pindex,new_value)
@@ -5178,6 +5188,7 @@ function fa_pda_set_cruise_control_limit(pindex,new_value)
    end
 end
 
+--Pavement Driving Assist: Read assistant state
 function fa_pda_get_state_of_driving_assistant(pindex)
    if remote.interfaces.PDA and remote.interfaces.PDA.get_state_of_driving_assistant then
       return remote.call("PDA", "get_state_of_driving_assistant",pindex)
@@ -5186,6 +5197,7 @@ function fa_pda_get_state_of_driving_assistant(pindex)
    end
 end
 
+--Pavement Driving Assist: Set assistant state
 function fa_pda_set_state_of_driving_assistant(pindex,new_state)
    if remote.interfaces.PDA and remote.interfaces.PDA.set_state_of_driving_assistant then
       remote.call("PDA", "set_state_of_driving_assistant",pindex,new_state)
@@ -5195,6 +5207,7 @@ function fa_pda_set_state_of_driving_assistant(pindex,new_state)
    end
 end
 
+--Pavement Driving Assist: Read assistant state after it has been toggled
 function read_PDA_assistant_toggled_info(pindex)
    if game.get_player(pindex).driving then  
       local is_on = not fa_pda_get_state_of_driving_assistant(pindex)
@@ -5208,6 +5221,7 @@ function read_PDA_assistant_toggled_info(pindex)
    end 
 end
 
+--Pavement Driving Assist: Read CC state after it has been toggled
 function read_PDA_cruise_control_toggled_info(pindex)
    if game.get_player(pindex).driving then 
       local is_on = not fa_pda_get_state_of_cruise_control(pindex)

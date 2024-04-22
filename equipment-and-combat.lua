@@ -410,6 +410,7 @@ function remove_equipment_and_armor(pindex)
    return result
 end
 
+--Plays enemy proximity alert sounds. Frequency is determined by distance and mode, and intensity is determined by the threat level.
 function check_and_play_enemy_alert_sound(mode_in)
    for pindex, player in pairs(players) do
       local mode = mode_in or 1
