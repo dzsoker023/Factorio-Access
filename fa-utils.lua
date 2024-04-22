@@ -61,7 +61,7 @@ function dir(pos1,pos2)
 end
 
 function direction (pos1, pos2)
-   return directions[dir(pos1,pos2)]
+   return direction_lookup(dir(pos1,pos2))
 end
 
 function distance ( pos1, pos2)
