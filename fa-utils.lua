@@ -201,6 +201,150 @@ function rotate_270(dir)
    return (dir + dirs.east * 3) % (2 * dirs.south)
 end
 
+function reset_rotation(pindex)
+   players[pindex].building_direction = dirs.north
+end
+
+--Returns the length and width of the entity version of an item. Todo: review and cleanup direction defines.
+function get_tile_dimensions(item, dir)
+   if item.place_result ~= nil then
+      local dimensions = item.place_result.selection_box
+      x = math.ceil(dimensions.right_bottom.x - dimensions.left_top.x)
+      y = math.ceil(dimensions.right_bottom.y - dimensions.left_top.y)
+      if (dir/2)%2 == 0 then
+         return {x = x, y = y}
+      else
+         return {x = y, y = x}
+      end
+   end
+   return {x = 0, y = 0}
+end
+
+
+--Small utility function for getting an entity's footprint area using just its name.
+function get_ent_area_from_name(ent_name,pindex)
+   -- local ents = game.get_player(pindex).surface.find_entities_filtered{name = ent_name, limit = 1}
+   -- if #ents == 0 then
+      -- return -1
+   -- else
+      -- return ents[1].tile_height * ents[1].tile_width
+   -- end
+   return game.entity_prototypes[ent_name].tile_width * game.entity_prototypes[ent_name].tile_height
+end
+
+--Returns true/false on whether an entity is located within a defined area.
+function confirm_ent_is_in_area(ent_name, area_left_top, area_right_bottom, pindex)
+   local ents = game.get_player(pindex).surface.find_entities_filtered{name = ent_name, area = {area_left_top,area_right_bottom}, limit = 1}
+   return #ents > 0
+end
+
+--Returns the map position of the northwest corner of an entity.
+function get_ent_northwest_corner_position(ent)
+   if ent.valid == false or ent.tile_width == nil then
+      return ent.position
+   end
+   local width  = ent.tile_width
+   local height = ent.tile_height
+   if ent.direction == dirs.east or ent.direction == dirs.west then
+      width  = ent.tile_height
+      height = ent.tile_width
+   end
+   local pos = center_of_tile({x = ent.position.x - math.floor(width/2), y = ent.position.y - math.floor(height/2)})
+   --rendering.draw_rectangle{color = {0.75,1,1,0.75}, surface = ent.surface, draw_on_ground = true, players = nil, width = 2, left_top = {math.floor(pos.x)+0.05,math.floor(pos.y)+0.05}, right_bottom = {math.ceil(pos.x)-0.05,math.ceil(pos.y)-0.05}, time_to_live = 30}
+   return pos
+end
+
+--Reports which part of the selected entity has the cursor. E.g. southwest corner, center...
+function get_entity_part_at_cursor(pindex)
+	 local p = game.get_player(pindex)
+	 local x = players[pindex].cursor_pos.x
+	 local y = players[pindex].cursor_pos.y
+    local excluded_names = {"character", "flying-text", "highlight-box", "combat-robot", "logistic-robot", "construction-robot", "rocket-silo-rocket-shadow"}
+	 local ents = p.surface.find_entities_filtered{position = {x = x,y = y}, name = excluded_names, invert = true}
+	 local north_same = false
+	 local south_same = false
+	 local east_same = false
+	 local west_same = false
+	 local location = nil
+
+    --First check if there is an entity at the cursor
+	 if #ents > 0 then
+      --Choose something else if ore is selected
+      local preferred_ent = ents[1]
+      for i, ent in ipairs(ents) do
+         if ent.valid and ent.type ~= "resource" then
+            preferred_ent = ent
+         end
+      end
+      p.selected = preferred_ent
+
+		--Report which part of the entity the cursor covers.
+      rendering.draw_circle{color = {1, 0.0, 0.5},radius = 0.1,width = 2,target = {x = x+0 ,y = y-1}, surface = p.surface, time_to_live = 30}
+      rendering.draw_circle{color = {1, 0.0, 0.5},radius = 0.1,width = 2,target = {x = x+0 ,y = y+1}, surface = p.surface, time_to_live = 30}
+      rendering.draw_circle{color = {1, 0.0, 0.5},radius = 0.1,width = 2,target = {x = x-1 ,y = y-0}, surface = p.surface, time_to_live = 30}
+      rendering.draw_circle{color = {1, 0.0, 0.5},radius = 0.1,width = 2,target = {x = x+1 ,y = y-0}, surface = p.surface, time_to_live = 30}
+
+		local ent_north = p.surface.find_entities_filtered{position = {x = x,y = y-1}, name = excluded_names, invert = true}
+		if     #ent_north > 0 and ent_north[1].unit_number == preferred_ent.unit_number then north_same = true
+      elseif #ent_north > 1 and ent_north[2].unit_number == preferred_ent.unit_number then north_same = true
+      elseif #ent_north > 2 and ent_north[3].unit_number == preferred_ent.unit_number then north_same = true end
+		local ent_south = p.surface.find_entities_filtered{position = {x = x,y = y+1}, name = excluded_names, invert = true}
+		if     #ent_south > 0 and ent_south[1].unit_number == preferred_ent.unit_number then south_same = true
+      elseif #ent_south > 1 and ent_south[2].unit_number == preferred_ent.unit_number then south_same = true
+      elseif #ent_south > 2 and ent_south[3].unit_number == preferred_ent.unit_number then south_same = true end
+		local ent_east = p.surface.find_entities_filtered{position = {x = x+1,y = y}, name = excluded_names, invert = true}
+		if     #ent_east > 0 and ent_east[1].unit_number == preferred_ent.unit_number then east_same = true
+      elseif #ent_east > 1 and ent_east[2].unit_number == preferred_ent.unit_number then east_same = true
+      elseif #ent_east > 2 and ent_east[3].unit_number == preferred_ent.unit_number then east_same = true end
+		local ent_west = p.surface.find_entities_filtered{position = {x = x-1,y = y}, name = excluded_names, invert = true}
+		if     #ent_west > 0 and ent_west[1].unit_number == preferred_ent.unit_number then west_same = true
+      elseif #ent_west > 1 and ent_west[2].unit_number == preferred_ent.unit_number then west_same = true
+      elseif #ent_west > 2 and ent_west[3].unit_number == preferred_ent.unit_number then west_same = true end
+
+		if north_same and south_same then
+		   if east_same and west_same then
+			  location = "center"
+		   elseif east_same and not west_same then
+			  location = "west edge"
+		   elseif not east_same and west_same then
+			  location = "east edge"
+		   elseif not east_same and not west_same then
+			  location = "middle"
+		   end
+		elseif north_same and not south_same then
+		   if east_same and west_same then
+			  location = "south edge"
+		   elseif east_same and not west_same then
+			  location = "southwest corner"
+		   elseif not east_same and west_same then
+			  location = "southeast corner"
+		   elseif not east_same and not west_same then
+			  location = "south tip"
+		   end
+		elseif not north_same and south_same then
+		   if east_same and west_same then
+			  location = "north edge"
+		   elseif east_same and not west_same then
+			  location = "northwest corner"
+		   elseif not east_same and west_same then
+			  location = "northeast corner"
+		   elseif not east_same and not west_same then
+			  location = "north tip"
+		   end
+		elseif not north_same and not south_same then
+		   if east_same and west_same then
+			  location = "middle"
+		   elseif east_same and not west_same then
+			  location = "west tip"
+		   elseif not east_same and west_same then
+			  location = "east tip"
+		   elseif not east_same and not west_same then
+			  location = "all"
+		   end
+		end
+	 end
+	 return location
+end
 
 function nearest_edge(edges, pos, name)
    local pos = table.deepcopy(pos)
@@ -392,4 +536,30 @@ function ent_name_locale(ent)
       error(ent.name .. " is not an entity")
    end
    return ent.localised_name or game.entity_prototypes[ent.name].localised_name
+end
+
+--small utility function for getting the index of a named object from an array of objects.
+function index_of_entity(array, value)
+   if next(array) == nil then
+      return nil
+   end
+    for i = 1, #array,1 do
+        if array[i].name == value then
+            return i
+      end
+   end
+   return nil
+end
+
+--Rounds down to the nearest thousand after 10 thousand, and nearest 100 thousand after 1 million.
+function floor_to_nearest_k_after_10k(num_in)
+   local num = num_in
+   num = math.ceil(num)
+   if num > 10000 then
+      num = 1000 * math.floor(num/1000)
+   end
+   if num > 1000000 then
+      num = 100000 * math.floor(num/100000)
+   end
+   return num
 end
