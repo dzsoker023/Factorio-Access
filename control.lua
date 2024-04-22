@@ -21,6 +21,7 @@ ENT_NAMES_CLEARED_AS_OBSTACLES = {"tree-01-stump","tree-02-stump","tree-03-stump
 ENT_TYPES_YOU_CAN_WALK_OVER  = {"resource", "transport-belt", "underground-belt", "splitter", "item-entity", "entity-ghost", "heat-pipe", "pipe", "pipe-to-ground", "character", "rail-signal", "flying-text", "highlight-box", "combat-robot", "logistic-robot", "construction-robot", "rocket-silo-rocket-shadow" }
 ENT_TYPES_YOU_CAN_BUILD_OVER = {"resource", "entity-ghost", "flying-text", "highlight-box", "combat-robot", "logistic-robot", "construction-robot", "rocket-silo-rocket-shadow"}
 
+--Returns the entity at this player's cursor selected tile
 function get_selected_ent(pindex)
    local tile=players[pindex].tile
    local ent
@@ -87,6 +88,7 @@ function increment_inventory_bar(ent, amount)
    return {"access.inventory-limit-status",value,current_bar}
 end
 
+--Does everything to handle the nudging feature, taking the keypress event and the nudge direction as the input. Nothing happens if an entity cannot be selected.
 function nudge_key(direction, event)--
    local pindex = event.player_index
    local p = game.get_player(pindex)
@@ -189,7 +191,7 @@ function nudge_key(direction, event)--
 
 end
 
---The travel part of the structure travel feature.
+--Structure travel: Moves the player cursor in the input direction.
 function move_cursor_structure(pindex, dir)
    local direction = players[pindex].structure_travel.direction
    local adjusted = {}
@@ -334,7 +336,7 @@ function move_cursor_structure(pindex, dir)
    end
 end
 
---Usually called when the cursor find an entity, gives its name and key information.
+--Outputs basic entity info, usually called when the cursor selects an entity.
 function ent_info(pindex, ent, description)
    local p = game.get_player(pindex)
    local result = localising.get(ent,pindex)
@@ -698,6 +700,7 @@ function ent_info(pindex, ent, description)
          result = result .. " nothing directly "
       end
    elseif next(ent.prototype.fluidbox_prototypes) ~= nil then
+      --For a fluidbox inside a building, give info about the connection directions
       local relative_position = {x = players[pindex].cursor_pos.x - ent.position.x, y = players[pindex].cursor_pos.y - ent.position.y}
       local direction = ent.direction/2
       local inputs = 0
@@ -1121,6 +1124,7 @@ function ent_info(pindex, ent, description)
    return result
 end
 
+--Returns a list of positions for this entity where it has its heat pipe connections.
 function get_heat_connection_positions(ent_name, ent_position, ent_direction)
    local pos = ent_position
    local positions = {}
@@ -1143,6 +1147,7 @@ function get_heat_connection_positions(ent_name, ent_position, ent_direction)
    return positions
 end
 
+--Returns a list of positions for this entity where it expects to find other heat pipe interfaces that it can connect to.
 function get_heat_connection_target_positions(ent_name, ent_position, ent_direction)
    local pos = ent_position
    local positions = {}
@@ -1174,7 +1179,7 @@ function get_heat_connection_target_positions(ent_name, ent_position, ent_direct
    return positions
 end
 
---Explain whether the belt is some type of corner or sideloading junction or etc.
+--Takes some stats about a belt unit and explains what type of junction the belt is.
 function transport_belt_junction_info(sideload_count, backload_count, outload_count, this_dir, outload_dir, say_middle, outload_is_corner)
    local say_middle = say_middle or false
    local outload_is_corner = outload_is_corner or false
@@ -1260,7 +1265,7 @@ function transport_belt_junction_info(sideload_count, backload_count, outload_co
    --Note: A pouring end either pours into a sideloading junction, or into a corner and this can now be identified. Lanes are preserved if the target is a corner.
 end
 
---Reports the charting range and how much of it has been charted so far
+--Reports the charting range of a radar and how much of it has been charted so far.
 function radar_charting_info(radar)
    local charting_range = radar.prototype.max_distance_of_sector_revealed
    local count = 0
@@ -1280,7 +1285,7 @@ function radar_charting_info(radar)
    return result
 end
 
---Creates the building network that is traveled during structure travel. 
+--Structure travel: Creates the building network that is traveled during structure travel. 
 function compile_building_network(ent, radius_in,pindex)--**Todo bug: Some neighboring structures are not picked up when they should be such as machines next to inserters
    local radius = radius_in
    local ents = ent.surface.find_entities_filtered{position = ent.position, radius = radius}
@@ -1528,6 +1533,7 @@ function teleport_to_closest(pindex, pos, muted, ignore_enemies)
    return true
 end
 
+--Reads out a selected warning from the menu.
 function read_warnings_slot(pindex)
    local warnings = {}
    if players[pindex].warnings.sector == 1 then
@@ -1549,6 +1555,7 @@ function read_warnings_slot(pindex)
    end
 end
 
+--Belt analyzer: Returns a navigable list of items that are found in the input transport belt line.
 function get_line_items(network)
    local result = {combined = {left = {}, right = {}}, downstream = {left = {}, right = {}}, upstream = {left = {}, right = {}}}
    local dict = {}
@@ -1668,6 +1675,7 @@ function get_line_items(network)
 
 end
 
+--Warnings menu: Creates a structured data network to track production systems.
 function generate_production_network(pindex)
    local surf = game.get_player(pindex).surface
    local connectors = surf.find_entities_filtered{type="inserter"}
@@ -1931,7 +1939,7 @@ function generate_production_network(pindex)
    return {hash = hash, lines = lines}
 end
 
---Create warnings list
+--Warnings menu: scans for problems in the production network it defines and creates the warnings list.
 function scan_for_warnings(L,H,pindex)
    local prod =       generate_production_network(pindex)
    local surf = game.get_player(pindex).surface
@@ -1990,6 +1998,7 @@ function scan_for_warnings(L,H,pindex)
    return {summary = str, warnings = result}
 end
 
+--Belt analyzer: Creates a list of transport lines that involve the belt uint B.
 function get_connected_lines(B)
    local left = {}
    local right = {}
@@ -2179,6 +2188,7 @@ if explored.side == 0 then
 
 end
 
+--Belt analyzer: Returns a hash table of the belt units connected to the belt unit B.
 function get_connected_belts(B)
    local result = {}
    local frontier = {table.deepcopy(B)}
@@ -2207,6 +2217,7 @@ function get_connected_belts(B)
    return {hash = hash, ents = result}
 end
 
+--???
 function prune_item_groups(array)
    if #groups == 0 then
       local dict = game.item_prototypes
@@ -2252,6 +2263,7 @@ function read_item_selector_slot(pindex, start_phrase)
    printout(start_phrase .. players[pindex].item_cache[players[pindex].item_selector.index].name, pindex)
 end
 
+--Small utility function for getting an entity's footprint area using just its name.
 function get_ent_area_from_name(ent_name,pindex)
    -- local ents = game.get_player(pindex).surface.find_entities_filtered{name = ent_name, limit = 1}
    -- if #ents == 0 then
@@ -2262,12 +2274,14 @@ function get_ent_area_from_name(ent_name,pindex)
    return game.entity_prototypes[ent_name].tile_width * game.entity_prototypes[ent_name].tile_height
 end
 
+--Returns true/false on whether an entity is located within a defined area.
 function confirm_ent_is_in_area(ent_name, area_left_top, area_right_bottom, pindex)
    local ents = game.get_player(pindex).surface.find_entities_filtered{name = ent_name, area = {area_left_top,area_right_bottom}, limit = 1}
    return #ents > 0
 end
 
-function draw_area_as_cursor(scan_left_top,scan_right_bottom,pindex, colour_in)
+--Redraws the player's cursor highlight box as a rectangle around the defined area.
+function draw_area_as_cursor(input_left_top,input_right_bottom,pindex, colour_in)
    local h_tile = players[pindex].cursor_tile_highlight_box
    if h_tile ~= nil then
       rendering.destroy(h_tile)
@@ -2276,7 +2290,7 @@ function draw_area_as_cursor(scan_left_top,scan_right_bottom,pindex, colour_in)
    if colour_in ~= nil then
       colour = colour_in
    end
-   h_tile = rendering.draw_rectangle{color = colour,surface = game.get_player(pindex).surface, left_top = scan_left_top, right_bottom = scan_right_bottom, draw_on_ground = true, players = nil}
+   h_tile = rendering.draw_rectangle{color = colour,surface = game.get_player(pindex).surface, left_top = input_left_top, right_bottom = input_right_bottom, draw_on_ground = true, players = nil}
    rendering.set_visible(h_tile,true)
    players[pindex].cursor_tile_highlight_box = h_tile
 
@@ -2286,6 +2300,7 @@ function draw_area_as_cursor(scan_left_top,scan_right_bottom,pindex, colour_in)
    end
 end
 
+--Formats a power value in watts to summarize it as a string according to its magnitude.
 function get_power_string(power)
    result = ""
    if power > 1000000000000 then
@@ -2306,6 +2321,7 @@ function get_power_string(power)
    return result
 end
 
+--Ent info: Gives the distance and direction of a fluidbox connection target? Todo: update to clarify and include localization
 function get_adjacent_source(box, pos, dir)
    local result = {position = pos, direction = ""}
    ebox = table.deepcopy(box)
@@ -2337,6 +2353,7 @@ function get_adjacent_source(box, pos, dir)
    return result
 end
 
+--Technology menu: Read the selected technology
 function read_technology_slot(pindex, start_phrase)
    start_phrase = start_phrase or ""
    local techs = {}
@@ -2360,6 +2377,7 @@ function read_technology_slot(pindex, start_phrase)
    end
 end
 
+--Transport belt analyzer: Read a results list slot
 function read_belt_slot(pindex, start_phrase)
    start_phrase = start_phrase or ""
    local stack = nil
@@ -2440,6 +2458,7 @@ function reset_rotation(pindex)
    players[pindex].building_direction = dirs.north
 end
 
+--Building recipe selection sector: Read the selected recipe 
 function read_building_recipe(pindex, start_phrase)
    start_phrase = start_phrase or ""
    if players[pindex].building.recipe_selection then --inside the selector
@@ -2459,6 +2478,7 @@ function read_building_recipe(pindex, start_phrase)
    end
 end
 
+--Building sectors: Read the item or fluid at the selected slot.
 function read_building_slot(pindex, prefix_inventory_size_and_name)
    local building_sector = players[pindex].building.sectors[players[pindex].building.sector]
    if building_sector.name == "Filters" then
@@ -2649,13 +2669,14 @@ function factorio_default_sort(k1, k2)
    end
 end
 
-function get_recipes(pindex, building, load_all)
-   if not building then
+--Returns a navigable list of all unlocked recipes, for the recipe categories supported by the selected entity. Optionally can return all unlocked recipes for all categories.
+function get_recipes(pindex, ent, load_all_categories)
+   if not ent then
       return {}
    end
    local category_filters={}
    --Load the supported recipe categories for this entity
-   for category_name, _ in pairs(building.prototype.crafting_categories) do
+   for category_name, _ in pairs(ent.prototype.crafting_categories) do
       table.insert(category_filters, {filter="category", category=category_name})
    end
    local all_machine_recipes = game.get_filtered_recipe_prototypes(category_filters)
@@ -2663,7 +2684,7 @@ function get_recipes(pindex, building, load_all)
    local force_recipes = game.get_player(pindex).force.recipes
 
    --Load all crafting categories if instructed
-   if load_all == true then
+   if load_all_categories == true then
       all_machine_recipes = force_recipes
    end
 
@@ -2683,6 +2704,7 @@ function get_recipes(pindex, building, load_all)
    return result
 end
 
+--Returns the length and width of the entity version of an item. Todo: review and cleanup direction defines.
 function get_tile_dimensions(item, dir)
    if item.place_result ~= nil then
       local dimensions = item.place_result.selection_box
@@ -2697,6 +2719,7 @@ function get_tile_dimensions(item, dir)
    return {x = 0, y = 0}
 end
 
+--Reads out the selected slot of the player crafting queue.
 function read_crafting_queue(pindex, start_phrase)
    start_phrase = start_phrase or ""
    if players[pindex].crafting_queue.max ~= 0 then
@@ -2708,20 +2731,22 @@ function read_crafting_queue(pindex, start_phrase)
    end
 end
 
-function count_in_crafting_queue(check_recipe_name, pindex)
+--Returns a count of how many batches of this recipe are listed in the (entire) crafting queue. 
+function count_in_crafting_queue(recipe_name, pindex)
    local count = 0
    if game.get_player(pindex).crafting_queue == nil or #game.get_player(pindex).crafting_queue == 0 then
       return count
    end
    for i, item in ipairs(game.get_player(pindex).crafting_queue) do
-      if item.recipe == check_recipe_name then
+      if item.recipe == recipe_name then
          count = count + item.count
       end
-      --game.print(item.recipe .. " vs " .. check_recipe_name)
+      --game.print(item.recipe .. " vs " .. recipe_name)
    end
    return count
 end
 
+--Loads the crafting queue menu for a player.
 function load_crafting_queue(pindex)
    if players[pindex].crafting_queue.lua_queue ~= nil then
       players[pindex].crafting_queue.lua_queue = game.get_player(pindex).crafting_queue
@@ -2744,6 +2769,7 @@ function load_crafting_queue(pindex)
    end
 end
 
+--Returns a count of total recipe batches left in the player crafting queue. 
 function get_crafting_que_total(pindex)
    local p = game.get_player(pindex)
    local total_items = 0
@@ -2756,6 +2782,7 @@ function get_crafting_que_total(pindex)
    return total_items
 end
 
+--Reads the currently selected recipe in the player crafting menu.
 function read_crafting_slot(pindex, start_phrase, new_category)
    start_phrase = start_phrase or ""
    local recipe = players[pindex].crafting.lua_recipes[players[pindex].crafting.category][players[pindex].crafting.index]
@@ -2769,6 +2796,7 @@ function read_crafting_slot(pindex, start_phrase, new_category)
    end
 end
 
+--Returns an info string about how many units of which ingredients are missing in order to craft one batch of this recipe.
 function recipe_missing_ingredients_info(pindex, recipe_in)
    local recipe = recipe_in or players[pindex].crafting.lua_recipes[players[pindex].crafting.category][players[pindex].crafting.index]
    local p = game.get_player(pindex)
@@ -2792,7 +2820,7 @@ function recipe_missing_ingredients_info(pindex, recipe_in)
    return result
 end
 
---Reads a player inventory slot
+--Reads the selected player inventory's selected menu slot. Default is to read the main inventory.
 function read_inventory_slot(pindex, start_phrase_in, inv_in)
    local start_phrase = start_phrase_in or ""
    local index = players[pindex].inventory.index
@@ -2818,6 +2846,7 @@ function read_inventory_slot(pindex, start_phrase_in, inv_in)
    end
 end
 
+--Reads the item in hand, its facing direction if applicable, its count, and its total count including units in the main inventory.
 function read_hand(pindex)
    if players[pindex].skip_read_hand == true then
       players[pindex].skip_read_hand = false
@@ -2887,8 +2916,7 @@ function read_hand(pindex)
    end
 end
 
---Stores the hand item in the player inventory and reads it from the first found player inventory slot, CONTROL + Q
---NOTE: laterdo can use player.hand_location in the future if it has advantages
+--Clears the item in hand and then locates it from the first found player inventory slot. laterdo can use API:player.hand_location in the future if it has advantages
 function locate_hand_in_player_inventory(pindex)
    local p = game.get_player(pindex)
    local inv = p.get_main_inventory()
@@ -2944,7 +2972,7 @@ function locate_hand_in_player_inventory(pindex)
 
 end
 
---Stores the hand item in the player inventory and reads it from the first found building output slot, CONTROL + Q
+--Clears the item in hand and then locates it from the first found building output slot
 function locate_hand_in_building_output_inventory(pindex)
    local p = game.get_player(pindex)
    local inv = nil
@@ -2997,7 +3025,7 @@ function locate_hand_in_building_output_inventory(pindex)
 
 end
 
---Locate the item in hand from the crafting menu. Closes some other menus, does not run in some other menus, uses the new search fn.
+--Clears the item in hand and then locates its recipe from the crafting menu. Closes some other menus, does not run in some other menus, uses the menu search function.
 function locate_hand_in_crafting_menu(pindex)
    local p = game.get_player(pindex)
    local inv = p.get_main_inventory()
@@ -3040,6 +3068,7 @@ function locate_hand_in_crafting_menu(pindex)
    menu_search_get_next(pindex,item_name,nil)
 end
 
+--If there is an entity to select, moves the mouse pointer to it, else moves to the cursor tile.
 function target(pindex)
    if players[pindex].vanilla_mode then
       return
@@ -3052,7 +3081,7 @@ function target(pindex)
    end
 end
 
---Move the mouse cursor to the correct pixel on the screen 
+--Moves the mouse pointer to the correct pixel on the screen for an input map position. If the position is off screen, then the pointer is centered on the player character instead. Does not run in vanilla mode or if the mouse is released from synchronizing. 
 function move_mouse_pointer(position,pindex)
    local pos = position
    if players[pindex].vanilla_mode or game.get_player(pindex).game_view_settings.update_entity_selection == true then
@@ -3071,27 +3100,14 @@ function move_mouse_pointer(position,pindex)
    --game.get_player(pindex).print("moved to " ..  math.floor(pixels.x) .. " , " ..  math.floor(pixels.y), {volume_modifier=0})--
 end
 
---Move the mouse cursor to the correct pixel on the screen 
-function move_mouse_pointer_map_mode(position,pindex)
-   if players[pindex].vanilla_mode or game.get_player(pindex).game_view_settings.update_entity_selection == true then
-      return
-   end
-   local player = players[pindex]
-   --local pixels = {x = 0, y = 0}
-   local pixels = mult_position(sub_position(position, players[pindex].cursor_pos), 32*players[pindex].zoom)
-   local screen = game.players[pindex].display_resolution
-   local screen_c = {x = screen.width, y = screen.height}
-   pixels = add_position(pixels,mult_position(screen_c,0.5))
-   move_pointer(pixels.x, pixels.y, pindex)
-   --game.get_player(pindex).print("moved to " .. math.floor(pixels.x) .. " , " ..  math.floor(pixels.y), {volume_modifier=0})--
-end
-
+--Moves the mouse pointer to specified pixels on the screen.
 function move_pointer(x,y, pindex)
    if x >= 0 and y >=0 and x < game.players[pindex].display_resolution.width and y < game.players[pindex].display_resolution.height then
       print ("setCursor " .. pindex .. " " .. math.ceil(x) .. "," .. math.ceil(y))
    end
 end
 
+--Checks the cursor tile for a new entity and reads out ent info. Used when a tile has multiple overlapping entities.
 function tile_cycle(pindex)
    local tile=players[pindex].tile
    tile.index = tile.index + 1
@@ -3106,6 +3122,7 @@ function tile_cycle(pindex)
    end
 end
 
+--Checks if the global players table has been created, and if the table entry for this player exists. Otherwise it is initialized. 
 function check_for_player(index)
    if not players then
       global.players = global.players or {}
@@ -3119,6 +3136,7 @@ function check_for_player(index)
    end
 end
 
+--Prints a string to the Factorio Access Launcher app for the vocalizer to read out.
 function printout(str, pindex)
    if pindex ~= nil and pindex > 0 then
       players[pindex].last = str
@@ -3133,10 +3151,12 @@ function printout(str, pindex)
    end
 end
 
+--Reprints the last sent string to the Factorio Access Launcher app for the vocalizer to read out.
 function repeat_last_spoken(pindex)
    printout(players[pindex].last, pindex)
 end
 
+--small utility function for getting the index of a named object from an array of objects.
 function index_of_entity(array, value)
    if next(array) == nil then
       return nil
@@ -3149,6 +3169,7 @@ function index_of_entity(array, value)
    return nil
 end
 
+--Toggles cursor mode on or off. Appropriately affects other modes such as build lock or remote view.
 function toggle_cursor_mode(pindex)
    local p = game.get_player(pindex)
    if p.character == nil then
@@ -3199,6 +3220,7 @@ function toggle_cursor_mode(pindex)
    end
 end
 
+--Toggles remote view on or off. Appropriately affects build lock or remote view.
 function toggle_remote_view(pindex, force_true, force_false)
    if (players[pindex].remote_view ~= true or force_true == true) and force_false ~= true then
       players[pindex].remote_view = true
@@ -3215,6 +3237,7 @@ function toggle_remote_view(pindex, force_true, force_false)
    end
 end
 
+--Teleports the player character to the nearest tile center position to allow grid aligned cursor movement.
 function center_player_character(pindex)
    local p = game.get_player(pindex)
    local can_port = p.surface.can_place_entity{name = "character", position = center_of_tile(p.position)}
@@ -3232,6 +3255,7 @@ function center_player_character(pindex)
    move_mouse_pointer(players[pindex].cursor_pos,pindex)
 end
 
+--Teleports the player character to the cursor position.
 function teleport_to_cursor(pindex, muted, ignore_enemies, return_cursor)
    local result = teleport_to_closest(pindex, players[pindex].cursor_pos, muted, ignore_enemies)
    if return_cursor then
@@ -3240,6 +3264,7 @@ function teleport_to_cursor(pindex, muted, ignore_enemies, return_cursor)
    return result
 end
 
+--Teleports the cursor to the player character
 function jump_to_player(pindex)
    local first_player = game.get_player(pindex)
    players[pindex].cursor_pos.x = math.floor(first_player.position.x)+.5
@@ -3254,7 +3279,7 @@ function jump_to_player(pindex)
    end
 end
 
---Reads the cursor tile and the entities on it
+--Re-checks the cursor tile and indexes the entities on it, returns a boolean on whether it is successful.
 function refresh_player_tile(pindex)
    local surf = game.get_player(pindex).surface
    --local search_area = {{x=-0.5,y=-0.5},{x=0.29,y=0.29}}
@@ -3287,6 +3312,7 @@ function refresh_player_tile(pindex)
    return true
 end
 
+--Reads the cursor tile and reads out the result. If an entity is found, its ent info is read. Otherwise info about the tile itself is read.
 function read_tile(pindex, start_text)
    local result = start_text or ""
    if not refresh_player_tile(pindex) then
@@ -3350,7 +3376,7 @@ function read_tile(pindex, start_text)
    --game.get_player(pindex).print(result)--**
 end
 
---Cursor building preview checks. NOTE: Only 1 by 1 entities for now
+--Returns an info string about trying to build the entity in hand. The info type depends on the entity. Note: Limited usefulness for entities with sizes greater than 1 by 1.
 function build_preview_checks_info(stack, pindex)
    if stack == nil or not stack.valid_for_read or not stack.valid then
       return "invalid stack"
@@ -3855,6 +3881,7 @@ function build_preview_checks_info(stack, pindex)
    return result
 end
 
+--For a building with fluidboxes, returns the external fluidbox and fluid name that would connect to one of the building's own fluidboxes at a particular position, from a particular direction. Importantly, ignores fluidboxes that are positioned correctly but would not connect, such as a pipe to ground facing a perpebdicular direction. 
 function get_relevant_fluidbox_and_fluid_name(building, pos, dir_from_pos)
    local relevant_box = nil
    local relevant_fluid_name = nil
@@ -3886,7 +3913,7 @@ function get_relevant_fluidbox_and_fluid_name(building, pos, dir_from_pos)
    return relevant_box, relevant_fluid_name, dir_from_pos
 end
 
---Read the current co-ordinates of the cursor on the map or in a menu. For crafting recipe and technology menus, it reads the ingredients / requirements instead.
+--Read the current co-ordinates of the cursor on the map or in a menu. For crafting recipe and technology menus, it reads the ingredients / requirements instead. Todo: split this function by menu.
 function read_coords(pindex, start_phrase)
    start_phrase = start_phrase or ""
    local result = start_phrase
@@ -4088,7 +4115,7 @@ function read_coords(pindex, start_phrase)
    end
 end
 
---Initialize the saved data tables for a specific player.
+--Initialize the globally saved data tables for a specific player.
 function initialize(player)
    local force=player.force.index
    global.forces[force] = global.forces[force] or {}
@@ -4434,6 +4461,7 @@ script.on_event(defines.events.on_player_changed_position,function(event)
    end
 end)
 
+--Calls the appropriate menu movement function for a player and the input direction.
 function menu_cursor_move(direction,pindex)
    players[pindex].preferences.inventory_wraps_around = true--laterdo make this a setting to toggle
    if     direction == defines.direction.north then
@@ -4447,7 +4475,7 @@ function menu_cursor_move(direction,pindex)
    end
 end
 
---menu_up
+--Moves upwards in a menu. Todo: split by menu. "menu_up"
 function menu_cursor_up(pindex)
    if players[pindex].item_selection then
       if players[pindex].item_selector.group == 0 then
@@ -4674,7 +4702,7 @@ function menu_cursor_up(pindex)
 
 end
 
---menu_down
+--Moves downwards in a menu. Todo: split by menu."menu_down"
 function menu_cursor_down(pindex)
    if players[pindex].item_selection then
       if players[pindex].item_selector.group == 0 then
@@ -4924,7 +4952,7 @@ function menu_cursor_down(pindex)
 
 end
 
---menu_left
+--Moves to the left in a menu. Todo: split by menu."menu_left"
 function menu_cursor_left(pindex)
    if players[pindex].item_selection then
          players[pindex].item_selector.index = math.max(1, players[pindex].item_selector.index - 1)
@@ -5075,7 +5103,7 @@ function menu_cursor_left(pindex)
    end
 end
 
---menu_right
+----Moves to the right  in a menu. Todo: split by menu. "menu_right"
 function menu_cursor_right(pindex)
    if players[pindex].item_selection then
          players[pindex].item_selector.index = math.min(#players[pindex].item_cache, players[pindex].item_selector.index + 1)
@@ -5244,6 +5272,7 @@ function menu_cursor_right(pindex)
    end
 end
 
+--Schedules a function to be called after a certain number of ticks.
 function schedule(ticks_in_the_future,func_to_call, data_to_pass_1, data_to_pass_2, data_to_pass_3)
    if type(_G[func_to_call]) ~= "function" then
       error(func_to_call .. " is not a function")
@@ -5258,7 +5287,7 @@ function schedule(ticks_in_the_future,func_to_call, data_to_pass_1, data_to_pass
    table.insert(schedule[tick], {func_to_call, data_to_pass_1, data_to_pass_2, data_to_pass_3})
 end
 
-
+--Handles a player joining into a game session.
 function on_player_join(pindex)
    players = players or global.players
    schedule(3, "fix_zoom", pindex)
@@ -5270,39 +5299,13 @@ function on_player_join(pindex)
    end
    print("playerList " .. game.table_to_json(playerList))
    if game.players[pindex].name == "Crimso" then
+      --Debug stuff 
       local player = game.get_player(pindex).cutscene_character or game.get_player(pindex).character
       player.force.research_all_technologies()
 
---game.write_file('map.txt', game.table_to_json(game.parse_map_exchange_string(">>>eNpjZGBksGUAgwZ7EOZgSc5PzIHxgNiBKzm/oCC1SDe/KBVZmDO5qDQlVTc/E1Vxal5qbqVuUmIxsmJ7jsyi/Dx0E1iLS/LzUEVKilJTi5E1cpcWJeZlluai62VgnPIl9HFDixwDCP+vZ1D4/x+EgawHQL+AMANjA0glIyNQDAZYk3My09IYGBQcGRgKnFev0rJjZGSsFlnn/rBqij0jRI2eA5TxASpyIAkm4glj+DnglFKBMUyQzDEGg89IDIilJUAroKo4HBAMiGQLSJKREeZ2xl91WXtKJlfYM3qs3zPr0/UqO6A0O0iCCU7MmgkCO2FeYYCZ+cAeKnXTnvHsGRB4Y8/ICtIhAiIcLIDEAW9mBkYBPiBrQQ+QUJBhgDnNDmaMiANjGhh8g/nkMYxx2R7dH8CAsAEZLgciToAIsIVwl0F95tDvwOggD5OVRCgB6jdiQHZDCsKHJ2HWHkayH80hmBGB7A80ERUHLNHABbIwBU68YIa7BhieF9hhPIf5DozMIAZI1RegGIQHkoEZBaEFHMDBzcyAAMC0cepk2C4A0ySfhQ==<<<")))
-   player.insert{name="pipe", count=100}
---   printout("Character loaded." .. #game.surfaces,  player.index)
---   player.insert{name="accumulator", count=10}
---   player.insert{name="beacon", count=10}
---   player.insert{name="boiler", count=10}
---   player.insert{name="centrifuge", count=10}
-   player.insert{name="chemical-plant", count=10}
-   player.insert{name="electric-mining-drill", count=10}
---   player.insert{name="heat-exchanger", count=10}
---   player.insert{name="nuclear-reactor", count=10}
-   player.insert{name="offshore-pump", count=10}
-   player.insert{name="oil-refinery", count=10}
---   player.insert{name="pumpjack", count=10}
---   player.insert{name="rocket-silo", count=1}
-   player.insert{name="steam-engine", count=10}
-   player.insert{name="wooden-chest", count=10}
-   player.insert{name="assembling-machine-1", count=10}
---   player.insert{name="gun-turret", count=10}
-   player.insert{name="transport-belt", count=100}
-   player.insert{name="coal", count=100}
-   player.insert{name="filter-inserter", count=10}
---   player.insert{name="fast-transport-belt", count=100}
---   player.insert{name="express-transport-belt", count=100}
-   player.insert{name="small-electric-pole", count=100}
---   player.insert{name="big-electric-pole", count=100}
---   player.insert{name="substation", count=100}
---   player.insert{name="solar-panel", count=100}
---   player.insert{name="pipe-to-ground", count=100}
---   player.insert{name="underground-belt", count=100}
+      --game.write_file('map.txt', game.table_to_json(game.parse_map_exchange_string(">>>eNpjZGBksGUAgwZ7EOZgSc5PzIHxgNiBKzm/oCC1SDe/KBVZmDO5qDQlVTc/E1Vxal5qbqVuUmIxsmJ7jsyi/Dx0E1iLS/LzUEVKilJTi5E1cpcWJeZlluai62VgnPIl9HFDixwDCP+vZ1D4/x+EgawHQL+AMANjA0glIyNQDAZYk3My09IYGBQcGRgKnFev0rJjZGSsFlnn/rBqij0jRI2eA5TxASpyIAkm4glj+DnglFKBMUyQzDEGg89IDIilJUAroKo4HBAMiGQLSJKREeZ2xl91WXtKJlfYM3qs3zPr0/UqO6A0O0iCCU7MmgkCO2FeYYCZ+cAeKnXTnvHsGRB4Y8/ICtIhAiIcLIDEAW9mBkYBPiBrQQ+QUJBhgDnNDmaMiANjGhh8g/nkMYxx2R7dH8CAsAEZLgciToAIsIVwl0F95tDvwOggD5OVRCgB6jdiQHZDCsKHJ2HWHkayH80hmBGB7A80ERUHLNHABbIwBU68YIa7BhieF9hhPIf5DozMIAZI1RegGIQHkoEZBaEFHMDBzcyAAMC0cepk2C4A0ySfhQ==<<<")))
+      player.insert{name="pipe", count=100}
+
       for i = 0, 10 do
          for j = 0, 10 do
             player.surface.create_entity{name = "iron-ore", position = {i + .5, j + .5}}
@@ -5310,11 +5313,8 @@ function on_player_join(pindex)
       end
    --   player.force.research_all_technologies()
    end
-
-   --Starting inventory boost for easy difficulty 
-   local player = game.get_player(pindex).cutscene_character or game.get_player(pindex).character
-   --player.insert{name = "rocket-fuel", count = 20}
-
+   
+   --Reset the player building direction to match the vanilla behavior.
    players[pindex].building_direction = dirs.north--
 end
 
@@ -5332,6 +5332,7 @@ function on_initial_joining_tick(event)
    script.on_event(defines.events.on_tick,on_tick)
 end
 
+--Called every tick. Used to call scheduled and repeated functions.
 function on_tick(event)
    if global.scheduled_events[event.tick] then
       for _, to_call in pairs(global.scheduled_events[event.tick]) do
@@ -5425,7 +5426,7 @@ function on_tick(event)
    end
 end
 
---For each player, checks the open menu and appropriately calls to update the overhead sprite and GUI sprite
+--For each player, checks the open menu and appropriately calls to update the overhead sprite and the open GUI.
 function update_menu_visuals()
    for pindex, player in pairs(players) do
       if player.in_menu then
@@ -5538,7 +5539,7 @@ end
 
 script.on_event(defines.events.on_tick,on_initial_joining_tick)
 
---Called for every player on every tick
+--Called for every player on every tick, to manage automatic walking and enforcing mouse pointer position syncs. Todo: move the mouse pointer stuff to its own function.
 function move_characters(event)
    for pindex, player in pairs(players) do
       if player.vanilla_mode == true then
@@ -5562,6 +5563,7 @@ function move_characters(event)
          end
 
       end
+
       if player.walk ~= 2 or player.cursor or player.in_menu then
          local walk = false
          while #player.move_queue > 0 do
@@ -5600,6 +5602,8 @@ function move(direction,pindex)
    local first_player = game.get_player(pindex)
    local pos = players[pindex].position
    local new_pos = offset_position(pos,direction,1)
+   
+   --Compare the input direction and facing direction
    if players[pindex].player_direction == direction then
       --Same direction: Move character:
       if players[pindex].walk == 2 then
@@ -5618,7 +5622,7 @@ function move(direction,pindex)
          end
          players[pindex].position = new_pos
          players[pindex].cursor_pos = offset_position(players[pindex].position, direction,1)
-         --Telestep walking sounds
+         --Telestep walking sounds: todo fix bug here (?) about walking sounds from inside menus
          if players[pindex].tile.previous ~= nil and players[pindex].tile.previous.valid and players[pindex].tile.previous.type == "transport-belt" then
             game.get_player(pindex).play_sound{path = "utility/metal_walking_sound", volume_modifier = 1}
          else
@@ -5700,7 +5704,7 @@ function move(direction,pindex)
    end
 end
 
---Move key pressed to move the character or the cursor in the world or in a menu 
+--Chooses the function to call after a movement keypress, according to the current mode.
 function move_key(direction,event, force_single_tile)
    local pindex = event.player_index
    if not check_for_player(pindex) or players[pindex].menu == "prompt" then
@@ -5737,8 +5741,8 @@ function move_key(direction,event, force_single_tile)
    players[pindex].kruise_kontrolling = false
 end
 
---Move the cursor, and conduct area scans for larger cursors. Does not work while dirving if the vehicle is moving
-function cursor_mode_move(direction, pindex, single_only)--*****
+--Moves the cursor, and conducts an area scan for larger cursors. If the player is in a slow moving vehicle, it is stopped.
+function cursor_mode_move(direction, pindex, single_only)
    local diff = players[pindex].cursor_size * 2 + 1
    if single_only then
       diff = 1
@@ -5752,9 +5756,9 @@ function cursor_mode_move(direction, pindex, single_only)--*****
          schedule(60,"stop_vehicle",pindex)
          p.vehicle.active = false
       else
-         schedule(15,"halve_vehicle_speed",pindex)
-         schedule(30,"halve_vehicle_speed",pindex)
-         schedule(60,"halve_vehicle_speed",pindex)
+         --schedule(15,"halve_vehicle_speed",pindex)
+         --schedule(30,"halve_vehicle_speed",pindex)
+         --schedule(60,"halve_vehicle_speed",pindex)
       end
    end
 
@@ -5807,14 +5811,14 @@ function cursor_mode_move(direction, pindex, single_only)--*****
 
 end
 
---Focus camera on the cursor position 
+--Focuses camera on the cursor position.
 function sync_remote_view(pindex)
    local p = game.get_player(pindex)
    p.zoom_to_world(players[pindex].cursor_pos)
    sync_build_cursor_graphics(pindex)
 end
 
---Makes the character face the cursor but can be overwriten by vanilla move keys.
+--Makes the character face the cursor, choosing the nearest of 4 cardinal directions. Can be overwriten by vanilla move keys.
 function turn_to_cursor_direction_cardinal(pindex)--
    local p = game.get_player(pindex)
    if p.character == nil then
@@ -5836,7 +5840,7 @@ function turn_to_cursor_direction_cardinal(pindex)--
    --game.print("set cardinal charct_dir: " .. direction_lookup(p.character.direction))--
 end
 
---Makes the character face the cursor but can be overwriten by vanilla move keys.
+--Makes the character face the cursor, choosing the nearest of 8 directions. Can be overwriten by vanilla move keys.
 function turn_to_cursor_direction_precise(pindex)
    local p = game.get_player(pindex)
    if p.character == nil then
@@ -12225,6 +12229,7 @@ script.on_event("debug-test-key", function(event)
    --Character:move_to(players[pindex].cursor_pos, util.distance(players[pindex].position,players[pindex].cursor_pos), 100)
 end)
 
+--Shows a GUI to demonstrate different sprites from the game files.
 function show_sprite_demo(pindex)
    --Set these 5 sprites to sprites that you want to demo
    local sprite1 = "item-group.intermediate-products"
@@ -12607,7 +12612,6 @@ if 'number' == type(players[pindex].resources[i].patches[new_group]) then new_gr
    end
 end)
 
-
 script.on_event(defines.events.on_entity_destroyed,function(event) --DOES NOT HAVE THE KEY PLAYER_INDEX
    local ent = nil
    for pindex, player in pairs(players) do --If the destroyed entity is destroyed by any player, it will be detected. Laterdo consider logged out players etc?
@@ -12709,6 +12713,7 @@ function get_electricity_satisfaction(electric_pole)
    return satisfaction
 end
 
+--For an electricity producer, returns an info string on the current and maximum production.
 function get_electricity_flow_info(ent)
    local result = ""
    local power = 0
@@ -12806,7 +12811,6 @@ function find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, 
    rendering.draw_circle{color = {1, 1, 0}, radius = 2, width = 2, target = nearest.position, surface = nearest.surface, time_to_live = 60}
    return nearest, min_dist
 end
-
 
 --Returns an info string on the nearest supplied electric pole for this entity.
 function report_nearest_supplied_electric_pole(ent)
@@ -12990,6 +12994,7 @@ function set_splitter_priority(splitter, is_input, is_left, filter_item_stack, c
    return result
 end
 
+--Returns an info string about a splitter's input and output settings.
 function splitter_priority_info(ent)
    local result = ","
    local input = ent.splitter_input_priority
@@ -13024,6 +13029,7 @@ function splitter_priority_info(ent)
    return result
 end
 
+--If a splitter is selected, the item in hand is set as its output filter item.
 function set_inserter_filter_by_hand(pindex, ent)
    local stack = game.get_player(pindex).cursor_stack
    if ent.filter_slot_count == 0 then
@@ -13057,6 +13063,7 @@ function set_inserter_filter_by_hand(pindex, ent)
 
 end
 
+--Updates graphics to match the mod's current construction preview in hand. Draws stuff like the building footprint, direction indicator arrow, selection tool selection box. Also moves the mouse pointer to hold the preview at the correct position on screen.
 function sync_build_cursor_graphics(pindex)
    local player = players[pindex]
    if player == nil or player.player.character == nil then
@@ -13242,7 +13249,7 @@ function sync_build_cursor_graphics(pindex)
    end
 end
 
---Highlights the tile or the entity under the cursor
+--Draws the mod cursor box and highlights an entity selected by the cursor. Also moves the mouse pointer to the mod cursor position.
 function cursor_highlight(pindex, ent, box_type, skip_mouse_movement)
    local p = game.get_player(pindex)
    local c_pos = players[pindex].cursor_pos
@@ -13313,12 +13320,14 @@ function cursor_highlight(pindex, ent, box_type, skip_mouse_movement)
    end
 end
 
+--Checks if the map position of the mod cursor falls on screen when the camera is locked on the player character.
 function cursor_position_is_on_screen_with_player_centered(pindex)
    local range_y = math.floor(16/players[pindex].zoom)--found experimentally by counting tile ranges at different zoom levels
    local range_x = range_y * game.get_player(pindex).display_scale * 1.5--found experimentally by checking scales
    return (math.abs(players[pindex].cursor_pos.y - players[pindex].position.y) <= range_y and math.abs(players[pindex].cursor_pos.x - players[pindex].position.x) <= range_x)
 end
 
+--Feature for typing in coordinates for moving the mod cursor.
 function type_cursor_position(pindex)
    printout("Enter new co-ordinates for the cursor, separated by a space", pindex)
    players[pindex].cursor_jumping = true
@@ -13330,6 +13339,7 @@ function type_cursor_position(pindex)
    input.focus()
 end
 
+--Recolors the mod cursor box to match the player's color. Useful in multiplayer when multiple cursors are on screen.
 function set_cursor_colors_to_player_colors(pindex)
    if not check_for_player(pindex) then
       return
@@ -13343,6 +13353,7 @@ function set_cursor_colors_to_player_colors(pindex)
    end
 end
 
+--Returns the map position of the northwest corner of an entity.
 function get_ent_northwest_corner_position(ent)
    if ent.valid == false or ent.tile_width == nil then
       return ent.position
@@ -14717,6 +14728,7 @@ script.on_event("nearest-damaged-ent-info", function(event)
    read_nearest_damaged_ent_info(players[pindex].cursor_pos,pindex)
 end)
 
+--Reads out the distance and direction to the nearest damaged entity within 1000 tiles.
 function read_nearest_damaged_ent_info(pos,pindex)--
    local p = game.get_player(pindex)
    --Scan for ents of your force
@@ -14770,6 +14782,7 @@ script.on_event("cursor-pollution-info", function(event)
    read_pollution_level_at_position(players[pindex].cursor_pos,pindex)
 end)
 
+--Reads out the relative pollution level at the input position. The categories are based on data like map view shaders, water discoloration rates. For example, in default settings trees are damaged after pollution exceeds 60 and water is discolored after 90, and the deepest shader applies after 150.
 function read_pollution_level_at_position(pos,pindex)--
    local p = game.get_player(pindex)
    local pol = p.surface.get_pollution(pos)
