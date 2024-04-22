@@ -1990,7 +1990,7 @@ function get_blueprint_corners(pindex, draw_rect)
    local east_most_x = 0
    local north_most_y = 0
    local south_most_y = 0
-   
+   local first_ent=true
    --Empty blueprint: Just circle the cursor 
    if bp.is_blueprint_setup() == false then
       local left_top = {x = math.floor(pos.x), y = math.floor(pos.y)}
@@ -2013,24 +2013,26 @@ function get_blueprint_corners(pindex, draw_rect)
       local ent_south = ent.position.y + math.floor(ent_height/2)
       local ent_west  = ent.position.x - math.floor(ent_width/2)
       --Initialize with this entity
-      if west_most_x == nil then
-         west_most_x = ent_west 
+      if first_ent then
+         first_ent = false
+         west_most_x = ent_west
          east_most_x = ent_east
          north_most_y = ent_north
          south_most_y = ent_south
-      end
-      --Compare ent edges with the blueprint edges 
-      if west_most_x > ent_west then
-         west_most_x = ent_west
-      end
-      if east_most_x < ent_east then 
-         east_most_x = ent_east
-      end
-      if north_most_y > ent_north then
-         north_most_y = ent_north
-      end
-      if south_most_y < ent_south then
-         south_most_y = ent_south 
+      else
+         --Compare ent edges with the blueprint edges 
+         if west_most_x > ent_west then
+            west_most_x = ent_west
+         end
+         if east_most_x < ent_east then
+            east_most_x = ent_east
+         end
+         if north_most_y > ent_north then
+            north_most_y = ent_north
+         end
+         if south_most_y < ent_south then
+            south_most_y = ent_south
+         end
       end
    end
    --Determine blueprint dimensions from the final edges
