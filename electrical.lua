@@ -1,5 +1,6 @@
 
 --Formats a power value in watts to summarize it as a string according to its magnitude.
+---@param power float
 function get_power_string(power)
    result = ""
    if power > 1000000000000 then
@@ -30,6 +31,7 @@ function get_electricity_satisfaction(electric_pole)
 end
 
 --For an electricity producer, returns an info string on the current and maximum production.
+---@param ent LuaEntity
 function get_electricity_flow_info(ent)
    local result = ""
    local power = 0
@@ -55,8 +57,8 @@ function get_electricity_flow_info(ent)
 end
 
 --Finds the neearest electric pole. Can be set to determine whether to check only for poles with electricity flow. Can call using only the first two parameters.
----@param ent LuaEntity
 function find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, alt_pos)
+   ---@type LuaEntity
    local nearest = nil
    local min_dist = 99999
    require_supplied = require_supplied or false
@@ -69,7 +71,7 @@ function find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, 
 	   pos = ent.position
    else
       surface = alt_surface
-	  pos = alt_pos
+	   pos = alt_pos
    end
 
    --Scan nearby for electric poles, expand radius if not successful

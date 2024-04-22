@@ -1,3 +1,9 @@
+--Here: Crafting menu, crafting queue menu, technology menu, related functions
+
+local util = require('util')
+local fa_utils = require('fa-utils')
+local localising = require('localising')
+
 --Technology menu: Read the selected technology
 function read_technology_slot(pindex, start_phrase)
    start_phrase = start_phrase or ""
@@ -38,6 +44,7 @@ function get_recipes(pindex, ent, load_all_categories)
 
    --Load all crafting categories if instructed
    if load_all_categories == true then
+      ---@diagnostic disable-next-line: cast-local-type
       all_machine_recipes = force_recipes
    end
 

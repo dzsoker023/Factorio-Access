@@ -1,14 +1,14 @@
-require('zoom')
-require('scanner')
-require('rails-and-trains')
-require('spidertron')
-require('worker-robots')
-require('equipment-and-combat')
-require('circuit-networks')
-require('help-system')
-require('settings-menus')
-require('fa-utils')
-localising=require('localising')
+local zoom = require('zoom')
+local scanner = require('scanner')
+local rails_trains = require('rails-and-trains')
+local spidertrons = require('spidertron')
+local worker_robots = require('worker-robots')
+local equipment_combat = require('equipment-and-combat')
+local circuit_networks = require('circuit-networks')
+local tutorial_system = require('help-system')
+local settings_system = require('settings-menus')
+local fa_utils = require('fa-utils')
+local localising = require('localising')
 local util = require('util')
 
 groups = {}
@@ -419,7 +419,7 @@ function ent_info(pindex, ent, description)
             if pipe.type == "input" then
                inputs = inputs + 1
             end
-            local adjusted = {position, direction}
+            local adjusted = {position = nil, direction = nil}
             if ent.name == "offshore-pump" then
                adjusted.position = {x = 0, y = 0}
                if direction == 0 then
@@ -501,17 +501,17 @@ function ent_info(pindex, ent, description)
       local left_dir = "left"
       local right_dir = "right"
       if ent.direction == dirs.north then
-         left_dir = direction_lookup(dirs.west)
-         right_dir = direction_lookup(dirs.east)
+         left_dir = direction_lookup(dirs.west) or "left"
+         right_dir = direction_lookup(dirs.east) or "right"
       elseif ent.direction == dirs.east then
-         left_dir = direction_lookup(dirs.north)
-         right_dir = direction_lookup(dirs.south)
+         left_dir = direction_lookup(dirs.north) or "left"
+         right_dir = direction_lookup(dirs.south) or "right"
       elseif ent.direction == dirs.south then
-         left_dir = direction_lookup(dirs.east)
-         right_dir = direction_lookup(dirs.west)
+         left_dir = direction_lookup(dirs.east) or "left"
+         right_dir = direction_lookup(dirs.west) or "right"
       elseif ent.direction == dirs.west then
-         left_dir = direction_lookup(dirs.south)
-         right_dir = direction_lookup(dirs.north)
+         left_dir = direction_lookup(dirs.south) or "left"
+         right_dir = direction_lookup(dirs.north) or "right"
       end
 
       local insert_spots_left = 0
@@ -4880,7 +4880,7 @@ function set_quick_bar_slot(index, pindex)
       if item ~= nil then
          item_name = localising.get(item, pindex)
       end
-      game.get_player(pindex).set_quick_bar_slot(index + 10*page, nil) 
+      game.get_player(pindex).set_quick_bar_slot(index + 10*page, nil)
       printout("Quickbar unassigned " .. index .. " " .. item_name, pindex)
    end
 end
@@ -5877,6 +5877,7 @@ script.on_event("click-menu", function(event)
       elseif players[pindex].menu == "travel" then
          fast_travel_menu_click(pindex)
       elseif players[pindex].menu == "structure-travel" then--Also called "b stride"
+         ---@type LuaEntity 
          local tar = nil
          local network = players[pindex].structure_travel.network
          local index = players[pindex].structure_travel.index
@@ -7908,9 +7909,8 @@ script.on_event(defines.events.on_gui_confirmed,function(event)
       players[pindex].menu = "none"
       players[pindex].in_menu = false
       --play sound
-      if not mute then
-         p.play_sound{path="Close-Inventory-Sound"}
-      end
+      p.play_sound{path="Close-Inventory-Sound"}
+
       --Destroy text fields
       if p.gui.screen["cursor-jump"] ~= nil then
          p.gui.screen["cursor-jump"].destroy()
@@ -7957,9 +7957,8 @@ script.on_event(defines.events.on_gui_confirmed,function(event)
       players[pindex].menu = "none"
       players[pindex].in_menu = false
       --play sound
-      if not mute then
-         p.play_sound{path="Close-Inventory-Sound"}
-      end
+      p.play_sound{path="Close-Inventory-Sound"}
+      
       --Destroy text fields
       if p.gui.screen["circuit-condition-constant"] ~= nil then
          p.gui.screen["circuit-condition-constant"].destroy()

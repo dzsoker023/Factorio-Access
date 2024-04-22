@@ -1,4 +1,8 @@
---
+--Here: Menu search and directly related functions
+local fa_utils = require('fa-utils')
+local localising = require('localising')
+local util = require('util')
+
 
 --Allows searching a menu that has support written for this
 function menu_search_open(pindex)

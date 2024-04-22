@@ -1,4 +1,5 @@
---
+--Here: Functions for building and mining just about any entity using this mod.
+local localising = require("localising")
 
 --[[Attempts to build the item in hand.
 * Does nothing if the hand is empty or the item is not a place-able entity.

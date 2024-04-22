@@ -1,5 +1,7 @@
---
-
+--Here: functions specific to building menus
+local util = require('util')
+local fa_utils = require('fa-utils')
+local localising = require('localising')
 
 --[[Function to increase/decrease the bar (restricted slots) of a given chest/container by a given amount, while protecting its lower and upper bounds. 
 * Returns the verbal explanation to print out. 

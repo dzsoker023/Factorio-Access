@@ -1,6 +1,7 @@
 --Here: functions relating to combat, repair packs 
 --Does not include event handlers, guns and equipment, repair work (but maybe it could?)
 local util = require('util')
+local localising = require('localising')
 
 --Tries to equip a stack. For now called only for a stack in hand when the only the inventory is open.
 function equip_it(stack,pindex)
@@ -536,7 +537,7 @@ function repair_pack_used(ent,pindex)
    and ent.type ~= "resource" and not ent.force.is_enemy(p.force) and ent.name ~= "character" then
       p.play_sound{path = "utility/default_manual_repair"}
       local health_diff = ent.prototype.max_health - ent.health
-      local dura = stack.durability
+      local dura = stack.durability or 0
       if health_diff < 10 then --free repair for tiny damages
          ent.health = ent.prototype.max_health 
          printout("Fully repaired " .. ent.name, pindex)
@@ -573,7 +574,7 @@ function repair_area(radius_in,pindex)
       and ent.type ~= "resource" and not ent.force.is_enemy(p.force) and ent.name ~= "character" then
          p.play_sound{path = "utility/default_manual_repair"}
          local health_diff = ent.prototype.max_health - ent.health
-         local dura = stack.durability
+         local dura = stack.durability or 0
          if health_diff < 10 then --free repair for tiny damages
             ent.health = ent.prototype.max_health 
             repaired_count = repaired_count + 1
@@ -594,7 +595,7 @@ function repair_area(radius_in,pindex)
             --Repeat unhtil fully repaired or out of packs
             while ent.get_health_ratio() < 1 do
                health_diff = ent.prototype.max_health - ent.health
-               dura = stack.durability
+               dura = stack.durability or 0
                if health_diff < 10 then --free repair for tiny damages
                   ent.health = ent.prototype.max_health 
                   repaired_count = repaired_count + 1

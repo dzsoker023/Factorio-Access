@@ -106,7 +106,7 @@ function fa_mod_controls_menu(pindex, menu_index, clicked, pg_up, pg_down)
    
    if index == 0 then
       --About this menu and instructions
-      printout("Mod controls menu, with a read-only list of mod controls ".. get_network_name(port)
+      printout("Mod controls menu, with a read-only list of mod controls " 
       .. ", Press 'W' and 'S' to navigate options, press 'LEFT BRACKET' to select an option or press 'E' to exit this menu.", pindex)
    else
       --...read the appropriate localized string 

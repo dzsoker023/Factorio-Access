@@ -31,10 +31,10 @@ end
 function localising.get_alt(object,pindex)
    if pindex == nil then
       printout("localising: pindex is nil error")
-      return nil
+      return "(nil)"
    end
    if object == nil then
-      return nil
+      return "(nil)"
    end
    local result = players[pindex].localisations
    result = result and result[object.object_name]
@@ -44,16 +44,16 @@ function localising.get_alt(object,pindex)
       game.get_player(pindex).print("translation fallback for " .. object.object_name .. " " .. object.name,{volume_modifier=0})
    end
    result = result or object.name
-   return result
+   return result or "(nil)"
 end
 
 function localising.get_item_from_name(name,pindex)
    local proto = game.item_prototypes[name]
    if proto == nil then
-      return "nil"
+      return "(nil)"
    end
    local result = localising.get(proto,pindex)
-   return result
+   return result or "(nil)"
 end
 
 function localising.get_fluid_from_name(name,pindex)

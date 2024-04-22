@@ -1,3 +1,6 @@
+--Here: functions about belts, splitters, underground belts
+
+local localising = require("localising")
 
 --Takes some stats about a belt unit and explains what type of junction the belt is.
 function transport_belt_junction_info(sideload_count, backload_count, outload_count, this_dir, outload_dir, say_middle, outload_is_corner)

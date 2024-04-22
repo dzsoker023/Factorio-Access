@@ -111,6 +111,10 @@ function get_direction_of_that_from_this(pos_that,pos_this)
 	     dir = -2
 	  end
    end
+
+   if dir < 0 then
+      dir = dirs.north
+   end
    return dir
 end
 
@@ -151,6 +155,10 @@ function get_balanced_direction_of_that_from_this(pos_that,pos_this)
 	     dir = -2
 	  end
    end
+
+   if dir < 0 then
+      dir = dirs.north
+   end
    return dir
 end
 
@@ -184,7 +192,7 @@ function direction_lookup(dir)
          reading = "Here"
       else
          reading = "unknown direction ID " .. dir
-      end      
+      end
       return reading
    end
 end
