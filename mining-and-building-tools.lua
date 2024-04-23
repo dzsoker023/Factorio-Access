@@ -1332,7 +1332,7 @@ end
 
 function fa_building_tools.play_mining_sound(pindex)
    local player= game.players[pindex]
-   --game.print("1",{volume_modifier=0})--**
+   --game.print("1",{volume_modifier=0})--
    if player and player.mining_state.mining and player.selected and player.selected.valid then
       --game.print("2",{volume_modifier=0})--
       if player.selected.prototype.is_building then
@@ -1342,8 +1342,6 @@ function fa_building_tools.play_mining_sound(pindex)
          player.play_sound{path = "player-mine"}--Mine other things, eg. character corpses, laterdo new sound
          --game.print("3B",{volume_modifier=0})--
       end
-      --Re-schedule self 
-      schedule(25, "fa_building_tools.play_mining_sound", pindex)
    end
 end
 
