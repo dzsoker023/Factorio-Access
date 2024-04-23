@@ -85,23 +85,23 @@ function fa_tutorial.read_current_step(pindex)
    local tutorial = players[pindex].tutorial
    if tutorial == nil then
       fa_tutorial.load_tutorial(pindex)
-      fa_tutorial.tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked) 
+      fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked) 
       return
    end
    players[pindex].tutorial = tutorial
-   fa_tutorial.tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked) 
+   fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked) 
 end
 
 function fa_tutorial.toggle_header_detail(pindex)
    local tutorial = players[pindex].tutorial
    if tutorial == nil then
       fa_tutorial.load_tutorial(pindex)
-      fa_tutorial.tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked) 
+      fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked) 
       return 
    end
    tutorial.reading_the_header = not tutorial.reading_the_header
    players[pindex].tutorial = tutorial
-   fa_tutorial.tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked) 
+   fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked) 
 end 
 
 --Reads the header in detail mode and vice versa.
@@ -110,14 +110,14 @@ function fa_tutorial.read_other_once(pindex)
    if tutorial == nil then
       fa_tutorial.load_tutorial(pindex)
    end
-   fa_tutorial.tutorial_menu(pindex, (not players[pindex].tutorial.reading_the_header), players[pindex].tutorial.clicked) 
+   fa_tutorial.run_tutorial_menu(pindex, (not players[pindex].tutorial.reading_the_header), players[pindex].tutorial.clicked) 
 end 
 
 function fa_tutorial.prev_step(pindex)
 	local tutorial = players[pindex].tutorial
    if tutorial == nil then
       fa_tutorial.load_tutorial(pindex)
-      fa_tutorial.tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
+      fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
       return 
    end
 	tutorial.step_index = tutorial.step_index - 1
@@ -144,14 +144,14 @@ function fa_tutorial.prev_step(pindex)
    
    --Load menu 
    players[pindex].tutorial = tutorial
-   fa_tutorial.tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
+   fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
 end
 
 function fa_tutorial.prev_chapter(pindex)
 	local tutorial = players[pindex].tutorial
    if tutorial == nil then
       fa_tutorial.load_tutorial(pindex)
-      fa_tutorial.tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
+      fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
       return 
    end
 	tutorial.step_index = 1
@@ -168,14 +168,14 @@ function fa_tutorial.prev_chapter(pindex)
    
    --Load menu 
    players[pindex].tutorial = tutorial
-   fa_tutorial.tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
+   fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
 end
 
 function fa_tutorial.next_step(pindex)
    local tutorial = players[pindex].tutorial
    if tutorial == nil then
       fa_tutorial.load_tutorial(pindex)
-      fa_tutorial.tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
+      fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
       return 
    end
 	local tutorial = players[pindex].tutorial
@@ -207,14 +207,14 @@ function fa_tutorial.next_step(pindex)
    
    --Load menu 
    players[pindex].tutorial = tutorial
-   fa_tutorial.tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
+   fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
 end
 
 function fa_tutorial.next_chapter(pindex)
 	local tutorial = players[pindex].tutorial
    if tutorial == nil then
       fa_tutorial.load_tutorial(pindex)
-      fa_tutorial.tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
+      fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
       return 
    end
 	tutorial.step_index = 1
@@ -231,7 +231,7 @@ function fa_tutorial.next_chapter(pindex)
    
    --Load menu 
    players[pindex].tutorial = tutorial
-   fa_tutorial.tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
+   fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
 end
 
 function fa_tutorial.read_current_header(pindex)
@@ -257,7 +257,7 @@ function fa_tutorial.read_current_detail(pindex)
 end
 
 --For most steps this reads the already-loaded strings
-function fa_tutorial.tutorial_menu(pindex, reading_the_header, clicked)
+function fa_tutorial.run_tutorial_menu(pindex, reading_the_header, clicked)
 	local tutorial = players[pindex].tutorial
 	local chap = tutorial.chapter_index
 	local step = tutorial.step_index

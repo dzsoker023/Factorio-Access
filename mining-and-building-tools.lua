@@ -4,7 +4,7 @@ local fa_utils = require("fa-utils")
 local fa_electrical = require("electrical")
 local dirs = defines.direction
 local fa_graphics = require("graphics-and-mouse").graphics
-local fa_rails = require("rails-and-trains").rails
+local fa_rails = require("rails").rails
 local fa_belts = require("transport-belts")
 local fa_bot_logistics = require("worker-robots")
 

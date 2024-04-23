@@ -3,7 +3,7 @@
 
 local util = require("util")
 local fa_utils = require("fa-utils")
-local fa_trains = require("rails-and-trains").trains
+local fa_trains = require("trains").trains
 local dirs = defines.direction
 
 local fa_driving = {}

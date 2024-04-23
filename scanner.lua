@@ -6,7 +6,7 @@ local localising = require('localising')
 local dirs = defines.direction
 local fa_graphics = require("graphics-and-mouse").graphics
 local fa_building_tools = require("mining-and-building-tools")
-local fa_trains = require("rails-and-trains").trains
+local fa_trains = require("trains").trains
 local fa_zoom = require('zoom')
 local fa_bot_logistics = require("worker-robots")
 

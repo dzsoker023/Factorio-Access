@@ -3,6 +3,7 @@ local util = require('util')
 local fa_utils = require('fa-utils')
 local fa_crafting = require("crafting")
 local localising = require('localising')
+local fa_sectors = require("building-vehicle-sectors")
 
 local fa_menu_search = {}
 
