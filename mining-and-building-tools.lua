@@ -1,5 +1,8 @@
 --Here: Functions for building and mining just about any entity using this mod.
 local localising = require("localising")
+local fa_utils = require("fa-utils")
+local fa_electrical = require("electrical")
+local dirs = defines.direction
 
 --[[Attempts to build the item in hand.
 * Does nothing if the hand is empty or the item is not a place-able entity.
@@ -44,7 +47,7 @@ function build_item_in_hand(pindex, free_place_straight_rail)
    --General build cases
    if stack and stack.valid_for_read and stack.valid and stack.prototype.place_result ~= nil then
       local ent = stack.prototype.place_result
-      local dimensions = get_tile_dimensions(stack.prototype, players[pindex].building_direction)
+      local dimensions = fa_utils.get_tile_dimensions(stack.prototype, players[pindex].building_direction)
       local position = nil
       local placing_underground_belt = stack.prototype.place_result.type == "underground-belt"
 
@@ -54,7 +57,7 @@ function build_item_in_hand(pindex, free_place_straight_rail)
          if stack.name == "locomotive" or stack.name == "cargo-wagon" or stack.name == "fluid-wagon" or stack.name == "artillery-wagon" then
             --Allow easy placement onto rails by simply offsetting to the faced direction.
             local rail_vehicle_offset = 2.5
-            position = offset_position(old_pos, players[pindex].player_direction, rail_vehicle_offset)
+            position = fa_utils.offset_position(old_pos, players[pindex].player_direction, rail_vehicle_offset)
          else
             --Apply offsets according to building direction and player direction
             local width = stack.prototype.place_result.tile_width
@@ -93,7 +96,7 @@ function build_item_in_hand(pindex, free_place_straight_rail)
                elseif p_dir == dirs.east or p_dir == dirs.west then
                   size_offset = -width + 1
                end
-               position = offset_position(position, players[pindex].player_direction, base_offset + size_offset)
+               position = fa_utils.offset_position(position, players[pindex].player_direction, base_offset + size_offset)
             end
          end
 
@@ -126,9 +129,9 @@ function build_item_in_hand(pindex, free_place_straight_rail)
          local any_found = false
          for i,pole in ipairs(small_poles) do
             any_found = true
-            if util.distance(center_of_tile(position), pole.position) < 6.5 then
+            if util.distance(fa_utils.center_of_tile(position), pole.position) < 6.5 then
                all_beyond_6_5 = false
-            elseif util.distance(center_of_tile(position), pole.position) >= 6.5 then
+            elseif util.distance(fa_utils.center_of_tile(position), pole.position) >= 6.5 then
                any_connects = true
             end
          end
@@ -148,9 +151,9 @@ function build_item_in_hand(pindex, free_place_straight_rail)
          local any_found = false
          for i,pole in ipairs(med_poles) do
             any_found = true
-            if util.distance(center_of_tile(position), pole.position) < 6.5 then
+            if util.distance(fa_utils.center_of_tile(position), pole.position) < 6.5 then
                all_beyond_6_5 = false
-            elseif util.distance(center_of_tile(position), pole.position) >= 6.5 then
+            elseif util.distance(fa_utils.center_of_tile(position), pole.position) >= 6.5 then
                any_connects = true
             end
          end
@@ -163,7 +166,7 @@ function build_item_in_hand(pindex, free_place_straight_rail)
          end
       elseif stack.name == "big-electric-pole" and players[pindex].build_lock == true then
          --Place a big electric pole in this position only if it is within 29 to 30 tiles of another medium electric pole
-         position = offset_position(position, players[pindex].player_direction, -1)
+         position = fa_utils.offset_position(position, players[pindex].player_direction, -1)
          local surf = game.get_player(pindex).surface
          local big_poles = surf.find_entities_filtered{position = position, radius = 30, name = "big-electric-pole"}
          local all_beyond_min = true
@@ -186,7 +189,7 @@ function build_item_in_hand(pindex, free_place_straight_rail)
          end
       elseif stack.name == "substation" and players[pindex].build_lock == true then
          --Place a substation in this position only if it is within 16 to 18 tiles of another medium electric pole
-         position = offset_position(position, players[pindex].player_direction, -1)
+         position = fa_utils.offset_position(position, players[pindex].player_direction, -1)
          local surf = game.get_player(pindex).surface
          local sub_poles = surf.find_entities_filtered{position = position, radius = 18.01, name = "substation"}
          local all_beyond_min = true
@@ -269,7 +272,7 @@ function build_item_in_hand(pindex, free_place_straight_rail)
       end
       --Flip pipe-to-ground in hand 
       if build_successful and stack and stack.valid_for_read and stack.valid and stack.prototype.place_result ~= nil and stack.prototype.place_result.name == "pipe-to-ground" then
-         players[pindex].building_direction = rotate_180(players[pindex].building_direction)
+         players[pindex].building_direction = fa_utils.rotate_180(players[pindex].building_direction)
          game.get_player(pindex).play_sound{path = "Rotate-Hand-Sound"}
       end
    elseif stack and stack.valid_for_read and stack.valid and stack.prototype.place_as_tile_result ~= nil then
@@ -383,11 +386,11 @@ function rotate_building_info_read(event, forward)
 
                --Printout warning
                if rot_offset > 0 then
-                  printout(direction_lookup(build_dir) .. " rail rotation warning: rotate a rail " .. rot_offset .. " times backward to re-align cursor, and then rotate a different item in hand to select the rotation you want before placing a rail", pindex)
+                  printout(fa_utils.direction_lookup(build_dir) .. " rail rotation warning: rotate a rail " .. rot_offset .. " times backward to re-align cursor, and then rotate a different item in hand to select the rotation you want before placing a rail", pindex)
                elseif rot_offset < 0 then
-                  printout(direction_lookup(build_dir) .. " rail rotation warning: rotate a rail " .. -rot_offset .. " times forward to re-align cursor, and then rotate a different item in hand to select the rotation you want before placing a rail", pindex)
+                  printout(fa_utils.direction_lookup(build_dir) .. " rail rotation warning: rotate a rail " .. -rot_offset .. " times forward to re-align cursor, and then rotate a different item in hand to select the rotation you want before placing a rail", pindex)
                else
-                  printout(direction_lookup(build_dir) .. ", cursor rotation is aligned", pindex)
+                  printout(fa_utils.direction_lookup(build_dir) .. ", cursor rotation is aligned", pindex)
                end
                return
             end
@@ -395,7 +398,7 @@ function rotate_building_info_read(event, forward)
             --Display and read the new direction info
             players[pindex].building_direction = build_dir
             sync_build_cursor_graphics(pindex)
-            printout(direction_lookup(build_dir) .. " in hand", pindex)
+            printout(fa_utils.direction_lookup(build_dir) .. " in hand", pindex)
             players[pindex].lag_building_direction = false
          else
             printout(stack.name .. " never needs rotating.", pindex)
@@ -404,7 +407,7 @@ function rotate_building_info_read(event, forward)
          --Rotate blueprints: They are tracked separately, and we reset them to north when cursor stack changes 
          game.get_player(pindex).play_sound{path="Rotate-Hand-Sound"}
          players[pindex].blueprint_hand_direction = (players[pindex].blueprint_hand_direction + dirs.east * mult) % (2 * dirs.south)
-         printout(direction_lookup(players[pindex].blueprint_hand_direction), pindex)
+         printout(fa_utils.direction_lookup(players[pindex].blueprint_hand_direction), pindex)
          sync_build_cursor_graphics(pindex)
       elseif ent and ent.valid then
          game.get_player(pindex).selected = ent
@@ -423,7 +426,7 @@ function rotate_building_info_read(event, forward)
                new_dir = (new_dir + dirs.east * mult) % (2 * dirs.south)
             end
 
-            printout(direction_lookup(new_dir), pindex)
+            printout(fa_utils.direction_lookup(new_dir), pindex)
 
             --
          else
@@ -446,7 +449,7 @@ function nudge_key(direction, event)--
    if ent and ent.valid then
       if ent.force == game.get_player(pindex).force then
          local old_pos = ent.position
-         local new_pos = offset_position(ent.position,direction,1)
+         local new_pos = fa_utils.offset_position(ent.position,direction,1)
          local temporary_teleported = false
          local actually_teleported = false
 
@@ -462,7 +465,7 @@ function nudge_key(direction, event)--
          end
 
          left_top = {x = math.floor(ent.position.x - math.floor(width/2)), y = math.floor(ent.position.y - math.floor(height/2))}
-         left_top = offset_position(left_top,direction,1)
+         left_top = fa_utils.offset_position(left_top,direction,1)
          right_bottom = {x = math.ceil(left_top.x + width), y = math.ceil(left_top.y + height)}
          clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
 
@@ -517,7 +520,7 @@ function nudge_key(direction, event)--
             --Successfully teleported and so nudged
             printout({"access.nudged-one-direction",{"access.direction",direction}}, pindex)
             if players[pindex].cursor then
-               players[pindex].cursor_pos = offset_position(players[pindex].cursor_pos,direction,1)
+               players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos,direction,1)
                cursor_highlight(pindex, ent, "train-visualization")
                sync_build_cursor_graphics(pindex)
             end
@@ -545,7 +548,7 @@ function get_heat_connection_positions(ent_name, ent_position, ent_direction)
    if ent_name == "heat-pipe" then
       table.insert(positions, {x = pos.x, y = pos.y})
    elseif ent_name == "heat-exchanger" then
-      table.insert(positions, offset_position(pos, rotate_180(ent_direction), 0.5))
+      table.insert(positions, fa_utils.offset_position(pos, fa_utils.rotate_180(ent_direction), 0.5))
    elseif ent_name == "nuclear-reactor" then
       table.insert(positions, {x = pos.x-2, y = pos.y-2})
       table.insert(positions, {x = pos.x-0, y = pos.y-2})
@@ -571,7 +574,7 @@ function get_heat_connection_target_positions(ent_name, ent_position, ent_direct
       table.insert(positions, {x = pos.x-0, y = pos.y-1})
       table.insert(positions, {x = pos.x-0, y = pos.y+1})
    elseif ent_name == "heat-exchanger" then
-      table.insert(positions, offset_position(pos, rotate_180(ent_direction), 1.5))
+      table.insert(positions, fa_utils.offset_position(pos, fa_utils.rotate_180(ent_direction), 1.5))
    elseif ent_name == "nuclear-reactor" then
       table.insert(positions, {x = pos.x-2, y = pos.y-3})
       table.insert(positions, {x = pos.x-0, y = pos.y-3})
@@ -639,7 +642,7 @@ function build_preview_checks_info(stack, pindex)
             outload_dir = ents_north[1].direction
             outload_count = 1
             local outload_inputs = ents_north[1].belt_neighbours["inputs"]
-            if (outload_inputs == nil or #outload_inputs == 0) and (this_dir == rotate_90(outload_dir) or this_dir == rotate_270(outload_dir)) then
+            if (outload_inputs == nil or #outload_inputs == 0) and (this_dir == fa_utils.rotate_90(outload_dir) or this_dir == fa_utils.rotate_270(outload_dir)) then
                outload_is_corner = true
             end
          elseif this_dir == dirs.east and ents_east[1] ~= nil and ents_east[1].valid then
@@ -647,7 +650,7 @@ function build_preview_checks_info(stack, pindex)
             outload_dir = ents_east[1].direction
             outload_count = 1
             local outload_inputs = ents_east[1].belt_neighbours["inputs"]
-            if (outload_inputs == nil or #outload_inputs == 0) and (this_dir == rotate_90(outload_dir) or this_dir == rotate_270(outload_dir)) then
+            if (outload_inputs == nil or #outload_inputs == 0) and (this_dir == fa_utils.rotate_90(outload_dir) or this_dir == fa_utils.rotate_270(outload_dir)) then
                outload_is_corner = true
             end
          elseif this_dir == dirs.south and ents_south[1] ~= nil and ents_south[1].valid then
@@ -655,7 +658,7 @@ function build_preview_checks_info(stack, pindex)
             outload_dir = ents_south[1].direction
             outload_count = 1
             local outload_inputs = ents_south[1].belt_neighbours["inputs"]
-            if (outload_inputs == nil or #outload_inputs == 0) and (this_dir == rotate_90(outload_dir) or this_dir == rotate_270(outload_dir)) then
+            if (outload_inputs == nil or #outload_inputs == 0) and (this_dir == fa_utils.rotate_90(outload_dir) or this_dir == fa_utils.rotate_270(outload_dir)) then
                outload_is_corner = true
             end
          elseif this_dir == dirs.west and ents_west[1] ~= nil and ents_west[1].valid then
@@ -663,7 +666,7 @@ function build_preview_checks_info(stack, pindex)
             outload_dir = ents_west[1].direction
             outload_count = 1
             local outload_inputs = ents_west[1].belt_neighbours["inputs"]
-            if (outload_inputs == nil or #outload_inputs == 0) and (this_dir == rotate_90(outload_dir) or this_dir == rotate_270(outload_dir)) then
+            if (outload_inputs == nil or #outload_inputs == 0) and (this_dir == fa_utils.rotate_90(outload_dir) or this_dir == fa_utils.rotate_270(outload_dir)) then
                outload_is_corner = true
             end
          end
@@ -729,9 +732,9 @@ function build_preview_checks_info(stack, pindex)
             local dist_x = cand.position.x - pos.x
             local dist_y = cand.position.y - pos.y
 			   if cand.direction == build_dir and cand.neighbours == nil and cand.belt_to_ground_type == "input"
-			   and (get_direction_of_that_from_this(cand.position,pos) == rotate_180(build_dir)) and (dist_x == 0 or dist_y == 0) then
+			   and (fa_utils.get_direction_biased(cand.position,pos) == fa_utils.rotate_180(build_dir)) and (dist_x == 0 or dist_y == 0) then
 			      rendering.draw_circle{color = {0, 1, 0},radius = 1.0,width = 3,target = cand.position,surface = cand.surface,time_to_live = 60}
-               result = result .. " connects " .. direction_lookup(build_dir) .. " with " .. math.floor(util.distance(cand.position,pos)) - 1 .. " tiles underground, "
+               result = result .. " connects " .. fa_utils.direction_lookup(build_dir) .. " with " .. math.floor(util.distance(cand.position,pos)) - 1 .. " tiles underground, "
                connected = true
                players[pindex].underground_connects = true
 			   end
@@ -749,14 +752,14 @@ function build_preview_checks_info(stack, pindex)
       local check_dist = 10
       local closest_dist = 11
       local closest_cand = nil
-      local candidates = game.get_player(pindex).surface.find_entities_filtered{ name = stack.name, position = pos, radius = check_dist, direction = rotate_180(build_dir) }
+      local candidates = game.get_player(pindex).surface.find_entities_filtered{ name = stack.name, position = pos, radius = check_dist, direction = fa_utils.rotate_180(build_dir) }
 		if #candidates > 0 then
 		   for i,cand in ipairs(candidates) do
 			   rendering.draw_circle{color = {1, 1, 0},radius = 0.5,width = 3,target = cand.position,surface = cand.surface,time_to_live = 60}
             local dist_x = cand.position.x - pos.x
             local dist_y = cand.position.y - pos.y
-			   if cand.direction == rotate_180(build_dir)
-			   and (get_direction_of_that_from_this(pos,cand.position) == build_dir) and (dist_x == 0 or dist_y == 0) then
+			   if cand.direction == fa_utils.rotate_180(build_dir)
+			   and (fa_utils.get_direction_biased(pos,cand.position) == build_dir) and (dist_x == 0 or dist_y == 0) then
 			      rendering.draw_circle{color = {0, 1, 0},radius = 1.0,width = 3,target = cand.position,surface = cand.surface,time_to_live = 60}
                connected = true
                --Check if closest cand
@@ -769,7 +772,7 @@ function build_preview_checks_info(stack, pindex)
          end
          --Report the closest candidate (therefore the correct one)
          if closest_cand ~= nil then
-            result = result .. " connects " .. direction_lookup(rotate_180(build_dir)) .. " with " .. math.floor(util.distance(closest_cand.position,pos)) - 1 .. " tiles underground, "
+            result = result .. " connects " .. fa_utils.direction_lookup(fa_utils.rotate_180(build_dir)) .. " with " .. math.floor(util.distance(closest_cand.position,pos)) - 1 .. " tiles underground, "
          end
 		end
       if not connected then
@@ -863,7 +866,7 @@ function build_preview_checks_info(stack, pindex)
    --Same as pipe preview but for the faced direction only 
    elseif stack.name == "pipe-to-ground" then
       local face_dir = players[pindex].building_direction
-      local ent_pos = offset_position(pos,face_dir,1)
+      local ent_pos = fa_utils.offset_position(pos,face_dir,1)
       rendering.draw_circle{color = {1, 0.0, 0.5},radius = 0.1,width = 2,target = ent_pos, surface = p.surface, time_to_live = 30}
 
       local ents_faced = p.surface.find_entities_filtered{position = ent_pos }
@@ -882,7 +885,7 @@ function build_preview_checks_info(stack, pindex)
       --Prepare result string 
       if relevant_fluid_faced ~= nil then
          local count = 0
-         result = result .. ", connects ".. direction_lookup(face_dir) .. " to " .. relevant_fluid_faced .. " directly "
+         result = result .. ", connects ".. fa_utils.direction_lookup(face_dir) .. " to " .. relevant_fluid_faced .. " directly "
       else
          result = result .. ", not connected above ground "
       end
@@ -907,11 +910,11 @@ function build_preview_checks_info(stack, pindex)
                         --For each match
                         rendering.draw_circle{color = {0.5, 1.0, 0.5},radius = 0.3,width = 2,target = spot, surface = p.surface, time_to_live = 30}
                         con_count = con_count + 1
-                        local con_dir = get_direction_of_that_from_this(con_target_pos,pos)
+                        local con_dir = fa_utils.get_direction_biased(con_target_pos,pos)
                         if con_count > 1 then
                            result = result .. " and "
                         end
-                        result = result .. direction_lookup(con_dir)
+                        result = result .. fa_utils.direction_lookup(con_dir)
                      end
                   end
                end
@@ -937,19 +940,19 @@ function build_preview_checks_info(stack, pindex)
 	     for i, pole in ipairs(poles) do
 		    if i < 5 then
 			   local dist = math.ceil(util.distance(pole.position,pos))
-			   local dir = get_direction_of_that_from_this(pole.position,pos)
-			   result = result .. dist .. " tiles " .. direction_lookup(dir) .. ", "
+			   local dir = fa_utils.get_direction_biased(pole.position,pos)
+			   result = result .. dist .. " tiles " .. fa_utils.direction_lookup(dir) .. ", "
 			end
 	     end
 	  else
 	     --Notify if no connections and state nearest electric pole
 	     result = result .. " not connected, "
-		 local nearest_pole, min_dist = find_nearest_electric_pole(nil,false,50,surf,pos)
+		 local nearest_pole, min_dist = fa_electrical.find_nearest_electric_pole(nil,false,50,surf,pos)
 		 if min_dist == nil or min_dist >= 1000 then
 		    result = result .. " no electric poles within 1000 tiles, "
 		 else
-		    local dir = get_direction_of_that_from_this(nearest_pole.position,pos)
-		    result = result .. math.ceil(min_dist) .. " tiles " .. direction_lookup(dir) .. " to nearest electric pole, "
+		    local dir = fa_utils.get_direction_biased(nearest_pole.position,pos)
+		    result = result .. math.ceil(min_dist) .. " tiles " .. fa_utils.direction_lookup(dir) .. " to nearest electric pole, "
 		 end
 	  end
    end
@@ -970,8 +973,8 @@ function build_preview_checks_info(stack, pindex)
          for i, port in ipairs(ports) do
             if i <= 5 then
                local dist = math.ceil(util.distance(port.position,pos))
-               local dir = get_direction_of_that_from_this(port.position,pos)
-               result = result .. dist .. " tiles " .. direction_lookup(dir) .. ", "
+               local dir = fa_utils.get_direction_biased(port.position,pos)
+               result = result .. dist .. " tiles " .. fa_utils.direction_lookup(dir) .. ", "
             end
          end
       else
@@ -982,8 +985,8 @@ function build_preview_checks_info(stack, pindex)
          if min_dist == nil or min_dist >= max_dist then
             result = result .. " no other roboports within " .. max_dist .. " tiles, "
          else
-            local dir = get_direction_of_that_from_this(nearest_port.position,pos)
-            result = result .. math.ceil(min_dist) .. " tiles " .. direction_lookup(dir) .. " to nearest roboport, "
+            local dir = fa_utils.get_direction_biased(nearest_port.position,pos)
+            result = result .. math.ceil(min_dist) .. " tiles " .. fa_utils.direction_lookup(dir) .. " to nearest roboport, "
          end
       end
    end
@@ -997,7 +1000,7 @@ function build_preview_checks_info(stack, pindex)
             result = result .. ", not in a network, no networks found within 5000 tiles"
          else
             local dist = math.ceil(util.distance(pos, nearest_roboport.position) - 25)
-            local dir = direction_lookup(get_direction_of_that_from_this(nearest_roboport.position, pos))
+            local dir = fa_utils.direction_lookup(fa_utils.get_direction_biased(nearest_roboport.position, pos))
             result = result .. ", not in a network, nearest network " .. nearest_roboport.backer_name .. " is about " .. dist .. " to the " .. dir
          end
       else
@@ -1076,18 +1079,18 @@ function build_preview_checks_info(stack, pindex)
             result = result .. " Power connected "
 			if found_pole.valid then
 			   local dist = math.ceil(util.distance(found_pole.position,pos))
-			   local dir = get_direction_of_that_from_this(found_pole.position,pos)
-			   result = result .. " from " .. dist .. " tiles " .. direction_lookup(dir) .. ", "
+			   local dir = fa_utils.get_direction_biased(found_pole.position,pos)
+			   result = result .. " from " .. dist .. " tiles " .. fa_utils.direction_lookup(dir) .. ", "
 			end
          else
              result = result .. " Power Not Connected, "
 			 --Notify if no connections and state nearest electric pole
-			 local nearest_pole, min_dist = find_nearest_electric_pole(nil,false,50,surf,pos)
+			 local nearest_pole, min_dist = fa_electrical.find_nearest_electric_pole(nil,false,50,surf,pos)
 			 if min_dist == nil or min_dist >= 1000 then
 				result = result .. " no electric poles within 1000 tiles, "
 			 else
-				local dir = get_direction_of_that_from_this(nearest_pole.position,pos)
-				result = result .. math.ceil(min_dist) .. " tiles " .. direction_lookup(dir) .. " to nearest electric pole, "
+				local dir = fa_utils.get_direction_biased(nearest_pole.position,pos)
+				result = result .. math.ceil(min_dist) .. " tiles " .. fa_utils.direction_lookup(dir) .. " to nearest electric pole, "
 			 end
          end
    end
@@ -1112,7 +1115,7 @@ function get_relevant_fluidbox_and_fluid_name(building, pos, dir_from_pos)
             local con_pos = con.position
             --game.print("new connection at: " .. target_pos.x .. "," .. target_pos.y)
             rendering.draw_circle{color = {1, 0, 0},radius = 0.2,width = 2,target = target_pos, surface = building.surface, time_to_live = 30}
-            if util.distance(target_pos, pos) < 0.3 and get_direction_of_that_from_this(con_pos,pos) == dir_from_pos
+            if util.distance(target_pos, pos) < 0.3 and fa_utils.get_direction_biased(con_pos,pos) == dir_from_pos
             and not (building.name == "pipe-to-ground" and building.direction == dir_from_pos) then--Note: We correctly ignore the backside of a pipe to ground.
                rendering.draw_circle{color = {0, 1, 0},radius = 0.3,width = 2,target = target_pos, surface = building.surface, time_to_live = 30}
                relevant_box = building.fluidbox[i]
@@ -1307,7 +1310,7 @@ function snap_place_steam_engine_to_a_boiler(pindex)
    --For each boiler found:
    for i,boiler in ipairs(boilers) do
       --Check if there is any entity in front of it
-      local output_location = offset_position(boiler.position,boiler.direction,1.5)
+      local output_location = fa_utils.offset_position(boiler.position,boiler.direction,1.5)
       rendering.draw_circle{color = {1, 1, 0.25},radius = 0.25,width = 2,target = output_location, surface = p.surface, time_to_live = 60, draw_on_ground = false}
       local output_ents = p.surface.find_entities_filtered{position = output_location, radius = 0.25, type = {"resource","generator"}, invert = true}
       if output_ents == nil or #output_ents == 0 then
@@ -1318,13 +1321,13 @@ function snap_place_steam_engine_to_a_boiler(pindex)
          local old_building_dir = players[pindex].building_direction
          players[pindex].building_direction = dir
          if dir == dirs.east then
-            engine_position = offset_position(engine_position, dirs.east,2)
+            engine_position = fa_utils.offset_position(engine_position, dirs.east,2)
          elseif dir == dirs.south then
-            engine_position = offset_position(engine_position, dirs.south,2)
+            engine_position = fa_utils.offset_position(engine_position, dirs.south,2)
          elseif dir == dirs.west then
-            engine_position = offset_position(engine_position, dirs.west,2)
+            engine_position = fa_utils.offset_position(engine_position, dirs.west,2)
          elseif dir == dirs.north then
-            engine_position = offset_position(engine_position, dirs.north,2)
+            engine_position = fa_utils.offset_position(engine_position, dirs.north,2)
          end
          rendering.draw_circle{color = {0.25, 1, 0.25},radius = 0.5,width = 2,target = engine_position, surface = p.surface, time_to_live = 60, draw_on_ground = false}
          clear_obstacles_in_circle(engine_position, 4, pindex)

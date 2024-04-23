@@ -1,8 +1,10 @@
 --Here: Functions relating to rails, trains, signals, other vehicles
 --Does not include event handlers
-local util = require('util')
+---@diagnostic disable: assign-type-mismatch
 
-dirs = defines.direction
+local util = require('util')
+local fa_utils = require('fa-utils')
+local dirs = defines.direction
 
 --Key information about rail units. 
 function rail_ent_info(pindex, ent, description)  
@@ -494,7 +496,7 @@ end
 function get_train_state_info(train)
    local train_state_id = train.state
    local train_state_text = ""
-   local state_lookup = into_lookup(defines.train_state)
+   local state_lookup = fa_utils.into_lookup(defines.train_state)
    if train_state_id ~= nil then
       train_state_text = state_lookup[train_state_id]
    else
@@ -520,12 +522,12 @@ function get_signal_state_info(signal)
    local result = ""
    if signal.name == "rail-signal" then
       state_id = signal.signal_state
-	  state_lookup = into_lookup(defines.signal_state)
+	  state_lookup = fa_utils.into_lookup(defines.signal_state)
 	  state_name = state_lookup[state_id]
 	  result = state_name
    elseif signal.name == "rail-chain-signal" then 
       state_id = signal.chain_signal_state
-	  state_lookup = into_lookup(defines.chain_signal_state)
+	  state_lookup = fa_utils.into_lookup(defines.chain_signal_state)
 	  state_name = state_lookup[state_id]
 	  result = state_name
 	  if state_name == "none_open" then result = "closed" end
@@ -1140,7 +1142,7 @@ function train_read_next_rail_entity_ahead(pindex, invert, mute_in)
    if next_entity_label ~= "train stop" then
       message = message .. " in " .. distance .. " meters. "
       if next_entity_label == "end rail" then
-         message = message .. " facing " .. direction_lookup(result_extra)
+         message = message .. " facing " .. fa_utils.direction_lookup(result_extra)
       end
    end
    --If a train stop is close behind, read that instead
@@ -1167,7 +1169,7 @@ function train_read_next_rail_entity_ahead(pindex, invert, mute_in)
       for i,passed_stop in ipairs(ents) do
          distance = util.distance(leading_stock.position, passed_stop.position) - 0 
          --message = message .. " found stop " 
-         if distance < 12.5 and direction_lookup(passed_stop.direction) == get_heading(leading_stock) then
+         if distance < 12.5 and fa_utils.direction_lookup(passed_stop.direction) == get_heading(leading_stock) then
             if not first_reset then
                message = ""
                first_reset = true
@@ -1269,7 +1271,7 @@ function rail_read_next_rail_entity_ahead(pindex, rail, is_forward)
    if next_entity_label ~= "train stop" then
       message = message .. " in " .. distance .. " meters, "
       if next_entity_label == "end rail" then
-         message = message .. " facing " .. direction_lookup(result_extra)
+         message = message .. " facing " .. fa_utils.direction_lookup(result_extra)
       end
    end
    printout(message,pindex)
@@ -3437,35 +3439,36 @@ function build_train_stop(anchor_rail, pindex)
    
    --7. Sounds and results
    game.get_player(pindex).play_sound{path = "entity-build/train-stop"}
-   printout("Train stop built facing" .. direction_lookup(dir) .. ", " .. build_comment, pindex)
+   printout("Train stop built facing" .. fa_utils.direction_lookup(dir) .. ", " .. build_comment, pindex)
    return
 end
 
 --Converts the entity orientation value to a heading
 function get_heading(ent)
+   ---@diagnostic disable: cast-local-type
    local heading = "unknown"
    if ent == nil then
       return "nil error"
    end
    local ori = ent.orientation
    if ori < 0.0625 then
-      heading = direction_lookup(dirs.north)
+      heading = fa_utils.direction_lookup(dirs.north)
    elseif ori < 0.1875 then
-      heading = direction_lookup(dirs.northeast)
+      heading = fa_utils.direction_lookup(dirs.northeast)
    elseif ori < 0.3125 then
-      heading = direction_lookup(dirs.east)
+      heading = fa_utils.direction_lookup(dirs.east)
    elseif ori < 0.4375 then
-      heading = direction_lookup(dirs.southeast)
+      heading = fa_utils.direction_lookup(dirs.southeast)
    elseif ori < 0.5625 then
-      heading = direction_lookup(dirs.south)
+      heading = fa_utils.direction_lookup(dirs.south)
    elseif ori < 0.6875 then
-      heading = direction_lookup(dirs.southwest)
+      heading = fa_utils.direction_lookup(dirs.southwest)
    elseif ori < 0.8125 then
-      heading = direction_lookup(dirs.west)
+      heading = fa_utils.direction_lookup(dirs.west)
    elseif ori < 0.9375 then
-      heading = direction_lookup(dirs.northwest)
+      heading = fa_utils.direction_lookup(dirs.northwest)
    else
-      heading = direction_lookup(dirs.north)--default
+      heading = fa_utils.direction_lookup(dirs.north)--default
    end      
    return heading
 end
@@ -5041,7 +5044,7 @@ function check_and_play_driving_alert_sound(pindex, tick, mode_in)--wip****
       local v = p.vehicle
       local dir = get_heading_value(v)
       if v.speed < 0 then
-         dir = rotate_180(dir)
+         dir = fa_utils.rotate_180(dir)
       end
       
       --Set the trigger distance 
@@ -5072,7 +5075,7 @@ function check_and_play_driving_alert_sound(pindex, tick, mode_in)--wip****
       --Filter entities by direction
       local ents_ahead = {}  
       for i, ent in ipairs(ents_around) do
-         local dir_ent = get_direction_of_that_from_this(ent.position,v.position)
+         local dir_ent = fa_utils.get_direction_biased(ent.position,v.position)
          if dir_ent == dir then
             if p.vehicle.type == "car" and ent.unit_number ~= p.vehicle.unit_number then
                --For cars, take the entity as it is

@@ -3,6 +3,7 @@
 local circular = require('ds/circular-options-list')
 local localising = require('localising')
 local util = require('util')
+local fa_utils = require('fa-utils')
 
 local dcb = defines.control_behavior
 
@@ -120,7 +121,7 @@ function wire_neighbours_info(ent, read_network_ids)
    else
       result = result .. " connected to "
       for i,pole in ipairs(ent.neighbours.copper) do
-         local dir = get_direction_of_that_from_this(pole.position,ent.position)
+         local dir = fa_utils.get_direction_biased(pole.position,ent.position)
          local dist = util.distance(pole.position,ent.position)
          if neighbour_count > 0 then
             result = result .. " and "
@@ -129,7 +130,7 @@ function wire_neighbours_info(ent, read_network_ids)
          if id == nil then
             id = "nil"
          end
-         result = result .. math.ceil(dist) .. " tiles " .. direction_lookup(dir) 
+         result = result .. math.ceil(dist) .. " tiles " .. fa_utils.direction_lookup(dir) 
          if read_network_ids == true then 
             result = result .. " to electric network number " .. id
          end
@@ -137,12 +138,12 @@ function wire_neighbours_info(ent, read_network_ids)
          neighbour_count = neighbour_count + 1
       end
       for i,nbr in ipairs(ent.neighbours.red) do
-         local dir = get_direction_of_that_from_this(nbr.position,ent.position)
+         local dir = fa_utils.get_direction_biased(nbr.position,ent.position)
          local dist = util.distance(nbr.position,ent.position)
          if neighbour_count > 0 then
             result = result .. " and "
          end
-         result = result .. " red wire " .. math.ceil(dist) .. " tiles " .. direction_lookup(dir)
+         result = result .. " red wire " .. math.ceil(dist) .. " tiles " .. fa_utils.direction_lookup(dir)
          if nbr.type == "electric-pole" then 
             local id = nbr.get_circuit_network(defines.wire_type.red, defines.circuit_connector_id.electric_pole)
             if id == nil then
@@ -158,12 +159,12 @@ function wire_neighbours_info(ent, read_network_ids)
          neighbour_count = neighbour_count + 1
       end
       for i,nbr in ipairs(ent.neighbours.green) do
-         local dir = get_direction_of_that_from_this(nbr.position,ent.position)
+         local dir = fa_utils.get_direction_biased(nbr.position,ent.position)
          local dist = util.distance(nbr.position,ent.position)
          if neighbour_count > 0 then
             result = result .. " and "
          end
-         result = result .. " green wire " .. math.ceil(dist) .. " tiles " .. direction_lookup(dir) 
+         result = result .. " green wire " .. math.ceil(dist) .. " tiles " .. fa_utils.direction_lookup(dir) 
          if nbr.type == "electric-pole" then 
             local id = nbr.get_circuit_network(defines.wire_type.green, defines.circuit_connector_id.electric_pole)
             if id == nil then
@@ -1273,7 +1274,7 @@ function circuit_network_neighbors_info(pindex, ent, wire_type)
    local result = "Connected to "
    for i, member in ipairs(members_list) do
       if member.unit_number ~= ent.unit_number then
-         result = result .. localising.get(member,pindex) .. " at " .. math.ceil(util.distance(member.position,ent.position)) .. " " .. direction_lookup(get_direction_of_that_from_this(member.position,ent.position)) .. ", "
+         result = result .. localising.get(member,pindex) .. " at " .. math.ceil(util.distance(member.position,ent.position)) .. " " .. fa_utils.direction_lookup(fa_utils.get_direction_biased(member.position,ent.position)) .. ", "
       end
    end
    return result 
@@ -1387,7 +1388,7 @@ end
 
 function build_signal_selector(pindex)
    local item_group_names = {}
-   local groups = get_iterable_array(game.item_group_prototypes)--game.item_group_prototypes
+   local groups = fa_utils.get_iterable_array(game.item_group_prototypes)--game.item_group_prototypes
    --local item_group_array = get_iterable_array(game.item_group_prototypes)
    for i, group in ipairs(groups) do 
       table.insert(item_group_names,group.name)
@@ -1401,13 +1402,13 @@ function build_signal_selector(pindex)
       editing_first_slot = nil,
    }
    --Populate signal groups 
-   local items = get_iterable_array(game.item_prototypes)
+   local items = fa_utils.get_iterable_array(game.item_prototypes)
    for i, group in ipairs(item_group_names) do 
       players[pindex].signal_selector.signals[group] = {}
       if group == "fluids" then
-         players[pindex].signal_selector.signals[group] = get_iterable_array(game.fluid_prototypes)
+         players[pindex].signal_selector.signals[group] = fa_utils.get_iterable_array(game.fluid_prototypes)
       elseif group == "signals" then
-         players[pindex].signal_selector.signals[group] = get_iterable_array(game.virtual_signal_prototypes)
+         players[pindex].signal_selector.signals[group] = fa_utils.get_iterable_array(game.virtual_signal_prototypes)
       else
          for j, item in ipairs(items) do 
             if item.group.name == group then

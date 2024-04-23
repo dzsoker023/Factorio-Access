@@ -1,6 +1,8 @@
 --Here: functions about belts, splitters, underground belts
 
 local localising = require("localising")
+local util = require('util')
+local fa_utils = require('fa-utils')
 
 --Takes some stats about a belt unit and explains what type of junction the belt is.
 function transport_belt_junction_info(sideload_count, backload_count, outload_count, this_dir, outload_dir, say_middle, outload_is_corner)
@@ -590,17 +592,17 @@ function splitter_priority_info(ent)
    if input == "none" then
       result = result .. " input balanced, "
    elseif input == "right" then
-      result = result .. " input priority " .. "right" .. " which is " .. direction_lookup(rotate_90(ent.direction)) .. ", "
+      result = result .. " input priority " .. "right" .. " which is " .. fa_utils.direction_lookup(fa_utils.rotate_90(ent.direction)) .. ", "
    elseif input == "left" then
-      result = result .. " input priority " .. "left" .. " which is " .. direction_lookup(rotate_270(ent.direction)) .. ", "
+      result = result .. " input priority " .. "left" .. " which is " .. fa_utils.direction_lookup(fa_utils.rotate_270(ent.direction)) .. ", "
    end
    if filter == nil then
       if output == "none" then
          result = result .. " output balanced, "
       elseif output == "right" then
-         result = result .. " output priority " .. "right" .. " which is " .. direction_lookup(rotate_90(ent.direction)) .. ", "
+         result = result .. " output priority " .. "right" .. " which is " .. fa_utils.direction_lookup(fa_utils.rotate_90(ent.direction)) .. ", "
       elseif output == "left" then
-         result = result .. " output priority " .. "left" .. " which is " .. direction_lookup(rotate_270(ent.direction)) .. ", "
+         result = result .. " output priority " .. "left" .. " which is " .. fa_utils.direction_lookup(fa_utils.rotate_270(ent.direction)) .. ", "
       end
    else
       local item_name = localising.get(filter,pindex)
@@ -608,9 +610,9 @@ function splitter_priority_info(ent)
          item_name = "unknown item"
       end
       if output == "right" then
-         result = result .. " output filtering " .. item_name .. " towards the " .. "right" .. " which is " .. direction_lookup(rotate_90(ent.direction)) .. ", "
+         result = result .. " output filtering " .. item_name .. " towards the " .. "right" .. " which is " .. fa_utils.direction_lookup(fa_utils.rotate_90(ent.direction)) .. ", "
       elseif output == "left" then
-         result = result .. " output filtering " .. item_name .. " towards the " .. "left" .. " which is " .. direction_lookup(rotate_270(ent.direction)) .. ", "
+         result = result .. " output filtering " .. item_name .. " towards the " .. "left" .. " which is " .. fa_utils.direction_lookup(fa_utils.rotate_270(ent.direction)) .. ", "
       end
    end
    return result

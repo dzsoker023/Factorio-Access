@@ -2,9 +2,10 @@
 --Does not include event handlers directly, but can have functions called by them.
 local localising = require('localising')
 local util = require('util')
+local fa_utils = require('fa-utils')
 
-dirs = defines.direction
-MAX_STACK_COUNT = 10
+local dirs = defines.direction
+local MAX_STACK_COUNT = 10
 
 --https://lua-api.factorio.com/latest/classes/LuaLogisticCell.html
 --defines.inventory.character_trash
@@ -144,7 +145,7 @@ function logistics_networks_info(ent,pos_in)
       if network ~= nil and network.valid then
          result_code = 2
          local pos_n = network.find_cell_closest_to(pos).owner.position
-         result = "No logistics connected, nearest network is " .. util.distance(pos,pos_n) .. " tiles " .. direction_lookup(get_direction_of_that_from_this(pos_n,pos))
+         result = "No logistics connected, nearest network is " .. util.distance(pos,pos_n) .. " tiles " .. fa_utils.direction_lookup(fa_utils.get_direction_biased(pos_n,pos))
       else
          result_code = 3
          result = "No logistics connected, no logistic networks nearby, "
@@ -1713,7 +1714,7 @@ function roboport_neighbours_info(port)
    local neighbour_count = #cell.neighbours
    local neighbour_dirs = ""
    for i, neighbour in ipairs(cell.neighbours) do 
-      local dir = direction_lookup(get_direction_of_that_from_this(neighbour.owner.position, port.position))
+      local dir = fa_utils.direction_lookup(fa_utils.get_direction_biased(neighbour.owner.position, port.position))
       if i > 1 then
          neighbour_dirs = neighbour_dirs .. " and "
       end

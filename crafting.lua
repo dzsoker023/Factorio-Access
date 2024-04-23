@@ -4,32 +4,10 @@ local util = require('util')
 local fa_utils = require('fa-utils')
 local localising = require('localising')
 
---Technology menu: Read the selected technology
-function read_technology_slot(pindex, start_phrase)
-   start_phrase = start_phrase or ""
-   local techs = {}
-   if players[pindex].technology.category == 1 then
-      techs = players[pindex].technology.lua_researchable
-   elseif players[pindex].technology.category == 2 then
-      techs = players[pindex].technology.lua_locked
-   elseif players[pindex].technology.category == 3 then
-      techs = players[pindex].technology.lua_unlocked
-   end
-
-   if next(techs) ~= nil and players[pindex].technology.index > 0 and players[pindex].technology.index <= #techs then
-      local tech = techs[players[pindex].technology.index]
-      if tech.valid then
-         printout(start_phrase .. localising.get(tech,pindex), pindex)
-      else
-         printout(start_phrase .. "Error loading technology", pindex)
-      end
-   else
-      printout(start_phrase .. "No technologies in this category", pindex)
-   end
-end
+local fa_crafting = {}
 
 --Returns a navigable list of all unlocked recipes, for the recipe categories supported by the selected entity. Optionally can return all unlocked recipes for all categories.
-function get_recipes(pindex, ent, load_all_categories)
+function fa_crafting.get_recipes(pindex, ent, load_all_categories)
    if not ent then
       return {}
    end
@@ -65,7 +43,7 @@ function get_recipes(pindex, ent, load_all_categories)
 end
 
 --Reads out the selected slot of the player crafting queue.
-function read_crafting_queue(pindex, start_phrase)
+function fa_crafting.read_crafting_queue(pindex, start_phrase)
    start_phrase = start_phrase or ""
    if players[pindex].crafting_queue.max ~= 0 then
       local item = players[pindex].crafting_queue.lua_queue[players[pindex].crafting_queue.index]
@@ -77,7 +55,7 @@ function read_crafting_queue(pindex, start_phrase)
 end
 
 --Returns a count of how many batches of this recipe are listed in the (entire) crafting queue. 
-function count_in_crafting_queue(recipe_name, pindex)
+function fa_crafting.count_in_crafting_queue(recipe_name, pindex)
    local count = 0
    if game.get_player(pindex).crafting_queue == nil or #game.get_player(pindex).crafting_queue == 0 then
       return count
@@ -92,7 +70,7 @@ function count_in_crafting_queue(recipe_name, pindex)
 end
 
 --Loads the crafting queue menu for a player.
-function load_crafting_queue(pindex)
+function fa_crafting.load_crafting_queue(pindex)
    if players[pindex].crafting_queue.lua_queue ~= nil then
       players[pindex].crafting_queue.lua_queue = game.get_player(pindex).crafting_queue
       if players[pindex].crafting_queue.lua_queue ~= nil then
@@ -115,7 +93,7 @@ function load_crafting_queue(pindex)
 end
 
 --Returns a count of total recipe batches left in the player crafting queue. 
-function get_crafting_que_total(pindex)
+function fa_crafting.get_crafting_que_total(pindex)
    local p = game.get_player(pindex)
    local total_items = 0
    if p.crafting_queue == nil or p.crafting_queue == {} then
@@ -128,7 +106,7 @@ function get_crafting_que_total(pindex)
 end
 
 --Reads the currently selected recipe in the player crafting menu.
-function read_crafting_slot(pindex, start_phrase, new_category)
+function fa_crafting.read_crafting_slot(pindex, start_phrase, new_category)
    start_phrase = start_phrase or ""
    local recipe = players[pindex].crafting.lua_recipes[players[pindex].crafting.category][players[pindex].crafting.index]
    if recipe.valid == true then
@@ -142,7 +120,7 @@ function read_crafting_slot(pindex, start_phrase, new_category)
 end
 
 --Returns an info string about how many units of which ingredients are missing in order to craft one batch of this recipe.
-function recipe_missing_ingredients_info(pindex, recipe_in)
+function fa_crafting.recipe_missing_ingredients_info(pindex, recipe_in)
    local recipe = recipe_in or players[pindex].crafting.lua_recipes[players[pindex].crafting.category][players[pindex].crafting.index]
    local p = game.get_player(pindex)
    local inv = p.get_main_inventory()
@@ -166,8 +144,8 @@ function recipe_missing_ingredients_info(pindex, recipe_in)
 end
 
 --Returns info text on the raw ingredients for a recipe.
-function recipe_raw_ingredients_info(recipe, pindex)
-   local raw_ingredients = get_raw_ingredients_table(recipe, pindex)
+function fa_crafting.recipe_raw_ingredients_info(recipe, pindex)
+   local raw_ingredients = fa_crafting.get_raw_ingredients_table(recipe, pindex)
    --Merge duplicates
    local merged_table = {}
    for i, ing in ipairs(raw_ingredients) do
@@ -209,7 +187,7 @@ function recipe_raw_ingredients_info(recipe, pindex)
 end
 
 --Explores a recipe and its sub-recipes and returns a table that contains all ingredients that do not have their own sub-recipes. The same ingredient may appear multiple times in the table, so its entries need to be merged.--***Todo fix: The counts are incorrect because we need non-integer ratios of ings to prods
-function get_raw_ingredients_table(recipe, pindex, count_in)
+function fa_crafting.get_raw_ingredients_table(recipe, pindex, count_in)
    local count = count_in or 1
    local raw_ingredients_table = {}
    for i, ing in ipairs(recipe.ingredients) do
@@ -223,7 +201,7 @@ function get_raw_ingredients_table(recipe, pindex, count_in)
             end
          else
             --Check the sub-recipe recursively
-            local sub_table = get_raw_ingredients_table(sub_recipe, pindex)--, ing.amount)
+            local sub_table = fa_crafting.get_raw_ingredients_table(sub_recipe, pindex)--, ing.amount)
             if sub_table ~= nil then
                --Copy the sub_table to the main table
                for j, ing2 in ipairs(sub_table) do
@@ -243,3 +221,4 @@ function get_raw_ingredients_table(recipe, pindex, count_in)
    return raw_ingredients_table
 end
 
+return fa_crafting

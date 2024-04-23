@@ -1,3 +1,7 @@
+--Here: GUI, graphics drawing, and mouse pointer movement
+
+local fa_utils = require("fa-utils")
+local dirs = defines.direction
 
 --Shows a GUI to demonstrate different sprites from the game files.
 function show_sprite_demo(pindex)
@@ -201,10 +205,10 @@ function move_mouse_pointer(position,pindex)
       --return
    end
    local player = players[pindex]
-   local pixels = mult_position( sub_position(pos, player.position), 32*player.zoom)
+   local pixels = fa_utils.mult_position( fa_utils.sub_position(pos, player.position), 32*player.zoom)
    local screen = game.players[pindex].display_resolution
    local screen_c = {x = screen.width, y = screen.height}
-   pixels = add_position(pixels,mult_position(screen_c,0.5))
+   pixels = fa_utils.add_position(pixels,fa_utils.mult_position(screen_c,0.5))
    move_pointer_to_pixels(pixels.x, pixels.y, pindex)
    --game.get_player(pindex).print("moved to " ..  math.floor(pixels.x) .. " , " ..  math.floor(pixels.y), {volume_modifier=0})--
 end
@@ -240,7 +244,7 @@ function sync_build_cursor_graphics(pindex)
       if dir_indicator ~= nil then rendering.destroy(player.building_dir_arrow) end
       local arrow_pos = player.cursor_pos
       if players[pindex].build_lock and not players[pindex].cursor and stack.name ~= "rail" then
-         arrow_pos = center_of_tile(offset_position(arrow_pos, players[pindex].player_direction, -2))
+         arrow_pos = fa_utils.center_of_tile(fa_utils.offset_position(arrow_pos, players[pindex].player_direction, -2))
       end
       player.building_dir_arrow = rendering.draw_sprite{sprite = "fluid.crude-oil", tint = {r = 0.25, b = 0.25, g = 1.0, a = 0.75}, render_layer = "254",
          surface = game.get_player(pindex).surface, players = nil, target = arrow_pos, orientation = dir/(2 * dirs.south)}
@@ -286,8 +290,8 @@ function sync_build_cursor_graphics(pindex)
             elseif p_dir == dirs.east or p_dir == dirs.west then
                size_offset = -width + 1
             end
-            left_top = offset_position(left_top, players[pindex].player_direction, base_offset + size_offset)
-            right_bottom = offset_position(right_bottom, players[pindex].player_direction, base_offset + size_offset)
+            left_top = fa_utils.offset_position(left_top, players[pindex].player_direction, base_offset + size_offset)
+            right_bottom = fa_utils.offset_position(right_bottom, players[pindex].player_direction, base_offset + size_offset)
          end
       end
 
@@ -311,17 +315,17 @@ function sync_build_cursor_graphics(pindex)
          --Adjust for direct placement
          local pos = player.cursor_pos
          if p_dir == dirs.north then
-            pos = offset_position(pos, dirs.north, height/2 - 0.5)
-            pos = offset_position(pos, dirs.east, width/2 - 0.5)
+            pos = fa_utils.offset_position(pos, dirs.north, height/2 - 0.5)
+            pos = fa_utils.offset_position(pos, dirs.east, width/2 - 0.5)
          elseif p_dir == dirs.east then
-            pos = offset_position(pos, dirs.south, height/2 - 0.5)
-            pos = offset_position(pos, dirs.east, width/2 - 0.5)
+            pos = fa_utils.offset_position(pos, dirs.south, height/2 - 0.5)
+            pos = fa_utils.offset_position(pos, dirs.east, width/2 - 0.5)
          elseif p_dir == dirs.south then
-            pos = offset_position(pos, dirs.south, height/2 - 0.5)
-            pos = offset_position(pos, dirs.east, width/2 - 0.5)
+            pos = fa_utils.offset_position(pos, dirs.south, height/2 - 0.5)
+            pos = fa_utils.offset_position(pos, dirs.east, width/2 - 0.5)
          elseif p_dir == dirs.west then
-            pos = offset_position(pos, dirs.south, height/2 - 0.5)
-            pos = offset_position(pos, dirs.west, width/2 - 0.5)
+            pos = fa_utils.offset_position(pos, dirs.south, height/2 - 0.5)
+            pos = fa_utils.offset_position(pos, dirs.west, width/2 - 0.5)
          end
 
          --In build lock mode and outside cursor mode, build from behind the player
@@ -333,7 +337,7 @@ function sync_build_cursor_graphics(pindex)
             elseif p_dir == dirs.east or p_dir == dirs.west then
                size_offset = -width + 1
             end
-            pos = offset_position(pos, players[pindex].player_direction, base_offset + size_offset)
+            pos = fa_utils.offset_position(pos, players[pindex].player_direction, base_offset + size_offset)
          end
          move_mouse_pointer(pos,pindex)
       end
@@ -467,9 +471,9 @@ function cursor_highlight(pindex, ent, box_type, skip_mouse_movement)
 
    --Move the mouse cursor to the object on screen or to the player position for objects off screen 
    if cursor_position_is_on_screen_with_player_centered(pindex) then
-      move_mouse_pointer(center_of_tile(c_pos),pindex)
+      move_mouse_pointer(fa_utils.center_of_tile(c_pos),pindex)
    else
-      move_mouse_pointer(center_of_tile(p.position),pindex)
+      move_mouse_pointer(fa_utils.center_of_tile(p.position),pindex)
    end
 end
 

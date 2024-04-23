@@ -1,8 +1,8 @@
 --Here: Menu search and directly related functions
-local fa_utils = require('fa-utils')
-local localising = require('localising')
 local util = require('util')
-
+local fa_utils = require('fa-utils')
+local fa_crafting = require("crafting")
+local localising = require('localising')
 
 --Allows searching a menu that has support written for this
 function menu_search_open(pindex)
@@ -188,7 +188,7 @@ function menu_search_get_next(pindex, str, start_phrase_in)
       players[pindex].menu_search_index_2 = new_index_2
       players[pindex].crafting.category = new_index
       players[pindex].crafting.index = new_index_2
-      read_crafting_slot(pindex, start_phrase)
+      fa_crafting.read_crafting_slot(pindex, start_phrase)
    elseif (players[pindex].menu == "building" or players[pindex].menu == "vehicle") and players[pindex].building.recipe_selection == true then
       players[pindex].menu_search_index = new_index
       players[pindex].menu_search_index_2 = new_index_2

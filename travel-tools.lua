@@ -1,4 +1,5 @@
---
+--Here: Teleporting, fast travel, structure travel, etc.
+local fa_utils = require("fa-utils")
 
 --Structure travel: Moves the player cursor in the input direction.
 function move_cursor_structure(pindex, dir)
@@ -371,12 +372,12 @@ function teleport_to_closest(pindex, pos, muted, ignore_enemies)
          end
          if new_pos.x ~= pos.x or new_pos.y ~= pos.y then
             if not muted then
-               printout("Teleported " .. math.ceil(distance(pos,first_player.position)) .. " " .. direction(pos, first_player.position) .. " of target", pindex)
+               printout("Teleported " .. math.ceil(fa_utils.distance(pos,first_player.position)) .. " " .. fa_utils.direction(pos, first_player.position) .. " of target", pindex)
             end
          end
          --Update cursor after teleport
          players[pindex].cursor_pos = table.deepcopy(new_pos)
-         move_mouse_pointer(center_of_tile(players[pindex].cursor_pos),pindex)
+         move_mouse_pointer(fa_utils.center_of_tile(players[pindex].cursor_pos),pindex)
          cursor_highlight(pindex,nil,nil)
       else
          printout("Teleport Failed", pindex)
@@ -455,7 +456,7 @@ function read_travel_slot(pindex)
    else
       local entry = global.players[pindex].travel[players[pindex].travel.index.y]
       printout(entry.name .. " at " .. math.floor(entry.position.x) .. ", " .. math.floor(entry.position.y), pindex)
-      players[pindex].cursor_pos = center_of_tile(entry.position)
+      players[pindex].cursor_pos = fa_utils.center_of_tile(entry.position)
       cursor_highlight(pindex, nil, "train-visualization")
    end
 end
@@ -473,7 +474,7 @@ function fast_travel_menu_click(pindex)
       if success and players[pindex].cursor then
          players[pindex].cursor_pos = table.deepcopy(global.players[pindex].travel[players[pindex].travel.index.y].position)
       else
-         players[pindex].cursor_pos = offset_position(players[pindex].position, players[pindex].player_direction, 1)
+         players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].position, players[pindex].player_direction, 1)
       end
       sync_build_cursor_graphics(pindex)
       game.get_player(pindex).opened = nil
@@ -519,7 +520,7 @@ function fast_travel_menu_click(pindex)
       input.focus()
       input.select(1, 0)
    elseif players[pindex].travel.index.x == 5 then --Relocate to current character position
-      players[pindex].travel[players[pindex].travel.index.y].position = center_of_tile(players[pindex].position)
+      players[pindex].travel[players[pindex].travel.index.y].position = fa_utils.center_of_tile(players[pindex].position)
       printout("Relocated point ".. players[pindex].travel[players[pindex].travel.index.y].name .. " to " .. math.floor(players[pindex].position.x) .. ", " .. math.floor(players[pindex].position.y), pindex)
       players[pindex].cursor_pos = players[pindex].position
       cursor_highlight(pindex)

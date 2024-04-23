@@ -1,6 +1,7 @@
 --Here: functions specific to building menus
 local util = require('util')
 local fa_utils = require('fa-utils')
+local fa_crafting = require("crafting")
 local localising = require('localising')
 
 --[[Function to increase/decrease the bar (restricted slots) of a given chest/container by a given amount, while protecting its lower and upper bounds. 
@@ -84,7 +85,7 @@ function open_operable_building(ent,pindex)--open_building
       end
       if ent.prototype.ingredient_count ~= nil then
          players[pindex].building.recipe = ent.get_recipe()
-         players[pindex].building.recipe_list = get_recipes(pindex, ent)
+         players[pindex].building.recipe_list = fa_crafting.get_recipes(pindex, ent)
          players[pindex].building.category = 1
       else
          players[pindex].building.recipe = nil
@@ -237,7 +238,7 @@ function open_operable_vehicle(ent,pindex)--open_vehicle
       players[pindex].menu_search_index_2 = 0
       if ent.prototype.ingredient_count ~= nil then
          players[pindex].building.recipe = ent.get_recipe()
-         players[pindex].building.recipe_list = get_recipes(pindex, ent)
+         players[pindex].building.recipe_list = fa_crafting.get_recipes(pindex, ent)
          players[pindex].building.category = 1
       else
          players[pindex].building.recipe = nil
