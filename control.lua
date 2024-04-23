@@ -21,8 +21,8 @@ local fa_scanner = require("scanner")
 local fa_spidertrons = require("spidertron")
 local fa_belts = require("transport-belts")
 local fa_zoom = require('zoom')
-local fa_bot_logistics = require("worker-robots").bot_logistics
-local fa_blueprints = require("worker-robots").blueprints
+local fa_bot_logistics = require("worker-robots")
+local fa_blueprints = require("blueprints")
 
 local circuit_networks = require('circuit-networks')
 

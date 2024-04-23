@@ -8,7 +8,7 @@ local fa_graphics = require("graphics-and-mouse").graphics
 local fa_building_tools = require("mining-and-building-tools")
 local fa_trains = require("rails-and-trains").trains
 local fa_zoom = require('zoom')
-local fa_bot_logistics = require("worker-robots").bot_logistics
+local fa_bot_logistics = require("worker-robots")
 
 local fa_scanner = {} 
 --Find islands of resources or water or trees to create the aggregate entries in the scanner list. Does not run for every scan.

@@ -2,7 +2,7 @@
 --Note: Does not include every single rendering call made by the mod, such as circles being drawn by obstacle clearing.
 
 local fa_utils = require("fa-utils")
-local fa_blueprints = require("worker-robots").blueprints
+local fa_blueprints = require("blueprints")
 local dirs = defines.direction
 
 local fa_graphics = {}
