@@ -1325,7 +1325,6 @@ function factorio_default_sort(k1, k2)
    end
 end
 
-
 --Reads the selected player inventory's selected menu slot. Default is to read the main inventory.
 function read_inventory_slot(pindex, start_phrase_in, inv_in)
    local start_phrase = start_phrase_in or ""
@@ -3366,7 +3365,6 @@ function on_tick(event)
    end
 end
 
-
 script.on_event(defines.events.on_tick,on_initial_joining_tick)
 
 --Called for every player on every tick, to manage automatic walking and enforcing mouse pointer position syncs. Todo: move the mouse pointer stuff to its own function.
@@ -3643,7 +3641,7 @@ function sync_remote_view(pindex)
 end
 
 --Makes the character face the cursor, choosing the nearest of 4 cardinal directions. Can be overwriten by vanilla move keys.
-function turn_to_cursor_direction_cardinal(pindex)--
+function turn_to_cursor_direction_cardinal(pindex)
    local p = game.get_player(pindex)
    if p.character == nil then
       return
@@ -4870,6 +4868,7 @@ end
 
 script.on_event(quickbar_slots,quickbar_slots_handler )
 
+--all 10 quickbar slot setting event handlers
 ---@param event EventData.CustomInputEvent
 local function set_quickbar_names_handler(event)
    pindex = event.player_index
@@ -4886,8 +4885,9 @@ local function set_quickbar_names_handler(event)
 end
 script.on_event(set_quickbar_names,set_quickbar_names_handler)
 
+--all 10 quickbar page setting event handlers
 ---@param event EventData.CustomInputEvent
-local function quickbar_pages_handler(event)--all 10 quickbar page setting event handlers
+local function quickbar_pages_handler(event)
    pindex = event.player_index
    if not check_for_player(pindex) then
       return
@@ -9915,7 +9915,7 @@ script.on_event("fa-pda-cruise-control-set-speed-info", function(event)
 end)
 
 --If the cursor is over a water tile, this function is called to check if it is open water or a shore.
-function identify_water_shores(pindex)--
+function identify_water_shores(pindex)
    local p = game.get_player(pindex)
    local water_tile_names = {"water", "deepwater", "water-green", "deepwater-green", "water-shallow", "water-mud", "water-wube"}
    local pos = players[pindex].cursor_pos
@@ -9986,7 +9986,7 @@ script.on_event("nearest-damaged-ent-info", function(event)
 end)
 
 --Reads out the distance and direction to the nearest damaged entity within 1000 tiles.
-function read_nearest_damaged_ent_info(pos,pindex)--
+function read_nearest_damaged_ent_info(pos,pindex)
    local p = game.get_player(pindex)
    --Scan for ents of your force
    local ents = p.surface.find_entities_filtered{position = players[pindex].cursor_pos, radius = 1000, force = p.force}
@@ -10040,7 +10040,7 @@ script.on_event("cursor-pollution-info", function(event)
 end)
 
 --Reads out the relative pollution level at the input position. The categories are based on data like map view shaders, water discoloration rates. For example, in default settings trees are damaged after pollution exceeds 60 and water is discolored after 90, and the deepest shader applies after 150.
-function read_pollution_level_at_position(pos,pindex)--
+function read_pollution_level_at_position(pos,pindex)
    local p = game.get_player(pindex)
    local pol = p.surface.get_pollution(pos)
    local result = " pollution detected"
