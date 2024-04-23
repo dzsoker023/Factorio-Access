@@ -206,7 +206,6 @@ end
 
 --Updates graphics to match the mod's current construction preview in hand. Draws stuff like the building footprint, direction indicator arrow, selection tool selection box. Also moves the mouse pointer to hold the preview at the correct position on screen.
 function fa_graphics.sync_build_cursor_graphics(pindex)
-   local fa_blueprints = require("blueprints")
    local player = players[pindex]
    if player == nil or player.player.character == nil then
       return
@@ -345,19 +344,25 @@ function fa_graphics.sync_build_cursor_graphics(pindex)
       dir_indicator = player.building_dir_arrow
       rendering.set_visible(dir_indicator,true)
 
-      --Redraw the bp footprint
+      --Redraw the bp footprint ****todo: is this working correctly?
       if player.building_footprint ~= nil then
          rendering.destroy(player.building_footprint)
       end
-      local left_top, right_bottom, center_pos = fa_blueprints.get_blueprint_corners(pindex, false)
-      player.building_footprint = rendering.draw_rectangle{left_top = left_top, right_bottom = right_bottom, color = {r = 0.25, b = 0.25, g = 1.0, a = 0.75}, width = 2, draw_on_ground = true, surface = p.surface, players = nil}
-      rendering.set_visible(player.building_footprint,true)
+      local bp_width = players[pindex].blueprint_width_in_hand
+      local bp_height = players[pindex].blueprint_height_in_hand
+      if bp_width ~= nil then
+         local left_top = {x = math.floor(player.cursor_pos.x),y = math.floor(player.cursor_pos.y)}
+         local right_bottom = {x = (left_top.x + bp_width), y = (left_top.y + bp_height)}
+         local center_pos = {x = (left_top.x + bp_width/2), y = (left_top.y + bp_height/2)}
+         player.building_footprint = rendering.draw_rectangle{left_top = left_top, right_bottom = right_bottom, color = {r = 0.25, b = 0.25, g = 1.0, a = 0.75}, width = 2, draw_on_ground = true, surface = p.surface, players = nil}
+         rendering.set_visible(player.building_footprint,true)
 
-      --Move the mouse pointer
-      if cursor_position_is_on_screen_with_player_centered(pindex) then
-         fa_mouse.move_mouse_pointer(center_pos,pindex)
-      else
-         fa_mouse.move_mouse_pointer(players[pindex].position,pindex)
+         --Move the mouse pointer
+         if cursor_position_is_on_screen_with_player_centered(pindex) then
+            fa_mouse.move_mouse_pointer(center_pos,pindex)
+         else
+            fa_mouse.move_mouse_pointer(players[pindex].position,pindex)
+         end
       end
    else
       --Hide the objects

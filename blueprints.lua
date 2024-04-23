@@ -170,7 +170,7 @@ function fa_blueprints.get_blueprint_corners(pindex, draw_rect)
    local east_most_x = 0
    local north_most_y = 0
    local south_most_y = 0
-   local first_ent=true
+   local first_ent = true
    --Empty blueprint: Just circle the cursor 
    if bp.is_blueprint_setup() == false then
       local left_top = {x = math.floor(pos.x), y = math.floor(pos.y)}
@@ -240,7 +240,7 @@ function fa_blueprints.get_blueprint_corners(pindex, draw_rect)
    return left_top, right_bottom, mouse_pos
 end 
 
-function fa_blueprints.get_blueprint_width_and_height(pindex)--****bug here: need to add 1 if the top left corner is an empty space or something.
+function fa_blueprints.get_blueprint_width_and_height(pindex)
    local p = game.get_player(pindex)
    local bp = p.cursor_stack
    if bp == nil or bp.valid_for_read == false or bp.is_blueprint == false then
@@ -252,6 +252,7 @@ function fa_blueprints.get_blueprint_width_and_height(pindex)--****bug here: nee
    local east_most_x = 0
    local north_most_y = 0
    local south_most_y = 0
+   local first_ent = true
    
    --Empty blueprint
    if not ents or bp.is_blueprint_setup() == false then
@@ -272,24 +273,26 @@ function fa_blueprints.get_blueprint_width_and_height(pindex)--****bug here: nee
       local ent_south = ent.position.y + math.floor(ent_height/2)
       local ent_west  = ent.position.x - math.floor(ent_width/2)
       --Initialize with this entity
-      if west_most_x == nil then
-         west_most_x = ent_west 
+      if first_ent then
+         first_ent = false
+         west_most_x = ent_west
          east_most_x = ent_east
          north_most_y = ent_north
          south_most_y = ent_south
-      end
-      --Compare ent edges with the blueprint edges 
-      if west_most_x > ent_west then
-         west_most_x = ent_west
-      end
-      if east_most_x < ent_east then 
-         east_most_x = ent_east
-      end
-      if north_most_y > ent_north then
-         north_most_y = ent_north
-      end
-      if south_most_y < ent_south then
-         south_most_y = ent_south 
+      else
+         --Compare ent edges with the blueprint edges 
+         if west_most_x > ent_west then
+            west_most_x = ent_west
+         end
+         if east_most_x < ent_east then
+            east_most_x = ent_east
+         end
+         if north_most_y > ent_north then
+            north_most_y = ent_north
+         end
+         if south_most_y < ent_south then
+            south_most_y = ent_south
+         end
       end
    end
    --Determine blueprint dimensions from the final edges
@@ -356,6 +359,11 @@ function fa_blueprints.get_blueprint_info(stack, in_hand)
    
    result = result .. ", " .. stack.get_blueprint_entity_count() .. " entities in total "
    --game.print(result)
+
+   --Use this opportunity to update saved information about the blueprint's corners (used when drawing the footprint)
+   local width, height = fa_blueprints.get_blueprint_width_and_height(pindex)
+   players[pindex].blueprint_width_in_hand = width
+   players[pindex].blueprint_height_in_hand = height
    return result
 end
 
