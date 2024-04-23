@@ -415,6 +415,13 @@ function fa_building_tools.rotate_building_info_read(event, forward)
          game.get_player(pindex).play_sound{path="Rotate-Hand-Sound"}
          players[pindex].blueprint_hand_direction = (players[pindex].blueprint_hand_direction + dirs.east * mult) % (2 * dirs.south)
          printout(fa_utils.direction_lookup(players[pindex].blueprint_hand_direction), pindex)
+
+         --Flip the saved bp width and height
+         local temp = players[pindex].blueprint_height_in_hand
+         players[pindex].blueprint_height_in_hand = players[pindex].blueprint_width_in_hand
+         players[pindex].blueprint_width_in_hand = temp
+
+         --Call graphics update
          fa_graphics.sync_build_cursor_graphics(pindex)
       elseif ent and ent.valid then
          game.get_player(pindex).selected = ent

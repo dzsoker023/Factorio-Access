@@ -98,6 +98,11 @@ function fa_blueprints.create_blueprint(pindex, point_1, point_2, prior_bp_data)
       end
       fa_blueprints.set_stack_bp_from_data(p.cursor_stack,bp_data) 
    end
+
+   --Use this opportunity to update saved information about the blueprint's corners (used when drawing the footprint)
+   local width, height = fa_blueprints.get_blueprint_width_and_height(pindex)
+   players[pindex].blueprint_width_in_hand = width + 1
+   players[pindex].blueprint_height_in_hand = height + 1
 end 
 
 --Building function for bluelprints
@@ -362,8 +367,8 @@ function fa_blueprints.get_blueprint_info(stack, in_hand)
 
    --Use this opportunity to update saved information about the blueprint's corners (used when drawing the footprint)
    local width, height = fa_blueprints.get_blueprint_width_and_height(pindex)
-   players[pindex].blueprint_width_in_hand = width
-   players[pindex].blueprint_height_in_hand = height
+   players[pindex].blueprint_width_in_hand = width + 1
+   players[pindex].blueprint_height_in_hand = height + 1
    return result
 end
 
