@@ -1,6 +1,5 @@
 --Here: Functions relating to train topics such as train info, train stops, train scheduling
 --Does not include event handlers
----@diagnostic disable: assign-type-mismatch
 
 local util = require('util')
 local fa_utils = require('fa-utils')

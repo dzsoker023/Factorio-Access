@@ -24,6 +24,7 @@ local fa_belts = require("transport-belts")
 local fa_zoom = require('zoom')
 local fa_bot_logistics = require("worker-robots")
 local fa_blueprints = require("blueprints")
+local fa_warnings = require("warnings")
 
 local circuit_networks = require('circuit-networks')
 
@@ -890,351 +891,6 @@ function radar_charting_info(radar)
    return result
 end
 
---Reads out a selected warning from the menu.
-function read_warnings_slot(pindex)
-   local warnings = {}
-   if players[pindex].warnings.sector == 1 then
-      warnings = players[pindex].warnings.short.warnings
-   elseif players[pindex].warnings.sector == 2 then
-      warnings = players[pindex].warnings.medium.warnings
-   elseif players[pindex].warnings.sector == 3 then
-      warnings= players[pindex].warnings.long.warnings
-   end
-   if players[pindex].warnings.category <= #warnings and players[pindex].warnings.index <= #warnings[players[pindex].warnings.category].ents then
-      local ent = warnings[players[pindex].warnings.category].ents[players[pindex].warnings.index]
-      if ent ~= nil and ent.valid then
-         printout(ent.name .. " has " .. warnings[players[pindex].warnings.category].name .. " at " .. math.floor(ent.position.x) .. ", " .. math.floor(ent.position.y), pindex)
-      else
-         printout("Blank", pindex)
-      end
-   else
-      printout("No warnings for this range.  Press tab to pick a larger range, or press E to close this menu.", pindex)
-   end
-end
-
---Warnings menu: Creates a structured data network to track production systems.
-function generate_production_network(pindex)
-   local surf = game.get_player(pindex).surface
-   local connectors = surf.find_entities_filtered{type="inserter"}
-   local sources = surf.find_entities_filtered{type = "mining-drill"}
-   local hash = {}
-   local lines = {}
-   local function explore_source(source)
-      if hash[source.unit_number] == nil then
-         hash[source.unit_number] = {
-            production_line = math.huge,
-            inputs = {},
-            outputs = {},
-            ent = source
-         }
-         local target = surf.find_entities_filtered{position = source.drop_position, type = production_types}[1]
-         if target ~= nil then
-            if target.type == "mining-drill" then
-               table.insert(hash[source.unit_number].outputs, target.unit_number)
-               explore_source(target)
-               table.insert(hash[target.unit_number].inputs, source.unit_number)
-               local new_line = math.min(hash[target.unit_number].production_line, table.maxn(lines) + 1)
-               hash[source.unit_number].production_line = new_line
-               lines[new_line] = lines[new_line] or {}
-               table.insert(lines[new_line], source.unit_number)
-            elseif target.type == "transport-belt" then
-               if hash[target.unit_number] == nil then
-
-                  local belts = fa_belts.get_connected_belts(target)
-                  for i, belt in pairs(belts.hash) do
-                     hash[i] = {link = target.unit_number}
-                  end
-
-                  local new_line = table.maxn(lines)+1
-                  hash[target.unit_number] = {
-                     production_line = new_line,
-                     inputs = {source.unit_number},
-                     outputs = {},
-                     ent = target
-                  }
-
-                  hash[source.unit_number].production_line = new_line
-                  lines[new_line] = {source.unit_number, target.unit_number}
-               else
-                  if hash[target.unit_number].link ~= nil then
-                     hash[target.unit_number].ent = target
-                     target = hash[hash[target.unit_number].link].ent
-                  end
-                  table.insert(hash[target.unit_number].inputs, source.unit_number)
-                  table.insert(hash[source.unit_number].outputs, target.unit_number)
-                  local new_line = hash[target.unit_number].production_line
-                  hash[source.unit_number].production_line = new_line
-
-                  table.insert(lines[new_line], source.unit_number)
-               end
-            else
-               if hash[target.unit_number] == nil then
-                  local new_line = table.maxn(lines)+1
-                  hash[target.unit_number] = {
-                     production_line = new_line,
-                     inputs = {source.unit_number},
-                     outputs = {},
-                     ent = target
-                  }
-                  hash[source.unit_number].production_line = new_line
-                  lines[new_line] = {source.unit_number, target.unit_number}
-               else
-                  table.insert(hash[target.unit_number].inputs, source.unit_number)
-                  table.insert(hash[source.unit_number].outputs, target.unit_number)
-                  hash[source.unit_number].production_line = hash[target.unit_number].production_line
-                  table.insert(lines[hash[target.unit_number].production_line], source.unit_number)
-               end
-            end
-         else
-            local new_line = table.maxn(lines) + 1
-            hash[source.unit_number].production_line = new_line
-            lines[new_line] = {source.unit_number}
-         end
-      end
-      end
-   for i, source in pairs(sources) do
-      explore_source(source)
-   end
-
-   local function explore_connector(connector)
-      if hash[connector.unit_number] == nil then
-         hash[connector.unit_number] = {
-            production_line = math.huge,
-            inputs = {},
-            outputs = {},
-            ent = connector
-         }
-         local drop_target = surf.find_entities_filtered{position = connector.drop_position, type = production_types}[1]
-         local pickup_target = surf.find_entities_filtered{position = connector.pickup_position, type = production_types}[1]
-         if drop_target ~= nil then
-            if drop_target.type == "inserter" then
-               explore_connector(drop_target)
-               local check = true
-               for i, v in pairs(hash[drop_target.unit_number].inputs) do
-                  if v == connector.unit_number then
-                     check = false
-                  end
-               end
-               if check then
-                  table.insert(hash[drop_target.unit_number].inputs, connector.unit_number)
-               end
-
-               local check = true
-               for i, v in pairs(hash[connector.unit_number].outputs) do
-                  if v == drop_target.unit_number then
-                     check = false
-                  end
-               end
-               if check then
-                  table.insert(hash[connector.unit_number].outputs, drop_target.unit_number)
-               end
-            elseif drop_target.type == "transport-belt" then
-               if hash[drop_target.unit_number] == nil then
-                  local belts = fa_belts.get_connected_belts(drop_target)
-                  for i, belt in pairs(belts.hash) do
-                     hash[i] = {link = drop_target.unit_number}
-                  end
-
-                  hash[drop_target.unit_number] = {
-                     production_line = math.huge,
-                     inputs = {connector.unit_number},
-                     outputs = {},
-                     ent = drop_target
-                  }
-                  table.insert(hash[connector.unit_number].outputs, drop_target.unit_number)
-               else
-                  if hash[drop_target.unit_number].link ~= nil then
-                     hash[drop_target.unit_number].ent = drop_target
-                     drop_target = hash[hash[drop_target.unit_number].link].ent
-                  end
-                  table.insert(hash[drop_target.unit_number].inputs, connector.unit_number)
-                  table.insert(hash[connector.unit_number].outputs, drop_target.unit_number)
-               end
-            else
-               if hash[drop_target.unit_number] == nil then
-                  hash[drop_target.unit_number] = {
-                     production_line = math.huge,
-                     inputs = {},
-                     outputs = {},
-                     ent = drop_target
-                  }
-               end
-               table.insert(hash[drop_target.unit_number].inputs, connector.unit_number)
-               table.insert(hash[connector.unit_number].outputs, drop_target.unit_number)
-            end
-         end
-
-         if pickup_target ~= nil then
-            if pickup_target.type == "inserter" then
-               explore_connector(pickup_target)
-               local check = true
-               for i, v in pairs(hash[pickup_target.unit_number].outputs) do
-                  if v == connector.unit_number then
-                     check = false
-                  end
-               end
-               if check then
-                  table.insert(hash[pickup_target.unit_number].outputs, connector.unit_number)
-               end
-
-               local check = true
-               for i, v in pairs(hash[connector.unit_number].inputs) do
-                  if v == pickup_target.unit_number then
-                     check = false
-                  end
-               end
-               if check then
-                  table.insert(hash[connector.unit_number].inputs, pickup_target.unit_number)
-               end
-
-            elseif pickup_target.type == "transport-belt" then
-               if hash[pickup_target.unit_number] == nil then
-                  local belts = fa_belts.get_connected_belts(pickup_target)
-                  for i, belt in pairs(belts.hash) do
-                     hash[i] = {link = pickup_target.unit_number}
-                  end
-                  hash[pickup_target.unit_number] = {
-                     production_line = math.huge,
-                     inputs = {},
-                     outputs = {connector.unit_number},
-                     ent = pickup_target
-                  }
-                  table.insert(hash[connector.unit_number].outputs, pickup_target.unit_number)
-
-               else
-                  if hash[pickup_target.unit_number].link ~= nil then
-                     hash[pickup_target.unit_number].ent = pickup_target
-                     pickup_target = hash[hash[pickup_target.unit_number].link].ent
-                  end
-                  table.insert(hash[pickup_target.unit_number].outputs, connector.unit_number)
-                  table.insert(hash[connector.unit_number].inputs, pickup_target.unit_number)
-               end
-            else
-               if hash[pickup_target.unit_number] == nil then
-                  hash[pickup_target.unit_number] = {
-                     production_line = math.huge,
-                     inputs = {},
-                     outputs = {},
-                     ent = pickup_target
-                  }
-               end
-               table.insert(hash[pickup_target.unit_number].outputs, connector.unit_number)
-               table.insert(hash[connector.unit_number].inputs, pickup_target.unit_number)
-
-            end
-         end
-
-         local choices = {hash[connector.unit_number]}
-         if drop_target ~= nil then
-            table.insert(choices, hash[drop_target.unit_number])
-         end
-         if pickup_target ~= nil then
-            table.insert(choices, hash[pickup_target.unit_number])
-         end
-         local line_choices = {}
-         for i, choice in pairs(choices) do
-            table.insert(line_choices, choice.production_line)
-         end
-         table.insert(line_choices, table.maxn(lines)+1)
-         local new_line = math.min(unpack(line_choices))
-         for i, choice in pairs(choices) do
-            if choice.production_line ~= new_line then
-               local old_line = choice.production_line
-               if old_line ~= math.huge then
-                  for i1, ent in pairs(lines[old_line]) do
-                     hash[ent].production_line = new_line
-                     lines[new_line] = lines[new_line] or {}
-                     table.insert(lines[new_line], ent)
-                  end
-                  lines[old_line] = nil
-               else
-                  choice.production_line = new_line
-                  if lines[new_line] == nil then
-                     lines[new_line] = {}
-                  end
-                  table.insert(lines[new_line], choice.ent.unit_number)
-               end
-            end
-         end
-      end
-   end
-
-   for i, connector in pairs(connectors) do
-      explore_connector(connector)
-   end
-
---   print(table_size(lines))
---   print(table_size(hash))
-
---   local count = 0
---   for i, entry in pairs(hash) do
---      if entry.ent ~= nil then
---         count = count + 1
---   end
---   end
---   print(count)
-   return {hash = hash, lines = lines}
-end
-
---Warnings menu: scans for problems in the production network it defines and creates the warnings list.
-function scan_for_warnings(L,H,pindex)
-   local prod =       generate_production_network(pindex)
-   local surf = game.get_player(pindex).surface
-   local pos = players[pindex].cursor_pos
-   local area = {{pos.x - L, pos.y - H}, {pos.x + L, pos.y + H}}
-   local ents = surf.find_entities_filtered{area = area, type = entity_types}
-   local warnings = {}
-   warnings["noFuel"] = {}
-   warnings["noRecipe"] = {}
-   warnings["noInserters"] = {}
-   warnings["noPower"] = {}
-   warnings ["notConnected"] = {}
-   for i, ent in pairs(ents) do
-      if ent.prototype.burner_prototype ~= nil then
-         local fuel_inv = ent.get_fuel_inventory()
-         if ent.energy == 0 and (fuel_inv == nil or (fuel_inv and fuel_inv.valid and fuel_inv.is_empty())) then
-            table.insert(warnings["noFuel"], ent)
-         end
-      end
-
-      if ent.prototype.electric_energy_source_prototype ~= nil and ent.is_connected_to_electric_network() == false then
-         table.insert(warnings["notConnected"], ent)
-      elseif ent.prototype.electric_energy_source_prototype ~= nil and ent.energy == 0 then
-         table.insert(warnings["noPower"], ent)
-      end
-      local recipe = nil
-      if pcall(function()
-         recipe = ent.get_recipe()
-     end) then
-         if recipe == nil and ent.type ~= "furnace" then
-            table.insert(warnings["noRecipe"], ent)
-         end
-      end
-      local check = false
-      for i1, type in pairs(production_types) do
-         if ent.type == type then
-            check = true
-         end
-      end
-      if check and prod.hash[ent.unit_number] == nil then
-         table.insert(warnings["noInserters"], ent)
-      end
-   end
-   local str = ""
-   local result = {}
-   for i, warning in pairs(warnings) do
-      if #warning > 0 then
-         str = str .. i .. " " .. #warning .. ", "
-         table.insert(result, {name = i, ents = warning})
-      end
-   end
-   if str == "" then
-      str = "No warnings displayed    "
-   end
-   str = string.sub(str, 1, -3)
-   return {summary = str, warnings = result}
-end
-
 --???
 function prune_item_groups(array)
    if #groups == 0 then
@@ -1311,18 +967,6 @@ function get_adjacent_source(box, pos, dir)
       result.direction = "South"
    end
    return result
-end
-
-function factorio_default_sort(k1, k2)
-   if k1.group.order ~= k2.group.order then
-      return k1.group.order < k2.group.order
-   elseif k1.subgroup.order ~= k2.subgroup.order then
-      return k1.subgroup.order < k2.subgroup.order
-   elseif k1.order ~= k2.order then
-      return k1.order < k2.order
-   else
-      return k1.name < k2.name
-   end
 end
 
 --Reads the selected player inventory's selected menu slot. Default is to read the main inventory.
@@ -1796,7 +1440,7 @@ function read_tile(pindex, start_text)
       result = result .. fa_localising.get(players[pindex].tile.tile_object,pindex)
       if tile == "water" or tile == "deepwater" or tile == "water-green" or tile == "deepwater-green" or tile == "water-shallow" or tile == "water-mud" or tile == "water-wube" then
          --Identify shores and crevices and so on for water tiles
-         result = result .. identify_water_shores(pindex)
+         result = result .. fa_utils.identify_water_shores(pindex)
       end
       fa_graphics.draw_cursor_highlight(pindex, nil, nil)
       game.get_player(pindex).selected = nil
@@ -2594,7 +2238,7 @@ function menu_cursor_up(pindex)
          game.get_player(pindex).play_sound{path = "Inventory-Move"}
          players[pindex].warnings.index = 1
       end
-      read_warnings_slot(pindex)
+      fa_warnings.read_warnings_slot(pindex)
    elseif players[pindex].menu == "pump" then
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
       players[pindex].pump.index = math.max(1, players[pindex].pump.index - 1)
@@ -2844,7 +2488,7 @@ function menu_cursor_down(pindex)
          game.get_player(pindex).play_sound{path = "Inventory-Move"}
          players[pindex].warnings.index = 1
       end
-      read_warnings_slot(pindex)
+      fa_warnings.read_warnings_slot(pindex)
    elseif players[pindex].menu == "pump" then
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
       players[pindex].pump.index = math.min(#players[pindex].pump.positions, players[pindex].pump.index + 1)
@@ -3024,7 +2668,7 @@ function menu_cursor_left(pindex)
          players[pindex].warnings.index = players[pindex].warnings.index - 1
          game.get_player(pindex).play_sound{path = "Inventory-Move"}
       end
-      read_warnings_slot(pindex)
+      fa_warnings.read_warnings_slot(pindex)
    elseif players[pindex].menu == "travel" then
       fast_travel_menu_left(pindex)
    elseif players[pindex].menu == "structure-travel" then
@@ -3193,7 +2837,7 @@ function menu_cursor_right(pindex)
             game.get_player(pindex).play_sound{path = "Inventory-Move"}
          end
       end
-      read_warnings_slot(pindex)
+      fa_warnings.read_warnings_slot(pindex)
    elseif players[pindex].menu == "travel" then
       fast_travel_menu_right(pindex)
    elseif players[pindex].menu == "structure-travel" then
@@ -7890,9 +7534,9 @@ script.on_event("open-warnings-menu", function(event)
       return
    end
    if players[pindex].in_menu == false or game.get_player(pindex).opened_gui_type == defines.gui_type.production then
-      players[pindex].warnings.short = scan_for_warnings(30, 30, pindex)
-      players[pindex].warnings.medium = scan_for_warnings(100, 100, pindex)
-      players[pindex].warnings.long = scan_for_warnings(500, 500, pindex)
+      players[pindex].warnings.short = fa_warnings.scan_for_warnings(30, 30, pindex)
+      players[pindex].warnings.medium = fa_warnings.scan_for_warnings(100, 100, pindex)
+      players[pindex].warnings.long = fa_warnings.scan_for_warnings(500, 500, pindex)
       players[pindex].warnings.index = 1
       players[pindex].warnings.sector = 1
       players[pindex].category = 1
@@ -9364,20 +9008,6 @@ function type_cursor_position(pindex)
    input.focus()
 end
 
---Recolors the mod cursor box to match the player's color. Useful in multiplayer when multiple cursors are on screen.
-function set_cursor_colors_to_player_colors(pindex)
-   if not check_for_player(pindex) then
-      return
-   end
-   local p = game.get_player(pindex)
-   if players[pindex].cursor_tile_highlight_box ~= nil and rendering.is_valid(players[pindex].cursor_tile_highlight_box) then
-      rendering.set_color(players[pindex].cursor_tile_highlight_box,p.color)
-   end
-   if players[pindex].building_footprint ~= nil and rendering.is_valid(players[pindex].building_footprint) then
-      rendering.set_color(players[pindex].building_footprint,p.color)
-   end
-end
-
 --Alerts a force's players when their structures are destroyed. 300 ticks of cooldown.
 script.on_event(defines.events.on_entity_damaged,function(event)
    local ent = event.entity
@@ -9913,52 +9543,6 @@ end)
 script.on_event("fa-pda-cruise-control-set-speed-info", function(event)
    printout("Type in the new cruise control speed and press 'ENTER' and then 'E' to confirm, or press 'ESC' to exit",pindex)
 end)
-
---If the cursor is over a water tile, this function is called to check if it is open water or a shore.
-function identify_water_shores(pindex)
-   local p = game.get_player(pindex)
-   local water_tile_names = {"water", "deepwater", "water-green", "deepwater-green", "water-shallow", "water-mud", "water-wube"}
-   local pos = players[pindex].cursor_pos
-   rendering.draw_circle{color = {1, 0.0, 0.5},radius = 0.1,width = 2,target = {x = pos.x+0 ,y = pos.y-1}, surface = p.surface, time_to_live = 30}
-   rendering.draw_circle{color = {1, 0.0, 0.5},radius = 0.1,width = 2,target = {x = pos.x+0 ,y = pos.y+1}, surface = p.surface, time_to_live = 30}
-   rendering.draw_circle{color = {1, 0.0, 0.5},radius = 0.1,width = 2,target = {x = pos.x-1 ,y = pos.y-0}, surface = p.surface, time_to_live = 30}
-   rendering.draw_circle{color = {1, 0.0, 0.5},radius = 0.1,width = 2,target = {x = pos.x+1 ,y = pos.y-0}, surface = p.surface, time_to_live = 30}
-
-   local tile_north = #p.surface.find_tiles_filtered{position = {x = pos.x+0, y = pos.y-1},radius = 0.1, name = water_tile_names }
-   local tile_south = #p.surface.find_tiles_filtered{position = {x = pos.x+0, y = pos.y+1},radius = 0.1, name = water_tile_names }
-   local tile_east  = #p.surface.find_tiles_filtered{position = {x = pos.x+1, y = pos.y+0},radius = 0.1, name = water_tile_names }
-   local tile_west  = #p.surface.find_tiles_filtered{position = {x = pos.x-1, y = pos.y+0},radius = 0.1, name = water_tile_names }
-
-   if (tile_north > 0) then
-      tile_north = 1
-   end
-   if (tile_south > 0) then
-      tile_south = 1
-   end
-   if (tile_east > 0) then
-      tile_east = 1
-   end
-   if (tile_west > 0) then
-      tile_west = 1
-   end
-
-   local sum = tile_north + tile_south + tile_east + tile_west
-   local result = " "
-   if sum == 0 then
-      result = " crevice pit "
-   elseif sum == 1 then
-      result = " crevice end "
-   elseif sum == 2 and ((tile_north + tile_south == 2) or (tile_east + tile_west == 2)) then
-      result = " crevice "
-   elseif sum == 2 then
-      result = " shore corner"
-   elseif sum == 3 then
-      result = " shore "
-   elseif sum == 4 then
-      result = " open "
-   end
-   return result
-end
 
 --Reports if the cursor tile is uncharted/blurred and also if it is distant (offscreen)
 function cursor_visibility_info(pindex)

@@ -392,7 +392,7 @@ function fa_graphics.sync_build_cursor_graphics(pindex)
 
    --Recolor cursor boxes if multiplayer
    if game.is_multiplayer() then
-      set_cursor_colors_to_player_colors(pindex)
+      fa_graphics.set_cursor_colors_to_player_colors(pindex)
    end
 end
 
@@ -447,7 +447,7 @@ function fa_graphics.draw_cursor_highlight(pindex, ent, box_type, skip_mouse_mov
 
    --Recolor cursor boxes if multiplayer
    if game.is_multiplayer() then
-      set_cursor_colors_to_player_colors(pindex)
+      fa_graphics.set_cursor_colors_to_player_colors(pindex)
    end
 
    --Highlight nearby entities by default means (reposition the cursor)
@@ -483,7 +483,7 @@ function fa_graphics.draw_large_cursor(input_left_top,input_right_bottom,pindex,
 
    --Recolor cursor boxes if multiplayer
    if game.is_multiplayer() then
-      set_cursor_colors_to_player_colors(pindex)
+      fa_graphics.set_cursor_colors_to_player_colors(pindex)
    end
 end
 
@@ -589,6 +589,20 @@ function fa_graphics.update_overhead_sprite(sprite, scale_in, radius_in, pindex)
       player.overhead_sprite = rendering.draw_sprite{sprite = sprite, x_scale = scale, y_scale = scale,--tint = {r = 0.9, b = 0.9, g = 0.9, a = 1.0},
          surface = p.surface, target = {x = p.position.x, y = p.position.y - 3 - radius}, orientation = dirs.north}
       rendering.set_visible(player.overhead_sprite,true)
+   end
+end
+
+--Recolors the mod cursor box to match the player's color. Useful in multiplayer when multiple cursors are on screen.
+function fa_graphics.set_cursor_colors_to_player_colors(pindex)
+   if not check_for_player(pindex) then
+      return
+   end
+   local p = game.get_player(pindex)
+   if players[pindex].cursor_tile_highlight_box ~= nil and rendering.is_valid(players[pindex].cursor_tile_highlight_box) then
+      rendering.set_color(players[pindex].cursor_tile_highlight_box,p.color)
+   end
+   if players[pindex].building_footprint ~= nil and rendering.is_valid(players[pindex].building_footprint) then
+      rendering.set_color(players[pindex].building_footprint,p.color)
    end
 end
 

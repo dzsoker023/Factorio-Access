@@ -684,4 +684,62 @@ function fa_utils.express_in_stacks(count,stack_size,precise)
    return result
 end
 
+function fa_utils.factorio_default_sort(k1, k2)
+   if k1.group.order ~= k2.group.order then
+      return k1.group.order < k2.group.order
+   elseif k1.subgroup.order ~= k2.subgroup.order then
+      return k1.subgroup.order < k2.subgroup.order
+   elseif k1.order ~= k2.order then
+      return k1.order < k2.order
+   else
+      return k1.name < k2.name
+   end
+end
+
+--If the cursor is over a water tile, this function is called to check if it is open water or a shore.
+function fa_utils.identify_water_shores(pindex)
+   local p = game.get_player(pindex)
+   local water_tile_names = {"water", "deepwater", "water-green", "deepwater-green", "water-shallow", "water-mud", "water-wube"}
+   local pos = players[pindex].cursor_pos
+   rendering.draw_circle{color = {1, 0.0, 0.5},radius = 0.1,width = 2,target = {x = pos.x+0 ,y = pos.y-1}, surface = p.surface, time_to_live = 30}
+   rendering.draw_circle{color = {1, 0.0, 0.5},radius = 0.1,width = 2,target = {x = pos.x+0 ,y = pos.y+1}, surface = p.surface, time_to_live = 30}
+   rendering.draw_circle{color = {1, 0.0, 0.5},radius = 0.1,width = 2,target = {x = pos.x-1 ,y = pos.y-0}, surface = p.surface, time_to_live = 30}
+   rendering.draw_circle{color = {1, 0.0, 0.5},radius = 0.1,width = 2,target = {x = pos.x+1 ,y = pos.y-0}, surface = p.surface, time_to_live = 30}
+
+   local tile_north = #p.surface.find_tiles_filtered{position = {x = pos.x+0, y = pos.y-1},radius = 0.1, name = water_tile_names }
+   local tile_south = #p.surface.find_tiles_filtered{position = {x = pos.x+0, y = pos.y+1},radius = 0.1, name = water_tile_names }
+   local tile_east  = #p.surface.find_tiles_filtered{position = {x = pos.x+1, y = pos.y+0},radius = 0.1, name = water_tile_names }
+   local tile_west  = #p.surface.find_tiles_filtered{position = {x = pos.x-1, y = pos.y+0},radius = 0.1, name = water_tile_names }
+
+   if (tile_north > 0) then
+      tile_north = 1
+   end
+   if (tile_south > 0) then
+      tile_south = 1
+   end
+   if (tile_east > 0) then
+      tile_east = 1
+   end
+   if (tile_west > 0) then
+      tile_west = 1
+   end
+
+   local sum = tile_north + tile_south + tile_east + tile_west
+   local result = " "
+   if sum == 0 then
+      result = " crevice pit "
+   elseif sum == 1 then
+      result = " crevice end "
+   elseif sum == 2 and ((tile_north + tile_south == 2) or (tile_east + tile_west == 2)) then
+      result = " crevice "
+   elseif sum == 2 then
+      result = " shore corner"
+   elseif sum == 3 then
+      result = " shore "
+   elseif sum == 4 then
+      result = " open "
+   end
+   return result
+end
+
 return fa_utils
