@@ -11,7 +11,8 @@ local fa_mouse = require("graphics-and-mouse").mouse
 local fa_tutorial = require("tutorial-system")
 local fa_sectors = require("building-vehicle-sectors")
 local fa_menu_search = require("menu-search")
-local fa_building_tools = require("mining-and-building-tools")
+local fa_building_tools = require("building-tools")
+local fa_mining_tools = require("mining-tools")
 local fa_rails = require("rails").rails
 local fa_rail_builder = require("rails").rail_builder
 local fa_trains = require("trains").trains
@@ -1824,7 +1825,7 @@ function read_tile(pindex, start_text)
       if ent and ent.valid then--not while loop, because it causes crashes
          local name = ent.name
          game.get_player(pindex).play_sound{path = "player-mine"}
-         if fa_building_tools.try_to_mine_with_sound(ent,pindex) then
+         if fa_mining_tools.try_to_mine_with_soun(ent,pindex) then
             result = result .. name .. " mined, "
          end
          --Second round, in case two entities are there. While loops do not work!
@@ -1832,7 +1833,7 @@ function read_tile(pindex, start_text)
          if ent and ent.valid and players[pindex].walk ~= 2 then--not while
             local name = ent.name
             game.get_player(pindex).play_sound{path = "player-mine"}
-            if fa_building_tools.try_to_mine_with_sound(ent,pindex) then
+            if fa_mining_tools.try_to_mine_with_soun(ent,pindex) then
                result = result .. name .. " mined, "
             end
          end
@@ -3329,7 +3330,7 @@ function on_tick(event)
       --Play a sound for any player who is mining
       for pindex, player in pairs(players) do
          if game.get_player(pindex) ~= nil and game.get_player(pindex).mining_state.mining == true then
-            fa_building_tools.play_mining_sound(pindex)
+            fa_mining_tools.play_mining_sound(pindex)
          end
       end
    elseif event.tick % 60 == 11 then
@@ -5460,7 +5461,7 @@ script.on_event("mine-area", function(event)
       if ent.type == "tree" or ent.name == "rock-big" or ent.name == "rock-huge" or ent.name == "sand-rock-big" or ent.name == "item-on-ground" then
          --Obstacles within 5 tiles: trees and rocks and ground items
          game.get_player(pindex).play_sound{path = "player-mine"}
-         cleared_count, comment = fa_building_tools.clear_obstacles_in_circle(pos, 5, pindex)
+         cleared_count, comment = fa_mining_tools.clear_obstacles_in_circle(pos, 5, pindex)
       elseif ent.name == "straight-rail" or ent.name == "curved-rail" then
          --Railway objects within 10 tiles (and their signals)
          local rail_ents = surf.find_entities_filtered{position = pos, radius = 10, name = {"straight-rail", "curved-rail", "rail-signal", "rail-chain-signal", "train-stop"}}
@@ -5497,7 +5498,7 @@ script.on_event("mine-area", function(event)
          end
          if ent_is_remnant then
             game.get_player(pindex).play_sound{path = "player-mine"}
-            cleared_count, comment = fa_building_tools.clear_obstacles_in_circle(players[pindex].cursor_pos, 5, pindex)
+            cleared_count, comment = fa_mining_tools.clear_obstacles_in_circle(players[pindex].cursor_pos, 5, pindex)
          end
 
          --(For other valid ents, do nothing)
@@ -5505,7 +5506,7 @@ script.on_event("mine-area", function(event)
    else
       --For empty tiles, clear obstacles
       game.get_player(pindex).play_sound{path = "player-mine"}
-      cleared_count, comment = fa_building_tools.clear_obstacles_in_circle(players[pindex].cursor_pos, 5, pindex)
+      cleared_count, comment = fa_mining_tools.clear_obstacles_in_circle(players[pindex].cursor_pos, 5, pindex)
    end
    cleared_total = cleared_total + cleared_count
 
@@ -5519,7 +5520,7 @@ script.on_event("mine-area", function(event)
          if ent and ent.valid then
             local name = ent.name
             game.get_player(pindex).play_sound{path = "player-mine"}
-            if fa_building_tools.try_to_mine_with_sound(ent,pindex) then
+            if fa_mining_tools.try_to_mine_with_soun(ent,pindex) then
                cleared_total = cleared_total + 1
             end
          end
@@ -5534,7 +5535,7 @@ script.on_event("mine-area", function(event)
          if ent and ent.valid and ent.is_registered_for_deconstruction(p.force) then
             local name = ent.name
             game.get_player(pindex).play_sound{path = "player-mine"}
-            if fa_building_tools.try_to_mine_with_sound(ent,pindex) then
+            if fa_mining_tools.try_to_mine_with_soun(ent,pindex) then
                cleared_total = cleared_total + 1
             end
          end

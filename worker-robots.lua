@@ -1,9 +1,7 @@
 --Here: Functions relating worker robots, roboports, logistic systems, blueprints and other planners, ghosts
 --Does not include event handlers directly, but can have functions called by them.
-local localising = require('localising')
 local util = require('util')
 local fa_utils = require('fa-utils')
-local fa_building_tools = require("mining-and-building-tools")
 
 local dirs = defines.direction
 local MAX_STACK_COUNT = 10

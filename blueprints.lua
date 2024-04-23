@@ -2,7 +2,7 @@
 --Does not include event handlers
 
 local fa_utils = require("fa-utils")
-local fa_building_tools = require("mining-and-building-tools")
+local fa_mining_tools = require("mining-tools")
 local localising = require("localising")
 local dirs = defines.direction
 
@@ -120,7 +120,7 @@ function fa_blueprints.paste_blueprint(pindex)
    
    --Clear build area (if not far away)
    if util.distance(p.position, build_pos) < 2 * p.reach_distance then
-      fa_building_tools.clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
+      fa_mining_tools.clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
    end
    
    --Build it and check if successful

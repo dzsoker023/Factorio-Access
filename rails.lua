@@ -4,7 +4,7 @@
 
 local util = require('util')
 local fa_utils = require('fa-utils')
-local fa_building_tools = require("mining-and-building-tools")
+local fa_mining_tools = require("mining-tools")
 local dirs = defines.direction
 
 local fa_rail_builder = {}
@@ -917,7 +917,7 @@ function fa_rail_builder.build_rail_turn_right_45_degrees(anchor_rail, pindex)
    -- elseif dir == dirs.west or dir == dirs.northwest then
       -- build_area = {{pos.x+9, pos.y+9},{pos.x-16,pos.y-16}}
    -- end 
-   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(pos,12, pindex)
+   temp1, build_comment = fa_mining_tools.clear_obstacles_in_circle(pos,12, pindex)
    
    --4. Check if every object can be placed
    if dir == dirs.north then 
@@ -1099,7 +1099,7 @@ function fa_rail_builder.build_rail_turn_right_90_degrees(anchor_rail, pindex)
    -- elseif dir == dirs.west then
       -- build_area = {{pos.x+2, pos.y+2},{pos.x-16,pos.y-16}}
    -- end 
-   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(pos,18, pindex)
+   temp1, build_comment = fa_mining_tools.clear_obstacles_in_circle(pos,18, pindex)
    
    --4. Check if every object can be placed
    if dir == dirs.north then 
@@ -1216,7 +1216,7 @@ function fa_rail_builder.build_rail_turn_left_45_degrees(anchor_rail, pindex)
    -- elseif dir == dirs.west or dir == dirs.northwest then
       -- build_area = {{pos.x+9, pos.y-9},{pos.x-16,pos.y+16}}
    -- end 
-   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(pos,12, pindex)
+   temp1, build_comment = fa_mining_tools.clear_obstacles_in_circle(pos,12, pindex)
    
    --4. Check if every object can be placed
    if dir == dirs.north then 
@@ -1398,7 +1398,7 @@ function fa_rail_builder.build_rail_turn_left_90_degrees(anchor_rail, pindex)
    -- elseif dir == dirs.west then
       -- build_area = {{pos.x+2, pos.y+2},{pos.x-16,pos.y+16}}
    -- end 
-   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(pos,18, pindex)
+   temp1, build_comment = fa_mining_tools.clear_obstacles_in_circle(pos,18, pindex)
    
    --4. Check if every object can be placed
    if dir == dirs.north then 
@@ -1514,7 +1514,7 @@ function fa_rail_builder.build_fork_at_end_rail(anchor_rail, pindex, include_for
    -- elseif dir == dirs.west or dir == dirs.northwest then
       -- build_area = {{pos.x+9, pos.y-9},{pos.x-16,pos.y+16}}
    -- end 
-   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(pos,12, pindex)
+   temp1, build_comment = fa_mining_tools.clear_obstacles_in_circle(pos,12, pindex)
    
    --4A. Check if every object can be placed (LEFT)
    if dir == dirs.north then 
@@ -1855,7 +1855,7 @@ function fa_rail_builder.build_rail_bypass_junction(anchor_rail, pindex)
    pos = anchor_rail.position
    
    --3. Clear trees and rocks in the build area, can be tuned later...
-   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(pos,21,pindex)
+   temp1, build_comment = fa_mining_tools.clear_obstacles_in_circle(pos,21,pindex)
    
    --4A. Check if every object can be placed (LEFT)
    if dir == dirs.north then 
@@ -2090,7 +2090,7 @@ function fa_rail_builder.build_rail_bypass_junction_triple(anchor_rail, pindex)
    pos = anchor_rail.position
    
    --3. Clear trees and rocks in the build area, can be tuned later...
-   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(pos,21,pindex)
+   temp1, build_comment = fa_mining_tools.clear_obstacles_in_circle(pos,21,pindex)
    
    --4A. Check if every object can be placed (LEFT)
    if dir == dirs.north then 
@@ -2505,7 +2505,7 @@ function fa_rails.append_rail(pos, pindex)
       printout(end_rail_dir .. " and " .. rail_api_dir .. ", rail appending direction error.",pindex)
       return
    end
-   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(append_rail_pos,4, pindex)
+   temp1, build_comment = fa_mining_tools.clear_obstacles_in_circle(append_rail_pos,4, pindex)
    if not surf.can_place_entity{name = "straight-rail", position = append_rail_pos, direction = append_rail_dir} then 
       --Check if you can build from cursor or if you have other rails here already
       -- local other_rails_present = false
@@ -2974,7 +2974,7 @@ function fa_rail_builder.build_train_stop(anchor_rail, pindex)
    end
    
    --3. Clear trees and rocks in the build area
-   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(pos,3, pindex)
+   temp1, build_comment = fa_mining_tools.clear_obstacles_in_circle(pos,3, pindex)
    
    --4. Check if every object can be placed
    if dir == dirs.north then 
