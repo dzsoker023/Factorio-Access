@@ -344,7 +344,7 @@ function fa_graphics.sync_build_cursor_graphics(pindex)
       dir_indicator = player.building_dir_arrow
       rendering.set_visible(dir_indicator,true)
 
-      --Redraw the bp footprint ****todo: is this working correctly?
+      --Redraw the bp footprint
       if player.building_footprint ~= nil then
          rendering.destroy(player.building_footprint)
       end
