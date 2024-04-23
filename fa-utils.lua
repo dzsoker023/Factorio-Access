@@ -200,6 +200,65 @@ function fa_utils.reset_rotation(pindex)
    players[pindex].building_direction = dirs.north
 end
 
+--Converts the entity orientation value to a heading direction string, with all directions having equal bias.
+function fa_utils.get_heading_info(ent)
+   ---@diagnostic disable: cast-local-type
+   local heading = "unknown"
+   if ent == nil then
+      return "nil error"
+   end
+   local ori = ent.orientation
+   if ori < 0.0625 then
+      heading = fa_utils.direction_lookup(dirs.north)
+   elseif ori < 0.1875 then
+      heading = fa_utils.direction_lookup(dirs.northeast)
+   elseif ori < 0.3125 then
+      heading = fa_utils.direction_lookup(dirs.east)
+   elseif ori < 0.4375 then
+      heading = fa_utils.direction_lookup(dirs.southeast)
+   elseif ori < 0.5625 then
+      heading = fa_utils.direction_lookup(dirs.south)
+   elseif ori < 0.6875 then
+      heading = fa_utils.direction_lookup(dirs.southwest)
+   elseif ori < 0.8125 then
+      heading = fa_utils.direction_lookup(dirs.west)
+   elseif ori < 0.9375 then
+      heading = fa_utils.direction_lookup(dirs.northwest)
+   else
+      heading = fa_utils.direction_lookup(dirs.north)--default
+   end      
+   return heading
+end
+
+--Converts the entity orientation into a heading direction, with all directions having equal bias.
+function fa_utils.get_heading_value(ent)
+   local heading = nil
+   if ent == nil then
+      return nil
+   end
+   local ori = ent.orientation
+   if ori < 0.0625 then
+      heading = (dirs.north)
+   elseif ori < 0.1875 then
+      heading = (dirs.northeast)
+   elseif ori < 0.3125 then
+      heading = (dirs.east)
+   elseif ori < 0.4375 then
+      heading = (dirs.southeast)
+   elseif ori < 0.5625 then
+      heading = (dirs.south)
+   elseif ori < 0.6875 then
+      heading = (dirs.southwest)
+   elseif ori < 0.8125 then
+      heading = (dirs.west)
+   elseif ori < 0.9375 then
+      heading = (dirs.northwest)
+   else
+      heading = (dirs.north)--default
+   end      
+   return heading
+end
+
 --Returns the length and width of the entity version of an item. Todo: review and cleanup direction defines.
 function fa_utils.get_tile_dimensions(item, dir)
    if item.place_result ~= nil then
@@ -417,6 +476,24 @@ function fa_utils.get_top_left_and_bottom_right(pos_1, pos_2)
    local top_left = {x = math.min(pos_1.x, pos_2.x), y = math.min(pos_1.y, pos_2.y)}
    local bottom_right = {x = math.max(pos_1.x, pos_2.x), y = math.max(pos_1.y, pos_2.y)}
    return top_left, bottom_right
+end
+
+--Finds the nearest roboport
+function fa_utils.find_nearest_roboport(surf,pos,radius_in)
+   local nearest = nil
+   local min_dist = radius_in
+   local ports = surf.find_entities_filtered{name = "roboport" , position = pos , radius = radius_in}
+   for i,port in ipairs(ports) do
+      local dist = math.ceil(util.distance(pos, port.position))
+      if dist < min_dist then
+         min_dist = dist
+         nearest = port
+      end
+   end
+   if nearest ~= nil then
+      rendering.draw_circle{color = {1, 1, 0}, radius = 4, width = 4, target = nearest.position, surface = surf, time_to_live = 90}
+   end
+   return nearest, min_dist
 end
 
 function fa_utils.table_concat (T1, T2)

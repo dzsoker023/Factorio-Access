@@ -1,6 +1,7 @@
 --Here: Functions related to blueprints and blueprint books
 --Does not include event handlers
 
+local fa_utils = require("fa-utils")
 local fa_building_tools = require("mining-and-building-tools")
 local localising = require("localising")
 local dirs = defines.direction
@@ -50,7 +51,7 @@ end
 
 --Create a blueprint from a rectangle between any two points and give it to the player's hand
 function fa_blueprints.create_blueprint(pindex, point_1, point_2, prior_bp_data)
-   local top_left, bottom_right = fa_blueprints.get_top_left_and_bottom_right(point_1, point_2)
+   local top_left, bottom_right = fa_utils.get_top_left_and_bottom_right(point_1, point_2)
    local p = game.get_player(pindex)
    if prior_bp_data ~= nil then
       --First clear the bp in hand

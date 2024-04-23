@@ -4,7 +4,6 @@
 
 local util = require('util')
 local fa_utils = require('fa-utils')
-local fa_driving = require("driving")
 local fa_rails = require("rails").rails
 local dirs = defines.direction
 
@@ -339,7 +338,7 @@ function fa_trains.train_read_next_rail_entity_ahead(pindex, invert, mute_in)
    end
    --If a train stop is close behind, read that instead
    if leading_stock.name == "locomotive" and next_entity_label ~= "train stop" then
-      local heading = fa_driving.get_heading(leading_stock)
+      local heading = fa_utils.get_heading_info(leading_stock)
       local pos = leading_stock.position
       local scan_area = nil
       local passed_stop = nil
@@ -361,7 +360,7 @@ function fa_trains.train_read_next_rail_entity_ahead(pindex, invert, mute_in)
       for i,passed_stop in ipairs(ents) do
          distance = util.distance(leading_stock.position, passed_stop.position) - 0 
          --message = message .. " found stop " 
-         if distance < 12.5 and fa_utils.direction_lookup(passed_stop.direction) == fa_driving.get_heading(leading_stock) then
+         if distance < 12.5 and fa_utils.direction_lookup(passed_stop.direction) == fa_utils.get_heading_info(leading_stock) then
             if not first_reset then
                message = ""
                first_reset = true

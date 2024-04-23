@@ -4,9 +4,8 @@ local fa_utils = require("fa-utils")
 local fa_electrical = require("electrical")
 local dirs = defines.direction
 local fa_graphics = require("graphics-and-mouse").graphics
-local fa_rails = require("rails").rails
+--local fa_rails = require("rails").rails
 local fa_belts = require("transport-belts")
-local fa_bot_logistics = require("worker-robots")
 
 local fa_building_tools = {}
 
@@ -16,6 +15,7 @@ local fa_building_tools = {}
 * You can offset the building with respect to the direction the player is facing. The offset is multiplied by the placed building width.
 ]]
 function fa_building_tools.build_item_in_hand(pindex, free_place_straight_rail)
+   local fa_rails_local = require("rails").rails
    local stack = game.get_player(pindex).cursor_stack
    local p = game.get_player(pindex)
 
@@ -42,7 +42,7 @@ function fa_building_tools.build_item_in_hand(pindex, free_place_straight_rail)
       if not (free_place_straight_rail == true) then
          --Append rails unless otherwise stated
          local pos = players[pindex].cursor_pos
-         fa_rails.append_rail(pos, pindex)
+         fa_rails_local.append_rail(pos, pindex)
          return
       end
    elseif stack.name == "rail-signal" or stack.name == "rail-chain-signal" then
@@ -987,7 +987,7 @@ function fa_building_tools.build_preview_checks_info(stack, pindex)
          --Notify if no connections and state nearest roboport
          result = result .. " not connected, "
          local max_dist = 2000
-         local nearest_port, min_dist = fa_bot_logistics.find_nearest_roboport(p.surface, p.position, max_dist)
+         local nearest_port, min_dist = fa_utils.find_nearest_roboport(p.surface, p.position, max_dist)
          if min_dist == nil or min_dist >= max_dist then
             result = result .. " no other roboports within " .. max_dist .. " tiles, "
          else
@@ -1001,7 +1001,7 @@ function fa_building_tools.build_preview_checks_info(stack, pindex)
    if ent_p.type == "logistic-container" then
       local network = p.surface.find_logistic_network_by_position(pos, p.force)
       if network == nil then
-         local nearest_roboport = fa_bot_logistics.find_nearest_roboport(p.surface, pos, 5000)
+         local nearest_roboport = fa_utils.find_nearest_roboport(p.surface, pos, 5000)
          if nearest_roboport == nil then
             result = result .. ", not in a network, no networks found within 5000 tiles"
          else

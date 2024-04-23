@@ -2,7 +2,6 @@
 --Note: Does not include every single rendering call made by the mod, such as circles being drawn by obstacle clearing.
 
 local fa_utils = require("fa-utils")
-local fa_blueprints = require("blueprints")
 local dirs = defines.direction
 
 local fa_graphics = {}
@@ -207,6 +206,7 @@ end
 
 --Updates graphics to match the mod's current construction preview in hand. Draws stuff like the building footprint, direction indicator arrow, selection tool selection box. Also moves the mouse pointer to hold the preview at the correct position on screen.
 function fa_graphics.sync_build_cursor_graphics(pindex)
+   local fa_blueprints = require("blueprints")
    local player = players[pindex]
    if player == nil or player.player.character == nil then
       return
@@ -371,7 +371,7 @@ function fa_graphics.sync_build_cursor_graphics(pindex)
          fa_graphics.draw_large_cursor(left_top,right_bottom,pindex, {r = 0.25, b = 0.25, g = 1.0, a = 0.75})
       elseif (stack.is_blueprint or stack.is_deconstruction_item or stack.is_upgrade_item) and (players[pindex].bp_selecting == true) then
          --Draw planner rectangles
-         local top_left, bottom_right = fa_blueprints.get_top_left_and_bottom_right(players[pindex].bp_select_point_1, players[pindex].cursor_pos)
+         local top_left, bottom_right = fa_utils.get_top_left_and_bottom_right(players[pindex].bp_select_point_1, players[pindex].cursor_pos)
          local color = {1,1,1}
          if stack.is_blueprint then
             color = {r = 0.25, b = 1.00, g = 0.50, a = 0.75}

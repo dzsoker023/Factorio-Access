@@ -1078,7 +1078,7 @@ function fa_bot_logistics.player_logistic_requests_summary_info(pindex)
    local network = p.surface.find_logistic_network_by_position(p.position, p.force)
    if network == nil or not network.valid then
       --Check whether in construction range
-      local nearest, min_dist = fa_bot_logistics.find_nearest_roboport(p.surface,p.position,60)
+      local nearest, min_dist = fa_utils.find_nearest_roboport(p.surface,p.position,60)
       if nearest == nil or min_dist > 55 then
          result = result .. "Not in a network, "
       else
@@ -1086,7 +1086,7 @@ function fa_bot_logistics.player_logistic_requests_summary_info(pindex)
       end
    else
       --Definitely within range
-      local nearest, min_dist = fa_bot_logistics.find_nearest_roboport(p.surface,p.position,30)
+      local nearest, min_dist = fa_utils.find_nearest_roboport(p.surface,p.position,30)
       result = result .. "In logistic range of network " .. nearest.backer_name .. ", " 
    end
    
@@ -1265,7 +1265,7 @@ function fa_bot_logistics.spidertron_logistic_requests_summary_info(spidertron,p
    local network = p.surface.find_logistic_network_by_position(spidertron.position, p.force)
    if network == nil or not network.valid then
       --Check whether in construction range
-      local nearest, min_dist = fa_bot_logistics.find_nearest_roboport(p.surface,spidertron.position,60)
+      local nearest, min_dist = fa_utils.find_nearest_roboport(p.surface,spidertron.position,60)
       if nearest == nil or min_dist > 55 then
          result = result .. "Not in a network, "
       else
@@ -1273,7 +1273,7 @@ function fa_bot_logistics.spidertron_logistic_requests_summary_info(spidertron,p
       end
    else
       --Definitely within range
-      local nearest, min_dist = fa_bot_logistics.find_nearest_roboport(p.surface,spidertron.position,30)
+      local nearest, min_dist = fa_utils.find_nearest_roboport(p.surface,spidertron.position,30)
       result = result .. "In logistic range of network " .. nearest.backer_name .. ", " 
    end
    
@@ -1419,24 +1419,6 @@ function fa_bot_logistics.read_entity_requests_summary(ent,pindex)--**laterdo im
    end
 end
 
---Finds the nearest roboport
-function fa_bot_logistics.find_nearest_roboport(surf,pos,radius_in)
-   local nearest = nil
-   local min_dist = radius_in
-   local ports = surf.find_entities_filtered{name = "roboport" , position = pos , radius = radius_in}
-   for i,port in ipairs(ports) do
-      local dist = math.ceil(util.distance(pos, port.position))
-      if dist < min_dist then
-         min_dist = dist
-         nearest = port
-      end
-   end
-   if nearest ~= nil then
-      rendering.draw_circle{color = {1, 1, 0}, radius = 4, width = 4, target = nearest.position, surface = surf, time_to_live = 90}
-   end
-   return nearest, min_dist
-end
-
 --laterdo** maybe use surf.find_closest_logistic_network_by_position(position, force)
 
 --The idea is that every roboport of the network has the same backer name and this is the networks's name.
@@ -1444,7 +1426,6 @@ function fa_bot_logistics.get_network_name(port)
    fa_bot_logistics.resolve_network_name(port)
    return port.backer_name
 end
-
 
 --Sets a logistic network's name. The idea is that every roboport of the network has the same backer name and this is the networks's name.
 function fa_bot_logistics.set_network_name(port,new_name)

@@ -150,7 +150,8 @@ function move_cursor_structure(pindex, dir)
 end
 
 --Structure travel: Creates the building network that is traveled during structure travel. 
-function compile_building_network(ent, radius_in,pindex)--**Todo bug: Some neighboring structures are not picked up when they should be such as machines next to inserters
+--**Todo bug: Some neighboring structures are not picked up when they should be such as machines next to inserters
+function compile_building_network(ent, radius_in,pindex)
    local radius = radius_in
    local ents = ent.surface.find_entities_filtered{position = ent.position, radius = radius}
    game.get_player(pindex).print(#ents .. " ents at first pass")

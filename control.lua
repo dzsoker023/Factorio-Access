@@ -140,7 +140,7 @@ function ent_info(pindex, ent, description)
       if ent.type == "logistic-container" then
          local network = ent.surface.find_logistic_network_by_position(ent.position, ent.force)
          if network == nil then
-            local nearest_roboport = fa_bot_logistics.find_nearest_roboport(ent.surface, ent.position, 5000)
+            local nearest_roboport = fa_utils.find_nearest_roboport(ent.surface, ent.position, 5000)
             if nearest_roboport == nil then
                result = result .. ", not in a network, no networks found within 5000 tiles"
             else
@@ -339,7 +339,7 @@ function ent_info(pindex, ent, description)
          result = result .. " and " .. fa_utils.direction_lookup(fa_utils.rotate_180(ent.direction))
       end
    elseif ent.type == "locomotive" or ent.type == "car" then
-      result = result .. " facing " .. fa_driving.get_heading(ent)
+      result = result .. " facing " .. fa_utils.get_heading_info(ent)
    end
    --Report if marked for deconstruction or upgrading
    if ent.to_be_deconstructed() == true then
@@ -1844,11 +1844,11 @@ function read_coords(pindex, start_phrase)
          local speed = vehicle.speed * 215
          if vehicle.type ~= "spider-vehicle" then
             if speed > 0 then
-               result = result .. " heading " .. fa_driving.get_heading(vehicle) .. " at " .. math.floor(speed) .. " kilometers per hour "
+               result = result .. " heading " .. fa_utils.get_heading_info(vehicle) .. " at " .. math.floor(speed) .. " kilometers per hour "
             elseif speed < 0 then
-               result = result .. " facing " .. fa_driving.get_heading(vehicle) .. " while reversing at "  .. math.floor(-speed) .. " kilometers per hour "
+               result = result .. " facing " .. fa_utils.get_heading_info(vehicle) .. " while reversing at "  .. math.floor(-speed) .. " kilometers per hour "
             else
-               result = result .. " parked facing " .. fa_driving.get_heading(vehicle)
+               result = result .. " parked facing " .. fa_utils.get_heading_info(vehicle)
             end
          else
             result = result .. " moving at "  .. math.floor(speed) .. " kilometers per hour "
@@ -4125,7 +4125,7 @@ script.on_event("read-driving-structure-ahead", function(event)
    if p.driving and (p.vehicle.train ~= nil or p.vehicle.type == "car") then
       local ent = players[pindex].last_driving_alert_ent
       if ent and ent.valid then
-         local dir = fa_driving.get_heading_value(p.vehicle)
+         local dir = fa_utils.get_heading_value(p.vehicle)
          local dir_ent = fa_utils.get_direction_biased(ent.position,p.vehicle.position)
          if p.vehicle.speed >= 0 and (dir_ent == dir or math.abs(dir_ent - dir) == 1 or math.abs(dir_ent - dir) == 7) then
             local dist = math.floor(util.distance(p.vehicle.position,ent.position))
@@ -6081,7 +6081,7 @@ script.on_event("click-hand", function(event)
             pex.bp_selecting = false
             pex.bp_select_point_2 = pex.cursor_pos
             --Mark area for deconstruction
-            local left_top, right_bottom = fa_blueprints.get_top_left_and_bottom_right(pex.bp_select_point_1, pex.bp_select_point_2)
+            local left_top, right_bottom = fa_utils.get_top_left_and_bottom_right(pex.bp_select_point_1, pex.bp_select_point_2)
             p.surface.deconstruct_area{area={left_top, right_bottom}, force=p.force, player=p, item=p.cursor_stack}
             local ents = p.surface.find_entities_filtered{area={left_top, right_bottom}}
             local decon_counter = 0
@@ -6103,7 +6103,7 @@ script.on_event("click-hand", function(event)
             pex.bp_selecting = false
             pex.bp_select_point_2 = pex.cursor_pos
             --Mark area for upgrading
-            local left_top, right_bottom = fa_blueprints.get_top_left_and_bottom_right(pex.bp_select_point_1, pex.bp_select_point_2)
+            local left_top, right_bottom = fa_utils.get_top_left_and_bottom_right(pex.bp_select_point_1, pex.bp_select_point_2)
             p.surface.upgrade_area{area={left_top, right_bottom}, force=p.force, player=p, item=p.cursor_stack}
             local ents = p.surface.find_entities_filtered{area={left_top, right_bottom}}
             local ent_counter = 0
@@ -6188,7 +6188,7 @@ script.on_event("click-hand-right", function(event)
             pex.bp_selecting = false
             pex.bp_select_point_2 = pex.cursor_pos
             --Cancel area for deconstruction
-            local left_top, right_bottom = fa_blueprints.get_top_left_and_bottom_right(pex.bp_select_point_1, pex.bp_select_point_2)
+            local left_top, right_bottom = fa_utils.get_top_left_and_bottom_right(pex.bp_select_point_1, pex.bp_select_point_2)
             p.surface.cancel_deconstruct_area{area={left_top, right_bottom}, force=p.force, player=p, item=p.cursor_stack}
             printout("Canceled deconstruction in selected area", pindex)
          end
@@ -6202,7 +6202,7 @@ script.on_event("click-hand-right", function(event)
             pex.bp_selecting = false
             pex.bp_select_point_2 = pex.cursor_pos
             --Cancel area for upgrading
-            local left_top, right_bottom = fa_blueprints.get_top_left_and_bottom_right(pex.bp_select_point_1, pex.bp_select_point_2)
+            local left_top, right_bottom = fa_utils.get_top_left_and_bottom_right(pex.bp_select_point_1, pex.bp_select_point_2)
             p.surface.cancel_upgrade_area{area={left_top, right_bottom}, force=p.force, player=p, item=p.cursor_stack}
             printout("Canceled upgrading in selected area", pindex)
          end

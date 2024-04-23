@@ -3,7 +3,7 @@
 local util = require('util')
 local localising = require('localising')
 local fa_electrical = require("electrical")
-local fa_graphics = require("graphics-and-mouse").graphics
+--local fa_graphics = require("graphics-and-mouse").graphics
 local fa_mouse = require("graphics-and-mouse").mouse
 
 local fa_equipment = {}
@@ -580,6 +580,7 @@ end
 
 --Locks the cursor to the nearest enemy within 50 tiles. Also plays a sound if the enemy is within range of the gun in hand.
 function fa_combat.aim_gun_at_nearest_enemy(pindex,enemy_in)
+   local fa_graphics_local = require("graphics-and-mouse").graphics
    local p = game.get_player(pindex)
    if p == nil or p.character == nil or p.character.valid == false then
       return
@@ -627,7 +628,7 @@ function fa_combat.aim_gun_at_nearest_enemy(pindex,enemy_in)
    if dist < range then 
       players[pindex].cursor_pos = enemy.position
       fa_mouse.move_mouse_pointer(enemy.position,pindex)
-      fa_graphics.draw_cursor_highlight(pindex,nil,nil,true)
+      fa_graphics_local.draw_cursor_highlight(pindex,nil,nil,true)
    end
    return true
 end
