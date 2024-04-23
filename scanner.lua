@@ -370,7 +370,7 @@ function fa_scanner.populate_list_categories(pindex)
    
 end
 
---Run the entity scanner tool
+--Run the entity scanner tool ("rescan")
 function fa_scanner.run_scan(pindex,filter_dir, mute)
    players[pindex].nearby.index = 1
    players[pindex].nearby.selection = 1

@@ -1342,7 +1342,8 @@ function fa_building_tools.play_mining_sound(pindex)
          player.play_sound{path = "player-mine"}--Mine other things, eg. character corpses, laterdo new sound
          --game.print("3B",{volume_modifier=0})--
       end
-      schedule(25, "play_mining_sound", pindex)
+      --Re-schedule self 
+      schedule(25, "fa_building_tools.play_mining_sound", pindex)
    end
 end
 

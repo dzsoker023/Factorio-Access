@@ -3202,8 +3202,8 @@ end
 --Handles a player joining into a game session.
 function on_player_join(pindex)
    players = players or global.players
-   schedule(3, "fix_zoom", pindex)
-   schedule(4, "sync_build_cursor_graphics", pindex)
+   schedule(3, "fa_zoom.fix_zoom", pindex)
+   schedule(4, "fa_graphics.sync_build_cursor_graphics", pindex)
    fa_localising.check_player(pindex)
    local playerList={}
    for _ , p in pairs(game.connected_players) do
@@ -3553,14 +3553,14 @@ function cursor_mode_move(direction, pindex, single_only)
 
    if p.driving and p.vehicle and (p.vehicle.type == "car" or p.vehicle.type == "locomotive") then
       if math.abs(p.vehicle.speed * 215) < 25 then
-         schedule(15,"stop_vehicle",pindex)
-         schedule(30,"stop_vehicle",pindex)
-         schedule(60,"stop_vehicle",pindex)
+         schedule(15,"fa_driving.stop_vehicle",pindex)
+         schedule(30,"fa_driving.stop_vehicle",pindex)
+         schedule(60,"fa_driving.stop_vehicle",pindex)
          p.vehicle.active = false
       else
-         --schedule(15,"halve_vehicle_speed",pindex)
-         --schedule(30,"halve_vehicle_speed",pindex)
-         --schedule(60,"halve_vehicle_speed",pindex)
+         --schedule(15,"fa_driving.halve_vehicle_speed",pindex)
+         --schedule(30,"fa_driving.halve_vehicle_speed",pindex)
+         --schedule(60,"fa_driving.halve_vehicle_speed",pindex)
       end
    end
 
@@ -4159,7 +4159,7 @@ script.on_event("rescan", function(event)
    end
    if not (players[pindex].in_menu) then
       fa_scanner.run_scanner_effects(pindex)
-      schedule(2,"rescan",pindex, nil, false)
+      schedule(2,"fa_scanner.run_scan",pindex, nil, false)
    end
 end)
 
@@ -4177,7 +4177,7 @@ script.on_event("scan-facing-direction", function(event)
       local p = game.get_player(pindex)
       local dir = p.character.direction
       fa_scanner.run_scanner_effects(pindex)
-      schedule(2,"rescan",pindex, dir, false)
+      schedule(2,"fa_scanner.run_scan",pindex, dir, false)
    end
 end)
 
@@ -5335,7 +5335,7 @@ script.on_event("mine-access-sounds", function(event)
       if ent and ent.valid and (ent.prototype.mineable_properties.products ~= nil) and ent.type ~= "resource" then
          game.get_player(pindex).selected = ent
          game.get_player(pindex).play_sound{path = "player-mine"}
-         schedule(25, "play_mining_sound", pindex)
+         schedule(25, "fa_building_tools.play_mining_sound", pindex)
       elseif ent and ent.valid and ent.name == "character-corpse" then
          printout("Collecting items ", pindex)
       end
@@ -7465,16 +7465,16 @@ script.on_event(defines.events.on_cutscene_cancelled, function(event)
    pindex = event.player_index
    check_for_player(pindex)
    fa_scanner.run_scan(pindex, nil, true)
-   schedule(3, "fix_zoom", pindex)
-   schedule(4, "sync_build_cursor_graphics", pindex)
+   schedule(3, "fa_zoom.fix_zoom", pindex)
+   schedule(4, "fa_graphics.sync_build_cursor_graphics", pindex)
 end)
 
 script.on_event(defines.events.on_cutscene_finished, function(event)
    pindex = event.player_index
    check_for_player(pindex)
    fa_scanner.run_scan(pindex, nil, true)
-   schedule(3, "fix_zoom", pindex)
-   schedule(4, "sync_build_cursor_graphics", pindex)
+   schedule(3, "fa_zoom.fix_zoom", pindex)
+   schedule(4, "fa_graphics.sync_build_cursor_graphics", pindex)
    --printout("Press TAB to continue",pindex)
 end)
 
@@ -8762,7 +8762,7 @@ script.on_event("shoot-weapon-fa", function(event) --WIP todo*** consumes shoot 
       printout(abort_message, pindex)
 
       --Schedule to restore the items on a later tick
-      schedule(310, "restore_equipped_atomic_bombs", pindex)
+      schedule(310, "fa_equipment.restore_equipped_atomic_bombs", pindex)
    else
       --Suppress alerts for 10 seconds?
    end
@@ -9494,8 +9494,8 @@ script.on_event(defines.events.on_player_display_resolution_changed,function(eve
       players[pindex].display_resolution = new_res
    end
    game.get_player(pindex).print("Display resolution changed: " .. new_res.width .. " x " .. new_res.height ,{volume_modifier = 0})
-   schedule(3, "fix_zoom", pindex)
-   schedule(4, "sync_build_cursor_graphics", pindex)
+   schedule(3, "fa_zoom.fix_zoom", pindex)
+   schedule(4, "fa_graphics.sync_build_cursor_graphics", pindex)
 end)
 
 script.on_event(defines.events.on_player_display_scale_changed,function(event)
@@ -9508,8 +9508,8 @@ script.on_event(defines.events.on_player_display_scale_changed,function(event)
       players[pindex].display_resolution = new_sc
    end
    game.get_player(pindex).print("Display scale changed: " .. new_sc ,{volume_modifier = 0})
-   schedule(3, "fix_zoom", pindex)
-   schedule(4, "sync_build_cursor_graphics", pindex)
+   schedule(3, "fa_zoom.fix_zoom", pindex)
+   schedule(4, "fa_graphics.sync_build_cursor_graphics", pindex)
 end)
 
 script.on_event(defines.events.on_string_translated,fa_localising.handler)
