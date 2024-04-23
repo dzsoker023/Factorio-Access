@@ -3,12 +3,15 @@ local util = require('util')
 local fa_utils = require('fa-utils')
 local fa_crafting = require("crafting")
 local localising = require('localising')
+local fa_belts = require("transport-belts")
+
+local fa_sectors = {}
 
 --[[Function to increase/decrease the bar (restricted slots) of a given chest/container by a given amount, while protecting its lower and upper bounds. 
 * Returns the verbal explanation to print out. 
 * amount = number of slots to change, set negative value for a decrease.
 ]]
-function increment_inventory_bar(ent, amount)
+function fa_sectors.add_to_inventory_bar(ent, amount)
    local inventory = ent.get_inventory(defines.inventory.chest)
 
    --Checks
@@ -47,7 +50,7 @@ function increment_inventory_bar(ent, amount)
 end
 
 --Loads and opens the building menu
-function open_operable_building(ent,pindex)--open_building
+function fa_sectors.open_operable_building(ent,pindex)
    if ent.operable and ent.prototype.is_building then
       --Check if within reach
       if util.distance(game.get_player(pindex).position, players[pindex].cursor_pos) > game.get_player(pindex).reach_distance then
@@ -74,8 +77,8 @@ function open_operable_building(ent,pindex)--open_building
          players[pindex].belt.ent = ent
          players[pindex].belt.sector = 1
          players[pindex].belt.network = {}
-         local network = get_connected_lines(ent)
-         players[pindex].belt.network = get_line_items(network)
+         local network = fa_belts.get_connected_lines(ent)
+         players[pindex].belt.network = fa_belts.get_line_items(network)
          players[pindex].belt.index = 1
          players[pindex].belt.side = 1
          players[pindex].belt.direction = ent.direction
@@ -193,10 +196,10 @@ function open_operable_building(ent,pindex)--open_building
                group = 0,
                subgroup = 0
             }
-            read_building_recipe(pindex, "Select a Recipe, ")
+            fa_sectors.read_building_recipe(pindex, "Select a Recipe, ")
             return
          end
-         read_building_slot(pindex, true)
+         fa_sectors.read_sector_slot(pindex, true)
       else
          --No building sectors
          if game.get_player(pindex).opened ~= nil then
@@ -218,7 +221,7 @@ function open_operable_building(ent,pindex)--open_building
 end
 
 --Loads and opens the vehicle menu
-function open_operable_vehicle(ent,pindex)--open_vehicle
+function fa_sectors.open_operable_vehicle(ent,pindex)
    if ent.valid and ent.operable then
       --Check if within reach
       if util.distance(game.get_player(pindex).position, players[pindex].cursor_pos) > game.get_player(pindex).reach_distance then
@@ -312,7 +315,7 @@ function open_operable_vehicle(ent,pindex)--open_vehicle
          players[pindex].inventory.index = 1
          players[pindex].building.index = 1
 
-         read_building_slot(pindex, true)
+         fa_sectors.read_sector_slot(pindex, true)
       else
          if game.get_player(pindex).opened ~= nil then
             players[pindex].building.ent = ent
@@ -329,7 +332,7 @@ function open_operable_vehicle(ent,pindex)--open_vehicle
 end
 
 --Building recipe selection sector: Read the selected recipe 
-function read_building_recipe(pindex, start_phrase)
+function fa_sectors.read_building_recipe(pindex, start_phrase)
    start_phrase = start_phrase or ""
    if players[pindex].building.recipe_selection then --inside the selector
       local recipe = players[pindex].building.recipe_list[players[pindex].building.category][players[pindex].building.index]
@@ -349,7 +352,7 @@ function read_building_recipe(pindex, start_phrase)
 end
 
 --Building sectors: Read the item or fluid at the selected slot.
-function read_building_slot(pindex, prefix_inventory_size_and_name)
+function fa_sectors.read_sector_slot(pindex, prefix_inventory_size_and_name)
    local building_sector = players[pindex].building.sectors[players[pindex].building.sector]
    if building_sector.name == "Filters" then
       local inventory = building_sector.inventory
@@ -464,7 +467,7 @@ function read_building_slot(pindex, prefix_inventory_size_and_name)
       stack = building_sector.inventory[players[pindex].building.index]
       if stack and stack.valid_for_read and stack.valid then
          if stack.is_blueprint then
-            printout(get_blueprint_info(stack,false),pindex)
+            printout(fa_blueprints.get_blueprint_info(stack,false),pindex)
          else
             if stack.health < 1 then
                start_phrase = start_phrase .. " damaged "
@@ -526,3 +529,5 @@ function read_building_slot(pindex, prefix_inventory_size_and_name)
          printout("0 " .. building_sector.name,pindex)
    end
 end
+
+return fa_sectors

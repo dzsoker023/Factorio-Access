@@ -4,8 +4,209 @@ local fa_utils = require('fa-utils')
 local fa_crafting = require("crafting")
 local localising = require('localising')
 
+local fa_menu_search = {}
+
+--Returns the index for the next inventory item to match the search term, for any lua inventory
+local function inventory_find_index_of_next_name_match(inv,index,str,pindex)
+   local repeat_i = -1
+   if index < 1 then
+      index = 1
+   end
+   --Iterate until the end of the inventory for a match
+   for i=index, #inv, 1 do
+      local stack = inv[i]
+      if stack ~= nil and (stack.object_name == "LuaTechnology" or stack.valid_for_read) then
+         local name = string.lower(localising.get(stack.prototype,pindex))
+         local result = string.find(name, str)
+         if result ~= nil then
+            if name ~= players[pindex].menu_search_last_name then
+               players[pindex].menu_search_last_name = name
+               game.get_player(pindex).play_sound{path = "Inventory-Move"}--sound for finding the next
+               return i
+            else
+               repeat_i = i
+            end
+         end
+         --game.print(i .. " : " .. name .. " vs. " .. str,{volume_modifier=0})
+      end
+   end
+   --End of inventory reached, circle back
+   game.get_player(pindex).play_sound{path = "inventory-wrap-around"}--sound for having cicled around 
+   for i=1, index, 1 do
+      local stack = inv[i]
+      if stack ~= nil and (stack.object_name == "LuaTechnology" or stack.valid_for_read) then
+         local name = string.lower(localising.get(stack.prototype,pindex))
+         local result = string.find(name, str)
+         if result ~= nil then
+            if name ~= players[pindex].menu_search_last_name then
+               players[pindex].menu_search_last_name = name
+               game.get_player(pindex).play_sound{path = "Inventory-Move"}--sound for finding the next
+               return i
+            else
+               repeat_i = i
+            end
+         end
+         --game.print(i .. " : " .. name .. " vs. " .. str,{volume_modifier=0})
+      end
+   end
+   --Check if any repeats found
+   if repeat_i > 0 then
+      return repeat_i
+   end
+   --No matches found at all
+   return -1
+end
+
+--Returns the index for the last inventory item to match the search term, for any lua inventory
+local function inventory_find_index_of_last_name_match(inv,index,str,pindex)
+   local repeat_i = -1
+   if index < 1 then
+      index = 1
+   end
+   --Iterate until the start of the inventory for a match
+   for i=index, 1, -1 do
+      local stack = inv[i]
+      if stack ~= nil and stack.valid_for_read then
+         local name = string.lower(localising.get(stack.prototype,pindex))
+         local result = string.find(name, str)
+         if result ~= nil then
+            if name ~= players[pindex].menu_search_last_name then
+               players[pindex].menu_search_last_name = name
+               game.get_player(pindex).play_sound{path = "Inventory-Move"}--sound for finding the next
+               return i
+            else
+               repeat_i = i
+            end
+         end
+         --game.print(i .. " : " .. name .. " vs. " .. str,{volume_modifier=0})
+      end
+   end
+   --Start of inventory reached, circle back
+   game.get_player(pindex).play_sound{path = "inventory-wrap-around"}--sound for having cicled around 
+   for i=#inv, index, -1 do
+      local stack = inv[i]
+      if stack ~= nil and stack.valid_for_read then
+         local name = string.lower(localising.get(stack.prototype,pindex))
+         local result = string.find(name, str)
+         if result ~= nil then
+            if name ~= players[pindex].menu_search_last_name then
+               players[pindex].menu_search_last_name = name
+               game.get_player(pindex).play_sound{path = "Inventory-Move"}--sound for finding the next
+               return i
+            else
+               repeat_i = i
+            end
+         end
+         --game.print(i .. " : " .. name .. " vs. " .. str,{volume_modifier=0})
+      end
+   end
+   --Check if any repeats found
+   if repeat_i > 0 then
+      return repeat_i
+   end
+   --No matches found at all
+   return -1
+end
+
+--Returns the index for the next recipe to match the search term, designed for the way recipes are saved in players[pindex]
+local function crafting_find_index_of_next_name_match(str,pindex,last_i, last_j, recipe_set)
+   local recipes = recipe_set
+   local cata_total = #recipes
+   local repeat_i = -1
+   local repeat_j = -1
+   if last_i < 1 then
+      last_i = 1
+   end
+   if last_j < 1 then
+      last_j = 1
+   end
+   --Iterate until the end of the inventory for a match
+   for i = last_i, cata_total, 1 do
+      for j = last_j, #recipes[i], 1 do
+         local recipe = recipes[i][j]
+         if recipe and recipe.valid then
+            local name = string.lower(localising.get(recipe,pindex))
+            local result = string.find(name, str)
+            --game.print(i .. "," .. j .. " : " .. name .. " vs. " .. str,{volume_modifier=0})
+            if result ~= nil then
+               --game.print(" * " .. i .. "," .. j .. " : " .. name .. " vs. " .. str .. " * ",{volume_modifier=0})
+               if name ~= players[pindex].menu_search_last_name then
+                  players[pindex].menu_search_last_name = name
+                  game.get_player(pindex).play_sound{path = "Inventory-Move"}--sound for finding the next
+                  --game.print(" ** " .. recipes[i][j].name .. " ** ")
+                  return i, j
+               else
+                  repeat_i = i
+                  repeat_j = j
+               end
+            end
+         end
+      end
+      last_j = 1
+   end
+   --End of inventory reached, circle back
+   game.get_player(pindex).play_sound{path = "inventory-wrap-around"}--sound for having cicled around 
+   for i = 1, cata_total, 1 do
+      for j = 1, #recipes[i], 1 do
+         local recipe = recipes[i][j]
+         if recipe and recipe.valid then
+            local name = string.lower(localising.get(recipe,pindex))
+            local result = string.find(name, str)
+            --game.print(i .. "," .. j .. " : " .. name .. " vs. " .. str,{volume_modifier=0})
+            if result ~= nil then
+               --game.print(" * " .. i .. "," .. j .. " : " .. name .. " vs. " .. str .. " * ",{volume_modifier=0})
+               if name ~= players[pindex].menu_search_last_name then
+                  players[pindex].menu_search_last_name = name
+                  game.get_player(pindex).play_sound{path = "Inventory-Move"}--sound for finding the next
+                  --game.print(" ** " .. recipes[i][j].name .. " ** ")
+                  return i, j
+               else
+                  repeat_i = i
+                  repeat_j = j
+               end
+            end
+         end
+      end
+   end
+   --Check if any repeats found
+   if repeat_i > 0 then
+      return repeat_i, repeat_j
+   end
+   --No matches found at all
+   return -1, -1
+end
+
+--Returns the index for the next prototypes array item to match the search term.
+local function prototypes_find_index_of_next_name_match(array,index,str,pindex)
+   local repeat_i = -1
+   if index < 1 then
+      index = 1
+   end
+   --Iterate until the end of the inventory for a match
+   for i=index, #array, 1 do
+      local prototype = array[i]
+      if prototype ~= nil and prototype.valid then
+         local name = string.lower(localising.get(prototype,pindex))
+         local result = string.find(name, str)
+         if result ~= nil then
+            if name ~= players[pindex].menu_search_last_name then
+               players[pindex].menu_search_last_name = name
+               game.get_player(pindex).play_sound{path = "Inventory-Move"}--sound for finding the next
+               --game.print("found: " .. i .. " : " .. name .. " vs. " .. str .. ", last: " .. players[pindex].menu_search_last_name,{volume_modifier=0})--
+               return i
+            else
+               repeat_i = i
+            end
+         end
+         --game.print(i .. " : " .. name .. " vs. " .. str .. ", last: " .. players[pindex].menu_search_last_name,{volume_modifier=0})--
+      end
+   end
+   --End of array reached, assume failed and will move on to next. 
+   return -1
+end
+
 --Allows searching a menu that has support written for this
-function menu_search_open(pindex)
+function fa_menu_search.open_search_box(pindex)
    --Only allow "inventory" and "building" menus for now
    if not players[pindex].in_menu then
       printout("This menu does not support searching.",pindex)
@@ -36,8 +237,8 @@ function menu_search_open(pindex)
    printout(players[pindex].menu .. " enter a search term and press 'ENTER' ",pindex)
 end
 
---Reads out the next inventory/menu item to match the search term
-function menu_search_get_next(pindex, str, start_phrase_in)
+--Reads out the next inventory/menu item to match the search term. Used in all searchable menus.
+function fa_menu_search.fetch_next(pindex, str, start_phrase_in)
    --Only allow "inventory" and "building" menus for now
    if not players[pindex].in_menu then
       printout("This menu does not support searching.",pindex)
@@ -177,7 +378,7 @@ function menu_search_get_next(pindex, str, start_phrase_in)
    elseif (players[pindex].menu == "building" or players[pindex].menu == "vehicle") and pb.sectors and pb.sectors[pb.sector] and pb.sectors[pb.sector].name == "Output" then
       players[pindex].menu_search_index = new_index
       players[pindex].building.index = new_index
-      read_building_slot(pindex,false)
+      fa_sectors.read_sector_slot(pindex,false)
    elseif (players[pindex].menu == "building" or players[pindex].menu == "vehicle") and players[pindex].building.sector_name == "player_inventory"  then
       players[pindex].menu_search_index = new_index
       players[pindex].building.index = new_index
@@ -194,7 +395,7 @@ function menu_search_get_next(pindex, str, start_phrase_in)
       players[pindex].menu_search_index_2 = new_index_2
       players[pindex].building.category = new_index
       players[pindex].building.index = new_index_2
-      read_building_recipe(pindex, start_phrase)
+      fa_sectors.read_building_recipe(pindex, start_phrase)
    elseif players[pindex].menu == "technology" then
       local techs = {}
       local note = start_phrase
@@ -221,8 +422,8 @@ function menu_search_get_next(pindex, str, start_phrase_in)
    end
 end
 
---Reads out the last inventory/menu item to match the search term
-function menu_search_get_last(pindex,str)
+--Reads out the last inventory/menu item to match the search term. Used only in some menus.
+function fa_menu_search.fetch_last(pindex,str)
    --Only allow "inventory" and "building" menus for now
    if not players[pindex].in_menu then
       printout("This menu does not support searching backwards.",pindex)
@@ -267,208 +468,11 @@ function menu_search_get_last(pindex,str)
    elseif (players[pindex].menu == "building" or players[pindex].menu == "vehicle") and pb.sectors and pb.sectors[pb.sector] and pb.sectors[pb.sector].name == "Output" then
       players[pindex].menu_search_index = new_index
       players[pindex].building.index = new_index
-      read_building_slot(pindex,false)
+      fa_sectors.read_sector_slot(pindex,false)
    else
       printout("Search error",pindex)
       return
    end
 end
 
---Returns the index for the next inventory item to match the search term, for any lua inventory
-function inventory_find_index_of_next_name_match(inv,index,str,pindex)
-   local repeat_i = -1
-   if index < 1 then
-      index = 1
-   end
-   --Iterate until the end of the inventory for a match
-   for i=index, #inv, 1 do
-      local stack = inv[i]
-      if stack ~= nil and (stack.object_name == "LuaTechnology" or stack.valid_for_read) then
-         local name = string.lower(localising.get(stack.prototype,pindex))
-         local result = string.find(name, str)
-         if result ~= nil then
-            if name ~= players[pindex].menu_search_last_name then
-               players[pindex].menu_search_last_name = name
-               game.get_player(pindex).play_sound{path = "Inventory-Move"}--sound for finding the next
-               return i
-            else
-               repeat_i = i
-            end
-         end
-         --game.print(i .. " : " .. name .. " vs. " .. str,{volume_modifier=0})
-      end
-   end
-   --End of inventory reached, circle back
-   game.get_player(pindex).play_sound{path = "inventory-wrap-around"}--sound for having cicled around 
-   for i=1, index, 1 do
-      local stack = inv[i]
-      if stack ~= nil and (stack.object_name == "LuaTechnology" or stack.valid_for_read) then
-         local name = string.lower(localising.get(stack.prototype,pindex))
-         local result = string.find(name, str)
-         if result ~= nil then
-            if name ~= players[pindex].menu_search_last_name then
-               players[pindex].menu_search_last_name = name
-               game.get_player(pindex).play_sound{path = "Inventory-Move"}--sound for finding the next
-               return i
-            else
-               repeat_i = i
-            end
-         end
-         --game.print(i .. " : " .. name .. " vs. " .. str,{volume_modifier=0})
-      end
-   end
-   --Check if any repeats found
-   if repeat_i > 0 then
-      return repeat_i
-   end
-   --No matches found at all
-   return -1
-end
-
---Returns the index for the last inventory item to match the search term, for any lua inventory
-function inventory_find_index_of_last_name_match(inv,index,str,pindex)
-   local repeat_i = -1
-   if index < 1 then
-      index = 1
-   end
-   --Iterate until the start of the inventory for a match
-   for i=index, 1, -1 do
-      local stack = inv[i]
-      if stack ~= nil and stack.valid_for_read then
-         local name = string.lower(localising.get(stack.prototype,pindex))
-         local result = string.find(name, str)
-         if result ~= nil then
-            if name ~= players[pindex].menu_search_last_name then
-               players[pindex].menu_search_last_name = name
-               game.get_player(pindex).play_sound{path = "Inventory-Move"}--sound for finding the next
-               return i
-            else
-               repeat_i = i
-            end
-         end
-         --game.print(i .. " : " .. name .. " vs. " .. str,{volume_modifier=0})
-      end
-   end
-   --Start of inventory reached, circle back
-   game.get_player(pindex).play_sound{path = "inventory-wrap-around"}--sound for having cicled around 
-   for i=#inv, index, -1 do
-      local stack = inv[i]
-      if stack ~= nil and stack.valid_for_read then
-         local name = string.lower(localising.get(stack.prototype,pindex))
-         local result = string.find(name, str)
-         if result ~= nil then
-            if name ~= players[pindex].menu_search_last_name then
-               players[pindex].menu_search_last_name = name
-               game.get_player(pindex).play_sound{path = "Inventory-Move"}--sound for finding the next
-               return i
-            else
-               repeat_i = i
-            end
-         end
-         --game.print(i .. " : " .. name .. " vs. " .. str,{volume_modifier=0})
-      end
-   end
-   --Check if any repeats found
-   if repeat_i > 0 then
-      return repeat_i
-   end
-   --No matches found at all
-   return -1
-end
-
---Returns the index for the next recipe to match the search term, designed for the way recipes are saved in players[pindex]
-function crafting_find_index_of_next_name_match(str,pindex,last_i, last_j, recipe_set)
-   local recipes = recipe_set
-   local cata_total = #recipes
-   local repeat_i = -1
-   local repeat_j = -1
-   if last_i < 1 then
-      last_i = 1
-   end
-   if last_j < 1 then
-      last_j = 1
-   end
-   --Iterate until the end of the inventory for a match
-   for i = last_i, cata_total, 1 do
-      for j = last_j, #recipes[i], 1 do
-         local recipe = recipes[i][j]
-         if recipe and recipe.valid then
-            local name = string.lower(localising.get(recipe,pindex))
-            local result = string.find(name, str)
-            --game.print(i .. "," .. j .. " : " .. name .. " vs. " .. str,{volume_modifier=0})
-            if result ~= nil then
-               --game.print(" * " .. i .. "," .. j .. " : " .. name .. " vs. " .. str .. " * ",{volume_modifier=0})
-               if name ~= players[pindex].menu_search_last_name then
-                  players[pindex].menu_search_last_name = name
-                  game.get_player(pindex).play_sound{path = "Inventory-Move"}--sound for finding the next
-                  --game.print(" ** " .. recipes[i][j].name .. " ** ")
-                  return i, j
-               else
-                  repeat_i = i
-                  repeat_j = j
-               end
-            end
-         end
-      end
-      last_j = 1
-   end
-   --End of inventory reached, circle back
-   game.get_player(pindex).play_sound{path = "inventory-wrap-around"}--sound for having cicled around 
-   for i = 1, cata_total, 1 do
-      for j = 1, #recipes[i], 1 do
-         local recipe = recipes[i][j]
-         if recipe and recipe.valid then
-            local name = string.lower(localising.get(recipe,pindex))
-            local result = string.find(name, str)
-            --game.print(i .. "," .. j .. " : " .. name .. " vs. " .. str,{volume_modifier=0})
-            if result ~= nil then
-               --game.print(" * " .. i .. "," .. j .. " : " .. name .. " vs. " .. str .. " * ",{volume_modifier=0})
-               if name ~= players[pindex].menu_search_last_name then
-                  players[pindex].menu_search_last_name = name
-                  game.get_player(pindex).play_sound{path = "Inventory-Move"}--sound for finding the next
-                  --game.print(" ** " .. recipes[i][j].name .. " ** ")
-                  return i, j
-               else
-                  repeat_i = i
-                  repeat_j = j
-               end
-            end
-         end
-      end
-   end
-   --Check if any repeats found
-   if repeat_i > 0 then
-      return repeat_i, repeat_j
-   end
-   --No matches found at all
-   return -1, -1
-end
-
---Returns the index for the next prototypes array item to match the search term.
-function prototypes_find_index_of_next_name_match(array,index,str,pindex)
-   local repeat_i = -1
-   if index < 1 then
-      index = 1
-   end
-   --Iterate until the end of the inventory for a match
-   for i=index, #array, 1 do
-      local prototype = array[i]
-      if prototype ~= nil and prototype.valid then
-         local name = string.lower(localising.get(prototype,pindex))
-         local result = string.find(name, str)
-         if result ~= nil then
-            if name ~= players[pindex].menu_search_last_name then
-               players[pindex].menu_search_last_name = name
-               game.get_player(pindex).play_sound{path = "Inventory-Move"}--sound for finding the next
-               --game.print("found: " .. i .. " : " .. name .. " vs. " .. str .. ", last: " .. players[pindex].menu_search_last_name,{volume_modifier=0})--
-               return i
-            else
-               repeat_i = i
-            end
-         end
-         --game.print(i .. " : " .. name .. " vs. " .. str .. ", last: " .. players[pindex].menu_search_last_name,{volume_modifier=0})--
-      end
-   end
-   --End of array reached, assume failed and will move on to next. 
-   return -1
-end
+return fa_menu_search

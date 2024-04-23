@@ -3,13 +3,18 @@ local localising = require("localising")
 local fa_utils = require("fa-utils")
 local fa_electrical = require("electrical")
 local dirs = defines.direction
+local fa_graphics = require("graphics-and-mouse").graphics
+local fa_rails = require("rails-and-trains").rails
+local fa_belts = require("transport-belts")
+
+local fa_building_tools = {}
 
 --[[Attempts to build the item in hand.
 * Does nothing if the hand is empty or the item is not a place-able entity.
 * If the item is an offshore pump, calls a different, special function for it.
 * You can offset the building with respect to the direction the player is facing. The offset is multiplied by the placed building width.
 ]]
-function build_item_in_hand(pindex, free_place_straight_rail)
+function fa_building_tools.build_item_in_hand(pindex, free_place_straight_rail)
    local stack = game.get_player(pindex).cursor_stack
    local p = game.get_player(pindex)
 
@@ -30,13 +35,13 @@ function build_item_in_hand(pindex, free_place_straight_rail)
 
    --Exceptional build cases
    if stack.name == "offshore-pump" then
-      build_offshore_pump_in_hand(pindex)
+      fa_building_tools.build_offshore_pump_in_hand(pindex)
       return
    elseif stack.name == "rail" then
       if not (free_place_straight_rail == true) then
          --Append rails unless otherwise stated
          local pos = players[pindex].cursor_pos
-         append_rail(pos, pindex)
+         fa_rails.append_rail(pos, pindex)
          return
       end
    elseif stack.name == "rail-signal" or stack.name == "rail-chain-signal" then
@@ -216,10 +221,10 @@ function build_item_in_hand(pindex, free_place_straight_rail)
       end
 
       --Clear build area obstacles 
-      clear_obstacles_in_rectangle(players[pindex].building_footprint_left_top, players[pindex].building_footprint_right_bottom, pindex)
+      fa_building_tools.clear_obstacles_in_rectangle(players[pindex].building_footprint_left_top, players[pindex].building_footprint_right_bottom, pindex)
 
       --Teleport player out of build area  
-      teleport_player_out_of_build_area(players[pindex].building_footprint_left_top, players[pindex].building_footprint_right_bottom, pindex)
+      fa_building_tools.teleport_player_out_of_build_area(players[pindex].building_footprint_left_top, players[pindex].building_footprint_right_bottom, pindex)
 
 	  --Try to build it
       local build_successful = false
@@ -296,16 +301,16 @@ function build_item_in_hand(pindex, free_place_straight_rail)
    --Update cursor highlight (end)
    local ent = get_selected_ent(pindex)
    if ent and ent.valid then
-      cursor_highlight(pindex, ent, nil)
+      fa_graphics.draw_cursor_highlight(pindex, ent, nil)
    else
-      cursor_highlight(pindex, nil, nil)
+      fa_graphics.draw_cursor_highlight(pindex, nil, nil)
    end
 end
 
 --[[Assisted building function for offshore pumps.
 * Called as a special case by build_item_in_hand
 ]]
-function build_offshore_pump_in_hand(pindex)
+function fa_building_tools.build_offshore_pump_in_hand(pindex)
    local stack = game.get_player(pindex).cursor_stack
 
    if stack and stack.valid and stack.valid_for_read and stack.name == "offshore-pump" then
@@ -341,7 +346,7 @@ function build_offshore_pump_in_hand(pindex)
 end
 
 --Reads the result of trying to rotate a building, which is a vanilla action.
-function rotate_building_info_read(event, forward)
+function fa_building_tools.rotate_building_info_read(event, forward)
    pindex = event.player_index
    if not check_for_player(pindex) then
       return
@@ -397,7 +402,7 @@ function rotate_building_info_read(event, forward)
 
             --Display and read the new direction info
             players[pindex].building_direction = build_dir
-            sync_build_cursor_graphics(pindex)
+            fa_graphics.sync_build_cursor_graphics(pindex)
             printout(fa_utils.direction_lookup(build_dir) .. " in hand", pindex)
             players[pindex].lag_building_direction = false
          else
@@ -408,7 +413,7 @@ function rotate_building_info_read(event, forward)
          game.get_player(pindex).play_sound{path="Rotate-Hand-Sound"}
          players[pindex].blueprint_hand_direction = (players[pindex].blueprint_hand_direction + dirs.east * mult) % (2 * dirs.south)
          printout(fa_utils.direction_lookup(players[pindex].blueprint_hand_direction), pindex)
-         sync_build_cursor_graphics(pindex)
+         fa_graphics.sync_build_cursor_graphics(pindex)
       elseif ent and ent.valid then
          game.get_player(pindex).selected = ent
 
@@ -439,7 +444,7 @@ function rotate_building_info_read(event, forward)
 end
 
 --Does everything to handle the nudging feature, taking the keypress event and the nudge direction as the input. Nothing happens if an entity cannot be selected.
-function nudge_key(direction, event)--
+function fa_building_tools.nudge_key(direction,event)
    local pindex = event.player_index
    local p = game.get_player(pindex)
    if not check_for_player(pindex) or players[pindex].menu == "prompt" then
@@ -467,7 +472,7 @@ function nudge_key(direction, event)--
          left_top = {x = math.floor(ent.position.x - math.floor(width/2)), y = math.floor(ent.position.y - math.floor(height/2))}
          left_top = fa_utils.offset_position(left_top,direction,1)
          right_bottom = {x = math.ceil(left_top.x + width), y = math.ceil(left_top.y + height)}
-         clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
+         fa_building_tools.clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
 
          --First teleport the ent to 0,0 temporarily
          temporary_teleported = ent.teleport({0,0})
@@ -521,8 +526,8 @@ function nudge_key(direction, event)--
             printout({"access.nudged-one-direction",{"access.direction",direction}}, pindex)
             if players[pindex].cursor then
                players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos,direction,1)
-               cursor_highlight(pindex, ent, "train-visualization")
-               sync_build_cursor_graphics(pindex)
+               fa_graphics.draw_cursor_highlight(pindex, ent, "train-visualization")
+               fa_graphics.sync_build_cursor_graphics(pindex)
             end
             if ent.type == "electric-pole" then
                -- laterdo **bugfix when nudged electric poles have extra wire reach, cut wires
@@ -542,7 +547,7 @@ function nudge_key(direction, event)--
 end
 
 --Returns a list of positions for this entity where it has its heat pipe connections.
-function get_heat_connection_positions(ent_name, ent_position, ent_direction)
+function fa_building_tools.get_heat_connection_positions(ent_name, ent_position, ent_direction)
    local pos = ent_position
    local positions = {}
    if ent_name == "heat-pipe" then
@@ -565,7 +570,7 @@ function get_heat_connection_positions(ent_name, ent_position, ent_direction)
 end
 
 --Returns a list of positions for this entity where it expects to find other heat pipe interfaces that it can connect to.
-function get_heat_connection_target_positions(ent_name, ent_position, ent_direction)
+function fa_building_tools.get_heat_connection_target_positions(ent_name, ent_position, ent_direction)
    local pos = ent_position
    local positions = {}
    if ent_name == "heat-pipe" then
@@ -597,7 +602,7 @@ function get_heat_connection_target_positions(ent_name, ent_position, ent_direct
 end
 
 --Returns an info string about trying to build the entity in hand. The info type depends on the entity. Note: Limited usefulness for entities with sizes greater than 1 by 1.
-function build_preview_checks_info(stack, pindex)
+function fa_building_tools.build_preview_checks_info(stack, pindex)
    if stack == nil or not stack.valid_for_read or not stack.valid then
       return "invalid stack"
    end
@@ -711,7 +716,7 @@ function build_preview_checks_info(stack, pindex)
          --Determine expected junction info
          if sideload_count + backload_count + outload_count > 0 then--Skips "unit" because it is obvious
             local say_middle = true
-            result = ", forms belt " .. transport_belt_junction_info(sideload_count, backload_count, outload_count, this_dir, outload_dir, say_middle, outload_is_corner)
+            result = ", forms belt " .. fa_belts.transport_belt_junction_info(sideload_count, backload_count, outload_count, this_dir, outload_dir, say_middle, outload_is_corner)
          end
       end
    end
@@ -821,10 +826,10 @@ function build_preview_checks_info(stack, pindex)
             west_ent = ent_cand
          end
       end
-      box, relevant_fluid_north, dir_from_pos = get_relevant_fluidbox_and_fluid_name(north_ent, pos, dirs.north)
-      box, relevant_fluid_south, dir_from_pos = get_relevant_fluidbox_and_fluid_name(south_ent, pos, dirs.south)
-      box, relevant_fluid_east, dir_from_pos  = get_relevant_fluidbox_and_fluid_name(east_ent, pos, dirs.east)
-      box, relevant_fluid_west, dir_from_pos  = get_relevant_fluidbox_and_fluid_name(west_ent, pos, dirs.west)
+      box, relevant_fluid_north, dir_from_pos = fa_building_tools.get_relevant_fluidbox_and_fluid_name(north_ent, pos, dirs.north)
+      box, relevant_fluid_south, dir_from_pos = fa_building_tools.get_relevant_fluidbox_and_fluid_name(south_ent, pos, dirs.south)
+      box, relevant_fluid_east, dir_from_pos  = fa_building_tools.get_relevant_fluidbox_and_fluid_name(east_ent, pos, dirs.east)
+      box, relevant_fluid_west, dir_from_pos  = fa_building_tools.get_relevant_fluidbox_and_fluid_name(west_ent, pos, dirs.west)
 
       --Prepare result string 
       if relevant_fluid_north ~= nil or relevant_fluid_east ~= nil or relevant_fluid_south ~= nil or relevant_fluid_west ~= nil then
@@ -881,7 +886,7 @@ function build_preview_checks_info(stack, pindex)
          end
       end
 
-      box, relevant_fluid_faced, dir_from_pos = get_relevant_fluidbox_and_fluid_name(faced_ent, pos, face_dir)
+      box, relevant_fluid_faced, dir_from_pos = fa_building_tools.get_relevant_fluidbox_and_fluid_name(faced_ent, pos, face_dir)
       --Prepare result string 
       if relevant_fluid_faced ~= nil then
          local count = 0
@@ -894,7 +899,7 @@ function build_preview_checks_info(stack, pindex)
    --For heat pipes, preview the connection directions
    if ent_p.type == "heat-pipe" then
       result = result .. " heat pipe can connect "
-      local con_targets = get_heat_connection_target_positions("heat-pipe", pos, dirs.north)
+      local con_targets = fa_building_tools.get_heat_connection_target_positions("heat-pipe", pos, dirs.north)
       local con_count = 0
       if #con_targets > 0 then
          for i, con_target_pos in ipairs(con_targets) do
@@ -902,8 +907,8 @@ function build_preview_checks_info(stack, pindex)
             rendering.draw_circle{color = {1.0, 0.0, 0.5},radius = 0.1,width = 2,target = con_target_pos, surface = p.surface, time_to_live = 30}
             local target_ents = p.surface.find_entities_filtered{position = con_target_pos}
             for j, target_ent in ipairs(target_ents) do
-               if target_ent.valid and #get_heat_connection_positions(target_ent.name, target_ent.position, target_ent.direction) > 0 then
-                  for k, spot in ipairs(get_heat_connection_positions(target_ent.name, target_ent.position, target_ent.direction)) do
+               if target_ent.valid and #fa_building_tools.get_heat_connection_positions(target_ent.name, target_ent.position, target_ent.direction) > 0 then
+                  for k, spot in ipairs(fa_building_tools.get_heat_connection_positions(target_ent.name, target_ent.position, target_ent.direction)) do
                      --For each heat connection of the found target entity 
                      rendering.draw_circle{color = {1.0, 1.0, 0.5},radius = 0.2,width = 2,target = spot, surface = p.surface, time_to_live = 30}
                      if util.distance(con_target_pos,spot) < 0.2 then
@@ -981,7 +986,7 @@ function build_preview_checks_info(stack, pindex)
          --Notify if no connections and state nearest roboport
          result = result .. " not connected, "
          local max_dist = 2000
-         local nearest_port, min_dist = find_nearest_roboport(p.surface, p.position, max_dist)
+         local nearest_port, min_dist = fa_bot_logistics.find_nearest_roboport(p.surface, p.position, max_dist)
          if min_dist == nil or min_dist >= max_dist then
             result = result .. " no other roboports within " .. max_dist .. " tiles, "
          else
@@ -995,7 +1000,7 @@ function build_preview_checks_info(stack, pindex)
    if ent_p.type == "logistic-container" then
       local network = p.surface.find_logistic_network_by_position(pos, p.force)
       if network == nil then
-         local nearest_roboport = find_nearest_roboport(p.surface, pos, 5000)
+         local nearest_roboport = fa_bot_logistics.find_nearest_roboport(p.surface, pos, 5000)
          if nearest_roboport == nil then
             result = result .. ", not in a network, no networks found within 5000 tiles"
          else
@@ -1102,7 +1107,7 @@ function build_preview_checks_info(stack, pindex)
 end
 
 --For a building with fluidboxes, returns the external fluidbox and fluid name that would connect to one of the building's own fluidboxes at a particular position, from a particular direction. Importantly, ignores fluidboxes that are positioned correctly but would not connect, such as a pipe to ground facing a perpebdicular direction. 
-function get_relevant_fluidbox_and_fluid_name(building, pos, dir_from_pos)
+function fa_building_tools.get_relevant_fluidbox_and_fluid_name(building, pos, dir_from_pos)
    local relevant_box = nil
    local relevant_fluid_name = nil
    if building ~= nil and building.valid and building.fluidbox ~= nil then
@@ -1133,136 +1138,7 @@ function get_relevant_fluidbox_and_fluid_name(building, pos, dir_from_pos)
    return relevant_box, relevant_fluid_name, dir_from_pos
 end
 
---Mines an entity with the right sound
-function try_to_mine_with_sound(ent,pindex)
-   if ent ~= nil and ent.valid and ((ent.destructible and ent.type ~= "resource") or ent.name == "item-on-ground") then
-	 local ent_name = ent.name
-	 if game.get_player(pindex).mine_entity(ent,false) and game.is_valid_sound_path("entity-mined/" .. ent_name) then
-	    game.get_player(pindex).play_sound{path = "entity-mined/" .. ent_name}
-		return true
-	 else
-      return false
-	 end
-   end
-end
-
---Mines all trees and rocks and ground items in a selected circular area. Useful when placing structures. Forces mining. laterdo add deleting stumps maybe but they do fade away eventually 
-function clear_obstacles_in_circle(position, radius, pindex)
-   local surf = game.get_player(pindex).surface
-   local comment = ""
-   local trees_cleared = 0
-   local rocks_cleared = 0
-   local remnants_cleared = 0
-   local ground_items_cleared = 0
-   players[pindex].allow_reading_flying_text = false
-
-   --Find and mine trees
-   local trees = surf.find_entities_filtered{position = position, radius = radius, type = "tree"}
-   for i,tree_ent in ipairs(trees) do
-      rendering.draw_circle{color = {1, 0, 0},radius = 1,width = 1,target = tree_ent.position,surface = tree_ent.surface,time_to_live = 60}
-      game.get_player(pindex).mine_entity(tree_ent,true)
-	  trees_cleared = trees_cleared + 1
-   end
-
-   --Find and mine rocks. Note that they are resource entities with specific names
-   local resources = surf.find_entities_filtered{position = position, radius = radius, name = {"rock-big","rock-huge","sand-rock-big"}}
-   for i,resource_ent in ipairs(resources) do
-      if resource_ent ~= nil and resource_ent.valid then
-         rendering.draw_circle{color = {1, 0, 0},radius = 2,width = 2,target = resource_ent.position,surface = resource_ent.surface,time_to_live = 60}
-         game.get_player(pindex).mine_entity(resource_ent,true)
-         rocks_cleared = rocks_cleared + 1
-      end
-   end
-
-   --Find and mine corpse entities such as building remnants
-   local remnant_ents = surf.find_entities_filtered{position = position, radius = radius, name = ENT_NAMES_CLEARED_AS_OBSTACLES}
-   for i,remnant_ent in ipairs(remnant_ents) do
-      if remnant_ent ~= nil and remnant_ent.valid then
-         rendering.draw_circle{color = {1, 0, 0},radius = 2,width = 2,target = remnant_ent.position,surface = remnant_ent.surface,time_to_live = 60}
-         remnant_ent.destroy{}
-         remnants_cleared = remnants_cleared + 1
-      end
-   end
-   --game.get_player(pindex).print("remnants cleared: " .. remnants_cleared)--debug
-
-   --Find and mine items on the ground
-   local ground_items = surf.find_entities_filtered{position = position, radius = 5, name = "item-on-ground"}
-   for i,ground_item in ipairs(ground_items) do
-      rendering.draw_circle{color = {1, 0, 0},radius = 0.25,width = 2,target = ground_item.position,surface = surf,time_to_live = 60}
-      game.get_player(pindex).mine_entity(ground_item,true)
-      ground_items_cleared = ground_items_cleared + 1
-   end
-
-   --Report clear and pickup counts
-   if trees_cleared + rocks_cleared + ground_items_cleared + remnants_cleared > 0 then
-      comment = "cleared " .. trees_cleared .. " trees and " .. rocks_cleared .. " rocks and " .. remnants_cleared .. " remnants and " .. ground_items_cleared .. " ground items "
-   end
-   rendering.draw_circle{color = {0, 1, 0},radius = radius,width = radius,target = position,surface = surf,time_to_live = 60}
-   return (trees_cleared + rocks_cleared + remnants_cleared + ground_items_cleared), comment
-end
-
---Same as function above for a circle, but the area is defined differently
-function clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
-   local surf = game.get_player(pindex).surface
-   local comment = ""
-   local trees_cleared = 0
-   local rocks_cleared = 0
-   local remnants_cleared = 0
-   local ground_items_cleared = 0
-   players[pindex].allow_reading_flying_text = false
-
-   --Check for valid positions
-   if left_top == nil or right_bottom == nil then
-      return
-   end
-
-   --Find and mine trees
-   local trees = surf.find_entities_filtered{area = {left_top, right_bottom}, type = "tree"}
-   for i,tree_ent in ipairs(trees) do
-      rendering.draw_circle{color = {1, 0, 0},radius = 1,width = 1,target = tree_ent.position,surface = tree_ent.surface,time_to_live = 60}
-      game.get_player(pindex).mine_entity(tree_ent,true)
-	  trees_cleared = trees_cleared + 1
-   end
-
-   --Find and mine rocks. Note that they are resource entities with specific names
-   local resources = surf.find_entities_filtered{area = {left_top, right_bottom}, name = {"rock-big","rock-huge","sand-rock-big"}}
-   for i,resource_ent in ipairs(resources) do
-      if resource_ent ~= nil and resource_ent.valid then
-         rendering.draw_circle{color = {1, 0, 0},radius = 2,width = 2,target = resource_ent.position,surface = resource_ent.surface,time_to_live = 60}
-         game.get_player(pindex).mine_entity(resource_ent,true)
-         rocks_cleared = rocks_cleared + 1
-      end
-   end
-
-   --Find and mine corpse entities such as building remnants
-   local remnant_ents = surf.find_entities_filtered{area = {left_top, right_bottom}, name = ENT_NAMES_CLEARED_AS_OBSTACLES}
-   for i,remnant_ent in ipairs(remnant_ents) do
-      if remnant_ent ~= nil and remnant_ent.valid then
-         rendering.draw_circle{color = {1, 0, 0},radius = 2,width = 2,target = remnant_ent.position,surface = remnant_ent.surface,time_to_live = 60}
-         remnant_ent.destroy{}
-         remnants_cleared = remnants_cleared + 1
-      end
-   end
-   --game.get_player(pindex).print("remnants cleared: " .. remnants_cleared)--debug
-
-   --Find and mine items on the ground
-   local ground_items = surf.find_entities_filtered{area = {left_top, right_bottom}, name = "item-on-ground"}
-   for i,ground_item in ipairs(ground_items) do
-      rendering.draw_circle{color = {1, 0, 0},radius = 0.25,width = 2,target = ground_item.position,surface = surf,time_to_live = 60}
-      game.get_player(pindex).mine_entity(ground_item,true)
-      ground_items_cleared = ground_items_cleared + 1
-   end
-
-   if trees_cleared + rocks_cleared + ground_items_cleared + remnants_cleared > 0 then
-      comment = "cleared " .. trees_cleared .. " trees and " .. rocks_cleared .. " rocks and " .. remnants_cleared .. " remnants and " .. ground_items_cleared .. " ground items "
-   end
-   if not players[pindex].hide_cursor then
-      --rendering.draw_rectangle{color = {0, 1, 0, 0.5}, left_top = left_top, right_bottom = right_bottom, width = 4, surface = surf, time_to_live = 60, draw_on_ground = true}
-   end
-   return (trees_cleared + rocks_cleared + remnants_cleared + ground_items_cleared), comment
-end
-
-function teleport_player_out_of_build_area(left_top, right_bottom, pindex)
+function fa_building_tools.teleport_player_out_of_build_area(left_top, right_bottom, pindex)
    local p = game.get_player(pindex)
    local pos = p.position
    if pos.x < left_top.x or pos.x > right_bottom.x or pos.y < left_top.y or pos.y > right_bottom.y then
@@ -1289,7 +1165,7 @@ function teleport_player_out_of_build_area(left_top, right_bottom, pindex)
 end
 
 --Assuming there is a steam engine in hand, this function will automatically build it next to a suitable boiler.
-function snap_place_steam_engine_to_a_boiler(pindex)
+function fa_building_tools.snap_place_steam_engine_to_a_boiler(pindex)
    local p = game.get_player(pindex)
    local found_empty_spot = false
    local found_valid_spot = false
@@ -1330,7 +1206,7 @@ function snap_place_steam_engine_to_a_boiler(pindex)
             engine_position = fa_utils.offset_position(engine_position, dirs.north,2)
          end
          rendering.draw_circle{color = {0.25, 1, 0.25},radius = 0.5,width = 2,target = engine_position, surface = p.surface, time_to_live = 60, draw_on_ground = false}
-         clear_obstacles_in_circle(engine_position, 4, pindex)
+         fa_building_tools.clear_obstacles_in_circle(engine_position, 4, pindex)
          --Check if can build from cursor to the relative position
          if p.can_build_from_cursor{position = engine_position, direction = dir} then
             p.build_from_cursor{position = engine_position, direction = dir}
@@ -1352,8 +1228,8 @@ function snap_place_steam_engine_to_a_boiler(pindex)
    end
 end
 
---Identifies if a pipe is a pipe end, so that it can be singled out. The motivation is that pipe ends generally should not exist because the pipes should connect to something.
-function is_a_pipe_end(ent,pindex) --laterdo review
+--Identifies if a pipe is a pipe end, so that it can be singled out. The motivation is that pipe ends generally should not exist because the pipes should connect to something. Laterdo review
+function fa_building_tools.is_a_pipe_end(ent, pindex)
    local p = game.get_player(pindex)
    local pos = players[pindex].cursor_pos
    local ents_north = p.surface.find_entities_filtered{position = {x = pos.x+0, y = pos.y-1} }
@@ -1436,7 +1312,7 @@ function is_a_pipe_end(ent,pindex) --laterdo review
    end
 end
 
-function delete_empty_planners_in_inventory(pindex)
+function fa_building_tools.delete_empty_planners_in_inventory(pindex)
    local inv = game.get_player(pindex).get_main_inventory()
    local length = #inv
    for i=1,length,1 do
@@ -1453,7 +1329,7 @@ function delete_empty_planners_in_inventory(pindex)
    end
 end
 
-function play_mining_sound(pindex)
+function fa_building_tools.play_mining_sound(pindex)
    local player= game.players[pindex]
    --game.print("1",{volume_modifier=0})--**
    if player and player.mining_state.mining and player.selected and player.selected.valid then
@@ -1468,3 +1344,134 @@ function play_mining_sound(pindex)
       schedule(25, "play_mining_sound", pindex)
    end
 end
+
+--Mines an entity with the right sound
+function fa_building_tools.try_to_mine_with_sound(ent,pindex)
+   if ent ~= nil and ent.valid and ((ent.destructible and ent.type ~= "resource") or ent.name == "item-on-ground") then
+	 local ent_name = ent.name
+	 if game.get_player(pindex).mine_entity(ent,false) and game.is_valid_sound_path("entity-mined/" .. ent_name) then
+	    game.get_player(pindex).play_sound{path = "entity-mined/" .. ent_name}
+		return true
+	 else
+      return false
+	 end
+   end
+end
+
+--Mines all trees and rocks and ground items in a selected circular area. Useful when placing structures. Forces mining. laterdo add deleting stumps maybe but they do fade away eventually 
+function fa_building_tools.clear_obstacles_in_circle(position, radius, pindex)
+   local surf = game.get_player(pindex).surface
+   local comment = ""
+   local trees_cleared = 0
+   local rocks_cleared = 0
+   local remnants_cleared = 0
+   local ground_items_cleared = 0
+   players[pindex].allow_reading_flying_text = false
+
+   --Find and mine trees
+   local trees = surf.find_entities_filtered{position = position, radius = radius, type = "tree"}
+   for i,tree_ent in ipairs(trees) do
+      rendering.draw_circle{color = {1, 0, 0},radius = 1,width = 1,target = tree_ent.position,surface = tree_ent.surface,time_to_live = 60}
+      game.get_player(pindex).mine_entity(tree_ent,true)
+	  trees_cleared = trees_cleared + 1
+   end
+
+   --Find and mine rocks. Note that they are resource entities with specific names
+   local resources = surf.find_entities_filtered{position = position, radius = radius, name = {"rock-big","rock-huge","sand-rock-big"}}
+   for i,resource_ent in ipairs(resources) do
+      if resource_ent ~= nil and resource_ent.valid then
+         rendering.draw_circle{color = {1, 0, 0},radius = 2,width = 2,target = resource_ent.position,surface = resource_ent.surface,time_to_live = 60}
+         game.get_player(pindex).mine_entity(resource_ent,true)
+         rocks_cleared = rocks_cleared + 1
+      end
+   end
+
+   --Find and mine corpse entities such as building remnants
+   local remnant_ents = surf.find_entities_filtered{position = position, radius = radius, name = ENT_NAMES_CLEARED_AS_OBSTACLES}
+   for i,remnant_ent in ipairs(remnant_ents) do
+      if remnant_ent ~= nil and remnant_ent.valid then
+         rendering.draw_circle{color = {1, 0, 0},radius = 2,width = 2,target = remnant_ent.position,surface = remnant_ent.surface,time_to_live = 60}
+         remnant_ent.destroy{}
+         remnants_cleared = remnants_cleared + 1
+      end
+   end
+   --game.get_player(pindex).print("remnants cleared: " .. remnants_cleared)--debug
+
+   --Find and mine items on the ground
+   local ground_items = surf.find_entities_filtered{position = position, radius = 5, name = "item-on-ground"}
+   for i,ground_item in ipairs(ground_items) do
+      rendering.draw_circle{color = {1, 0, 0},radius = 0.25,width = 2,target = ground_item.position,surface = surf,time_to_live = 60}
+      game.get_player(pindex).mine_entity(ground_item,true)
+      ground_items_cleared = ground_items_cleared + 1
+   end
+
+   --Report clear and pickup counts
+   if trees_cleared + rocks_cleared + ground_items_cleared + remnants_cleared > 0 then
+      comment = "cleared " .. trees_cleared .. " trees and " .. rocks_cleared .. " rocks and " .. remnants_cleared .. " remnants and " .. ground_items_cleared .. " ground items "
+   end
+   rendering.draw_circle{color = {0, 1, 0},radius = radius,width = radius,target = position,surface = surf,time_to_live = 60}
+   return (trees_cleared + rocks_cleared + remnants_cleared + ground_items_cleared), comment
+end
+
+--Same as function above for a circle, but the area is defined differently
+function fa_building_tools.clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
+   local surf = game.get_player(pindex).surface
+   local comment = ""
+   local trees_cleared = 0
+   local rocks_cleared = 0
+   local remnants_cleared = 0
+   local ground_items_cleared = 0
+   players[pindex].allow_reading_flying_text = false
+
+   --Check for valid positions
+   if left_top == nil or right_bottom == nil then
+      return
+   end
+
+   --Find and mine trees
+   local trees = surf.find_entities_filtered{area = {left_top, right_bottom}, type = "tree"}
+   for i,tree_ent in ipairs(trees) do
+      rendering.draw_circle{color = {1, 0, 0},radius = 1,width = 1,target = tree_ent.position,surface = tree_ent.surface,time_to_live = 60}
+      game.get_player(pindex).mine_entity(tree_ent,true)
+	  trees_cleared = trees_cleared + 1
+   end
+
+   --Find and mine rocks. Note that they are resource entities with specific names
+   local resources = surf.find_entities_filtered{area = {left_top, right_bottom}, name = {"rock-big","rock-huge","sand-rock-big"}}
+   for i,resource_ent in ipairs(resources) do
+      if resource_ent ~= nil and resource_ent.valid then
+         rendering.draw_circle{color = {1, 0, 0},radius = 2,width = 2,target = resource_ent.position,surface = resource_ent.surface,time_to_live = 60}
+         game.get_player(pindex).mine_entity(resource_ent,true)
+         rocks_cleared = rocks_cleared + 1
+      end
+   end
+
+   --Find and mine corpse entities such as building remnants
+   local remnant_ents = surf.find_entities_filtered{area = {left_top, right_bottom}, name = ENT_NAMES_CLEARED_AS_OBSTACLES}
+   for i,remnant_ent in ipairs(remnant_ents) do
+      if remnant_ent ~= nil and remnant_ent.valid then
+         rendering.draw_circle{color = {1, 0, 0},radius = 2,width = 2,target = remnant_ent.position,surface = remnant_ent.surface,time_to_live = 60}
+         remnant_ent.destroy{}
+         remnants_cleared = remnants_cleared + 1
+      end
+   end
+   --game.get_player(pindex).print("remnants cleared: " .. remnants_cleared)--debug
+
+   --Find and mine items on the ground
+   local ground_items = surf.find_entities_filtered{area = {left_top, right_bottom}, name = "item-on-ground"}
+   for i,ground_item in ipairs(ground_items) do
+      rendering.draw_circle{color = {1, 0, 0},radius = 0.25,width = 2,target = ground_item.position,surface = surf,time_to_live = 60}
+      game.get_player(pindex).mine_entity(ground_item,true)
+      ground_items_cleared = ground_items_cleared + 1
+   end
+
+   if trees_cleared + rocks_cleared + ground_items_cleared + remnants_cleared > 0 then
+      comment = "cleared " .. trees_cleared .. " trees and " .. rocks_cleared .. " rocks and " .. remnants_cleared .. " remnants and " .. ground_items_cleared .. " ground items "
+   end
+   if not players[pindex].hide_cursor then
+      --rendering.draw_rectangle{color = {0, 1, 0, 0.5}, left_top = left_top, right_bottom = right_bottom, width = 4, surface = surf, time_to_live = 60, draw_on_ground = true}
+   end
+   return (trees_cleared + rocks_cleared + remnants_cleared + ground_items_cleared), comment
+end
+
+return fa_building_tools

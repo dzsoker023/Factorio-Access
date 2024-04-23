@@ -1,19 +1,26 @@
---Here: Functions relating to rails, trains, signals, other vehicles
+--Here: Functions relating to rails, trains, rail signals
 --Does not include event handlers
 ---@diagnostic disable: assign-type-mismatch
 
 local util = require('util')
 local fa_utils = require('fa-utils')
+local fa_building_tools = require("mining-and-building-tools")
+local fa_driving = require("driving")
 local dirs = defines.direction
 
+local fa_rail_builder = {}
+local fa_rails = {}
+local fa_trains = {}
+local fa_train_stops = {}
+
 --Key information about rail units. 
-function rail_ent_info(pindex, ent, description)  
+function fa_rails.rail_ent_info(pindex, ent, description)  
    local result = ""
    local is_end_rail = false
    local is_horz_or_vert = false
    
    --Check if end rail: The rail is at the end of its segment and is also not connected to another rail
-   is_end_rail, end_rail_dir, build_comment = check_end_rail(ent,pindex)
+   is_end_rail, end_rail_dir, build_comment = fa_rails.check_end_rail(ent,pindex)
    if is_end_rail then
       --Further check if it is a single rail
       if build_comment == "single rail" then
@@ -105,11 +112,11 @@ function rail_ent_info(pindex, ent, description)
    end
    
    --Check if intersection
-   if is_intersection_rail(ent, pindex) then
+   if fa_rails.is_intersection_rail(ent, pindex) then
       result = result .. ", intersection " 
    end
    --Check if at junction: The rail has at least 3 connections
-   local connection_count = count_rail_connections(ent)
+   local connection_count = fa_rails.count_rail_connections(ent)
    if connection_count > 2 then
       result = result .. ", fork "
    end
@@ -235,9 +242,8 @@ function rail_ent_info(pindex, ent, description)
    return result
 end
 
-
 --Determines how many connections a rail has
-function count_rail_connections(ent)
+function fa_rails.count_rail_connections(ent)
    local front_left_rail,r_dir_back,c_dir_back = ent.get_connected_rail{ rail_direction = defines.rail_direction.front,rail_connection_direction = defines.rail_connection_direction.left}
    local front_right_rail,r_dir_back,c_dir_back = ent.get_connected_rail{rail_direction = defines.rail_direction.front,rail_connection_direction = defines.rail_connection_direction.right}
    local back_left_rail,r_dir_back,c_dir_back = ent.get_connected_rail{ rail_direction = defines.rail_direction.back,rail_connection_direction = defines.rail_connection_direction.left}
@@ -268,7 +274,7 @@ function count_rail_connections(ent)
 end
 
 --Determines how many connections a rail has
-function list_rail_fork_directions(ent)
+function fa_rails.list_rail_fork_directions(ent)
    local result = ""
    local front_left_rail,r_dir_back,c_dir_back = ent.get_connected_rail{ rail_direction = defines.rail_direction.front,rail_connection_direction = defines.rail_connection_direction.left}
    local front_right_rail,r_dir_back,c_dir_back = ent.get_connected_rail{rail_direction = defines.rail_direction.front,rail_connection_direction = defines.rail_connection_direction.right}
@@ -298,9 +304,8 @@ function list_rail_fork_directions(ent)
    return result
 end
 
-
 --Determines if an entity is an end rail. Returns boolean is_end_rail, integer end rail direction, and string comment for errors.
-function check_end_rail(check_rail, pindex)
+function fa_rails.check_end_rail(check_rail, pindex)
    local is_end_rail = false
    local dir = -1
    local comment = "Check function error."
@@ -325,7 +330,7 @@ function check_end_rail(check_rail, pindex)
    --Check if end rail: The rail is at the end of its segment and has only 1 connection.
    end_rail_1, end_dir_1 = check_rail.get_rail_segment_end(defines.rail_direction.front)
    end_rail_2, end_dir_2 = check_rail.get_rail_segment_end(defines.rail_direction.back)
-   local connection_count = count_rail_connections(check_rail)
+   local connection_count = fa_rails.count_rail_connections(check_rail)
    if (check_rail.unit_number == end_rail_1.unit_number or check_rail.unit_number == end_rail_2.unit_number) and connection_count < 2 then
       --End rail confirmed, get direction
       is_end_rail = true
@@ -454,46 +459,8 @@ function check_end_rail(check_rail, pindex)
    return is_end_rail, dir, comment
 end
 
-
---Report more info about a vehicle. For trains, this would include the name, ID, and train state.
-function vehicle_info(pindex)
-   local result = ""
-   if not game.get_player(pindex).driving then
-      return "Not in a vehicle."
-   end
-   
-   local vehicle = game.get_player(pindex).vehicle   
-   local train = game.get_player(pindex).vehicle.train
-   if train == nil then
-      --This is a type of car or tank.
-      result = "Driving " .. vehicle.name .. ", " .. fuel_inventory_info(vehicle)
-      --laterdo**: car info: health, ammo contents, trunk contents
-      return result
-   else
-      --This is a type of locomotive or wagon.
-      
-      --Add the train name
-      result = "On board " .. vehicle.name .. " of train " .. get_train_name(train) .. ", "
-      
-      --Add the train state
-      result = result .. get_train_state_info(train) .. ", "
-      
-      --Declare destination if any. 
-      if train.path_end_stop ~= nil then
-         result = result .. " heading to station " .. train.path_end_stop.backer_name .. ", "
-      --   result = result .. " traveled a distance of " .. train.path.travelled_distance .. " out of " train.path.total_distance " distance, "
-      end
-      
-      --Note that more info and options are found in the train menu
-      if vehicle.name == "locomotive" then
-         result = result .. " Press LEFT BRACKET to open the train menu. "
-      end
-      return result
-   end
-end
-
 --Look up and translate the train state. -laterdo better state explanations**
-function get_train_state_info(train)
+function fa_trains.get_train_state_info(train)
    local train_state_id = train.state
    local train_state_text = ""
    local state_lookup = fa_utils.into_lookup(defines.train_state)
@@ -515,7 +482,7 @@ function get_train_state_info(train)
 end
 
 --Look up and translate the signal state.
-function get_signal_state_info(signal)
+function fa_rails.get_signal_state_info(signal)
    local state_id = 0
    local state_lookup = nil
    local state_name = ""
@@ -536,7 +503,7 @@ function get_signal_state_info(signal)
 end
 
 --Gets a train's name. The idea is that every locomotive on a train has the same backer name and this is the train's name. If there are multiple names, a warning returned.
-function get_train_name(train)
+function fa_trains.get_train_name(train)
    local locos = train.locomotives
    local train_name = ""
    local multiple_names = false
@@ -561,17 +528,16 @@ function get_train_name(train)
    if train_name == "" then
       return "without a name"
    elseif multiple_names then
-      local oldest_name = resolve_train_name(train)
-      set_train_name(train,oldest_name)
+      local oldest_name = fa_trains.resolve_train_name(train)
+      fa_trains.set_train_name(train,oldest_name)
       return oldest_name
    else
       return train_name
    end
 end
 
-
 --Sets a train's name. The idea is that every locomotive on a train has the same backer name and this is the train's name.
-function set_train_name(train,new_name)
+function fa_trains.set_train_name(train,new_name)
    if new_name == nil or new_name == "" then
       return false
    end
@@ -589,7 +555,7 @@ function set_train_name(train,new_name)
 end
 
 --Finds the oldest locomotive and applies its name across the train. Any new loco will be newwer and so the older names will be kept.
-function resolve_train_name(train)
+function fa_trains.resolve_train_name(train)
    local locos = train.locomotives
    local oldest_loco = nil
    
@@ -621,7 +587,7 @@ end
 
 
 --Returns the rail at the end of an input rail's segment. If the input rail is already one end of the segment then it returns the other end. NOT TESTED
-function get_rail_segment_other_end(rail)
+function fa_rails.get_rail_segment_other_end(rail)
    local end_rail_1, end_dir_1 = rail.get_rail_segment_end(defines.rail_direction.front) --Cannot be nil
    local end_rail_2, end_dir_2 = rail.get_rail_segment_end(defines.rail_direction.back) --Cannot be nil
    
@@ -635,9 +601,8 @@ function get_rail_segment_other_end(rail)
    end
 end
 
-
 --For a rail at the end of its segment, returns the neighboring rail segment's end rail. Respects dir in terms of left/right/straight if it is given, else returns the first found option.
-function get_neighbor_rail_segment_end(rail, con_dir_in)
+function fa_rails.get_neighbor_rail_segment_end(rail, con_dir_in)
    local dir = con_dir_in or nil
    local requested_neighbor_rail_1 = nil
    local requested_neighbor_rail_2 = nil
@@ -690,11 +655,10 @@ function get_neighbor_rail_segment_end(rail, con_dir_in)
    end
 end
 
-
 --Reads all rail segment entities around a rail.
 --Result 1: A rail or chain signal creates a new segment and is at the end of one of the two segments.
 --Result 2: A train creates a new segment and is at the end of one of the two segments. It can be reported twice for FW1 and BACK2 or for FW2 and BACK1.
-function read_all_rail_segment_entities(pindex, rail)
+function fa_rails.read_all_rail_segment_entities(pindex, rail)
    local message = ""
    local ent_f1 = rail.get_rail_segment_entity(defines.rail_direction.front, true)
    local ent_f2 = rail.get_rail_segment_entity(defines.rail_direction.front, false)
@@ -706,9 +670,9 @@ function read_all_rail_segment_entities(pindex, rail)
    elseif ent_f1.name == "train-stop" then
       message = message .. "forward 1 is train stop "               .. ent_f1.backer_name .. ", "
    elseif ent_f1.name == "rail-signal" then 
-      message = message .. "forward 1 is rails signal with signal " .. get_signal_state_info(ent_f1) .. ", "
+      message = message .. "forward 1 is rails signal with signal " .. fa_rails.get_signal_state_info(ent_f1) .. ", "
    elseif ent_f1.name == "rail-chain-signal" then 
-      message = message .. "forward 1 is chain signal with signal " .. get_signal_state_info(ent_f1) .. ", "
+      message = message .. "forward 1 is chain signal with signal " .. fa_rails.get_signal_state_info(ent_f1) .. ", "
    else
       message = message .. "forward 1 is else, "                    .. ent_f1.name .. ", "
    end
@@ -718,9 +682,9 @@ function read_all_rail_segment_entities(pindex, rail)
    elseif ent_f2.name == "train-stop" then
       message = message .. "forward 2 is train stop "               .. ent_f2.backer_name .. ", "
    elseif ent_f2.name == "rail-signal" then 
-      message = message .. "forward 2 is rails signal with signal " .. get_signal_state_info(ent_f2) .. ", "
+      message = message .. "forward 2 is rails signal with signal " .. fa_rails.get_signal_state_info(ent_f2) .. ", "
    elseif ent_f2.name == "rail-chain-signal" then 
-      message = message .. "forward 2 is chain signal with signal " .. get_signal_state_info(ent_f2) .. ", "
+      message = message .. "forward 2 is chain signal with signal " .. fa_rails.get_signal_state_info(ent_f2) .. ", "
    else
       message = message .. "forward 2 is else, "                    .. ent_f2.name .. ", "
    end
@@ -730,9 +694,9 @@ function read_all_rail_segment_entities(pindex, rail)
    elseif ent_b1.name == "train-stop" then
       message = message .. "back 1 is train stop "               .. ent_b1.backer_name .. ", "
    elseif ent_b1.name == "rail-signal" then 
-      message = message .. "back 1 is rails signal with signal " .. get_signal_state_info(ent_b1) .. ", "
+      message = message .. "back 1 is rails signal with signal " .. fa_rails.get_signal_state_info(ent_b1) .. ", "
    elseif ent_b1.name == "rail-chain-signal" then 
-      message = message .. "back 1 is chain signal with signal " .. get_signal_state_info(ent_b1) .. ", "
+      message = message .. "back 1 is chain signal with signal " .. fa_rails.get_signal_state_info(ent_b1) .. ", "
    else
       message = message .. "back 1 is else, "                    .. ent_b1.name .. ", "
    end
@@ -742,9 +706,9 @@ function read_all_rail_segment_entities(pindex, rail)
    elseif ent_b2.name == "train-stop" then
       message = message .. "back 2 is train stop "               .. ent_b2.backer_name .. ", "
    elseif ent_b2.name == "rail-signal" then 
-      message = message .. "back 2 is rails signal with signal " .. get_signal_state_info(ent_b2) .. ", "
+      message = message .. "back 2 is rails signal with signal " .. fa_rails.get_signal_state_info(ent_b2) .. ", "
    elseif ent_b2.name == "rail-chain-signal" then 
-      message = message .. "back 2 is chain signal with signal " .. get_signal_state_info(ent_b2) .. ", "
+      message = message .. "back 2 is chain signal with signal " .. fa_rails.get_signal_state_info(ent_b2) .. ", "
    else
       message = message .. "back 2 is else, "                    .. ent_b2.name .. ", "
    end
@@ -753,9 +717,8 @@ function read_all_rail_segment_entities(pindex, rail)
    return
 end
 
-
 --Gets opposite rail direction
-function get_opposite_rail_direction(dir)
+function fa_rails.get_opposite_rail_direction(dir)
    if dir == defines.rail_direction.front then
       return defines.rail_direction.back
    else
@@ -764,19 +727,21 @@ function get_opposite_rail_direction(dir)
 end
 
 --Checks if the train is all in one segment, which means the front and back rails are in the same segment.
-function train_is_all_in_one_segment(train)
+function fa_trains.train_is_all_in_one_segment(train)
 	return train.front_rail.is_rail_in_same_rail_segment_as(train.back_rail)
 end
 
 
---[[Returns the leading rail and the direction on it that is "ahead" and the leading stock. This is the direction that the currently boarded locomotive or wagon is facing.
---Checks whether the current locomotive is one of the front or back locomotives and gives leading rail and leading stock accordingly.
---If this is not a locomotive, takes the front as the leading side.
---Checks distances with respect to the front/back stocks of the train
---Does not require any specific position or rotation for any of the stock!
---For the leading rail, the connected rail that is farthest from the leading stock is in the "ahead" direction. 
+--[[ 
+ Returns the leading rail and the direction on it that is "ahead" and the leading stock. This is the direction that the currently boarded locomotive or wagon is facing.
+ * Checks whether the current locomotive is one of the front or back locomotives and gives leading rail and leading stock accordingly.
+ * If this is not a locomotive, takes the front as the leading side.
+ * Checks distances with respect to the front/back stocks of the train
+ * Does not require any specific position or rotation for any of the stock.
+ * For the leading rail, the connected rail that is farthest from the leading stock is in the "ahead" direction.
+
 --]]
-function get_leading_rail_and_dir_of_train_by_boarded_vehicle(pindex, train)
+function fa_trains.get_relative_leading_rail_and_train_dir(pindex, train)
    local leading_rail = nil
    local trailing_rail = nil
    local leading_stock = nil
@@ -876,7 +841,7 @@ end
 
 --Return what is ahead at the end of this rail's segment in this given direction.
 --Return the entity, a label, an extra value sometimes, and whether the entity faces the forward direction
-function identify_rail_segment_end_object(rail, dir_ahead, accept_only_forward, prefer_back)
+function fa_rails.identify_rail_segment_end_object(rail, dir_ahead, accept_only_forward, prefer_back)
    local result_entity = nil
    local result_entity_label = ""
    local result_extra = nil
@@ -892,7 +857,7 @@ function identify_rail_segment_end_object(rail, dir_ahead, accept_only_forward, 
    --Correction: Flip the correct direction ahead for mismatching diagonal rails
    if rail.name == "straight-rail" and (rail.direction == dirs.southwest or rail.direction == dirs.northwest) 
       or rail.name == "curved-rail" and (rail.direction == dirs.north or rail.direction == dirs.northeast or rail.direction == dirs.east or rail.direction == dirs.southeast) then
-      dir_ahead = get_opposite_rail_direction(dir_ahead)
+      dir_ahead = fa_rails.get_opposite_rail_direction(dir_ahead)
    end
    
    local segment_last_rail = rail.get_rail_segment_end(dir_ahead)
@@ -900,8 +865,8 @@ function identify_rail_segment_end_object(rail, dir_ahead, accept_only_forward, 
    local entity_ahead_forward = rail.get_rail_segment_entity(dir_ahead,false)
    local entity_ahead_reverse = rail.get_rail_segment_entity(dir_ahead,true)
    
-   local segment_last_is_end_rail, end_rail_dir, comment = check_end_rail(segment_last_rail, pindex)
-   local segment_last_neighbor_count = count_rail_connections(segment_last_rail)
+   local segment_last_is_end_rail, end_rail_dir, comment = fa_rails.check_end_rail(segment_last_rail, pindex)
+   local segment_last_neighbor_count = fa_rails.count_rail_connections(segment_last_rail)
    
    if entity_ahead_forward ~= nil then
       entity_ahead = entity_ahead_forward
@@ -932,22 +897,22 @@ function identify_rail_segment_end_object(rail, dir_ahead, accept_only_forward, 
          return result_entity, result_entity_label, result_extra, result_is_forward
       else
          --The neighbor of the segment end rail is either a fork or an end rail or has an entity instead
-		 neighbor_rail, neighbor_r_dir, neighbor_c_dir = get_neighbor_rail_segment_end(segment_last_rail, nil)
+		 neighbor_rail, neighbor_r_dir, neighbor_c_dir = fa_rails.get_neighbor_rail_segment_end(segment_last_rail, nil)
 		 if neighbor_rail == nil then
 		    --This must be a closed loop?
 			result_entity = nil
             result_entity_label = "loop" 
             result_extra = nil
 			return result_entity, result_entity_label, result_extra, result_is_forward
-		 elseif count_rail_connections(neighbor_rail) > 2 then
+		 elseif fa_rails.count_rail_connections(neighbor_rail) > 2 then
 		    --The neighbor is a forking rail
 			result_entity = neighbor_rail
             result_entity_label = "fork merge" 
             result_extra = nil
 			return result_entity, result_entity_label, result_extra, result_is_forward
-		 elseif count_rail_connections(neighbor_rail) == 1 then
+		 elseif fa_rails.count_rail_connections(neighbor_rail) == 1 then
 		    --The neighbor is an end rail
-			local neighbor_is_end_rail, end_rail_dir, comment = check_end_rail(neighbor_rail, pindex)
+			local neighbor_is_end_rail, end_rail_dir, comment = fa_rails.check_end_rail(neighbor_rail, pindex)
 			result_entity = neighbor_rail
             result_entity_label = "neighbor end" 
             result_extra = end_rail_dir
@@ -965,12 +930,12 @@ function identify_rail_segment_end_object(rail, dir_ahead, accept_only_forward, 
       if entity_ahead.name == "rail-signal" then
          result_entity = entity_ahead
          result_entity_label = "rail signal"
-         result_extra = get_signal_state_info(entity_ahead)
+         result_extra = fa_rails.get_signal_state_info(entity_ahead)
          return result_entity, result_entity_label, result_extra, result_is_forward
       elseif entity_ahead.name == "rail-chain-signal" then
          result_entity = entity_ahead
          result_entity_label = "chain signal"
-         result_extra = get_signal_state_info(entity_ahead)
+         result_extra = fa_rails.get_signal_state_info(entity_ahead)
          return result_entity, result_entity_label, result_extra, result_is_forward
       elseif entity_ahead.name == "train-stop" then
          result_entity = entity_ahead
@@ -990,8 +955,8 @@ end
 
 --Reads out the nearest railway object ahead with relevant details. Skips to the next segment if needed. 
 --The output could be an end rail, junction rail, rail signal, chain signal, or train stop. 
-function get_next_rail_entity_ahead(origin_rail, dir_ahead, only_this_segment)
-   local next_entity, next_entity_label, result_extra, next_is_forward = identify_rail_segment_end_object(origin_rail, dir_ahead, false, false)
+function fa_rails.get_next_rail_entity_ahead(origin_rail, dir_ahead, only_this_segment)
+   local next_entity, next_entity_label, result_extra, next_is_forward = fa_rails.identify_rail_segment_end_object(origin_rail, dir_ahead, false, false)
    local iteration_count = 1
    local segment_end_ahead, dir_se = origin_rail.get_rail_segment_end(dir_ahead)
    local prev_rail = segment_end_ahead
@@ -1001,19 +966,19 @@ function get_next_rail_entity_ahead(origin_rail, dir_ahead, only_this_segment)
    
    --First correction for the train stop exception
    if next_entity_label == "train stop" and next_is_forward == false then
-      next_entity, next_entity_label, result_extra, next_is_forward = identify_rail_segment_end_object(current_rail, neighbor_r_dir, true, false)
+      next_entity, next_entity_label, result_extra, next_is_forward = fa_rails.identify_rail_segment_end_object(current_rail, neighbor_r_dir, true, false)
    end
    
    --Skip all "other rail" cases
    while not only_this_segment and next_entity_label == "other rail" and iteration_count < 100 do 
       if iteration_count % 2 == 1 then
          --Switch to neighboring segment
-         current_rail, neighbor_r_dir, neighbor_c_dir = get_neighbor_rail_segment_end(prev_rail, nil)
+         current_rail, neighbor_r_dir, neighbor_c_dir = fa_rails.get_neighbor_rail_segment_end(prev_rail, nil)
          prev_rail = current_rail
-         next_entity, next_entity_label, result_extra, next_is_forward = identify_rail_segment_end_object(current_rail, neighbor_r_dir, false, true)
+         next_entity, next_entity_label, result_extra, next_is_forward = fa_rails.identify_rail_segment_end_object(current_rail, neighbor_r_dir, false, true)
          --Correction for the train stop exception
          if next_entity_label == "train stop" and next_is_forward == false then
-            next_entity, next_entity_label, result_extra, next_is_forward = identify_rail_segment_end_object(current_rail, neighbor_r_dir, true, true)
+            next_entity, next_entity_label, result_extra, next_is_forward = fa_rails.identify_rail_segment_end_object(current_rail, neighbor_r_dir, true, true)
          end
          --Correction for flipped direction
          if next_is_forward ~= nil then
@@ -1022,11 +987,11 @@ function get_next_rail_entity_ahead(origin_rail, dir_ahead, only_this_segment)
          iteration_count = iteration_count + 1
       else
          --Check other end of the segment. NOTE: Never got more than 2 iterations in tests so far...
-         neighbor_r_dir = get_opposite_rail_direction(neighbor_r_dir)
-         next_entity, next_entity_label, result_extra, next_is_forward = identify_rail_segment_end_object(current_rail, neighbor_r_dir, false, false)
+         neighbor_r_dir = fa_rails.get_opposite_rail_direction(neighbor_r_dir)
+         next_entity, next_entity_label, result_extra, next_is_forward = fa_rails.identify_rail_segment_end_object(current_rail, neighbor_r_dir, false, false)
          --Correction for the train stop exception
          if next_entity_label == "train stop" and next_is_forward == false then
-            next_entity, next_entity_label, result_extra, next_is_forward = identify_rail_segment_end_object(current_rail, neighbor_r_dir, true, false)
+            next_entity, next_entity_label, result_extra, next_is_forward = fa_rails.identify_rail_segment_end_object(current_rail, neighbor_r_dir, true, false)
          end
          iteration_count = iteration_count + 1
       end
@@ -1037,18 +1002,18 @@ end
 
 
 --Takes all the output from the get_next_rail_entity_ahead and adds extra info before reading them out. Does NOT detect trains.
-function train_read_next_rail_entity_ahead(pindex, invert, mute_in)
+function fa_trains.train_read_next_rail_entity_ahead(pindex, invert, mute_in)
    local message = "Ahead, "
    local honk_score = 0
    local train = game.get_player(pindex).vehicle.train
-   local leading_rail, dir_ahead, leading_stock = get_leading_rail_and_dir_of_train_by_boarded_vehicle(pindex,train)
+   local leading_rail, dir_ahead, leading_stock = fa_trains.get_relative_leading_rail_and_train_dir(pindex,train)
    if invert then
-      dir_ahead = get_opposite_rail_direction(dir_ahead)
+      dir_ahead = fa_rails.get_opposite_rail_direction(dir_ahead)
 	  message = "Behind, "
    end
    --Correction for trains: Flip the correct direction ahead for mismatching diagonal rails
    if leading_rail.name == "straight-rail" and (leading_rail.direction == dirs.southwest or leading_rail.direction == dirs.northwest) then
-      dir_ahead = get_opposite_rail_direction(dir_ahead)
+      dir_ahead = fa_rails.get_opposite_rail_direction(dir_ahead)
    end
    --Correction for trains: Curved rails report different directions based on where the train sits and so are unreliable.
    if leading_rail.name == "curved-rail" then
@@ -1058,7 +1023,7 @@ function train_read_next_rail_entity_ahead(pindex, invert, mute_in)
       printout("Curved rail analysis error, check from another rail.",pindex)
       return -1
    end
-   local next_entity, next_entity_label, result_extra, next_is_forward, iteration_count = get_next_rail_entity_ahead(leading_rail, dir_ahead, false)
+   local next_entity, next_entity_label, result_extra, next_is_forward, iteration_count = fa_rails.get_next_rail_entity_ahead(leading_rail, dir_ahead, false)
    if next_entity == nil then
       if mute_in == true then
          return -1
@@ -1091,7 +1056,7 @@ function train_read_next_rail_entity_ahead(pindex, invert, mute_in)
    elseif next_entity_label == "fork split" then
       local entering_segment_rail = result_extra  
       message = message .. "rail fork splitting "
-      message = message .. list_rail_fork_directions(next_entity)
+      message = message .. fa_rails.list_rail_fork_directions(next_entity)
    
    elseif next_entity_label == "fork merge" then
       local entering_segment_rail = result_extra  
@@ -1102,14 +1067,14 @@ function train_read_next_rail_entity_ahead(pindex, invert, mute_in)
       message = message .. "end rail "
       
    elseif next_entity_label == "rail signal" then
-      local signal_state = get_signal_state_info(next_entity)
+      local signal_state = fa_rails.get_signal_state_info(next_entity)
       message = message .. "rail signal with state " .. signal_state .. " "
       if signal_state == "closed" then
          honk_score = honk_score + 1
       end
       
    elseif next_entity_label == "chain signal" then
-      local signal_state = get_signal_state_info(next_entity)
+      local signal_state = fa_rails.get_signal_state_info(next_entity)
       message = message .. "chain signal with state " .. signal_state .. " "
       if signal_state == "closed" then
          honk_score = honk_score + 1
@@ -1147,7 +1112,7 @@ function train_read_next_rail_entity_ahead(pindex, invert, mute_in)
    end
    --If a train stop is close behind, read that instead
    if leading_stock.name == "locomotive" and next_entity_label ~= "train stop" then
-      local heading = get_heading(leading_stock)
+      local heading = fa_driving.get_heading(leading_stock)
       local pos = leading_stock.position
       local scan_area = nil
       local passed_stop = nil
@@ -1169,7 +1134,7 @@ function train_read_next_rail_entity_ahead(pindex, invert, mute_in)
       for i,passed_stop in ipairs(ents) do
          distance = util.distance(leading_stock.position, passed_stop.position) - 0 
          --message = message .. " found stop " 
-         if distance < 12.5 and fa_utils.direction_lookup(passed_stop.direction) == get_heading(leading_stock) then
+         if distance < 12.5 and fa_utils.direction_lookup(passed_stop.direction) == fa_driving.get_heading(leading_stock) then
             if not first_reset then
                message = ""
                first_reset = true
@@ -1194,7 +1159,7 @@ function train_read_next_rail_entity_ahead(pindex, invert, mute_in)
 end
 
 --Takes all the output from the get_next_rail_entity_ahead and adds extra info before reading them out. Does NOT detect trains.
-function rail_read_next_rail_entity_ahead(pindex, rail, is_forward)
+function fa_rails.rail_read_next_rail_entity_ahead(pindex, rail, is_forward)
    local message = "Up this rail, "
    local origin_rail = rail
    local dir_ahead = defines.rail_direction.front
@@ -1202,7 +1167,7 @@ function rail_read_next_rail_entity_ahead(pindex, rail, is_forward)
       dir_ahead = defines.rail_direction.back
 	  message = "Down this rail, "
    end
-   local next_entity, next_entity_label, result_extra, next_is_forward, iteration_count = get_next_rail_entity_ahead(origin_rail, dir_ahead, false)
+   local next_entity, next_entity_label, result_extra, next_is_forward, iteration_count = fa_rails.get_next_rail_entity_ahead(origin_rail, dir_ahead, false)
    if next_entity == nil then
       printout("Analysis error. This rail might be looping.",pindex)
       return
@@ -1228,7 +1193,7 @@ function rail_read_next_rail_entity_ahead(pindex, rail, is_forward)
    elseif next_entity_label == "fork split" then
       local entering_segment_rail = result_extra  
       message = message .. "rail fork splitting "
-      message = message .. list_rail_fork_directions(next_entity)
+      message = message .. fa_rails.list_rail_fork_directions(next_entity)
    
    elseif next_entity_label == "fork merge" then
       local entering_segment_rail = result_extra  
@@ -1239,10 +1204,10 @@ function rail_read_next_rail_entity_ahead(pindex, rail, is_forward)
       message = message .. "end rail "
 	  
    elseif next_entity_label == "rail signal" then
-      message = message .. "rail signal with state " .. get_signal_state_info(next_entity) .. " "
+      message = message .. "rail signal with state " .. fa_rails.get_signal_state_info(next_entity) .. " "
       
    elseif next_entity_label == "chain signal" then
-      message = message .. "chain signal with state " .. get_signal_state_info(next_entity) .. " "
+      message = message .. "chain signal with state " .. fa_rails.get_signal_state_info(next_entity) .. " "
       
    elseif next_entity_label == "train stop" then
       local stop_name = next_entity.backer_name
@@ -1279,16 +1244,13 @@ function rail_read_next_rail_entity_ahead(pindex, rail, is_forward)
    rendering.draw_circle{color = {0, 1, 0},radius = 1,width = 10,target = next_entity,surface = next_entity.surface,time_to_live = 100}
 end
 
-
- 
---laterdo here: Rail analyzer menu where you will use arrow keys to go forward/back and left/right along a rail.
-function rail_analyzer_menu(pindex, origin_rail,is_called_from_train)
+--WIP. laterdo here: Rail analyzer menu where you will use arrow keys to go forward/back and left/right along a rail.
+function fa_rails.run_rail_analyzer_menu(pindex, origin_rail,is_called_from_train)
    return
 end
 
-
 --Builds a 45 degree rail turn to the right from a horizontal or vertical end rail that is the anchor rail. 
-function build_rail_turn_right_45_degrees(anchor_rail, pindex)
+function fa_rail_builder.build_rail_turn_right_45_degrees(anchor_rail, pindex)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
@@ -1317,7 +1279,7 @@ function build_rail_turn_right_45_degrees(anchor_rail, pindex)
    end
    
    --2. Secondly, verify the end rail and find its direction
-   is_end_rail, dir, build_comment = check_end_rail(anchor_rail,pindex)
+   is_end_rail, dir, build_comment = fa_rails.check_end_rail(anchor_rail,pindex)
    if not is_end_rail then
       game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout(build_comment, pindex)
@@ -1336,7 +1298,7 @@ function build_rail_turn_right_45_degrees(anchor_rail, pindex)
    -- elseif dir == dirs.west or dir == dirs.northwest then
       -- build_area = {{pos.x+9, pos.y+9},{pos.x-16,pos.y-16}}
    -- end 
-   temp1, build_comment = clear_obstacles_in_circle(pos,12, pindex)
+   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(pos,12, pindex)
    
    --4. Check if every object can be placed
    if dir == dirs.north then 
@@ -1465,7 +1427,7 @@ end
 
 
 --Builds a 90 degree rail turn to the right from a horizontal or vertical end rail that is the anchor rail. 
-function build_rail_turn_right_90_degrees(anchor_rail, pindex)
+function fa_rail_builder.build_rail_turn_right_90_degrees(anchor_rail, pindex)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
@@ -1493,7 +1455,7 @@ function build_rail_turn_right_90_degrees(anchor_rail, pindex)
    end
    
    --2. Secondly, verify the end rail and find its direction
-   is_end_rail, dir, build_comment = check_end_rail(anchor_rail,pindex)
+   is_end_rail, dir, build_comment = fa_rails.check_end_rail(anchor_rail,pindex)
    if not is_end_rail then
       game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout(build_comment, pindex)
@@ -1518,7 +1480,7 @@ function build_rail_turn_right_90_degrees(anchor_rail, pindex)
    -- elseif dir == dirs.west then
       -- build_area = {{pos.x+2, pos.y+2},{pos.x-16,pos.y-16}}
    -- end 
-   temp1, build_comment = clear_obstacles_in_circle(pos,18, pindex)
+   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(pos,18, pindex)
    
    --4. Check if every object can be placed
    if dir == dirs.north then 
@@ -1587,7 +1549,7 @@ end
 
 
 --Builds a 45 degree rail turn to the left from a horizontal or vertical end rail that is the anchor rail. 
-function build_rail_turn_left_45_degrees(anchor_rail, pindex)
+function fa_rail_builder.build_rail_turn_left_45_degrees(anchor_rail, pindex)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
@@ -1616,7 +1578,7 @@ function build_rail_turn_left_45_degrees(anchor_rail, pindex)
    end
    
    --2. Secondly, verify the end rail and find its direction
-   is_end_rail, dir, build_comment = check_end_rail(anchor_rail,pindex)
+   is_end_rail, dir, build_comment = fa_rails.check_end_rail(anchor_rail,pindex)
    if not is_end_rail then
       game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout(build_comment, pindex)
@@ -1635,7 +1597,7 @@ function build_rail_turn_left_45_degrees(anchor_rail, pindex)
    -- elseif dir == dirs.west or dir == dirs.northwest then
       -- build_area = {{pos.x+9, pos.y-9},{pos.x-16,pos.y+16}}
    -- end 
-   temp1, build_comment = clear_obstacles_in_circle(pos,12, pindex)
+   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(pos,12, pindex)
    
    --4. Check if every object can be placed
    if dir == dirs.north then 
@@ -1764,7 +1726,7 @@ end
 
 
 --Builds a 90 degree rail turn to the left from a horizontal or vertical end rail that is the anchor rail. 
-function build_rail_turn_left_90_degrees(anchor_rail, pindex)
+function fa_rail_builder.build_rail_turn_left_90_degrees(anchor_rail, pindex)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
@@ -1792,7 +1754,7 @@ function build_rail_turn_left_90_degrees(anchor_rail, pindex)
    end
    
    --2. Secondly, verify the end rail and find its direction
-   is_end_rail, dir, build_comment = check_end_rail(anchor_rail,pindex)
+   is_end_rail, dir, build_comment = fa_rails.check_end_rail(anchor_rail,pindex)
    if not is_end_rail then
       game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout(build_comment, pindex)
@@ -1817,7 +1779,7 @@ function build_rail_turn_left_90_degrees(anchor_rail, pindex)
    -- elseif dir == dirs.west then
       -- build_area = {{pos.x+2, pos.y+2},{pos.x-16,pos.y+16}}
    -- end 
-   temp1, build_comment = clear_obstacles_in_circle(pos,18, pindex)
+   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(pos,18, pindex)
    
    --4. Check if every object can be placed
    if dir == dirs.north then 
@@ -1885,7 +1847,7 @@ end
 
 
 --Builds a fork at the end rail with exits 45 degrees left, and 45 degrees right, and forward.
-function build_fork_at_end_rail(anchor_rail, pindex, include_forward)
+function fa_rail_builder.build_fork_at_end_rail(anchor_rail, pindex, include_forward)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
@@ -1914,7 +1876,7 @@ function build_fork_at_end_rail(anchor_rail, pindex, include_forward)
    end
    
    --2. Secondly, verify the end rail and find its direction
-   is_end_rail, dir, build_comment = check_end_rail(anchor_rail,pindex)
+   is_end_rail, dir, build_comment = fa_rails.check_end_rail(anchor_rail,pindex)
    if not is_end_rail then
       game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout(build_comment, pindex)
@@ -1933,7 +1895,7 @@ function build_fork_at_end_rail(anchor_rail, pindex, include_forward)
    -- elseif dir == dirs.west or dir == dirs.northwest then
       -- build_area = {{pos.x+9, pos.y-9},{pos.x-16,pos.y+16}}
    -- end 
-   temp1, build_comment = clear_obstacles_in_circle(pos,12, pindex)
+   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(pos,12, pindex)
    
    --4A. Check if every object can be placed (LEFT)
    if dir == dirs.north then 
@@ -2223,7 +2185,7 @@ function build_fork_at_end_rail(anchor_rail, pindex, include_forward)
 end
 
 --Builds a starter for a rail bypass junction with 2 rails
-function build_rail_bypass_junction(anchor_rail, pindex)
+function fa_rail_builder.build_rail_bypass_junction(anchor_rail, pindex)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
@@ -2264,7 +2226,7 @@ function build_rail_bypass_junction(anchor_rail, pindex)
    end
    
    --2. Secondly, verify the end rail and find its direction
-   is_end_rail, dir, build_comment = check_end_rail(anchor_rail,pindex)
+   is_end_rail, dir, build_comment = fa_rails.check_end_rail(anchor_rail,pindex)
    if not is_end_rail then
       game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout(build_comment, pindex)
@@ -2274,7 +2236,7 @@ function build_rail_bypass_junction(anchor_rail, pindex)
    pos = anchor_rail.position
    
    --3. Clear trees and rocks in the build area, can be tuned later...
-   temp1, build_comment = clear_obstacles_in_circle(pos,21,pindex)
+   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(pos,21,pindex)
    
    --4A. Check if every object can be placed (LEFT)
    if dir == dirs.north then 
@@ -2458,7 +2420,7 @@ function build_rail_bypass_junction(anchor_rail, pindex)
 end
 
 --Builds a starter for a rail bypass junction with 3 rails ***todo complete and test
-function build_rail_bypass_junction_triple(anchor_rail, pindex)
+function fa_rail_builder.build_rail_bypass_junction_triple(anchor_rail, pindex)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
@@ -2499,7 +2461,7 @@ function build_rail_bypass_junction_triple(anchor_rail, pindex)
    end
    
    --2. Secondly, verify the end rail and find its direction
-   is_end_rail, dir, build_comment = check_end_rail(anchor_rail,pindex)
+   is_end_rail, dir, build_comment = fa_rails.check_end_rail(anchor_rail,pindex)
    if not is_end_rail then
       game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout(build_comment, pindex)
@@ -2509,7 +2471,7 @@ function build_rail_bypass_junction_triple(anchor_rail, pindex)
    pos = anchor_rail.position
    
    --3. Clear trees and rocks in the build area, can be tuned later...
-   temp1, build_comment = clear_obstacles_in_circle(pos,21,pindex)
+   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(pos,21,pindex)
    
    --4A. Check if every object can be placed (LEFT)
    if dir == dirs.north then 
@@ -2715,7 +2677,7 @@ function build_rail_bypass_junction_triple(anchor_rail, pindex)
 end
 
 --Appends a new straight or diagonal rail to a rail end found near the input position. The cursor needs to be holding rails.
-function append_rail(pos, pindex)
+function fa_rails.append_rail(pos, pindex)
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
    local is_end_rail = false
@@ -2737,7 +2699,7 @@ function append_rail(pos, pindex)
    
    --1 Check the cursor entity. If it is an end rail, use this instead of scanning to extend the rail you want.
    local ent = players[pindex].tile.ents[1]
-   is_end_rail, end_rail_dir, comment = check_end_rail(ent,pindex)
+   is_end_rail, end_rail_dir, comment = fa_rails.check_end_rail(ent,pindex)
    if is_end_rail then
       end_found = ent
       end_rail_1, end_dir_1 = ent.get_rail_segment_end(defines.rail_direction.front)
@@ -2782,7 +2744,7 @@ function append_rail(pos, pindex)
       end
       
       --4 Check if the found segment end is an end rail
-      is_end_rail, end_rail_dir, comment = check_end_rail(end_found,pindex)
+      is_end_rail, end_rail_dir, comment = fa_rails.check_end_rail(end_found,pindex)
       if not is_end_rail then
          game.get_player(pindex).play_sound{path = "utility/cannot_build"}
          --printout(comment, pindex)
@@ -2850,7 +2812,7 @@ function append_rail(pos, pindex)
       
    elseif end_found.name == "curved-rail" then
       --Make sure to use the reported end direction for curved rails
-      is_end_rail, end_rail_dir, comment = check_end_rail(ent,pindex)
+      is_end_rail, end_rail_dir, comment = fa_rails.check_end_rail(ent,pindex)
       if end_rail_dir == dirs.north then
          if rail_api_dir == dirs.south then
             append_rail_pos = {end_rail_pos.x-2, end_rail_pos.y-6}
@@ -2924,7 +2886,7 @@ function append_rail(pos, pindex)
       printout(end_rail_dir .. " and " .. rail_api_dir .. ", rail appending direction error.",pindex)
       return
    end
-   temp1, build_comment = clear_obstacles_in_circle(append_rail_pos,4, pindex)
+   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(append_rail_pos,4, pindex)
    if not surf.can_place_entity{name = "straight-rail", position = append_rail_pos, direction = append_rail_dir} then 
       --Check if you can build from cursor or if you have other rails here already
       -- local other_rails_present = false
@@ -2971,14 +2933,14 @@ function append_rail(pos, pindex)
    game.get_player(pindex).play_sound{path = "entity-build/straight-rail"}
    
    --8. Check if the appended rail is with 4 tiles of a parallel rail. If so, delete it.
-   if created_rail.valid and has_parallel_neighbor(created_rail,pindex) then
+   if created_rail.valid and fa_rails.has_parallel_neighbor(created_rail,pindex) then
       game.get_player(pindex).mine_entity(created_rail,true)
 	  game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout("Cannot place, parallel rail segments should be at least 4 tiles apart.",pindex)
    end
    
    --9. Check if the appended rail has created an intersection. If so, notify the player.
-   if created_rail.valid and is_intersection_rail(created_rail,pindex) then
+   if created_rail.valid and fa_rails.is_intersection_rail(created_rail,pindex) then
       printout("Intersection created.",pindex)
    end
       
@@ -2989,7 +2951,7 @@ end
 --end
 
 --Counts rails within range of a selected rail.
-function count_rails_within_range(rail, range, pindex)
+function fa_rails.count_rails_within_range(rail, range, pindex)
    --1. Scan around the rail for other rails
    local counter = 0
    local pos = rail.position
@@ -3010,7 +2972,7 @@ function count_rails_within_range(rail, range, pindex)
 end
 
 --Checks if the rail is parallel to another neighboring segment.
-function has_parallel_neighbor(rail, pindex)
+function fa_rails.has_parallel_neighbor(rail, pindex)
    --1. Scan around the rail for other rails
    local pos = rail.position
    local dir = rail.direction
@@ -3037,7 +2999,7 @@ function has_parallel_neighbor(rail, pindex)
 end
 
 --Checks if the rail is amid an intersection.
-function is_intersection_rail(rail, pindex)
+function fa_rails.is_intersection_rail(rail, pindex)
    --1. Scan around the rail for other rails
    local pos = rail.position
    local dir = rail.direction
@@ -3056,7 +3018,7 @@ function is_intersection_rail(rail, pindex)
    return false
 end
 
-function find_nearest_intersection(rail, pindex, radius_in)
+function fa_rails.find_nearest_intersection(rail, pindex, radius_in)
    --1. Scan around the rail for other rails
    local radius = radius_in or 1000
    local pos = rail.position
@@ -3066,7 +3028,7 @@ function find_nearest_intersection(rail, pindex, radius_in)
    local min_dist = radius
    for i,other_rail in ipairs(ents) do
       --2. For each rail, is it an intersection rail?
-      if other_rail.valid and is_intersection_rail(other_rail, pindex) then
+      if other_rail.valid and fa_rails.is_intersection_rail(other_rail, pindex) then
          local dist = math.ceil(util.distance(pos, other_rail.position))
 		   --Set as nearest if valid
 		   if dist < min_dist then
@@ -3084,7 +3046,7 @@ function find_nearest_intersection(rail, pindex, radius_in)
 end
 
 --Places a chain signal pair around a rail depending on its direction. May fail if the spots are full.
-function place_chain_signal_pair(rail,pindex)
+function fa_rail_builder.place_chain_signal_pair(rail,pindex)
    local stack = game.get_player(pindex).cursor_stack
    local stack2 = nil
    local build_comment = "no comment"
@@ -3198,7 +3160,7 @@ function place_chain_signal_pair(rail,pindex)
 end
 
 --Places a rail signal pair around a rail depending on its direction. May fail if the spots are full. Copy of chain signal function
-function place_rail_signal_pair(rail,pindex)
+function fa_rail_builder.place_rail_signal_pair(rail,pindex)
    local stack = game.get_player(pindex).cursor_stack
    local stack2 = nil
    local build_comment = "no comment"
@@ -3312,7 +3274,7 @@ function place_rail_signal_pair(rail,pindex)
 end
 
 --Deletes rail signals around a rail.
-function destroy_signals(rail)
+function fa_rail_builder.destroy_signals(rail)
    local chains = rail.surface.find_entities_filtered{position = rail.position, radius = 2, name = "rail-chain-signal"}
    for i,chain in ipairs(chains) do
       chain.destroy()
@@ -3324,7 +3286,7 @@ function destroy_signals(rail)
 end
 
 --Mines for the player the rail signals around a rail.
-function mine_signals(rail,pindex)
+function fa_rails.mine_signals(rail,pindex)
    local chains = rail.surface.find_entities_filtered{position = rail.position, radius = 2, name = "rail-chain-signal"}
    for i,chain in ipairs(chains) do
       game.get_player(pindex).mine_entity(chain,true)
@@ -3335,9 +3297,8 @@ function mine_signals(rail,pindex)
    end
 end
 
-
 --Places a train stop facing the direction of the end rail.
-function build_train_stop(anchor_rail, pindex)
+function fa_rail_builder.build_train_stop(anchor_rail, pindex)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
@@ -3365,7 +3326,7 @@ function build_train_stop(anchor_rail, pindex)
    end
    
    --2. Secondly, find the direction based on end rail or player direction
-   is_end_rail, end_rail_dir, build_comment = check_end_rail(anchor_rail,pindex)
+   is_end_rail, end_rail_dir, build_comment = fa_rails.check_end_rail(anchor_rail,pindex)
    if is_end_rail then
       dir = end_rail_dir
    else
@@ -3394,7 +3355,7 @@ function build_train_stop(anchor_rail, pindex)
    end
    
    --3. Clear trees and rocks in the build area
-   temp1, build_comment = clear_obstacles_in_circle(pos,3, pindex)
+   temp1, build_comment = fa_building_tools.clear_obstacles_in_circle(pos,3, pindex)
    
    --4. Check if every object can be placed
    if dir == dirs.north then 
@@ -3443,67 +3404,8 @@ function build_train_stop(anchor_rail, pindex)
    return
 end
 
---Converts the entity orientation value to a heading
-function get_heading(ent)
-   ---@diagnostic disable: cast-local-type
-   local heading = "unknown"
-   if ent == nil then
-      return "nil error"
-   end
-   local ori = ent.orientation
-   if ori < 0.0625 then
-      heading = fa_utils.direction_lookup(dirs.north)
-   elseif ori < 0.1875 then
-      heading = fa_utils.direction_lookup(dirs.northeast)
-   elseif ori < 0.3125 then
-      heading = fa_utils.direction_lookup(dirs.east)
-   elseif ori < 0.4375 then
-      heading = fa_utils.direction_lookup(dirs.southeast)
-   elseif ori < 0.5625 then
-      heading = fa_utils.direction_lookup(dirs.south)
-   elseif ori < 0.6875 then
-      heading = fa_utils.direction_lookup(dirs.southwest)
-   elseif ori < 0.8125 then
-      heading = fa_utils.direction_lookup(dirs.west)
-   elseif ori < 0.9375 then
-      heading = fa_utils.direction_lookup(dirs.northwest)
-   else
-      heading = fa_utils.direction_lookup(dirs.north)--default
-   end      
-   return heading
-end
-
---Translates a vehicle orientation into a heading direction, with all directions having equal bias.
-function get_heading_value(ent)
-   local heading = nil
-   if ent == nil then
-      return nil
-   end
-   local ori = ent.orientation
-   if ori < 0.0625 then
-      heading = (dirs.north)
-   elseif ori < 0.1875 then
-      heading = (dirs.northeast)
-   elseif ori < 0.3125 then
-      heading = (dirs.east)
-   elseif ori < 0.4375 then
-      heading = (dirs.southeast)
-   elseif ori < 0.5625 then
-      heading = (dirs.south)
-   elseif ori < 0.6875 then
-      heading = (dirs.southwest)
-   elseif ori < 0.8125 then
-      heading = (dirs.west)
-   elseif ori < 0.9375 then
-      heading = (dirs.northwest)
-   else
-      heading = (dirs.north)--default
-   end      
-   return heading
-end
-
 --Loads and opens the rail builder menu
-function rail_builder_open(pindex, rail)
+function fa_rail_builder.open_menu(pindex, rail)
    if players[pindex].vanilla_mode then
       return 
    end
@@ -3516,7 +3418,7 @@ function rail_builder_open(pindex, rail)
    players[pindex].rail_builder.index = 0
    
    --Determine rail type
-   local is_end_rail, end_dir, comment = check_end_rail(rail,pindex)
+   local is_end_rail, end_dir, comment = fa_rails.check_end_rail(rail,pindex)
    local dir = rail.direction
    if is_end_rail then
       if dir == dirs.north or dir == dirs.east or dir == dirs.south or dir == dirs.west then 
@@ -3545,11 +3447,11 @@ function rail_builder_open(pindex, rail)
    
    --Load menu 
    players[pindex].rail_builder.rail = rail
-   rail_builder(pindex, false)
+   fa_rail_builder.run_menu(pindex, false)
 end
 
 --Resets and closes the rail builder menu
-function rail_builder_close(pindex, mute_in)
+function fa_rail_builder.close_menu(pindex, mute_in)
    local mute = mute_in or false
    --Set the player menu tracker to none
    players[pindex].menu = "none"
@@ -3565,7 +3467,7 @@ function rail_builder_close(pindex, mute_in)
 end
 
 --Moves up the rail builder menu
-function rail_builder_up(pindex)
+function fa_rail_builder.menu_up(pindex)
    --Decrement the index
    players[pindex].rail_builder.index = players[pindex].rail_builder.index - 1
 
@@ -3579,11 +3481,11 @@ function rail_builder_up(pindex)
    end
    
    --Load menu 
-   rail_builder(pindex, false)
+   fa_rail_builder.run_menu(pindex, false)
 end
 
 --Moves down the rail buidler menu
-function rail_builder_down(pindex)
+function fa_rail_builder.menu_down(pindex)
    --Increment the index
    players[pindex].rail_builder.index = players[pindex].rail_builder.index + 1
 
@@ -3597,11 +3499,11 @@ function rail_builder_down(pindex)
    end
    
    --Load menu 
-   rail_builder(pindex, false)
+   fa_rail_builder.run_menu(pindex, false)
 end
 
 --Builder menu to build rail structures
-function rail_builder(pindex, clicked_in)
+function fa_rail_builder.run_menu(pindex, clicked_in)
    local clicked = clicked_in
    local comment = ""
    local menu_line = players[pindex].rail_builder.index
@@ -3611,7 +3513,7 @@ function rail_builder(pindex, clicked_in)
    if rail == nil then
       comment = " Rail nil error "
       printout(comment,pindex)
-      rail_builder_close(pindex, false)
+      fa_rail_builder.close_menu(pindex, false)
       return
    end
    
@@ -3629,7 +3531,7 @@ function rail_builder(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            build_rail_turn_left_45_degrees(rail, pindex)
+            fa_rail_builder.build_rail_turn_left_45_degrees(rail, pindex)
          end
       elseif menu_line == 2 then
          if not clicked then
@@ -3637,7 +3539,7 @@ function rail_builder(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            build_rail_turn_right_45_degrees(rail, pindex)
+            fa_rail_builder.build_rail_turn_right_45_degrees(rail, pindex)
          end
       elseif menu_line == 3 then
          if not clicked then
@@ -3645,7 +3547,7 @@ function rail_builder(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            build_rail_turn_left_90_degrees(rail, pindex)
+            fa_rail_builder.build_rail_turn_left_90_degrees(rail, pindex)
          end
       elseif menu_line == 4 then
          if not clicked then
@@ -3653,7 +3555,7 @@ function rail_builder(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            build_rail_turn_right_90_degrees(rail, pindex)
+            fa_rail_builder.build_rail_turn_right_90_degrees(rail, pindex)
          end
       elseif menu_line == 5 then
          if not clicked then
@@ -3661,7 +3563,7 @@ function rail_builder(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            build_train_stop(rail, pindex)
+            fa_rail_builder.build_train_stop(rail, pindex)
          end
       elseif menu_line == 6 then
          if not clicked then
@@ -3669,7 +3571,7 @@ function rail_builder(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            build_fork_at_end_rail(rail, pindex, false)
+            fa_rail_builder.build_fork_at_end_rail(rail, pindex, false)
          end
       elseif menu_line == 7 then
          if not clicked then
@@ -3677,7 +3579,7 @@ function rail_builder(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            build_fork_at_end_rail(rail, pindex, true)
+            fa_rail_builder.build_fork_at_end_rail(rail, pindex, true)
          end
       elseif menu_line == 8 then
          if not clicked then
@@ -3685,7 +3587,7 @@ function rail_builder(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            build_rail_bypass_junction(rail, pindex)
+            fa_rail_builder.build_rail_bypass_junction(rail, pindex)
          end
       end
    elseif rail_type == 2 then
@@ -3696,7 +3598,7 @@ function rail_builder(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            build_rail_turn_left_45_degrees(rail, pindex)
+            fa_rail_builder.build_rail_turn_left_45_degrees(rail, pindex)
          end
       elseif menu_line == 2 then
          if not clicked then
@@ -3704,7 +3606,7 @@ function rail_builder(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            build_rail_turn_right_45_degrees(rail, pindex)
+            fa_rail_builder.build_rail_turn_right_45_degrees(rail, pindex)
          end
       end
    elseif rail_type == 3 then
@@ -3714,7 +3616,7 @@ function rail_builder(pindex, clicked_in)
             comment = comment .. "Pair of chain rail signals."
             printout(comment,pindex)
          else
-            local success, build_comment = place_chain_signal_pair(rail,pindex)
+            local success, build_comment = fa_rail_builder.place_chain_signal_pair(rail,pindex)
             if success then
                comment = "Chain signals placed."
             else
@@ -3727,7 +3629,7 @@ function rail_builder(pindex, clicked_in)
             comment = comment .. "Pair of regular rail signals, warning: do not use regular rail signals unless you are sure about what you are doing because trains can easily get deadlocked at them"
             printout(comment,pindex)
          else
-            local success, build_comment = place_rail_signal_pair(rail,pindex)
+            local success, build_comment = fa_rail_builder.place_rail_signal_pair(rail,pindex)
             if success then
                comment = "Rail signals placed, warning: do not use regular rail signals unless you are sure about what you are doing because trains can easily get deadlocked at them"
             else
@@ -3740,7 +3642,7 @@ function rail_builder(pindex, clicked_in)
             comment = comment .. "Clear rail signals"
             printout(comment,pindex)
          else
-            mine_signals(rail,pindex)
+            fa_rails.mine_signals(rail,pindex)
             printout("Signals cleared.",pindex)
          end
       end
@@ -3751,7 +3653,7 @@ function rail_builder(pindex, clicked_in)
             comment = comment .. "Pair of chain rail signals." 
             printout(comment,pindex)
          else
-            local success, build_comment = place_chain_signal_pair(rail,pindex)
+            local success, build_comment = fa_rail_builder.place_chain_signal_pair(rail,pindex)
             if success then
                comment = "Chain signals placed."
             else
@@ -3764,7 +3666,7 @@ function rail_builder(pindex, clicked_in)
             comment = comment .. "Pair of regular rail signals, warning: do not use regular rail signals unless you are sure about what you are doing because trains can easily get deadlocked at them"
             printout(comment,pindex)
          else
-            local success, build_comment = place_rail_signal_pair(rail,pindex)
+            local success, build_comment = fa_rail_builder.place_rail_signal_pair(rail,pindex)
             if success then
                comment = "Rail signals placed, warning: do not use regular rail signals unless you are sure about what you are doing because trains can easily get deadlocked at them"
             else
@@ -3777,7 +3679,7 @@ function rail_builder(pindex, clicked_in)
             comment = comment .. "Clear rail signals"
             printout(comment,pindex)
          else
-            mine_signals(rail,pindex)
+            fa_rails.mine_signals(rail,pindex)
             printout("Signals cleared.",pindex)
          end
       end
@@ -3798,7 +3700,7 @@ end
 
    This menu opens when the player presses LEFT BRACKET on a locomotive that they are either riding or looking at with the cursor.
 ]]
-function train_menu(menu_index, pindex, clicked, other_input)
+function fa_trains.run_train_menu(menu_index, pindex, clicked, other_input)
    local index = menu_index
    local other = other_input or -1
    local locomotive = nil
@@ -3818,12 +3720,12 @@ function train_menu(menu_index, pindex, clicked, other_input)
    
    if index == 0 then
       --Give basic info about this train, such as its name and ID. Instructions.
-      printout("Train ".. get_train_name(train) .. ", with ID " .. train.id 
+      printout("Train ".. fa_trains.get_train_name(train) .. ", with ID " .. train.id 
       .. ", Press UP ARROW and DOWN ARROW to navigate options, press LEFT BRACKET to select an option or press E to exit this menu.", pindex)
    elseif index == 1 then
       --Get train state and toggle manual control
       if not clicked then
-         local result = "Train state, " .. get_train_state_info(train)
+         local result = "Train state, " .. fa_trains.get_train_state_info(train)
          if train.path_end_stop ~= nil then
             result = result .. ", going to station " .. train.path_end_stop.backer_name
          end
@@ -3864,7 +3766,7 @@ function train_menu(menu_index, pindex, clicked, other_input)
       .. #train.fluid_wagons .. " fluid wagons, ", pindex) 
    elseif index == 4 then 
 	  --Train cargo info
-      printout("Cargo, " .. train_top_contents_info(train) .. " ", pindex)
+      printout("Cargo, " .. fa_trains.train_top_contents_info(train) .. " ", pindex)
    elseif index == 5 then 
       --Train schedule info
       local result = ""
@@ -3917,7 +3819,7 @@ function train_menu(menu_index, pindex, clicked, other_input)
 	  if not clicked then
          printout(" Set a new instant schedule for the train here by pressing LEFT BRACKET, where the train waits for a set amount of time at immediately reachable station, modify this time with PAGE UP or PAGE DOWN before settting the schedule and hold CONTROL to increase the step size", pindex)
       else
-         local comment = instant_schedule(train,players[pindex].train_menu.wait_time)
+         local comment = fa_trains.instant_schedule(train,players[pindex].train_menu.wait_time)
          printout(comment,pindex)
       end
    elseif index == 7 then 
@@ -3938,17 +3840,17 @@ function train_menu(menu_index, pindex, clicked, other_input)
             local comment = "Select a station with LEFT and RIGHT arrow keys and confirm with LEFT BRACKET."
             printout(comment,pindex)
             players[pindex].train_menu.selecting_station = true
-            refresh_valid_train_stop_list(train,pindex)
+            fa_trains.refresh_valid_train_stop_list(train,pindex)
             train.manual_mode = true
          end
       else
          train.manual_mode = true
          if not clicked then
             --Read the list item
-            read_valid_train_stop_from_list(pindex)
+            fa_trains.read_valid_train_stop_from_list(pindex)
          else
             --Go to the list item
-            go_to_valid_train_stop_from_list(pindex,train)
+            fa_trains.go_to_valid_train_stop_from_list(pindex,train)
             players[pindex].train_menu.selecting_station = false
          end
       end
@@ -3957,7 +3859,7 @@ end
 TRAIN_MENU_LENGTH = 8
 
 --Loads and opens the train menu
-function train_menu_open(pindex)
+function fa_trains.menu_open(pindex)
    if players[pindex].vanilla_mode then
       return 
    end
@@ -3973,11 +3875,11 @@ function train_menu_open(pindex)
    game.get_player(pindex).play_sound{path = "Open-Inventory-Sound"}
    
    --Load menu 
-   train_menu(players[pindex].train_menu.index, pindex, false)
+   fa_trains.run_train_menu(players[pindex].train_menu.index, pindex, false)
 end
 
 --Resets and closes the train menu
-function train_menu_close(pindex, mute_in)
+function fa_trains.menu_close(pindex, mute_in)
    local mute = mute_in
    --Set the player menu tracker to none
    players[pindex].menu = "none"
@@ -4000,7 +3902,7 @@ function train_menu_close(pindex, mute_in)
    end
 end
 
-function train_menu_up(pindex)
+function fa_trains.menu_up(pindex)
    players[pindex].train_menu.index = players[pindex].train_menu.index - 1
    if players[pindex].train_menu.index < 0 then
       players[pindex].train_menu.index = 0
@@ -4010,10 +3912,10 @@ function train_menu_up(pindex)
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
    end
    --Load menu
-   train_menu(players[pindex].train_menu.index, pindex, false)
+   fa_trains.run_train_menu(players[pindex].train_menu.index, pindex, false)
 end
 
-function train_menu_down(pindex)
+function fa_trains.menu_down(pindex)
    players[pindex].train_menu.index = players[pindex].train_menu.index + 1
    if players[pindex].train_menu.index > TRAIN_MENU_LENGTH then
       players[pindex].train_menu.index = TRAIN_MENU_LENGTH
@@ -4023,10 +3925,10 @@ function train_menu_down(pindex)
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
    end
    --Load menu
-   train_menu(players[pindex].train_menu.index, pindex, false)
+   fa_trains.run_train_menu(players[pindex].train_menu.index, pindex, false)
 end
 
-function train_menu_left(pindex)
+function fa_trains.menu_left(pindex)
    local index = players[pindex].train_menu.index_2
    if index == nil then
       index = 1
@@ -4039,10 +3941,10 @@ function train_menu_left(pindex)
    end
    players[pindex].train_menu.index_2 = index
    --Load menu
-   train_menu(players[pindex].train_menu.index, pindex, false)
+   fa_trains.run_train_menu(players[pindex].train_menu.index, pindex, false)
 end
 
-function train_menu_right(pindex)
+function fa_trains.menu_right(pindex)
    local index = players[pindex].train_menu.index_2
    if index == nil then
       index = 1
@@ -4055,12 +3957,12 @@ function train_menu_right(pindex)
    end
    players[pindex].train_menu.index_2 = index
    --Load menu
-   train_menu(players[pindex].train_menu.index, pindex, false)
+   fa_trains.run_train_menu(players[pindex].train_menu.index, pindex, false)
 end
 
 
 --This menu opens when the cursor presses LEFT BRACKET on a train stop.
-function train_stop_menu(menu_index, pindex, clicked, other_input)
+function fa_train_stops.run_train_stop_menu(menu_index, pindex, clicked, other_input)
    local index = menu_index
    local other = other_input or -1
    local train_stop = nil
@@ -4090,7 +3992,7 @@ function train_stop_menu(menu_index, pindex, clicked, other_input)
          input.focus()
       end
    elseif index == 2 then
-      local result = nearby_train_schedule_read_this_stop(train_stop)
+      local result = fa_train_stops.nearby_train_schedule_read_this_stop(train_stop)
          printout(result .. ", Use the below menu options to modify the train schedule.",pindex)
    elseif index == 3 then
       if not clicked then
@@ -4146,28 +4048,28 @@ function train_stop_menu(menu_index, pindex, clicked, other_input)
       if not clicked then
          printout("ADD A NEW ENTRY for this train stop by selecting here, with the proposed conditions applied, for a train parked by this train stop.",pindex)
       else
-         local result = nearby_train_schedule_add_stop(train_stop, players[pindex].train_stop_menu.wait_condition, players[pindex].train_stop_menu.wait_time_seconds)
+         local result = fa_train_stops.nearby_train_schedule_add_stop(train_stop, players[pindex].train_stop_menu.wait_condition, players[pindex].train_stop_menu.wait_time_seconds)
          printout(result,pindex)
       end
    elseif index == 7 then
       if not clicked then
          printout("UPDATE ALL ENTRIES for this train stop by selecting here, with the proposed conditions applied, for a train parked by this train stop.",pindex)
       else
-         local result = nearby_train_schedule_update_stop(train_stop, players[pindex].train_stop_menu.wait_condition, players[pindex].train_stop_menu.wait_time_seconds)
+         local result = fa_train_stops.nearby_train_schedule_update_stop(train_stop, players[pindex].train_stop_menu.wait_condition, players[pindex].train_stop_menu.wait_time_seconds)
          printout(result,pindex)
       end
    elseif index == 8 then
       if not clicked then
          printout("REMOVE ALL ENTRIES for this train stop by selecting here, for a train parked by this train stop.",pindex)
       else
-         local result = nearby_train_schedule_remove_stop(train_stop)
+         local result = fa_train_stops.nearby_train_schedule_remove_stop(train_stop)
          printout(result,pindex)
       end
    end
 end
 
 
-function train_stop_menu_open(pindex)
+function fa_train_stops.train_stop_menu_open(pindex)
    if players[pindex].vanilla_mode then
       return 
    end
@@ -4183,11 +4085,11 @@ function train_stop_menu_open(pindex)
    game.get_player(pindex).play_sound{path = "Open-Inventory-Sound"}  
    
    --Load menu 
-   train_stop_menu(players[pindex].train_stop_menu.index, pindex, false)
+   fa_train_stops.run_train_stop_menu(players[pindex].train_stop_menu.index, pindex, false)
 end
 
 
-function train_stop_menu_close(pindex, mute_in)
+function fa_train_stops.train_stop_menu_close(pindex, mute_in)
    local mute = mute_in
    --Set the player menu tracker to none
    players[pindex].menu = "none"
@@ -4208,7 +4110,7 @@ function train_stop_menu_close(pindex, mute_in)
 end
 
 
-function train_stop_menu_up(pindex)
+function fa_train_stops.train_stop_menu_up(pindex)
    players[pindex].train_stop_menu.index = players[pindex].train_stop_menu.index - 1
    if players[pindex].train_stop_menu.index < 0 then
       players[pindex].train_stop_menu.index = 0
@@ -4218,11 +4120,11 @@ function train_stop_menu_up(pindex)
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
    end
    --Load menu 
-   train_stop_menu(players[pindex].train_stop_menu.index, pindex, false)
+   fa_train_stops.run_train_stop_menu(players[pindex].train_stop_menu.index, pindex, false)
 end
 
 
-function train_stop_menu_down(pindex)
+function fa_train_stops.train_stop_menu_down(pindex)
    players[pindex].train_stop_menu.index = players[pindex].train_stop_menu.index + 1
    if players[pindex].train_stop_menu.index > 8 then
       players[pindex].train_stop_menu.index = 8
@@ -4232,11 +4134,11 @@ function train_stop_menu_down(pindex)
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
    end
    --Load menu 
-   train_stop_menu(players[pindex].train_stop_menu.index, pindex, false)
+   fa_train_stops.run_train_stop_menu(players[pindex].train_stop_menu.index, pindex, false)
 end
 
 --For the selected train stop, changes assigned wait time in seconds for the parked train. The increment is a positive or negative integer. 
-function nearby_train_schedule_change_wait_time(increment,pindex)
+function fa_train_stops.nearby_train_schedule_add_to_wait_time(increment,pindex)
    local seconds = players[pindex].train_stop_menu.wait_time_seconds
    if seconds == nil then 
       seconds = 300 
@@ -4252,7 +4154,7 @@ function nearby_train_schedule_change_wait_time(increment,pindex)
 end
 
 --Returns an info string on what the parked train at this stop is scheduled to do at this stop.
-function nearby_train_schedule_read_this_stop(train_stop)
+function fa_train_stops.nearby_train_schedule_read_this_stop(train_stop)
    local result = "Reading parked train: "
    local found_any = false
 
@@ -4307,7 +4209,7 @@ function nearby_train_schedule_read_this_stop(train_stop)
 end
 
 --Returns an info string after adding this train stop to the parked train.
-function nearby_train_schedule_add_stop(train_stop, wait_condition_type, wait_time_seconds)
+function fa_train_stops.nearby_train_schedule_add_stop(train_stop, wait_condition_type, wait_time_seconds)
    local result = "initial"
    --Locate the nearby train
    local train = train_stop.get_stopped_train()
@@ -4349,7 +4251,7 @@ function nearby_train_schedule_add_stop(train_stop, wait_condition_type, wait_ti
 end
 
 --Returns an info string after updating every entry for this train stop for the parked train.
-function nearby_train_schedule_update_stop(train_stop, wait_condition_type, wait_time_seconds)
+function fa_train_stops.nearby_train_schedule_update_stop(train_stop, wait_condition_type, wait_time_seconds)
    local result = "initial"
    --Locate the nearby train
    local train = train_stop.get_stopped_train()
@@ -4408,7 +4310,7 @@ function nearby_train_schedule_update_stop(train_stop, wait_condition_type, wait
 end
 
 --Returns an info string after removing every entry for this train stop for the parked train.
-function nearby_train_schedule_remove_stop(train_stop)
+function fa_train_stops.nearby_train_schedule_remove_stop(train_stop)
    local result = "initial"
    --Locate the nearby train
    local train = train_stop.get_stopped_train()
@@ -4466,7 +4368,7 @@ function nearby_train_schedule_remove_stop(train_stop)
 end
 
 --Returns most common items in a cargo wagon. laterdo a full inventory screen maybe.
-function cargo_wagon_top_contents_info(wagon)
+function fa_trains.cargo_wagon_top_contents_info(wagon)
    local result = ""
    local itemset = wagon.get_inventory(defines.inventory.cargo_wagon).get_contents()
    local itemtable = {}
@@ -4501,7 +4403,7 @@ function cargo_wagon_top_contents_info(wagon)
 end
 
 --Returns most common items in a fluid wagon or train.
-function fluid_contents_info(wagon)
+function fa_trains.fluid_contents_info(wagon)
    local result = ""
    local itemset = wagon.get_fluid_contents()
    local itemtable = {}
@@ -4531,9 +4433,8 @@ function fluid_contents_info(wagon)
    return result
 end
 
-
 --Returns most common items and fluids in a train (sum of all wagons)
-function train_top_contents_info(train)
+function fa_trains.train_top_contents_info(train)
    local result = ""
    local itemset = train.get_contents()
    local itemtable = {}
@@ -4557,37 +4458,12 @@ function train_top_contents_info(train)
          result = result .. " and other items, "
       end
    end
-   result = result .. fluid_contents_info(train)
+   result = result .. fa_trains.fluid_contents_info(train)
    return result
 end
-
-
---Return fuel content in a fuel inventory
-function fuel_inventory_info(ent)
-   local result = "Contains no fuel."
-   local itemset = ent.get_fuel_inventory().get_contents()
-   local itemtable = {}
-   for name, count in pairs(itemset) do
-      table.insert(itemtable, {name = name, count = count})
-   end
-   table.sort(itemtable, function(k1, k2)
-      return k1.count > k2.count
-   end)
-   if #itemtable > 0 then
-      result = "Contains as fuel, " .. itemtable[1].name .. " times " .. itemtable[1].count .. " "
-      if #itemtable > 1 then
-         result = result .. " and " .. itemtable[2].name .. " times " .. itemtable[2].count .. " "
-      end
-      if #itemtable > 2 then
-         result = result .. " and " .. itemtable[3].name .. " times " .. itemtable[3].count .. " "
-      end
-   end
-   return result
-end
-
 
 --For the selected train, adds every reachable train stop to its schedule with the waiting condition of 5 minutes.
-function instant_schedule(train,seconds_in)
+function fa_trains.instant_schedule(train,seconds_in)
    local seconds = seconds_in or 300
    local surf = train.front_stock.surface
    local train_stops = surf.get_train_stops()
@@ -4665,7 +4541,7 @@ function instant_schedule(train,seconds_in)
    return str
 end
 
-function change_instant_schedule_wait_time(increment,pindex)
+function fa_trains.change_instant_schedule_wait_time(increment,pindex)
    local seconds = players[pindex].train_menu.wait_time
    if seconds == nil then 
       seconds = 300 
@@ -4680,9 +4556,8 @@ function change_instant_schedule_wait_time(increment,pindex)
    printout(players[pindex].train_menu.wait_time .. " seconds waited at each station. Use arrow keys to navigate the train menu and apply the new wait time by re-creating the schedule.",pindex)
 end
 
-
 --Subautomatic one-time travel to a reachable train stop that is at least 3 rails away. Does not delete the train schedule. Note: Now obsolete?
-function sub_automatic_travel_to_other_stop(train)
+function fa_trains.sub_automatic_travel_to_other_stop(train)
    local surf = train.front_stock.surface
    local train_stops = surf.get_train_stops()
    local str = ""
@@ -4735,7 +4610,7 @@ function sub_automatic_travel_to_other_stop(train)
    return str
 end
 
-function refresh_valid_train_stop_list(train,pindex)--table.insert
+function fa_trains.refresh_valid_train_stop_list(train,pindex)--table.insert
    players[pindex].valid_train_stop_list = {}
    train.manual_mode = true
    local surf = train.front_stock.surface
@@ -4779,7 +4654,8 @@ function refresh_valid_train_stop_list(train,pindex)--table.insert
    return #players[pindex].valid_train_stop_list
 end
 
-function read_valid_train_stop_from_list(pindex)
+--Train menu: Reads out a valid train stop from the reachable train stops list
+function fa_trains.read_valid_train_stop_from_list(pindex)
    local index = players[pindex].train_menu.index_2
    local name = ""
    if players[pindex].valid_train_stop_list == nil or #players[pindex].valid_train_stop_list == 0 then
@@ -4796,7 +4672,7 @@ function read_valid_train_stop_from_list(pindex)
    printout(name,pindex)
 end
 
-function go_to_valid_train_stop_from_list(pindex,train)
+function fa_trains.go_to_valid_train_stop_from_list(pindex,train)
    local index = players[pindex].train_menu.index_2
    local name = ""
    if players[pindex].valid_train_stop_list == nil or #players[pindex].valid_train_stop_list == 0 then
@@ -4854,11 +4730,11 @@ function go_to_valid_train_stop_from_list(pindex,train)
       --Train will announce its new path by itself
    end
    
-   train_menu_close(pindex, false)
+   fa_trains.menu_close(pindex, false)
 end
 
 --Plays a train track alert sound for every player standing on or facing train tracks that meet the condition.
-function check_and_play_train_track_alert_sounds(step)
+function fa_rails.check_and_play_train_track_alert_sounds(step)
    for pindex, player in pairs(players) do
       --Check if the player is standing on a rail
       local p = game.get_player(pindex)
@@ -4938,7 +4814,7 @@ function check_and_play_train_track_alert_sounds(step)
 end
 
 --Honks if the following conditions are met: 1. The player is manually driving a train, 2. The train is moving, 3. Ahead of the train is a closed rail signal or rail chain signal, 4. It has been 5 seconds since the last honk.
-function check_and_honk_at_closed_signal(tick,pindex)
+function fa_trains.check_and_honk_at_closed_signal(tick,pindex)
    if not check_for_player(pindex) then
       return
    end
@@ -4962,7 +4838,7 @@ function check_and_honk_at_closed_signal(tick,pindex)
       return
    end
    --3. Check if ahead of the train is a closed rail signal or rail chain signal
-   local honk_score = train_read_next_rail_entity_ahead(pindex, false, true)
+   local honk_score = fa_trains.train_read_next_rail_entity_ahead(pindex, false, true)
    if honk_score < 2 then 
       return
    end
@@ -4972,7 +4848,7 @@ function check_and_honk_at_closed_signal(tick,pindex)
 end
 
 --Honks if the following conditions are met: 1. The player is on a train, 2. The train is moving, 3. There is another train within the same rail block, 4. It has been 5 seconds since the last honk.
-function check_and_honk_at_trains_in_same_block(tick,pindex)
+function fa_trains.check_and_honk_at_trains_in_same_block(tick,pindex)
    if not check_for_player(pindex) then
       return
    end
@@ -5008,7 +4884,7 @@ function check_and_honk_at_trains_in_same_block(tick,pindex)
 end
 
 --Play a sound to indicate the train is turning
-function check_and_play_sound_for_turning_trains(pindex)
+function fa_trains.check_and_play_sound_for_turning_trains(pindex)
    local p = game.get_player(pindex)
    if p.vehicle == nil or p.vehicle.valid == false or p.vehicle.train == nil then
       return 
@@ -5020,221 +4896,4 @@ function check_and_play_sound_for_turning_trains(pindex)
    players[pindex].last_train_orientation = ori
 end
 
---Plays an alert depending on the distance to the entity ahead. Returns whether a larger radius check is needed. Driving proximity alert
-function check_and_play_driving_alert_sound(pindex, tick, mode_in)--wip****
-   for pindex, player in pairs(players) do
-      local mode = mode_in or 1
-      local p = game.get_player(pindex)
-      local surf = p.surface 
-      if p == nil or p.valid == false or p.driving == false or p.vehicle == nil then
-         return false
-      end
-      --Return if beeped recently
-      local min_delay = 15
-      if players[pindex].last_driving_alert_tick == nil then 
-         players[pindex].last_driving_alert_tick = tick
-         return false
-      end
-      local last_driving_alert_tick = players[pindex].last_driving_alert_tick
-      local time_since = tick - last_driving_alert_tick
-      if last_driving_alert_tick ~= nil and time_since < min_delay then
-         return false
-      end 
-      --Scan area "ahead" according to direction
-      local v = p.vehicle
-      local dir = get_heading_value(v)
-      if v.speed < 0 then
-         dir = fa_utils.rotate_180(dir)
-      end
-      
-      --Set the trigger distance 
-      local trigger = 1
-      if mode == 1 then
-         trigger = 3
-      elseif mode == 2 then
-         trigger = 10
-      elseif mode == 3 then
-         trigger = 25
-      else
-         trigger = 50
-      end
-      
-      --Scan for entities within the radius
-      local ents_around = {}
-      if p.vehicle.type == "car" then
-         local radius = trigger + 5
-         --For cars, exclude anything they cannot collide with
-         ents_around = surf.find_entities_filtered{area = {{v.position.x-radius, v.position.y-radius,},{v.position.x+radius, v.position.y+radius}}, type = {"resource", "highlight-box", "flying-text", "corpse", "straight-rail", "curved-rail", "rail-signal", "rail-chain-signal", "transport-belt", "underground-belt", "splitter", "item-entity", "pipe", "pipe-to-ground", "inserter", "small-electric-pole", "medium-electric-pole"}, invert = true}
-      elseif p.vehicle.train ~= nil then 
-         trigger = trigger * 3
-         local radius = trigger + 5
-         --For trains, search for anything they can collide with
-         ents_around = surf.find_entities_filtered{area = {{v.position.x-radius, v.position.y-radius,},{v.position.x+radius, v.position.y+radius}}, type = {"locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon","character","car","unit"}, invert = false}
-      end
-      
-      --Filter entities by direction
-      local ents_ahead = {}  
-      for i, ent in ipairs(ents_around) do
-         local dir_ent = fa_utils.get_direction_biased(ent.position,v.position)
-         if dir_ent == dir then
-            if p.vehicle.type == "car" and ent.unit_number ~= p.vehicle.unit_number then
-               --For cars, take the entity as it is
-               table.insert(ents_ahead,ent)
-            elseif p.vehicle.train ~= nil and ent.unit_number ~= p.vehicle.unit_number then
-               --For trains, the entity must also be near/on rails
-               local ent_straight_rails = surf.find_entities_filtered{position = ent.position, radius = 2, type = {"straight-rail"}}
-               local ent_curved_rails = surf.find_entities_filtered{position = ent.position, radius = 4, type = {"curved-rail"}}
-               if (ent_straight_rails ~= nil and #ent_straight_rails > 0) or (ent_curved_rails ~= nil and #ent_curved_rails > 0) then
-                  if not (ent.train and ent.train.id == v.train.id) then
-                     table.insert(ents_ahead,ent)
-                  end
-               end
-            end
-         elseif mode < 2 and util.distance(v.position, ent.position) < 5 and (math.abs(dir_ent - dir) == 1 or math.abs(dir_ent - dir) == 7) then
-            --Take very nearby ents at diagonal directions
-            if p.vehicle.type == "car" and ent.unit_number ~= p.vehicle.unit_number then
-               --For cars, take the entity as it is
-               table.insert(ents_ahead,ent)
-            elseif p.vehicle.train ~= nil and ent.unit_number ~= p.vehicle.unit_number then
-               --For trains, the entity must also be near/on rails and not from the same train (if reversing)
-               local ent_straight_rails = surf.find_entities_filtered{position = ent.position, radius = 2, type = {"straight-rail"}}
-               local ent_curved_rails = surf.find_entities_filtered{position = ent.position, radius = 4, type = {"curved-rail"}}
-               if (ent_straight_rails ~= nil and #ent_straight_rails > 0) or (ent_curved_rails ~= nil and #ent_curved_rails > 0) then
-                  if not (ent.train and ent.train.id == v.train.id) then
-                     table.insert(ents_ahead,ent)
-                  end
-               end
-            end
-         end
-      end
-      
-      --Skip if nothing is ahead
-      if #ents_ahead == 0 then
-         return true
-      else
-      end
-      
-      --Get distance to nearest entity ahead
-      local nearest = v.surface.get_closest(v.position, ents_ahead)
-      local edge_dist = util.distance(v.position, nearest.position) - 1/4*(nearest.tile_width + nearest.tile_height)
-      rendering.draw_circle{color = {0.8, 0.8, 0.8},radius = 2,width = 2,target = nearest,surface = p.surface,time_to_live = 15}
-      
-      --Beep
-      if edge_dist < trigger then 
-         p.play_sound{path = "player-bump-stuck-alert"}
-         players[pindex].last_driving_alert_tick = last_driving_alert_tick
-         players[pindex].last_driving_alert_ent = nearest 
-         rendering.draw_circle{color = {1.0, 0.4, 0.2},radius = 2,width = 2,target = nearest,surface = p.surface,time_to_live = 15}
-         return false
-      end
-      return true
-   end
-end
-
-function stop_vehicle(pindex)
-   local vehicle = game.get_player(pindex).vehicle
-   if vehicle and vehicle.valid then
-      if vehicle.train == nil then
-         vehicle.speed = 0
-      elseif vehicle.train.state == defines.train_state.manual_control then
-         vehicle.train.speed = 0
-      end
-   end
-end
-
-function halve_vehicle_speed(pindex)
-   local vehicle = game.get_player(pindex).vehicle
-   if vehicle and vehicle.valid then
-      if vehicle.train == nil then
-         vehicle.speed = vehicle.speed / 2
-      elseif vehicle.train.state == defines.train_state.manual_control then
-         vehicle.train.speed = vehicle.train.speed / 2
-      end
-   end
-end
-
---Pavement Driving Assist: Read CC state
-function fa_pda_get_state_of_cruise_control(pindex)
-   if remote.interfaces.PDA and remote.interfaces.PDA.get_state_of_cruise_control then
-      return remote.call("PDA", "get_state_of_cruise_control",pindex)
-   else
-      return nil
-   end
-end
-
---Pavement Driving Assist: Set CC state
-function fa_pda_set_state_of_cruise_control(pindex,new_state)
-   if remote.interfaces.PDA and remote.interfaces.PDA.set_state_of_cruise_control then
-      remote.call("PDA", "set_state_of_cruise_control",pindex,new_state)
-      return 1
-   else
-      return nil
-   end
-end
-
---Pavement Driving Assist: Read CC speed limit in kmh
-function fa_pda_get_cruise_control_limit(pindex)
-   if remote.interfaces.PDA and remote.interfaces.PDA.get_cruise_control_limit then
-      return remote.call("PDA", "get_cruise_control_limit",pindex)
-   else
-      return nil
-   end
-end
-
---Pavement Driving Assist: Set CC speed limit in kmh
-function fa_pda_set_cruise_control_limit(pindex,new_value)
-   if remote.interfaces.PDA and remote.interfaces.PDA.set_cruise_control_limit then
-      remote.call("PDA", "set_cruise_control_limit",pindex,new_value)
-      return 1
-   else
-      return nil
-   end
-end
-
---Pavement Driving Assist: Read assistant state
-function fa_pda_get_state_of_driving_assistant(pindex)
-   if remote.interfaces.PDA and remote.interfaces.PDA.get_state_of_driving_assistant then
-      return remote.call("PDA", "get_state_of_driving_assistant",pindex)
-   else
-      return nil
-   end
-end
-
---Pavement Driving Assist: Set assistant state
-function fa_pda_set_state_of_driving_assistant(pindex,new_state)
-   if remote.interfaces.PDA and remote.interfaces.PDA.set_state_of_driving_assistant then
-      remote.call("PDA", "set_state_of_driving_assistant",pindex,new_state)
-      return 1
-   else
-      return nil
-   end
-end
-
---Pavement Driving Assist: Read assistant state after it has been toggled
-function read_PDA_assistant_toggled_info(pindex)
-   if game.get_player(pindex).driving then  
-      local is_on = not fa_pda_get_state_of_driving_assistant(pindex)
-      if is_on == true then 
-         printout("Enabled pavement driving asssistant",pindex)
-      elseif is_on == false then 
-         printout("Disabled pavement driving asssistant",pindex)
-      else
-         printout("Missing pavement driving asssistant",pindex)
-      end
-   end 
-end
-
---Pavement Driving Assist: Read CC state after it has been toggled
-function read_PDA_cruise_control_toggled_info(pindex)
-   if game.get_player(pindex).driving then 
-      local is_on = not fa_pda_get_state_of_cruise_control(pindex)
-      if is_on == true then
-         printout("Enabled cruise control",pindex)
-      elseif is_on == false then
-         printout("Disabled cruise control",pindex)
-      else
-         printout("Missing cruise control",pindex)
-      end
-      fa_pda_set_cruise_control_limit(pindex,0.16)
-   end
-end
+return {rails = fa_rails, rail_builder = fa_rail_builder, trains = fa_trains, train_stops = fa_train_stops}

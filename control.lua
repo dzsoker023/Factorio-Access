@@ -1,18 +1,30 @@
-local zoom = require('zoom')
-local scanner = require('scanner')
-local rails_trains = require('rails-and-trains')
-local spidertrons = require('spidertron')
-local worker_robots = require('worker-robots')
-local circuit_networks = require('circuit-networks')
-local tutorial_system = require('help-system')
-local settings_system = require('settings-menus')
-local fa_utils = require('fa-utils')
-local localising = require('localising')
+--Main file for mod runtime
 local util = require('util')
+local fa_utils = require('fa-utils')
+local fa_localising = require('localising')
 local fa_crafting = require("crafting")
 local fa_electrical = require("electrical")
 local fa_equipment = require("equipment-and-combat").equipment
 local fa_combat = require("equipment-and-combat").combat
+local fa_graphics = require("graphics-and-mouse").graphics
+local fa_mouse = require("graphics-and-mouse").mouse
+local fa_tutorial = require("tutorial-system")
+local fa_sectors = require("building-vehicle-sectors")
+local fa_menu_search = require("menu-search")
+local fa_building_tools = require("mining-and-building-tools")
+local fa_rails = require("rails-and-trains").rails
+local fa_rail_builder = require("rails-and-trains").rail_builder
+local fa_trains = require("rails-and-trains").trains
+local fa_train_stops = require("rails-and-trains").train_stops
+local fa_driving = require("driving")
+local fa_scanner = require("scanner")
+local fa_spidertrons = require("spidertron")
+local fa_belts = require("transport-belts")
+local fa_zoom = require('zoom')
+local fa_bot_logistics = require("worker-robots").bot_logistics
+local fa_blueprints = require("worker-robots").blueprints
+
+local circuit_networks = require('circuit-networks')
 
 groups = {}
 entity_types = {}
@@ -52,7 +64,7 @@ end
 --Outputs basic entity info, usually called when the cursor selects an entity.
 function ent_info(pindex, ent, description)
    local p = game.get_player(pindex)
-   local result = localising.get(ent,pindex)
+   local result = fa_localising.get(ent,pindex)
    if result == nil or result == "" then
       result = ent.name
    end
@@ -67,9 +79,9 @@ function ent_info(pindex, ent, description)
       end
    end
    if ent.name == "entity-ghost" then
-      result = localising.get(ent.ghost_prototype, pindex) .. " " .. localising.get(ent, pindex)
+      result = fa_localising.get(ent.ghost_prototype, pindex) .. " " .. fa_localising.get(ent, pindex)
    elseif ent.name == "straight-rail" or ent.name == "curved-rail" then
-      return rail_ent_info(pindex, ent, description)
+      return fa_rails.rail_ent_info(pindex, ent, description)
    end
 
    result = result .. (description or "")
@@ -114,12 +126,12 @@ function ent_info(pindex, ent, description)
       if #itemtable == 0 then
          result = result .. " with nothing "
       else
-         result = result .. " with " .. localising.get_item_from_name(itemtable[1].name,pindex) .. " times " .. itemtable[1].count .. ", "
+         result = result .. " with " .. fa_localising.get_item_from_name(itemtable[1].name,pindex) .. " times " .. itemtable[1].count .. ", "
          if #itemtable > 1 then
-            result = result .. " and " .. localising.get_item_from_name(itemtable[2].name,pindex) .. " times " .. itemtable[2].count .. ", "
+            result = result .. " and " .. fa_localising.get_item_from_name(itemtable[2].name,pindex) .. " times " .. itemtable[2].count .. ", "
          end
          if #itemtable > 2 then
-            result = result .. " and " .. localising.get_item_from_name(itemtable[3].name,pindex) .. " times " .. itemtable[3].count .. ", "
+            result = result .. " and " .. fa_localising.get_item_from_name(itemtable[3].name,pindex) .. " times " .. itemtable[3].count .. ", "
          end
          if #itemtable > 3 then
             result = result .. "and other items "
@@ -128,7 +140,7 @@ function ent_info(pindex, ent, description)
       if ent.type == "logistic-container" then
          local network = ent.surface.find_logistic_network_by_position(ent.position, ent.force)
          if network == nil then
-            local nearest_roboport = find_nearest_roboport(ent.surface, ent.position, 5000)
+            local nearest_roboport = fa_bot_logistics.find_nearest_roboport(ent.surface, ent.position, 5000)
             if nearest_roboport == nil then
                result = result .. ", not in a network, no networks found within 5000 tiles"
             else
@@ -143,7 +155,7 @@ function ent_info(pindex, ent, description)
       end
    end
    --Pipe ends are labelled to distinguish them
-   if ent.name == "pipe" and is_a_pipe_end(ent,pindex) then
+   if ent.name == "pipe" and fa_building_tools.is_a_pipe_end(ent,pindex) then
       result = result .. " end, "
    end
    --Explain the contents of a pipe or storage tank or etc.
@@ -157,9 +169,9 @@ function ent_info(pindex, ent, description)
          return k1.count > k2.count
       end)
       if #fluids > 0 and fluids[1].count ~= nil then
-         result = result .. " with " .. localising.get_fluid_from_name(fluids[1].name,pindex) --can check amount by opening the ent menu
+         result = result .. " with " .. fa_localising.get_fluid_from_name(fluids[1].name,pindex) --can check amount by opening the ent menu
 		 if #fluids > 1 and fluids[2].count ~= nil then
-            result = result .. " and " .. localising.get_fluid_from_name(fluids[2].name,pindex) --(this should not happen because it means different fluids mixed!)
+            result = result .. " and " .. fa_localising.get_fluid_from_name(fluids[2].name,pindex) --(this should not happen because it means different fluids mixed!)
 		 end
 		 if #fluids > 2 then
             result = result .. ", and other fluids "
@@ -195,7 +207,7 @@ function ent_info(pindex, ent, description)
       end
       --Check what the neighbor info reveals about the belt
       local say_middle = false
-      result = result .. transport_belt_junction_info(sideload_count, backload_count, outload_count, this_dir, outload_dir, say_middle, outload_is_corner)
+      result = result .. fa_belts.transport_belt_junction_info(sideload_count, backload_count, outload_count, this_dir, outload_dir, say_middle, outload_is_corner)
 
       --Check contents
       local left = ent.get_transport_line(1).get_contents()
@@ -216,9 +228,9 @@ function ent_info(pindex, ent, description)
          return k1.count > k2.count
       end)
       if #contents > 0 then
-         result = result .. " carrying " .. localising.get_item_from_name(contents[1].name,pindex)--***localize
+         result = result .. " carrying " .. fa_localising.get_item_from_name(contents[1].name,pindex)--***localize
          if #contents > 1 then
-            result = result .. ", and " .. localising.get_item_from_name(contents[2].name,pindex)
+            result = result .. ", and " .. fa_localising.get_item_from_name(contents[2].name,pindex)
             if #contents > 2 then
                result = result .. ", and other item types "
             end
@@ -275,17 +287,17 @@ function ent_info(pindex, ent, description)
 
          --Report assumed carried items based on input/output neighbors 
          if #next_contents > 0 then
-            result = result .. " assumed carrying " .. localising.get_item_from_name(next_contents[1].name,pindex)
+            result = result .. " assumed carrying " .. fa_localising.get_item_from_name(next_contents[1].name,pindex)
             if #next_contents > 1 then
-               result = result .. ", and " .. localising.get_item_from_name(next_contents[2].name,pindex)
+               result = result .. ", and " .. fa_localising.get_item_from_name(next_contents[2].name,pindex)
                if #next_contents > 2 then
                   result = result .. ", and other item types "
                end
             end
          elseif #prev_contents > 0 then
-            result = result .. " assumed carrying " .. localising.get_item_from_name(prev_contents[1].name,pindex)
+            result = result .. " assumed carrying " .. fa_localising.get_item_from_name(prev_contents[1].name,pindex)
             if #prev_contents > 1 then
-               result = result .. ", and " .. localising.get_item_from_name(prev_contents[2].name,pindex)
+               result = result .. ", and " .. fa_localising.get_item_from_name(prev_contents[2].name,pindex)
                if #prev_contents > 2 then
                   result = result .. ", and other item types "
                end
@@ -309,7 +321,7 @@ function ent_info(pindex, ent, description)
    --Explain the recipe of a machine without pause and before the direction
    pcall(function()
       if ent.get_recipe() ~= nil then
-         result = result .. " producing " .. localising.get_recipe_from_name(ent.get_recipe().name, pindex)
+         result = result .. " producing " .. fa_localising.get_recipe_from_name(ent.get_recipe().name, pindex)
       end
    end)
    --State the name of a train stop
@@ -317,7 +329,7 @@ function ent_info(pindex, ent, description)
       result = result .. " " .. ent.backer_name .. " "
    --State the ID number of a train
    elseif ent.name == "locomotive" or ent.name == "cargo-wagon" or ent.name == "fluid-wagon" then
-      result = result .. " of train " .. get_train_name(ent.train)
+      result = result .. " of train " .. fa_trains.get_train_name(ent.train)
    end
    --Report the entity facing direction
    if (ent.prototype.is_building and ent.supports_direction) or (ent.name == "entity-ghost" and ent.ghost_prototype.is_building and ent.ghost_prototype.supports_direction) then
@@ -327,7 +339,7 @@ function ent_info(pindex, ent, description)
          result = result .. " and " .. fa_utils.direction_lookup(fa_utils.rotate_180(ent.direction))
       end
    elseif ent.type == "locomotive" or ent.type == "car" then
-      result = result .. " facing " .. get_heading(ent)
+      result = result .. " facing " .. fa_driving.get_heading(ent)
    end
    --Report if marked for deconstruction or upgrading
    if ent.to_be_deconstructed() == true then
@@ -355,7 +367,7 @@ function ent_info(pindex, ent, description)
       end
    elseif ent.type == "splitter" then
       --Splitter priority info
-      result = result .. splitter_priority_info(ent)
+      result = result .. fa_belts.splitter_priority_info(ent)
    elseif (ent.name  == "pipe") and ent.neighbours ~= nil then
       --List connected neighbors 
       result = result .. " connects "
@@ -365,16 +377,16 @@ function ent_info(pindex, ent, description)
             local box = nil
             local f_name = nil
             local dir_from_pos = nil
-            box, f_name, dir_from_pos = get_relevant_fluidbox_and_fluid_name(nbr, ent.position, dirs.north)
+            box, f_name, dir_from_pos = fa_building_tools.get_relevant_fluidbox_and_fluid_name(nbr, ent.position, dirs.north)
             --Extra checks for pipes to ground 
             if f_name == nil then
-               box, f_name, dir_from_pos = get_relevant_fluidbox_and_fluid_name(nbr, ent.position, dirs.east)
+               box, f_name, dir_from_pos = fa_building_tools.get_relevant_fluidbox_and_fluid_name(nbr, ent.position, dirs.east)
             end
             if f_name == nil then
-               box, f_name, dir_from_pos = get_relevant_fluidbox_and_fluid_name(nbr, ent.position, dirs.south)
+               box, f_name, dir_from_pos = fa_building_tools.get_relevant_fluidbox_and_fluid_name(nbr, ent.position, dirs.south)
             end
             if f_name == nil then
-               box, f_name, dir_from_pos = get_relevant_fluidbox_and_fluid_name(nbr, ent.position, dirs.west)
+               box, f_name, dir_from_pos = fa_building_tools.get_relevant_fluidbox_and_fluid_name(nbr, ent.position, dirs.west)
             end
             if f_name ~= nil then --"empty" is a name too
                result = result .. fa_utils.direction_lookup(dir_from_pos) .. ", "
@@ -441,9 +453,9 @@ function ent_info(pindex, ent, description)
                if ent.type == "assembling-machine" and ent.get_recipe() ~= nil then
                   if ent.name == "oil-refinery" and ent.get_recipe().name == "basic-oil-processing" then
                      if i == 2 then
-                        result = result .. ", " .. localising.get_fluid_from_name("crude-oil",pindex) .. " Flow " .. pipe.type .. " 1 " .. adjusted.direction .. ", at " .. fa_utils.get_entity_part_at_cursor(pindex)
+                        result = result .. ", " .. fa_localising.get_fluid_from_name("crude-oil",pindex) .. " Flow " .. pipe.type .. " 1 " .. adjusted.direction .. ", at " .. fa_utils.get_entity_part_at_cursor(pindex)
                      elseif i == 5 then
-                        result = result .. ", " .. localising.get_fluid_from_name("petroleum-gas",pindex) .. " Flow " .. pipe.type .. " 1 " .. adjusted.direction .. ", at " .. fa_utils.get_entity_part_at_cursor(pindex)
+                        result = result .. ", " .. fa_localising.get_fluid_from_name("petroleum-gas",pindex) .. " Flow " .. pipe.type .. " 1 " .. adjusted.direction .. ", at " .. fa_utils.get_entity_part_at_cursor(pindex)
                      else
                         result = result .. ", " .. "Unused" .. " Flow " .. pipe.type .. " 1 " .. adjusted.direction .. ", at " .. fa_utils.get_entity_part_at_cursor(pindex)
                      end
@@ -587,11 +599,11 @@ function ent_info(pindex, ent, description)
       end
       result = result .. wire_neighbours_info(ent,true)
    elseif ent.name == "rail-signal" or ent.name == "rail-chain-signal" then
-      result = result .. ", " .. get_signal_state_info(ent)
+      result = result .. ", " .. fa_rails.get_signal_state_info(ent)
    elseif ent.name == "roboport" then
       local cell = ent.logistic_cell
       local network = ent.logistic_cell.logistic_network
-      result = result .. " of network " .. get_network_name(ent) .. "," .. roboport_contents_info(ent)
+      result = result .. " of network " .. fa_bot_logistics.get_network_name(ent) .. "," .. fa_bot_logistics.roboport_contents_info(ent)
    elseif ent.type == "spider-vehicle" then
       local label = ent.entity_label
       if label == nil then
@@ -620,7 +632,7 @@ function ent_info(pindex, ent, description)
                if active_filter_count > 1 then
                   filter_result = filter_result .. " and "
                end
-               local local_name = localising.get(game.item_prototypes[filt],pindex)
+               local local_name = fa_localising.get(game.item_prototypes[filt],pindex)
                if local_name == nil then
                   local_name = filt or " unknown item "
                end
@@ -649,13 +661,13 @@ function ent_info(pindex, ent, description)
       local pickup = ent.pickup_target
       local pickup_name = nil
       if pickup ~= nil and pickup.valid then
-         pickup_name = localising.get(pickup,pindex)
+         pickup_name = fa_localising.get(pickup,pindex)
       else
          pickup_name = "ground"
          local area_ents = ent.surface.find_entities_filtered{position = ent.pickup_position}
          for i, area_ent in ipairs(area_ents) do
             if area_ent.type == "straight-rail" or area_ent.type == "curved-rail" then
-               pickup_name = localising.get(area_ent,pindex)
+               pickup_name = fa_localising.get(area_ent,pindex)
             end
          end
       end
@@ -664,13 +676,13 @@ function ent_info(pindex, ent, description)
       local drop = ent.drop_target
       local drop_name = nil
       if drop ~= nil and drop.valid then
-         drop_name = localising.get(drop,pindex)
+         drop_name = fa_localising.get(drop,pindex)
       else
          drop_name = "ground"
          local drop_area_ents = ent.surface.find_entities_filtered{position = ent.drop_position}
          for i, drop_area_ent in ipairs(drop_area_ents) do
             if drop_area_ent.type == "straight-rail" or drop_area_ent.type == "curved-rail" then
-               drop_name = localising.get(drop_area_ent,pindex)
+               drop_name = fa_localising.get(drop_area_ent,pindex)
             end
          end
       end
@@ -692,13 +704,13 @@ function ent_info(pindex, ent, description)
       local drop = ent.drop_target
       local drop_name = nil
       if drop ~= nil and drop.valid then
-         drop_name = localising.get(drop,pindex)
+         drop_name = fa_localising.get(drop,pindex)
       else
          drop_name = "ground"
          local drop_area_ents = ent.surface.find_entities_filtered{position = ent.drop_position}
          for i, drop_area_ent in ipairs(drop_area_ents) do
             if drop_area_ent.type == "straight-rail" or drop_area_ent.type == "curved-rail" then
-               drop_name = localising.get(drop_area_ent,pindex)
+               drop_name = fa_localising.get(drop_area_ent,pindex)
             end
          end
       end
@@ -721,7 +733,7 @@ function ent_info(pindex, ent, description)
    end
    --Explain if no fuel 
    if ent.prototype.burner_prototype ~= nil then
-      if ent.energy == 0 and fuel_inventory_info(ent) == "Contains no fuel." then
+      if ent.energy == 0 and fa_driving.fuel_inventory_info(ent) == "Contains no fuel." then
          result = result .. ", Out of Fuel "
       end
    end
@@ -792,7 +804,7 @@ function ent_info(pindex, ent, description)
    --Explain heat connection neighbors
    if ent.prototype.heat_buffer_prototype ~= nil then
       result = result .. " connects "
-      local con_targets = get_heat_connection_target_positions(ent.name, ent.position, ent.direction)
+      local con_targets = fa_building_tools.get_heat_connection_target_positions(ent.name, ent.position, ent.direction)
       local con_count = 0
       local con_counts = {0,0,0,0,0,0,0,0}
       con_counts[dirs.north+1] = 0
@@ -805,8 +817,8 @@ function ent_info(pindex, ent, description)
             rendering.draw_circle{color = {1.0, 0.0, 0.5},radius = 0.1,width = 2,target = con_target_pos, surface = ent.surface, time_to_live = 30}
             local target_ents = ent.surface.find_entities_filtered{position = con_target_pos}
             for j, target_ent in ipairs(target_ents) do
-               if target_ent.valid and #get_heat_connection_positions(target_ent.name, target_ent.position, target_ent.direction) > 0 then
-                  for k, spot in ipairs(get_heat_connection_positions(target_ent.name, target_ent.position, target_ent.direction)) do
+               if target_ent.valid and #fa_building_tools.get_heat_connection_positions(target_ent.name, target_ent.position, target_ent.direction) > 0 then
+                  for k, spot in ipairs(fa_building_tools.get_heat_connection_positions(target_ent.name, target_ent.position, target_ent.direction)) do
                      --For each heat connection of the found target entity 
                      rendering.draw_circle{color = {1.0, 1.0, 0.5},radius = 0.2,width = 2,target = spot, surface = ent.surface, time_to_live = 30}
                      if util.distance(con_target_pos,spot) < 0.2 then
@@ -907,7 +919,7 @@ function generate_production_network(pindex)
             elseif target.type == "transport-belt" then
                if hash[target.unit_number] == nil then
 
-                  local belts = get_connected_belts(target)
+                  local belts = fa_belts.get_connected_belts(target)
                   for i, belt in pairs(belts.hash) do
                      hash[i] = {link = target.unit_number}
                   end
@@ -997,7 +1009,7 @@ function generate_production_network(pindex)
                end
             elseif drop_target.type == "transport-belt" then
                if hash[drop_target.unit_number] == nil then
-                  local belts = get_connected_belts(drop_target)
+                  local belts = fa_belts.get_connected_belts(drop_target)
                   for i, belt in pairs(belts.hash) do
                      hash[i] = {link = drop_target.unit_number}
                   end
@@ -1056,7 +1068,7 @@ function generate_production_network(pindex)
 
             elseif pickup_target.type == "transport-belt" then
                if hash[pickup_target.unit_number] == nil then
-                  local belts = get_connected_belts(pickup_target)
+                  local belts = fa_belts.get_connected_belts(pickup_target)
                   for i, belt in pairs(belts.hash) do
                      hash[i] = {link = pickup_target.unit_number}
                   end
@@ -1310,12 +1322,12 @@ function read_inventory_slot(pindex, start_phrase_in, inv_in)
       return
    end
    if stack.is_blueprint then
-      printout(get_blueprint_info(stack,false),pindex)
+      printout(fa_blueprints.get_blueprint_info(stack,false),pindex)
    elseif stack.valid_for_read then
       if stack.health < 1 then
          start_phrase = start_phrase .. " damaged "
       end
-      printout(start_phrase .. localising.get(stack,pindex) .. " x " .. stack.count .. " " .. stack.prototype.subgroup.name , pindex)
+      printout(start_phrase .. fa_localising.get(stack,pindex) .. " x " .. stack.count .. " " .. stack.prototype.subgroup.name , pindex)
    end
 end
 
@@ -1330,7 +1342,7 @@ function read_hand(pindex)
    if cursor_stack and cursor_stack.valid_for_read then
       if cursor_stack.is_blueprint then
          --Blueprint extra info 
-         printout(get_blueprint_info(cursor_stack,true),pindex)
+         printout(fa_blueprints.get_blueprint_info(cursor_stack,true),pindex)
       elseif cursor_stack.name == "spidertron-remote" then
          local remote_info = ""
          if cursor_stack.connected_entity == nil then
@@ -1342,7 +1354,7 @@ function read_hand(pindex)
                remote_info = " for spidertron " .. cursor_stack.connected_entity.entity_label
             end
          end
-         printout(localising.get(cursor_stack,pindex) .. remote_info, pindex)
+         printout(fa_localising.get(cursor_stack,pindex) .. remote_info, pindex)
       else
          --Any other valid item
          local out={"access.cursor-description"}
@@ -1436,7 +1448,7 @@ function locate_hand_in_player_inventory(pindex)
    end
    --If found, read it from the inventory
    if not found then
-      printout("Error: " .. localising.get(stack,pindex) .. " not found in player inventory",pindex)
+      printout("Error: " .. fa_localising.get(stack,pindex) .. " not found in player inventory",pindex)
       return
    else
       players[pindex].inventory.index = i
@@ -1489,11 +1501,11 @@ function locate_hand_in_building_output_inventory(pindex)
    end
    --If found, read it from the inventory
    if not found then
-      printout(localising.get(stack,pindex) .. " not found in building output",pindex)
+      printout(fa_localising.get(stack,pindex) .. " not found in building output",pindex)
       return
    else
       players[pindex].building.index = i
-      read_building_slot(pindex, false)
+      fa_sectors.read_sector_slot(pindex, false)
    end
 
 end
@@ -1522,7 +1534,7 @@ function locate_hand_in_crafting_menu(pindex)
    p.opened = p
 
    --Get the name
-   local item_name = string.lower(fa_utils.get_substring_before_space(fa_utils.get_substring_before_dash(localising.get(stack.prototype,pindex))))
+   local item_name = string.lower(fa_utils.get_substring_before_space(fa_utils.get_substring_before_dash(fa_localising.get(stack.prototype,pindex))))
    players[pindex].menu_search_term = item_name
 
    --Empty hand stack (clear cursor stack) after getting the name 
@@ -1538,7 +1550,7 @@ function locate_hand_in_crafting_menu(pindex)
    end
 
    --Run the search
-   menu_search_get_next(pindex,item_name,nil)
+   fa_menu_search.fetch_next(pindex,item_name,nil)
 end
 
 --If there is an entity to select, moves the mouse pointer to it, else moves to the cursor tile.
@@ -1548,9 +1560,9 @@ function target(pindex)
    end
    local ent = get_selected_ent(pindex)
    if ent then
-      move_mouse_pointer(ent.position,pindex)
+      fa_mouse.move_mouse_pointer(ent.position,pindex)
    else
-      move_mouse_pointer(players[pindex].cursor_pos, pindex)
+      fa_mouse.move_mouse_pointer(players[pindex].cursor_pos, pindex)
    end
 end
 
@@ -1625,8 +1637,8 @@ function toggle_cursor_mode(pindex)
       players[pindex].cursor = false
       players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].position,players[pindex].player_direction,1)
       players[pindex].cursor_pos = fa_utils.center_of_tile(players[pindex].cursor_pos)
-      move_mouse_pointer(players[pindex].cursor_pos,pindex)
-      sync_build_cursor_graphics(pindex)
+      fa_mouse.move_mouse_pointer(players[pindex].cursor_pos,pindex)
+      fa_graphics.sync_build_cursor_graphics(pindex)
       target(pindex)
       players[pindex].player_direction = p.character.direction
       players[pindex].build_lock = false
@@ -1643,14 +1655,14 @@ function toggle_cursor_mode(pindex)
       --Update cursor highlight
       local ent = get_selected_ent(pindex)
       if ent and ent.valid then
-         cursor_highlight(pindex, ent, nil)
+         fa_graphics.draw_cursor_highlight(pindex, ent, nil)
       else
-         cursor_highlight(pindex, nil, nil)
+         fa_graphics.draw_cursor_highlight(pindex, nil, nil)
       end
    else
       local left_top = {math.floor(players[pindex].cursor_pos.x)-players[pindex].cursor_size,math.floor(players[pindex].cursor_pos.y)-players[pindex].cursor_size}
       local right_bottom = {math.floor(players[pindex].cursor_pos.x)+players[pindex].cursor_size+1,math.floor(players[pindex].cursor_pos.y)+players[pindex].cursor_size+1}
-      draw_area_as_cursor(left_top,right_bottom,pindex)
+      fa_graphics.draw_area_as_cursor(left_top,right_bottom,pindex)
    end
 end
 
@@ -1686,7 +1698,7 @@ function center_player_character(pindex)
    end
    players[pindex].position = p.position
    players[pindex].cursor_pos = fa_utils.center_of_tile(players[pindex].cursor_pos)
-   move_mouse_pointer(players[pindex].cursor_pos,pindex)
+   fa_mouse.move_mouse_pointer(players[pindex].cursor_pos,pindex)
 end
 
 --Teleports the cursor to the player character
@@ -1696,11 +1708,11 @@ function jump_to_player(pindex)
    players[pindex].cursor_pos.y = math.floor(first_player.position.y) + .5
    read_coords(pindex, "Cursor returned ")
    if players[pindex].cursor_size < 2 then
-      cursor_highlight(pindex, nil, nil)
+      fa_graphics.draw_cursor_highlight(pindex, nil, nil)
    else
       local scan_left_top = {math.floor(players[pindex].cursor_pos.x)-players[pindex].cursor_size,math.floor(players[pindex].cursor_pos.y)-players[pindex].cursor_size}
       local scan_right_bottom = {math.floor(players[pindex].cursor_pos.x)+players[pindex].cursor_size+1,math.floor(players[pindex].cursor_pos.y)+players[pindex].cursor_size+1}
-      draw_area_as_cursor(scan_left_top,scan_right_bottom,pindex)
+      fa_graphics.draw_area_as_cursor(scan_left_top,scan_right_bottom,pindex)
    end
 end
 
@@ -1761,17 +1773,17 @@ function read_tile(pindex, start_text)
       --If there is no ent, read the tile instead
       players[pindex].tile.previous = nil
       local tile = players[pindex].tile.tile
-      result = result .. localising.get(players[pindex].tile.tile_object,pindex)
+      result = result .. fa_localising.get(players[pindex].tile.tile_object,pindex)
       if tile == "water" or tile == "deepwater" or tile == "water-green" or tile == "deepwater-green" or tile == "water-shallow" or tile == "water-mud" or tile == "water-wube" then
          --Identify shores and crevices and so on for water tiles
          result = result .. identify_water_shores(pindex)
       end
-      cursor_highlight(pindex, nil, nil)
+      fa_graphics.draw_cursor_highlight(pindex, nil, nil)
       game.get_player(pindex).selected = nil
 
    else--laterdo tackle the issue here where entities such as tree stumps block preview info 
       result = result .. ent_info(pindex, ent)
-      cursor_highlight(pindex, ent, nil)
+      fa_graphics.draw_cursor_highlight(pindex, ent, nil)
       game.get_player(pindex).selected = ent
 
       --game.get_player(pindex).print(result)--
@@ -1781,7 +1793,7 @@ function read_tile(pindex, start_text)
       local stack = game.get_player(pindex).cursor_stack
       --Run build preview checks
       if stack and stack.valid_for_read and stack.valid and stack.prototype.place_result ~= nil then
-         result = result .. build_preview_checks_info(stack,pindex)
+         result = result .. fa_building_tools.build_preview_checks_info(stack,pindex)
          --game.get_player(pindex).print(result)--
       end
    end
@@ -1792,7 +1804,7 @@ function read_tile(pindex, start_text)
       if ent and ent.valid then--not while loop, because it causes crashes
          local name = ent.name
          game.get_player(pindex).play_sound{path = "player-mine"}
-         if try_to_mine_with_sound(ent,pindex) then
+         if fa_building_tools.try_to_mine_with_sound(ent,pindex) then
             result = result .. name .. " mined, "
          end
          --Second round, in case two entities are there. While loops do not work!
@@ -1800,7 +1812,7 @@ function read_tile(pindex, start_text)
          if ent and ent.valid and players[pindex].walk ~= 2 then--not while
             local name = ent.name
             game.get_player(pindex).play_sound{path = "player-mine"}
-            if try_to_mine_with_sound(ent,pindex) then
+            if fa_building_tools.try_to_mine_with_sound(ent,pindex) then
                result = result .. name .. " mined, "
             end
          end
@@ -1832,16 +1844,16 @@ function read_coords(pindex, start_phrase)
          local speed = vehicle.speed * 215
          if vehicle.type ~= "spider-vehicle" then
             if speed > 0 then
-               result = result .. " heading " .. get_heading(vehicle) .. " at " .. math.floor(speed) .. " kilometers per hour "
+               result = result .. " heading " .. fa_driving.get_heading(vehicle) .. " at " .. math.floor(speed) .. " kilometers per hour "
             elseif speed < 0 then
-               result = result .. " facing " .. get_heading(vehicle) .. " while reversing at "  .. math.floor(-speed) .. " kilometers per hour "
+               result = result .. " facing " .. fa_driving.get_heading(vehicle) .. " while reversing at "  .. math.floor(-speed) .. " kilometers per hour "
             else
-               result = result .. " parked facing " .. get_heading(vehicle)
+               result = result .. " parked facing " .. fa_driving.get_heading(vehicle)
             end
          else
             result = result .. " moving at "  .. math.floor(speed) .. " kilometers per hour "
          end
-         result = result .. " in " .. localising.get(vehicle,pindex) .. " at point "
+         result = result .. " in " .. fa_localising.get(vehicle,pindex) .. " at point "
          printout(result .. math.floor(vehicle.position.x) .. ", " .. math.floor(vehicle.position.y), pindex)
       else
          --Simply give coords
@@ -1891,7 +1903,7 @@ function read_coords(pindex, start_phrase)
             result = result .. preview_str
          elseif stack and stack.valid_for_read and stack.valid and stack.is_blueprint and stack.is_blueprint_setup() then
             --Blueprints have their own data 
-            local left_top, right_bottom, build_pos = get_blueprint_corners(pindex, false)
+            local left_top, right_bottom, build_pos = fa_blueprints.get_blueprint_corners(pindex, false)
             local bp_dim_1 = right_bottom.x - left_top.x
             local bp_dim_2 = right_bottom.y - left_top.y
             local preview_str = ", blueprint preview is " .. bp_dim_1 .. " tiles wide to the East and " .. bp_dim_2 .. " tiles high to the South"
@@ -1939,7 +1951,7 @@ function read_coords(pindex, start_phrase)
          if proto == nil then
             proto = game.fluid_prototypes[v.name]
          end
-         local localised_name = localising.get(proto,pindex)
+         local localised_name = fa_localising.get(proto,pindex)
          result = result .. ", " .. localised_name .. " times " .. v.amount
       end
       result = result .. ", Products: "
@@ -1949,7 +1961,7 @@ function read_coords(pindex, start_phrase)
          if proto == nil then
             proto = game.fluid_prototypes[v.name]
          end
-         local localised_name = localising.get(proto,pindex)
+         local localised_name = fa_localising.get(proto,pindex)
          result = result .. ", " .. localised_name .. " times " .. v.amount
       end
       result = result .. ", craft time " .. recipe.energy .. " seconds by default."
@@ -1977,11 +1989,11 @@ function read_coords(pindex, start_phrase)
             result = result .. " None "
          end
          for i, preq in pairs(techs[players[pindex].technology.index].prerequisites) do
-            result = result .. localising.get(preq,pindex) .. " , "
+            result = result .. fa_localising.get(preq,pindex) .. " , "
          end
          result = result .. ", and equipment " .. techs[players[pindex].technology.index].research_unit_count .. " times "
          for i, ingredient in pairs(techs[players[pindex].technology.index].research_unit_ingredients ) do
-            result = result .. localising.get_item_from_name(ingredient.name,pindex) .. ", "
+            result = result .. fa_localising.get_item_from_name(ingredient.name,pindex) .. ", "
          end
 
          printout(result, pindex)
@@ -1997,7 +2009,7 @@ function read_coords(pindex, start_phrase)
          if proto == nil then
             proto = game.fluid_prototypes[v.name]
          end
-         local localised_name = localising.get(proto,pindex)
+         local localised_name = fa_localising.get(proto,pindex)
          result = result .. ", " .. localised_name .. " x" .. v.amount .. " per cycle "
       end
       result = result .. ", products: "
@@ -2007,7 +2019,7 @@ function read_coords(pindex, start_phrase)
          if proto == nil then
             proto = game.fluid_prototypes[v.name]
          end
-         local localised_name = localising.get(proto,pindex)
+         local localised_name = fa_localising.get(proto,pindex)
          result = result .. ", " .. localised_name .. " x" .. v.amount .. " per cycle "
       end
       result = result .. ", craft time " .. recipe.energy .. " seconds at default speed."
@@ -2266,7 +2278,7 @@ spider = nil
 
    faplayer.localisations = faplayer.localisations or {}
    faplayer.translation_id_lookup = faplayer.translation_id_lookup or {}
-   localising.check_player(player.index)
+   fa_localising.check_player(player.index)
 
    faplayer.bump = faplayer.bump or {
       last_bump_tick = 1,     --Updated in bump checker
@@ -2311,7 +2323,7 @@ script.on_event(defines.events.on_player_changed_position,function(event)
          if players[pindex].build_lock and stack.valid_for_read and stack.valid and stack.prototype.place_result ~= nil and (stack.prototype.place_result.type == "transport-belt" or stack.name == "rail") then
             turn_to_cursor_direction_cardinal(pindex)
             players[pindex].building_direction = players[pindex].player_direction
-            build_item_in_hand(pindex)--build extra belt when turning
+            fa_building_tools.build_item_in_hand(pindex)--build extra belt when turning
          end
       elseif players[pindex].cursor == false then
          --Directions same: Walk straight
@@ -2325,37 +2337,37 @@ script.on_event(defines.events.on_player_changed_position,function(event)
                turn_to_cursor_direction_cardinal(pindex)
                players[pindex].building_direction = players[pindex].player_direction
             end
-            build_item_in_hand(pindex)
+            fa_building_tools.build_item_in_hand(pindex)
          end
       end
 
       --Update cursor graphics
       local stack = p.cursor_stack
       if stack and stack.valid_for_read and stack.valid then
-         sync_build_cursor_graphics(pindex)
+         fa_graphics.sync_build_cursor_graphics(pindex)
       end
 
       --Name a detected entity that you can or cannot walk on, or a tile you cannot walk on, and play a sound to indicate multiple consecutive detections
       refresh_player_tile(pindex)
       local ent = get_selected_ent(pindex)
       if not players[pindex].vanilla_mode and ((ent ~= nil and ent.valid) or (p.surface.can_place_entity{name = "character", position = players[pindex].cursor_pos} == false)) then
-         cursor_highlight(pindex, ent, nil)
+         fa_graphics.draw_cursor_highlight(pindex, ent, nil)
          if p.driving then
             return
          end
 
          if ent ~= nil and ent.valid and (p.character == nil or (p.character ~= nil and p.character.unit_number ~= ent.unit_number)) then
-            cursor_highlight(pindex, ent, nil)
+            fa_graphics.draw_cursor_highlight(pindex, ent, nil)
             p.selected = ent
             p.play_sound{path = "Close-Inventory-Sound", volume_modifier = 0.75}
          else
-            cursor_highlight(pindex, nil, nil)
+            fa_graphics.draw_cursor_highlight(pindex, nil, nil)
             p.selected = nil
          end
 
          read_tile(pindex)
       else
-         cursor_highlight(pindex, nil, nil)
+         fa_graphics.draw_cursor_highlight(pindex, nil, nil)
          p.selected = nil
       end
    end
@@ -2470,7 +2482,7 @@ function menu_cursor_up(pindex)
             game.get_player(pindex).play_sound{path = "inventory-wrap-around"}
             --players[pindex].building.index = 1
          end
-         read_building_slot(pindex,false)
+         fa_sectors.read_sector_slot(pindex,false)
       elseif players[pindex].building.recipe_list == nil then
          --Move one row up in player inventory
          game.get_player(pindex).play_sound{path = "Inventory-Move"}
@@ -2490,7 +2502,7 @@ function menu_cursor_up(pindex)
                   players[pindex].building.category = #players[pindex].building.recipe_list
                end
             end
-            read_building_recipe(pindex)
+            fa_sectors.read_building_recipe(pindex)
          else
             --Case = ???
             game.get_player(pindex).play_sound{path = "Inventory-Move"}
@@ -2555,7 +2567,7 @@ function menu_cursor_up(pindex)
          end
 
       end
-      read_belt_slot(pindex)
+      fa_belts.read_belt_slot(pindex)
    elseif players[pindex].menu == "warnings" then
       if players[pindex].warnings.category > 1 then
          players[pindex].warnings.category = players[pindex].warnings.category - 1
@@ -2583,15 +2595,15 @@ function menu_cursor_up(pindex)
    elseif players[pindex].menu == "structure-travel" then
       move_cursor_structure(pindex, 0)
    elseif players[pindex].menu == "rail_builder" then
-      rail_builder_up(pindex)
+      fa_rail_builder.menu_up(pindex)
    elseif players[pindex].menu == "train_stop_menu" then
-      train_stop_menu_up(pindex)
+      fa_train_stops.train_stop_menu_up(pindex)
    elseif players[pindex].menu == "roboport_menu" then
-      roboport_menu_up(pindex)
+      fa_bot_logistics.roboport_menu_up(pindex)
    elseif players[pindex].menu == "blueprint_menu" then
-      blueprint_menu_up(pindex)
+      fa_blueprints.blueprint_menu_up(pindex)
    elseif players[pindex].menu == "blueprint_book_menu" then
-      blueprint_book_menu_up(pindex)
+      fa_blueprints.blueprint_book_menu_up(pindex)
    elseif players[pindex].menu == "circuit_network_menu" then
       general_mod_menu_up(pindex, players[pindex].circuit_network_menu, 0)
       circuit_network_menu(pindex, nil, players[pindex].circuit_network_menu.index, false)
@@ -2705,7 +2717,7 @@ function menu_cursor_down(pindex)
             --Inventory size < row length: Wrap over to the same slot
             game.get_player(pindex).play_sound{path = "inventory-wrap-around"}
          end
-         read_building_slot(pindex,false)
+         fa_sectors.read_sector_slot(pindex,false)
       elseif players[pindex].building.recipe_list == nil then
          --Move one row down in player inventory
          game.get_player(pindex).play_sound{path = "Inventory-Move"}
@@ -2729,7 +2741,7 @@ function menu_cursor_down(pindex)
                   players[pindex].building.category = 1
                end
             end
-            read_building_recipe(pindex)
+            fa_sectors.read_building_recipe(pindex)
          else
             --Case = ???
             game.get_player(pindex).play_sound{path = "Inventory-Move"}
@@ -2797,7 +2809,7 @@ function menu_cursor_down(pindex)
          end
 
       end
-      read_belt_slot(pindex)
+      fa_belts.read_belt_slot(pindex)
    elseif players[pindex].menu == "warnings" then
       local warnings = {}
       if players[pindex].warnings.sector == 1 then
@@ -2833,15 +2845,15 @@ function menu_cursor_down(pindex)
    elseif players[pindex].menu == "structure-travel" then
       move_cursor_structure(pindex, 4)
    elseif players[pindex].menu == "rail_builder" then
-      rail_builder_down(pindex)
+      fa_rail_builder.menu_down(pindex)
    elseif players[pindex].menu == "train_stop_menu" then
-      train_stop_menu_down(pindex)
+      fa_train_stops.train_stop_menu_down(pindex)
    elseif players[pindex].menu == "roboport_menu" then
-      roboport_menu_down(pindex)
+      fa_bot_logistics.roboport_menu_down(pindex)
    elseif players[pindex].menu == "blueprint_menu" then
-      blueprint_menu_down(pindex)
+      fa_blueprints.blueprint_menu_down(pindex)
    elseif players[pindex].menu == "blueprint_book_menu" then
-      blueprint_book_menu_down(pindex)
+      fa_blueprints.blueprint_book_menu_down(pindex)
    elseif players[pindex].menu == "circuit_network_menu" then
       general_mod_menu_down(pindex, players[pindex].circuit_network_menu, CIRCUIT_NETWORK_MENU_LENGTH)
       circuit_network_menu(pindex, nil, players[pindex].circuit_network_menu.index, false)
@@ -2941,7 +2953,7 @@ function menu_cursor_left(pindex)
                players[pindex].building.index = #players[pindex].building.sectors[players[pindex].building.sector].inventory
             end
          end
-         read_building_slot(pindex,false)
+         fa_sectors.read_sector_slot(pindex,false)
       elseif players[pindex].building.recipe_list == nil then
          game.get_player(pindex).play_sound{path = "Inventory-Move"}
          players[pindex].inventory.index = players[pindex].inventory.index -1
@@ -2959,7 +2971,7 @@ function menu_cursor_left(pindex)
                   players[pindex].building.index = #players[pindex].building.recipe_list[players[pindex].building.category]
                end
             end
-            read_building_recipe(pindex)
+            fa_sectors.read_building_recipe(pindex)
          else
             --Case ???
             game.get_player(pindex).play_sound{path = "Inventory-Move"}
@@ -2982,7 +2994,7 @@ function menu_cursor_left(pindex)
          players[pindex].belt.side = 1
          game.get_player(pindex).play_sound{path = "Inventory-Move"}
             if not pcall(function()
-            read_belt_slot(pindex)
+            fa_belts.read_belt_slot(pindex)
          end) then
             printout("Blank", pindex)
          end
@@ -3088,7 +3100,7 @@ function menu_cursor_right(pindex)
                players[pindex].building.index = 1
             end
          end
-         read_building_slot(pindex,false)
+         fa_sectors.read_sector_slot(pindex,false)
       elseif players[pindex].building.recipe_list == nil then
          game.get_player(pindex).play_sound{path = "Inventory-Move"}
          players[pindex].inventory.index = players[pindex].inventory.index +1
@@ -3107,7 +3119,7 @@ function menu_cursor_right(pindex)
                   players[pindex].building.index  = 1
                end
             end
-            read_building_recipe(pindex)
+            fa_sectors.read_building_recipe(pindex)
          else
             --Case = ???
             game.get_player(pindex).play_sound{path = "Inventory-Move"}
@@ -3140,7 +3152,7 @@ function menu_cursor_right(pindex)
          players[pindex].belt.side = 2
          game.get_player(pindex).play_sound{path = "Inventory-Move"}
             if not pcall(function()
-            read_belt_slot(pindex)
+            fa_belts.read_belt_slot(pindex)
          end) then
             printout("Blank", pindex)
          end
@@ -3192,7 +3204,7 @@ function on_player_join(pindex)
    players = players or global.players
    schedule(3, "fix_zoom", pindex)
    schedule(4, "sync_build_cursor_graphics", pindex)
-   localising.check_player(pindex)
+   fa_localising.check_player(pindex)
    local playerList={}
    for _ , p in pairs(game.connected_players) do
       playerList["_" .. p.index]=p.name
@@ -3251,25 +3263,25 @@ function on_tick(event)
       end
    elseif event.tick % 15 == 1 then
       --Check and play train track warning sounds at appropriate frequencies
-      check_and_play_train_track_alert_sounds(3)
+      fa_rails.check_and_play_train_track_alert_sounds(3)
       fa_combat.check_and_play_enemy_alert_sound(3)
       if event.tick % 30 == 1 then
-         check_and_play_train_track_alert_sounds(2)
+         fa_rails.check_and_play_train_track_alert_sounds(2)
          fa_combat.check_and_play_enemy_alert_sound(2)
          if event.tick % 60 == 1 then
-            check_and_play_train_track_alert_sounds(1)
+            fa_rails.check_and_play_train_track_alert_sounds(1)
             fa_combat.check_and_play_enemy_alert_sound(1)
          end
       end
    elseif event.tick % 15 == 2 then
       for pindex, player in pairs(players) do
-         local check_further = check_and_play_driving_alert_sound(pindex, event.tick, 1)
+         local check_further = fa_driving.check_and_play_driving_alert_sound(pindex, event.tick, 1)
          if event.tick % 30 == 2 and check_further then
-            check_further = check_and_play_driving_alert_sound(pindex, event.tick, 2)
+            check_further = fa_driving.check_and_play_driving_alert_sound(pindex, event.tick, 2)
             if event.tick % 60 == 2 and check_further then
-               check_further = check_and_play_driving_alert_sound(pindex, event.tick, 3)
+               check_further = fa_driving.check_and_play_driving_alert_sound(pindex, event.tick, 3)
                if event.tick % 120 == 2 and check_further then
-                  check_further = check_and_play_driving_alert_sound(pindex, event.tick, 4)
+                  check_further = fa_driving.check_and_play_driving_alert_sound(pindex, event.tick, 4)
                end
             end
          end
@@ -3286,13 +3298,13 @@ function on_tick(event)
    elseif event.tick % 30 == 6 then
       --Check and play train horns
       for pindex, player in pairs(players) do
-         check_and_honk_at_trains_in_same_block(event.tick,pindex)
-         check_and_honk_at_closed_signal(event.tick,pindex)
-         check_and_play_sound_for_turning_trains(pindex)
+         fa_trains.check_and_honk_at_trains_in_same_block(event.tick,pindex)
+         fa_trains.check_and_honk_at_closed_signal(event.tick,pindex)
+         fa_trains.check_and_play_sound_for_turning_trains(pindex)
       end
    elseif event.tick % 30 == 7 then
       --Update menu visuals
-      update_menu_visuals()
+      fa_graphics.update_menu_visuals()
    elseif event.tick % 60 == 11 then
       for pindex, player in pairs(players) do
          --If within 50 tiles of an enemy, try to aim at enemies and play sound to notify of enemies within shooting range
@@ -3341,13 +3353,13 @@ function move_characters(event)
          if players[pindex].in_menu == false and stack and stack.valid_for_read then
             if stack.prototype.place_result ~= nil or stack.prototype.place_as_tile_result ~= nil or stack.is_blueprint or stack.is_deconstruction_item or stack.is_upgrade_item then
                --Force the pointer to the build preview location
-               sync_build_cursor_graphics(pindex)
+               fa_graphics.sync_build_cursor_graphics(pindex)
             else
                --Force the pointer to the cursor location (if on screen)
                if cursor_position_is_on_screen_with_player_centered(pindex) then
-                  move_mouse_pointer(players[pindex].cursor_pos,pindex)
+                  fa_mouse.move_mouse_pointer(players[pindex].cursor_pos,pindex)
                else
-                  move_mouse_pointer(players[pindex].position,pindex)
+                  fa_mouse.move_mouse_pointer(players[pindex].position,pindex)
                end
             end
          end
@@ -3430,11 +3442,11 @@ function move(direction,pindex)
 
          local stack = first_player.cursor_stack
          if stack and stack.valid_for_read and stack.valid and stack.prototype.place_result ~= nil then
-            sync_build_cursor_graphics(pindex)
+            fa_graphics.sync_build_cursor_graphics(pindex)
          end
 
          if players[pindex].build_lock then
-            build_item_in_hand(pindex)
+            fa_building_tools.build_item_in_hand(pindex)
          end
       else
          printout("Tile Occupied", pindex)
@@ -3453,7 +3465,7 @@ function move(direction,pindex)
 
       local stack = first_player.cursor_stack
       if stack and stack.valid_for_read and stack.valid and stack.prototype.place_result ~= nil then
-         sync_build_cursor_graphics(pindex)
+         fa_graphics.sync_build_cursor_graphics(pindex)
       end
 
       if game.get_player(pindex).driving then
@@ -3482,9 +3494,9 @@ function move(direction,pindex)
    --Update cursor highlight
    local ent = get_selected_ent(pindex)
    if ent and ent.valid then
-      cursor_highlight(pindex, ent, nil)
+      fa_graphics.draw_cursor_highlight(pindex, ent, nil)
    else
-      cursor_highlight(pindex, nil, nil)
+      fa_graphics.draw_cursor_highlight(pindex, nil, nil)
    end
 
    --Unless the cut-paste tool is in hand, restore the reading of flying text 
@@ -3561,31 +3573,31 @@ function cursor_mode_move(direction, pindex, single_only)
       --Update drawn cursor
       local stack = p.cursor_stack
       if stack and stack.valid_for_read and stack.valid and (stack.prototype.place_result ~= nil or stack.is_blueprint) then
-         sync_build_cursor_graphics(pindex)
+         fa_graphics.sync_build_cursor_graphics(pindex)
       end
 
       --Apply build lock if active
       if players[pindex].build_lock then
-         build_item_in_hand(pindex)
+         fa_building_tools.build_item_in_hand(pindex)
       end
 
       --Update cursor highlight
       local ent = get_selected_ent(pindex)
       if ent and ent.valid then
-         cursor_highlight(pindex, ent, nil)
+         fa_graphics.draw_cursor_highlight(pindex, ent, nil)
       else
-         cursor_highlight(pindex, nil, nil)
+         fa_graphics.draw_cursor_highlight(pindex, nil, nil)
       end
    else
       -- Larger cursor sizes: scan area
       local scan_left_top = {math.floor(players[pindex].cursor_pos.x)-players[pindex].cursor_size,math.floor(players[pindex].cursor_pos.y)-players[pindex].cursor_size}
       local scan_right_bottom = {math.floor(players[pindex].cursor_pos.x)+players[pindex].cursor_size+1,math.floor(players[pindex].cursor_pos.y)+players[pindex].cursor_size+1}
       players[pindex].nearby.index = 1
-      players[pindex].nearby.ents = scan_area(math.floor(players[pindex].cursor_pos.x)-players[pindex].cursor_size, math.floor(players[pindex].cursor_pos.y)-players[pindex].cursor_size, players[pindex].cursor_size * 2 + 1, players[pindex].cursor_size * 2 + 1, pindex)
-      populate_categories(pindex)
+      players[pindex].nearby.ents = fa_scanner.scan_area(math.floor(players[pindex].cursor_pos.x)-players[pindex].cursor_size, math.floor(players[pindex].cursor_pos.y)-players[pindex].cursor_size, players[pindex].cursor_size * 2 + 1, players[pindex].cursor_size * 2 + 1, pindex)
+      fa_scanner.populate_list_categories(pindex)
       players[pindex].cursor_scan_center = players[pindex].cursor_pos
-      local scan_summary = get_area_scan_summary(scan_left_top, scan_right_bottom, pindex)
-      draw_area_as_cursor(scan_left_top,scan_right_bottom,pindex)
+      local scan_summary = fa_scanner.area_scan_summary_info(scan_left_top, scan_right_bottom, pindex)
+      fa_graphics.draw_area_as_cursor(scan_left_top,scan_right_bottom,pindex)
       printout(scan_summary,pindex)
    end
 
@@ -3605,7 +3617,7 @@ end
 function sync_remote_view(pindex)
    local p = game.get_player(pindex)
    p.zoom_to_world(players[pindex].cursor_pos)
-   sync_build_cursor_graphics(pindex)
+   fa_graphics.sync_build_cursor_graphics(pindex)
 end
 
 --Makes the character face the cursor, choosing the nearest of 4 cardinal directions. Can be overwriten by vanilla move keys.
@@ -3665,10 +3677,10 @@ script.on_event(defines.events.on_player_driving_changed_state, function(event)
       end
       teleport_to_closest(pindex, players[pindex].last_vehicle.position, true, true)
       if players[pindex].menu == "train_menu" then
-         train_menu_close(pindex, false)
+         fa_trains.menu_close(pindex, false)
       end
       if players[pindex].menu == "spider_menu" then
-         spider_menu_close(pindex, false)
+         fa_spidertrons.spider_menu_close(pindex, false)
       end
    else
       printout("Driving state changed." ,pindex)
@@ -3823,8 +3835,8 @@ script.on_event("cursor-bookmark-load", function(event)
    end
    local pos = players[pindex].cursor_bookmark
    players[pindex].cursor_pos = pos
-   cursor_highlight(pindex, nil, nil)
-   sync_build_cursor_graphics(pindex)
+   fa_graphics.draw_cursor_highlight(pindex, nil, nil)
+   fa_graphics.sync_build_cursor_graphics(pindex)
    printout("Loaded cursor bookmark at " .. math.floor(pos.x) .. ", " .. math.floor(pos.y) ,pindex)
    game.get_player(pindex).play_sound{path = "Close-Inventory-Sound"}
 end)
@@ -3868,8 +3880,8 @@ script.on_event("teleport-to-alert-forced", function(event)
    players[pindex].cursor_pos = game.get_player(pindex).position
    players[pindex].position = game.get_player(pindex).position
    players[pindex].last_damage_alert_pos = game.get_player(pindex).position
-   cursor_highlight(pindex, nil, nil)
-   sync_build_cursor_graphics(pindex)
+   fa_graphics.draw_cursor_highlight(pindex, nil, nil)
+   fa_graphics.sync_build_cursor_graphics(pindex)
    refresh_player_tile(pindex)
 end)
 
@@ -3893,7 +3905,7 @@ script.on_event("toggle-remote-view", function(event)
       players[pindex].move_queue = {}
       toggle_remote_view(pindex)
    end
-   fix_zoom(pindex)
+   fa_zoom.fix_zoom(pindex)
 end)
 
 --We have cursor sizes 1,3,5,11,21,51,101,251
@@ -3923,7 +3935,7 @@ script.on_event("cursor-size-increment", function(event)
       printout("Cursor size " .. say_size .. " by " .. say_size, pindex)
       local scan_left_top = {math.floor(players[pindex].cursor_pos.x)-players[pindex].cursor_size,math.floor(players[pindex].cursor_pos.y)-players[pindex].cursor_size}
       local scan_right_bottom = {math.floor(players[pindex].cursor_pos.x)+players[pindex].cursor_size+1,math.floor(players[pindex].cursor_pos.y)+players[pindex].cursor_size+1}
-      draw_area_as_cursor(scan_left_top,scan_right_bottom,pindex)
+      fa_graphics.draw_area_as_cursor(scan_left_top,scan_right_bottom,pindex)
    end
 
    --Play Sound
@@ -3957,7 +3969,7 @@ script.on_event("cursor-size-decrement", function(event)
       printout("Cursor size " .. say_size .. " by " .. say_size, pindex)
       local scan_left_top = {math.floor(players[pindex].cursor_pos.x)-players[pindex].cursor_size,math.floor(players[pindex].cursor_pos.y)-players[pindex].cursor_size}
       local scan_right_bottom = {math.floor(players[pindex].cursor_pos.x)+players[pindex].cursor_size+1,math.floor(players[pindex].cursor_pos.y)+players[pindex].cursor_size+1}
-      draw_area_as_cursor(scan_left_top,scan_right_bottom,pindex)
+      fa_graphics.draw_area_as_cursor(scan_left_top,scan_right_bottom,pindex)
    end
 
    --Play Sound
@@ -3972,7 +3984,7 @@ script.on_event("increase-inventory-bar-by-1", function(event)
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Increase
 	  local ent = get_selected_ent(pindex)
-	  local result = increment_inventory_bar(ent, 1)
+	  local result = fa_sectors.add_to_inventory_bar(ent, 1)
 	  printout(result, pindex)
    end
 end)
@@ -3985,7 +3997,7 @@ script.on_event("increase-inventory-bar-by-5", function(event)
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Increase
 	  local ent = get_selected_ent(pindex)
-	  local result = increment_inventory_bar(ent, 5)
+	  local result = fa_sectors.add_to_inventory_bar(ent, 5)
 	  printout(result, pindex)
    end
 end)
@@ -3998,7 +4010,7 @@ script.on_event("increase-inventory-bar-by-100", function(event)
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Increase
 	  local ent = get_selected_ent(pindex)
-	  local result = increment_inventory_bar(ent, 100)
+	  local result = fa_sectors.add_to_inventory_bar(ent, 100)
 	  printout(result, pindex)
    end
 end)
@@ -4011,7 +4023,7 @@ script.on_event("decrease-inventory-bar-by-1", function(event)
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Decrease
 	  local ent = get_selected_ent(pindex)
-	  local result = increment_inventory_bar(ent, -1)
+	  local result = fa_sectors.add_to_inventory_bar(ent, -1)
 	  printout(result, pindex)
    end
 end)
@@ -4024,7 +4036,7 @@ script.on_event("decrease-inventory-bar-by-5", function(event)
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Decrease
 	  local ent = get_selected_ent(pindex)
-	  local result = increment_inventory_bar(ent, -5)
+	  local result = fa_sectors.add_to_inventory_bar(ent, -5)
 	  printout(result, pindex)
    end
 end)
@@ -4037,7 +4049,7 @@ script.on_event("decrease-inventory-bar-by-100", function(event)
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Decrease
 	  local ent = get_selected_ent(pindex)
-	  local result = increment_inventory_bar(ent, -100)
+	  local result = fa_sectors.add_to_inventory_bar(ent, -100)
 	  printout(result, pindex)
    end
 end)
@@ -4048,9 +4060,9 @@ script.on_event("increase-train-wait-times-by-5", function(event)
       return
    end
    if players[pindex].in_menu and players[pindex].menu == "train_menu" then
-      change_instant_schedule_wait_time(5,pindex)
+      fa_trains.change_instant_schedule_wait_time(5,pindex)
    elseif players[pindex].in_menu and players[pindex].menu == "train_stop_menu" then
-      nearby_train_schedule_change_wait_time(5,pindex)
+      fa_train_stops.nearby_train_schedule_add_to_wait_time(5,pindex)
    end
 end)
 
@@ -4060,9 +4072,9 @@ script.on_event("increase-train-wait-times-by-60", function(event)
       return
    end
    if players[pindex].in_menu and players[pindex].menu == "train_menu" then
-      change_instant_schedule_wait_time(60,pindex)
+      fa_trains.change_instant_schedule_wait_time(60,pindex)
    elseif players[pindex].in_menu and players[pindex].menu == "train_stop_menu" then
-      nearby_train_schedule_change_wait_time(60,pindex)
+      fa_train_stops.nearby_train_schedule_add_to_wait_time(60,pindex)
    end
 end)
 
@@ -4072,9 +4084,9 @@ script.on_event("decrease-train-wait-times-by-5", function(event)
       return
    end
    if players[pindex].in_menu and players[pindex].menu == "train_menu" then
-      change_instant_schedule_wait_time(-5,pindex)
+      fa_trains.change_instant_schedule_wait_time(-5,pindex)
    elseif players[pindex].in_menu and players[pindex].menu == "train_stop_menu" then
-      nearby_train_schedule_change_wait_time(-5,pindex)
+      fa_train_stops.nearby_train_schedule_add_to_wait_time(-5,pindex)
    end
 end)
 
@@ -4084,9 +4096,9 @@ script.on_event("decrease-train-wait-times-by-60", function(event)
       return
    end
    if players[pindex].in_menu and players[pindex].menu == "train_menu" then
-      change_instant_schedule_wait_time(-60,pindex)
+      fa_trains.change_instant_schedule_wait_time(-60,pindex)
    elseif players[pindex].in_menu and players[pindex].menu == "train_stop_menu" then
-      nearby_train_schedule_change_wait_time(-60,pindex)
+      fa_train_stops.nearby_train_schedule_add_to_wait_time(-60,pindex)
    end
 end)
 
@@ -4097,10 +4109,10 @@ script.on_event("read-rail-structure-ahead", function(event)
    end
    local ent = get_selected_ent(pindex)
    if game.get_player(pindex).driving and game.get_player(pindex).vehicle.train ~= nil then
-      train_read_next_rail_entity_ahead(pindex,false)
+      fa_trains.train_read_next_rail_entity_ahead(pindex,false)
    elseif ent ~= nil and ent.valid and (ent.name == "straight-rail" or ent.name == "curved-rail") then
       --Report what is along the rail
-      rail_read_next_rail_entity_ahead(pindex, ent, true)
+      fa_rails.rail_read_next_rail_entity_ahead(pindex, ent, true)
    end
 end)
 
@@ -4113,14 +4125,14 @@ script.on_event("read-driving-structure-ahead", function(event)
    if p.driving and (p.vehicle.train ~= nil or p.vehicle.type == "car") then
       local ent = players[pindex].last_driving_alert_ent
       if ent and ent.valid then
-         local dir = get_heading_value(p.vehicle)
+         local dir = fa_driving.get_heading_value(p.vehicle)
          local dir_ent = fa_utils.get_direction_biased(ent.position,p.vehicle.position)
          if p.vehicle.speed >= 0 and (dir_ent == dir or math.abs(dir_ent - dir) == 1 or math.abs(dir_ent - dir) == 7) then
             local dist = math.floor(util.distance(p.vehicle.position,ent.position))
-            printout(localising.get(ent,pindex) .. " ahead in " .. dist .. " meters", pindex)
+            printout(fa_localising.get(ent,pindex) .. " ahead in " .. dist .. " meters", pindex)
          elseif p.vehicle.speed <= 0 and dir_ent == fa_utils.rotate_180(dir) then
             local dist = math.floor(util.distance(p.vehicle.position,ent.position))
-            printout(localising.get(ent,pindex) .. " behind in " .. dist .. " meters", pindex)
+            printout(fa_localising.get(ent,pindex) .. " behind in " .. dist .. " meters", pindex)
          end
       end
    end
@@ -4133,10 +4145,10 @@ script.on_event("read-rail-structure-behind", function(event)
    end
    local ent = get_selected_ent(pindex)
    if game.get_player(pindex).driving and game.get_player(pindex).vehicle.train ~= nil then
-      train_read_next_rail_entity_ahead(pindex,true)
+      fa_trains.train_read_next_rail_entity_ahead(pindex,true)
    elseif ent ~= nil and ent.valid and (ent.name == "straight-rail" or ent.name == "curved-rail") then
       --Report what is along the rail
-      rail_read_next_rail_entity_ahead(pindex, ent, false)
+      fa_rails.rail_read_next_rail_entity_ahead(pindex, ent, false)
    end
 end)
 
@@ -4146,7 +4158,7 @@ script.on_event("rescan", function(event)
       return
    end
    if not (players[pindex].in_menu) then
-      run_scanner_effects(pindex)
+      fa_scanner.run_scanner_effects(pindex)
       schedule(2,"rescan",pindex, nil, false)
    end
 end)
@@ -4164,7 +4176,7 @@ script.on_event("scan-facing-direction", function(event)
       --Set the filter direction 
       local p = game.get_player(pindex)
       local dir = p.character.direction
-      run_scanner_effects(pindex)
+      fa_scanner.run_scanner_effects(pindex)
       schedule(2,"rescan",pindex, dir, false)
    end
 end)
@@ -4193,10 +4205,10 @@ script.on_event("scan-list-up", function(event)
       return
    end
    if not players[pindex].in_menu and not players[pindex].cursor then
-      scan_up(pindex)
+      fa_scanner.list_up(pindex)
    end
    if players[pindex].cursor and players[pindex].last_pg_key_tick ~= nil and event.tick - players[pindex].last_pg_key_tick < 10 then
-      scan_up(pindex)
+      fa_scanner.list_up(pindex)
    end
 end)
 
@@ -4206,10 +4218,10 @@ script.on_event("scan-list-down", function(event)
       return
    end
    if not players[pindex].in_menu and not players[pindex].cursor then
-      scan_down(pindex)
+      fa_scanner.list_down(pindex)
    end
    if players[pindex].cursor and players[pindex].last_pg_key_tick ~= nil and event.tick - players[pindex].last_pg_key_tick < 10 then
-      scan_down(pindex)
+      fa_scanner.list_down(pindex)
    end
 end)
 
@@ -4219,7 +4231,7 @@ script.on_event("scan-list-middle", function(event)
       return
    end
    if not players[pindex].in_menu then
-      scan_middle(pindex)
+      fa_scanner.list_current(pindex)
    end
 end)
 
@@ -4273,7 +4285,7 @@ script.on_event("jump-to-scan", function(event)--NOTE: This might be deprecated 
             if #ents[players[pindex].nearby.index].ents == 0 then
                table.remove(ents,players[pindex].nearby.index)
                players[pindex].nearby.index = math.min(players[pindex].nearby.index, #ents)
-               scan_index(pindex)
+               fa_scanner.list_index(pindex)
                return
             end
 
@@ -4303,7 +4315,7 @@ script.on_event("jump-to-scan", function(event)--NOTE: This might be deprecated 
             if table_size(entry) == 0 then
                table.remove(ents[players[pindex].nearby.index].ents, players[pindex].nearby.selection)
                players[pindex].nearby.selection = players[pindex].nearby.selection - 1
-               scan_index(pindex)
+               fa_scanner.list_index(pindex)
                return
             end
             if entry == nil then
@@ -4319,14 +4331,14 @@ script.on_event("jump-to-scan", function(event)--NOTE: This might be deprecated 
          end
          if players[pindex].cursor then
             players[pindex].cursor_pos = fa_utils.center_of_tile(ent.position)
-            cursor_highlight(pindex, ent, nil)
-            sync_build_cursor_graphics(pindex)
+            fa_graphics.draw_cursor_highlight(pindex, ent, nil)
+            fa_graphics.sync_build_cursor_graphics(pindex)
             printout("Cursor has jumped to " .. ent.name .. " at " .. math.floor(players[pindex].cursor_pos.x) .. " " .. math.floor(players[pindex].cursor_pos.y), pindex)
          else
             teleport_to_closest(pindex, ent.position, false, false)
             players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].position, players[pindex].player_direction, 1)
-            cursor_highlight(pindex, nil, nil)--laterdo check for new cursor ent here, to update the highlight?
-            sync_build_cursor_graphics(pindex)
+            fa_graphics.draw_cursor_highlight(pindex, nil, nil)--laterdo check for new cursor ent here, to update the highlight?
+            fa_graphics.sync_build_cursor_graphics(pindex)
          end
       end
    end
@@ -4432,7 +4444,7 @@ script.on_event("scan-sort-by-distance", function(event)
       players[pindex].nearby.index = 1
       players[pindex].nearby.count = false
       printout("Sorting scan results by distance from character position", pindex)
-      scan_sort(pindex)
+      fa_scanner.list_sort(pindex)
    end
 end)
 
@@ -4446,7 +4458,7 @@ script.on_event("scan-sort-by-count", function(event)
       players[pindex].nearby.index = 1
       players[pindex].nearby.count = true
       printout("Sorting scan results by total count", pindex)
-      scan_sort(pindex)
+      fa_scanner.list_sort(pindex)
    end
 end)
 
@@ -4463,7 +4475,7 @@ script.on_event("scan-selection-up", function(event)
          game.get_player(pindex).play_sound{path = "inventory-edge"}
          players[pindex].nearby.selection = 1
       end
-      scan_index(pindex)
+      fa_scanner.list_index(pindex)
    end
 end)
 
@@ -4510,7 +4522,7 @@ script.on_event("scan-selection-down", function(event)
             players[pindex].nearby.selection = #ents[players[pindex].nearby.index].ents
          end
       end
-      scan_index(pindex)
+      fa_scanner.list_index(pindex)
    end
 end)
 
@@ -4694,7 +4706,7 @@ function read_technology_slot(pindex, start_phrase)
    if next(techs) ~= nil and players[pindex].technology.index > 0 and players[pindex].technology.index <= #techs then
       local tech = techs[players[pindex].technology.index]
       if tech.valid then
-         printout(start_phrase .. localising.get(tech,pindex), pindex)
+         printout(start_phrase .. fa_localising.get(tech,pindex), pindex)
       else
          printout(start_phrase .. "Error loading technology", pindex)
       end
@@ -4726,23 +4738,23 @@ function close_menu_resets(pindex)
    if players[pindex].menu == "travel" then
       game.get_player(pindex).gui.screen["travel"].destroy()
       players[pindex].cursor_pos = fa_utils.center_of_tile(players[pindex].position)
-      cursor_highlight(pindex, nil, "train-visualization")
+      fa_graphics.draw_cursor_highlight(pindex, nil, "train-visualization")
    elseif players[pindex].menu == "structure-travel" then
       game.get_player(pindex).gui.screen["structure-travel"].destroy()
    elseif players[pindex].menu == "rail_builer" then
-      rail_builder_close(pindex, false)
+      fa_rail_builder.close_menu(pindex, false)
    elseif players[pindex].menu == "train_menu" then
-      train_menu_close(pindex, false)
+      fa_trains.menu_close(pindex, false)
    elseif players[pindex].menu == "spider_menu" then
-      spider_menu_close(pindex, false)
+      fa_spidertrons.spider_menu_close(pindex, false)
    elseif players[pindex].menu == "train_stop_menu" then
-      train_stop_menu_close(pindex, false)
+      fa_train_stops.train_stop_menu_close(pindex, false)
    elseif players[pindex].menu == "roboport_menu" then
-      roboport_menu_close(pindex)
+      fa_bot_logistics.roboport_menu_close(pindex)
    elseif players[pindex].menu == "blueprint_menu" then
-      blueprint_menu_close(pindex)
+      fa_blueprints.blueprint_menu_close(pindex)
    elseif players[pindex].menu == "blueprint_book_menu" then
-      blueprint_book_menu_close(pindex)
+      fa_blueprints.blueprint_book_menu_close(pindex)
    elseif players[pindex].menu == "circuit_network_menu" then
       circuit_network_menu_close(pindex, false)
    end
@@ -4875,9 +4887,9 @@ function read_quick_bar_slot(index,pindex)
       local stack = game.get_player(pindex).cursor_stack
       if stack and stack.valid_for_read then
          count = count + stack.count
-         printout("unselected " .. localising.get(item, pindex) .. " x " .. count, pindex)
+         printout("unselected " .. fa_localising.get(item, pindex) .. " x " .. count, pindex)
       else
-         printout("selected " .. localising.get(item, pindex) .. " x " .. count, pindex)
+         printout("selected " .. fa_localising.get(item, pindex) .. " x " .. count, pindex)
       end
 
    else
@@ -4893,19 +4905,19 @@ function set_quick_bar_slot(index, pindex)
    local ent = get_selected_ent(pindex)
    if stack_cur and stack_cur.valid_for_read and stack_cur.valid == true then
       game.get_player(pindex).set_quick_bar_slot(index + 10*page, stack_cur)
-      printout("Quickbar assigned " .. index .. " " .. localising.get(stack_cur, pindex), pindex)
+      printout("Quickbar assigned " .. index .. " " .. fa_localising.get(stack_cur, pindex), pindex)
    elseif players[pindex].menu == "inventory" and stack_inv and stack_inv.valid_for_read and stack_inv.valid == true then
       game.get_player(pindex).set_quick_bar_slot(index + 10*page, stack_inv)
-      printout("Quickbar assigned " .. index .. " " .. localising.get(stack_inv, pindex), pindex)
+      printout("Quickbar assigned " .. index .. " " .. fa_localising.get(stack_inv, pindex), pindex)
    elseif ent ~= nil and ent.valid and ent.force == p.force and game.item_prototypes[ent.name] ~= nil then
       game.get_player(pindex).set_quick_bar_slot(index + 10*page, ent.name)
-      printout("Quickbar assigned " .. index .. " " .. localising.get(ent, pindex), pindex)
+      printout("Quickbar assigned " .. index .. " " .. fa_localising.get(ent, pindex), pindex)
    else
       --Clear the slot
       local item = game.get_player(pindex).get_quick_bar_slot(index+ 10*page)
       local item_name = ""
       if item ~= nil then
-         item_name = localising.get(item, pindex)
+         item_name = fa_localising.get(item, pindex)
       end
       ---@diagnostic disable-next-line: param-type-mismatch
       game.get_player(pindex).set_quick_bar_slot(index + 10*page, nil)
@@ -4918,7 +4930,7 @@ function read_switched_quick_bar(index,pindex)
    local item = game.get_player(pindex).get_quick_bar_slot(1 + 10*(index-1))
    local item_name = "empty slot"
    if item ~= nil then
-      item_name = localising.get(item, pindex)
+      item_name = fa_localising.get(item, pindex)
    end
    local result = "Quickbar " .. index .. " selected starting with " .. item_name
    printout(result, pindex)
@@ -4958,7 +4970,7 @@ script.on_event("switch-menu-or-gun", function(event)
          }
 
          if players[pindex].building.sector <= #players[pindex].building.sectors then
-            read_building_slot(pindex, true)
+            fa_sectors.read_sector_slot(pindex, true)
             players[pindex].building.sector_name = "other"
 --            if inventory == players[pindex].building.sectors[players[pindex].building.sector+1].inventory then
 --               printout("Big Problem!", pindex)
@@ -4969,18 +4981,18 @@ script.on_event("switch-menu-or-gun", function(event)
                players[pindex].building.sector_name = "player_inventory"
             else
                players[pindex].building.sector = 1
-               read_building_slot(pindex, true)
+               fa_sectors.read_sector_slot(pindex, true)
             end
          else
             if players[pindex].building.sector == #players[pindex].building.sectors + 1 then     --Recipe selection sector
-               read_building_recipe(pindex, "Select a Recipe, ")
+               fa_sectors.read_building_recipe(pindex, "Select a Recipe, ")
                players[pindex].building.sector_name = "recipe_selection"
             elseif players[pindex].building.sector == #players[pindex].building.sectors + 2 then --Player inventory sector
                read_inventory_slot(pindex, "Player Inventory, ")
                players[pindex].building.sector_name = "player_inventory"
             else
                players[pindex].building.sector = 1
-               read_building_slot(pindex, true)
+               fa_sectors.read_sector_slot(pindex, true)
             end
          end
       elseif players[pindex].menu == "inventory" then
@@ -5115,7 +5127,7 @@ script.on_event("reverse-switch-menu-or-gun", function(event)
             read_inventory_slot(pindex, "Player Inventory, ")
 
          elseif players[pindex].building.sector <= #players[pindex].building.sectors then
-            read_building_slot(pindex, true)
+            fa_sectors.read_sector_slot(pindex, true)
             players[pindex].building.sector_name = "other"
          elseif players[pindex].building.recipe_list == nil then
             if players[pindex].building.sector == (#players[pindex].building.sectors + 1) then
@@ -5124,7 +5136,7 @@ script.on_event("reverse-switch-menu-or-gun", function(event)
             end
          else
             if players[pindex].building.sector == #players[pindex].building.sectors + 1 then
-               read_building_recipe(pindex, "Select a Recipe, ")
+               fa_sectors.read_building_recipe(pindex, "Select a Recipe, ")
                players[pindex].building.sector_name = "recipe_selection"
             elseif players[pindex].building.sector == #players[pindex].building.sectors + 2 then
                read_inventory_slot(pindex, "Player Inventory, ")
@@ -5428,13 +5440,13 @@ script.on_event("mine-area", function(event)
       if ent.type == "tree" or ent.name == "rock-big" or ent.name == "rock-huge" or ent.name == "sand-rock-big" or ent.name == "item-on-ground" then
          --Obstacles within 5 tiles: trees and rocks and ground items
          game.get_player(pindex).play_sound{path = "player-mine"}
-         cleared_count, comment = clear_obstacles_in_circle(pos, 5, pindex)
+         cleared_count, comment = fa_building_tools.clear_obstacles_in_circle(pos, 5, pindex)
       elseif ent.name == "straight-rail" or ent.name == "curved-rail" then
          --Railway objects within 10 tiles (and their signals)
          local rail_ents = surf.find_entities_filtered{position = pos, radius = 10, name = {"straight-rail", "curved-rail", "rail-signal", "rail-chain-signal", "train-stop"}}
          for i,rail_ent in ipairs(rail_ents) do
             if rail_ent.name == "straight-rail" or rail_ent.name == "curved-rail" then
-               mine_signals(rail_ent,pindex)
+               fa_rails.mine_signals(rail_ent,pindex)
             end
             game.get_player(pindex).play_sound{path = "entity-mined/straight-rail"}
             game.get_player(pindex).mine_entity(rail_ent,true)
@@ -5465,7 +5477,7 @@ script.on_event("mine-area", function(event)
          end
          if ent_is_remnant then
             game.get_player(pindex).play_sound{path = "player-mine"}
-            cleared_count, comment = clear_obstacles_in_circle(players[pindex].cursor_pos, 5, pindex)
+            cleared_count, comment = fa_building_tools.clear_obstacles_in_circle(players[pindex].cursor_pos, 5, pindex)
          end
 
          --(For other valid ents, do nothing)
@@ -5473,7 +5485,7 @@ script.on_event("mine-area", function(event)
    else
       --For empty tiles, clear obstacles
       game.get_player(pindex).play_sound{path = "player-mine"}
-      cleared_count, comment = clear_obstacles_in_circle(players[pindex].cursor_pos, 5, pindex)
+      cleared_count, comment = fa_building_tools.clear_obstacles_in_circle(players[pindex].cursor_pos, 5, pindex)
    end
    cleared_total = cleared_total + cleared_count
 
@@ -5487,7 +5499,7 @@ script.on_event("mine-area", function(event)
          if ent and ent.valid then
             local name = ent.name
             game.get_player(pindex).play_sound{path = "player-mine"}
-            if try_to_mine_with_sound(ent,pindex) then
+            if fa_building_tools.try_to_mine_with_sound(ent,pindex) then
                cleared_total = cleared_total + 1
             end
          end
@@ -5502,7 +5514,7 @@ script.on_event("mine-area", function(event)
          if ent and ent.valid and ent.is_registered_for_deconstruction(p.force) then
             local name = ent.name
             game.get_player(pindex).play_sound{path = "player-mine"}
-            if try_to_mine_with_sound(ent,pindex) then
+            if fa_building_tools.try_to_mine_with_sound(ent,pindex) then
                cleared_total = cleared_total + 1
             end
          end
@@ -5656,7 +5668,7 @@ script.on_event("click-menu", function(event)
          local count = game.get_player(pindex).begin_crafting(T)
          if count > 0 then
             local total_count = fa_crafting.count_in_crafting_queue(T.recipe.name, pindex)
-            printout("Started crafting " .. count .. " " .. localising.get_recipe_from_name(recipe.name,pindex) .. ", " .. total_count .. " total in queue", pindex)
+            printout("Started crafting " .. count .. " " .. fa_localising.get_recipe_from_name(recipe.name,pindex) .. ", " .. total_count .. " total in queue", pindex)
          else
             local result = fa_crafting.recipe_missing_ingredients_info(pindex)
             printout(result, pindex)
@@ -5698,7 +5710,7 @@ script.on_event("click-menu", function(event)
                      players[pindex].building.ent.inserter_filter_mode = "whitelist"
                   end
                   sectors_i.inventory[players[pindex].building.index] = players[pindex].building.ent.inserter_filter_mode
-                  read_building_slot(pindex,false)
+                  fa_sectors.read_sector_slot(pindex,false)
                elseif players[pindex].building.item_selection then
                   if players[pindex].item_selector.group == 0 then
                      players[pindex].item_selector.group = players[pindex].item_selector.index
@@ -5831,7 +5843,7 @@ script.on_event("click-menu", function(event)
                   players[pindex].building.recipe_selection = true
                   players[pindex].building.category = 1
                   players[pindex].building.index = 1
-                  read_building_recipe(pindex)
+                  fa_sectors.read_building_recipe(pindex)
                else
                   printout("No recipes unlocked for this building yet.", pindex)
                end
@@ -5890,8 +5902,8 @@ script.on_event("click-menu", function(event)
             if ent ~= nil and ent.valid then
                players[pindex].cursor = true
                players[pindex].cursor_pos = fa_utils.center_of_tile(ent.position)
-               cursor_highlight(pindex, ent, nil)
-               sync_build_cursor_graphics(pindex)
+               fa_graphics.draw_cursor_highlight(pindex, ent, nil)
+               fa_graphics.sync_build_cursor_graphics(pindex)
                printout({"access.teleported-the-cursor-to", "".. math.floor(players[pindex].cursor_pos.x) .. " " .. math.floor(players[pindex].cursor_pos.y)}, pindex)
 --               players[pindex].menu = ""
 --               players[pindex].in_menu = false
@@ -5927,7 +5939,7 @@ script.on_event("click-menu", function(event)
          else
             players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].position, players[pindex].player_direction, 1)
          end
-         sync_build_cursor_graphics(pindex)
+         fa_graphics.sync_build_cursor_graphics(pindex)
          game.get_player(pindex).opened = nil
 
          if not refresh_player_tile(pindex) then
@@ -5938,27 +5950,27 @@ script.on_event("click-menu", function(event)
          --Update cursor highlight
          local ent = get_selected_ent(pindex)
          if ent and ent.valid then
-            cursor_highlight(pindex, ent, nil)
+            fa_graphics.draw_cursor_highlight(pindex, ent, nil)
          else
-            cursor_highlight(pindex, nil, nil)
+            fa_graphics.draw_cursor_highlight(pindex, nil, nil)
          end
 
       elseif players[pindex].menu == "rail_builder" then
-         rail_builder(pindex, true)
-         rail_builder_close(pindex,false)
+         fa_rail_builder.run_menu(pindex, true)
+         fa_rail_builder.close_menu(pindex,false)
       elseif players[pindex].menu == "train_menu" then
-         train_menu(players[pindex].train_menu.index, pindex, true)
+         fa_trains.run_train_menu(players[pindex].train_menu.index, pindex, true)
       elseif players[pindex].menu == "spider_menu" then
-         spider_menu(players[pindex].spider_menu.index, pindex, game.get_player(pindex).cursor_stack, true)
+         fa_spidertrons.run_spider_menu(players[pindex].spider_menu.index, pindex, game.get_player(pindex).cursor_stack, true)
       elseif players[pindex].menu == "train_stop_menu" then
-         train_stop_menu(players[pindex].train_stop_menu.index, pindex, true)
+         fa_train_stops.run_train_stop_menu(players[pindex].train_stop_menu.index, pindex, true)
       elseif players[pindex].menu == "roboport_menu" then
-         roboport_menu(players[pindex].roboport_menu.index, pindex, true)
+         fa_bot_logistics.run_roboport_menu(players[pindex].roboport_menu.index, pindex, true)
       elseif players[pindex].menu == "blueprint_menu" then
-         blueprint_menu(players[pindex].blueprint_menu.index, pindex, true)
+         fa_blueprints.run_blueprint_menu(players[pindex].blueprint_menu.index, pindex, true)
       elseif players[pindex].menu == "blueprint_book_menu" then
          local bpb_menu = players[pindex].blueprint_book_menu
-         blueprint_book_menu(pindex, bpb_menu.index, bpb_menu.list_mode, true, false)
+         fa_blueprints.run_blueprint_book_menu(pindex, bpb_menu.index, bpb_menu.list_mode, true, false)
       elseif players[pindex].menu == "circuit_network_menu" then
          circuit_network_menu(pindex, nil, players[pindex].circuit_network_menu.index, true, false)
       elseif players[pindex].menu == "signal_selector" then
@@ -6025,20 +6037,20 @@ script.on_event("click-hand", function(event)
       --If something is in hand...     
       if stack.prototype ~= nil and (stack.prototype.place_result ~= nil or stack.prototype.place_as_tile_result ~= nil) and stack.name ~= "offshore-pump" then
          --If holding a preview of a building/tile, try to place it here
-         build_item_in_hand(pindex)
+         fa_building_tools.build_item_in_hand(pindex)
       elseif stack.name == "offshore-pump" then
          --If holding an offshore pump, open the offshore pump builder
-         build_offshore_pump_in_hand(pindex)
+         fa_building_tools.build_offshore_pump_in_hand(pindex)
       elseif stack.name == "spidertron-remote" and stack.connected_entity ~= nil then
          --Set the cursor position as the spidertron autopilot target.
-         spider_menu(3, pindex, stack.connected_entity, true, nil)
+         fa_spidertrons.run_spider_menu(3, pindex, stack.connected_entity, true, nil)
       elseif stack.is_repair_tool then
          --If holding a repair pack, try to use it (will not work on enemies)
          fa_equipment.repair_pack_used(ent,pindex)
       elseif stack.is_blueprint and stack.is_blueprint_setup() and players[pindex].blueprint_reselecting ~= true then
          --Paste a ready blueprint 
          players[pindex].last_held_blueprint = stack
-         paste_blueprint(pindex)
+         fa_blueprints.paste_blueprint(pindex)
       elseif stack.is_blueprint and (stack.is_blueprint_setup() == false or players[pindex].blueprint_reselecting == true) then
          --Select blueprint 
          local pex = players[pindex]
@@ -6051,13 +6063,13 @@ script.on_event("click-hand", function(event)
             pex.bp_select_point_2 = pex.cursor_pos
             local bp_data = nil
             if players[pindex].blueprint_reselecting == true then
-               bp_data = get_bp_data_for_edit(stack)
+               bp_data = fa_blueprints.get_bp_data_for_edit(stack)
             end
-            create_blueprint(pindex, pex.bp_select_point_1, pex.bp_select_point_2, bp_data)
+            fa_blueprints.create_blueprint(pindex, pex.bp_select_point_1, pex.bp_select_point_2, bp_data)
             players[pindex].blueprint_reselecting = false
          end
       elseif stack.is_blueprint_book then
-         blueprint_book_menu_open(pindex, true)
+         fa_blueprints.blueprint_book_menu_open(pindex, true)
       elseif stack.is_deconstruction_item then
          --Mark deconstruction
          local pex = players[pindex]
@@ -6069,7 +6081,7 @@ script.on_event("click-hand", function(event)
             pex.bp_selecting = false
             pex.bp_select_point_2 = pex.cursor_pos
             --Mark area for deconstruction
-            local left_top, right_bottom = get_top_left_and_bottom_right(pex.bp_select_point_1, pex.bp_select_point_2)
+            local left_top, right_bottom = fa_blueprints.get_top_left_and_bottom_right(pex.bp_select_point_1, pex.bp_select_point_2)
             p.surface.deconstruct_area{area={left_top, right_bottom}, force=p.force, player=p, item=p.cursor_stack}
             local ents = p.surface.find_entities_filtered{area={left_top, right_bottom}}
             local decon_counter = 0
@@ -6091,7 +6103,7 @@ script.on_event("click-hand", function(event)
             pex.bp_selecting = false
             pex.bp_select_point_2 = pex.cursor_pos
             --Mark area for upgrading
-            local left_top, right_bottom = get_top_left_and_bottom_right(pex.bp_select_point_1, pex.bp_select_point_2)
+            local left_top, right_bottom = fa_blueprints.get_top_left_and_bottom_right(pex.bp_select_point_1, pex.bp_select_point_2)
             p.surface.upgrade_area{area={left_top, right_bottom}, force=p.force, player=p, item=p.cursor_stack}
             local ents = p.surface.find_entities_filtered{area={left_top, right_bottom}}
             local ent_counter = 0
@@ -6162,9 +6174,9 @@ script.on_event("click-hand-right", function(event)
       if stack.prototype ~= nil and (stack.prototype.place_result ~= nil or stack.prototype.place_as_tile_result ~= nil) and stack.name ~= "offshore-pump" then
          --Laterdo here: build as ghost 
       elseif stack.is_blueprint then
-         blueprint_menu_open(pindex)
+         fa_blueprints.blueprint_menu_open(pindex)
       elseif stack.is_blueprint_book then
-         blueprint_book_menu_open(pindex, false)
+         fa_blueprints.blueprint_book_menu_open(pindex, false)
       elseif stack.is_deconstruction_item then
          --Cancel deconstruction 
          local pex = players[pindex]
@@ -6176,7 +6188,7 @@ script.on_event("click-hand-right", function(event)
             pex.bp_selecting = false
             pex.bp_select_point_2 = pex.cursor_pos
             --Cancel area for deconstruction
-            local left_top, right_bottom = get_top_left_and_bottom_right(pex.bp_select_point_1, pex.bp_select_point_2)
+            local left_top, right_bottom = fa_blueprints.get_top_left_and_bottom_right(pex.bp_select_point_1, pex.bp_select_point_2)
             p.surface.cancel_deconstruct_area{area={left_top, right_bottom}, force=p.force, player=p, item=p.cursor_stack}
             printout("Canceled deconstruction in selected area", pindex)
          end
@@ -6190,13 +6202,13 @@ script.on_event("click-hand-right", function(event)
             pex.bp_selecting = false
             pex.bp_select_point_2 = pex.cursor_pos
             --Cancel area for upgrading
-            local left_top, right_bottom = get_top_left_and_bottom_right(pex.bp_select_point_1, pex.bp_select_point_2)
+            local left_top, right_bottom = fa_blueprints.get_top_left_and_bottom_right(pex.bp_select_point_1, pex.bp_select_point_2)
             p.surface.cancel_upgrade_area{area={left_top, right_bottom}, force=p.force, player=p, item=p.cursor_stack}
             printout("Canceled upgrading in selected area", pindex)
          end
       elseif stack.name == "spidertron-remote" then
          --open spidermenu with the remote in hand
-         spider_menu_open(pindex, stack)
+         fa_spidertrons.spider_menu_open(pindex, stack)
       end
    end
 end)
@@ -6236,7 +6248,7 @@ function clicked_on_entity(ent,pindex)
    local p = game.get_player(pindex)
    if p.vehicle ~= nil and p.vehicle.train ~= nil then
       --If player is on a train, open it
-      train_menu_open(pindex)
+      fa_trains.menu_open(pindex)
       return
    elseif ent == nil then
       --No entity clicked 
@@ -6262,13 +6274,13 @@ function clicked_on_entity(ent,pindex)
    p.selected = ent
    if ent.name == "locomotive" then
       --For a rail vehicle, open train menu
-      train_menu_open(pindex)
+      fa_trains.menu_open(pindex)
    elseif ent.name == "train-stop" then
       --For a train stop, open train stop menu
-      train_stop_menu_open(pindex)
+      fa_train_stops.train_stop_menu_open(pindex)
    elseif ent.name == "roboport" then
       --For a roboport, open roboport menu 
-      roboport_menu_open(pindex)
+      fa_bot_logistics.roboport_menu_open(pindex)
    elseif ent.type == "power-switch" then
       --Toggle it, if in manual mode 
       if (#ent.neighbours.red + #ent.neighbours.green) > 0 then
@@ -6292,22 +6304,22 @@ function clicked_on_entity(ent,pindex)
       end
    elseif ent.operable and ent.prototype.is_building then
       --If checking an operable building, open its menu
-      open_operable_building(ent,pindex)
+      fa_sectors.open_operable_building(ent,pindex)
    elseif ent.type == "car" or ent.type == "spider-vehicle" or ent.train ~= nil then
-      open_operable_vehicle(ent,pindex)
+      fa_sectors.open_operable_vehicle(ent,pindex)
    elseif ent.type == "spider-leg" then
       --Find and open the spider
       local spiders = ent.surface.find_entities_filtered{position = ent.position, radius = 5, type = "spider-vehicle"}
       local spider  = ent.surface.get_closest(ent.position, spiders)
       if spider and spider.valid then
-         open_operable_vehicle(spider,pindex)
+         fa_sectors.open_operable_vehicle(spider,pindex)
       end
    elseif ent.name == "rocket-silo-rocket-shadow" or ent.name == "rocket-silo-rocket" then
       --Find and open the silo
       local silos = ent.surface.find_entities_filtered{position = ent.position, radius = 5, type = "rocket-silo"}
       local silo  = ent.surface.get_closest(ent.position, silos)
       if silo and silo.valid then
-         open_operable_building(silo,pindex)
+         fa_sectors.open_operable_building(silo,pindex)
       end
    elseif ent.operable then
       printout("No menu for " .. ent.name,pindex)
@@ -6381,7 +6393,7 @@ script.on_event("open-circuit-menu", function(event)
       local nw1 = control.get_circuit_network(defines.wire_type.red)
       local nw2 = control.get_circuit_network(defines.wire_type.green)
       if nw1 == nil and nw2 == nil then
-         printout(localising.get(ent,pindex) .. " not connected to a circuit network",pindex)
+         printout(fa_localising.get(ent,pindex) .. " not connected to a circuit network",pindex)
          return
       end
       --Open the menu
@@ -6435,7 +6447,7 @@ script.on_event("crafting-all", function(event)
          local count = game.get_player(pindex).begin_crafting(T)
          if count > 0 then
             local total_count = fa_crafting.count_in_crafting_queue(T.recipe.name, pindex)
-            printout("Started crafting " .. count .. " " .. localising.get_recipe_from_name(recipe.name,pindex) .. ", " .. total_count .. " total in queue", pindex)
+            printout("Started crafting " .. count .. " " .. fa_localising.get_recipe_from_name(recipe.name,pindex) .. ", " .. total_count .. " total in queue", pindex)
          else
             printout("Not enough materials", pindex)
          end
@@ -6567,7 +6579,7 @@ script.on_event("open-rail-builder", function(event)
       if ent then
          if ent.name == "straight-rail" then
             --Open rail builder
-            rail_builder_open(pindex, ent)
+            fa_rail_builder.open_menu(pindex, ent)
          elseif ent.name == "curved-rail" then
             printout("Rail builder menu cannot use curved rails.", pindex)
          end
@@ -6586,7 +6598,7 @@ script.on_event("quick-build-rail-left-turn", function(event)
    end
    --Build left turns on end rails
    if ent.name == "straight-rail" then
-      build_rail_turn_left_45_degrees(ent, pindex)
+      fa_rail_builder.build_rail_turn_left_45_degrees(ent, pindex)
    end
 end)
 
@@ -6601,7 +6613,7 @@ script.on_event("quick-build-rail-right-turn", function(event)
    end
    --Build left turns on end rails
    if ent.name == "straight-rail" then
-      build_rail_turn_right_45_degrees(ent, pindex)
+      fa_rail_builder.build_rail_turn_right_45_degrees(ent, pindex)
    end
 end)
 
@@ -6639,9 +6651,9 @@ script.on_event("fa-alternate-build", function(event)
          return
       elseif stack.name == "rail" then
          --Straight rail free placement
-         build_item_in_hand(pindex, true)
+         fa_building_tools.build_item_in_hand(pindex, true)
       elseif stack.name == "steam-engine" then
-         snap_place_steam_engine_to_a_boiler(pindex)
+         fa_building_tools.snap_place_steam_engine_to_a_boiler(pindex)
       end
    end
 end)
@@ -6816,7 +6828,7 @@ script.on_event("crafting-5", function(event)
          local count = game.get_player(pindex).begin_crafting(T)
          if count > 0 then
             local total_count = fa_crafting.count_in_crafting_queue(T.recipe.name, pindex)
-            printout("Started crafting " .. count .. " " .. localising.get_recipe_from_name(recipe.name,pindex) .. ", " .. total_count .. " total in queue", pindex)
+            printout("Started crafting " .. count .. " " .. fa_localising.get_recipe_from_name(recipe.name,pindex) .. ", " .. total_count .. " total in queue", pindex)
          else
             printout("Not enough materials", pindex)
          end
@@ -6887,10 +6899,10 @@ script.on_event("read-entity-status", function(event)
    status_lookup[23] = "Full burnt result output"--weird exception 
    if ent.name == "cargo-wagon" then
       --Instead of status, read contents   
-      table.insert(result, cargo_wagon_top_contents_info(ent))
+      table.insert(result, fa_trains.cargo_wagon_top_contents_info(ent))
    elseif ent.name == "fluid-wagon" then
       --Instead of status, read contents   
-      table.insert(result, fluid_contents_info(ent))
+      table.insert(result, fa_trains.fluid_contents_info(ent))
    elseif ent_status_id ~= nil then
       --Print status if it exists
       ent_status_text = status_lookup[ent_status_id]
@@ -6901,7 +6913,7 @@ script.on_event("read-entity-status", function(event)
    else--There is no status
       --When there is no status, for entities with fuel inventories, read that out instead. This is typical for vehicles.
       if ent.get_fuel_inventory() ~= nil then
-         table.insert(result,  fuel_inventory_info(ent))
+         table.insert(result,  fa_driving.fuel_inventory_info(ent))
       elseif ent.type == "electric-pole" then
          --For electric poles with no power flow, report the nearest electric pole with a power flow.
          if fa_electrical.get_electricity_satisfaction(ent) > 0 then
@@ -7022,7 +7034,7 @@ script.on_event("read-entity-status", function(event)
 
    -- Report nearest rail intersection position -- laterdo find better keybind
    if ent.name == "straight-rail" then
-      local nearest, dist = find_nearest_intersection(ent, pindex)
+      local nearest, dist = fa_rails.find_nearest_intersection(ent, pindex)
       if nearest == nil then
          table.insert(result, ", no rail intersections within " .. dist .. " tiles " )
       else
@@ -7041,11 +7053,11 @@ script.on_event("read-entity-status", function(event)
 end)
 
 script.on_event("rotate-building", function(event)
-   rotate_building_info_read(event, true)
+   fa_building_tools.rotate_building_info_read(event, true)
 end)
 
 script.on_event("reverse-rotate-building", function(event)
-   rotate_building_info_read(event, false)
+   fa_building_tools.rotate_building_info_read(event, false)
 end)
 
 script.on_event("flip-blueprint-horizontal-info", function(event)
@@ -7121,7 +7133,7 @@ script.on_event("item-info", function(event)
       return
    end
    if game.get_player(pindex).driving and players[pindex].menu ~= "train_menu" then
-      printout(vehicle_info(pindex),pindex)
+      printout(fa_driving.vehicle_info(pindex),pindex)
       return
    end
    local offset = 0
@@ -7347,7 +7359,7 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
       if stack.is_blueprint and players[pindex].blueprint_hand_direction ~= dirs.north then
          --Reset blueprint rotation 
          players[pindex].blueprint_hand_direction = dirs.north
-         refresh_blueprint_in_hand(pindex)
+         fa_blueprints.refresh_blueprint_in_hand(pindex)
       end
    end
    if players[pindex].menu == "blueprint_menu" or players[pindex].menu == "blueprint_book_menu" then
@@ -7358,10 +7370,10 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
       --players[pindex].lag_building_direction = true
       read_hand(pindex)
    end
-   delete_empty_planners_in_inventory(pindex)
+   fa_building_tools.delete_empty_planners_in_inventory(pindex)
    players[pindex].bp_selecting = false
    players[pindex].blueprint_reselecting = false
-   sync_build_cursor_graphics(pindex)
+   fa_graphics.sync_build_cursor_graphics(pindex)
 end)
 
 script.on_event(defines.events.on_player_mined_item,function(event)
@@ -7452,7 +7464,7 @@ end)
 script.on_event(defines.events.on_cutscene_cancelled, function(event)
    pindex = event.player_index
    check_for_player(pindex)
-   rescan(pindex, nil, true)
+   fa_scanner.run_scan(pindex, nil, true)
    schedule(3, "fix_zoom", pindex)
    schedule(4, "sync_build_cursor_graphics", pindex)
 end)
@@ -7460,7 +7472,7 @@ end)
 script.on_event(defines.events.on_cutscene_finished, function(event)
    pindex = event.player_index
    check_for_player(pindex)
-   rescan(pindex, nil, true)
+   fa_scanner.run_scan(pindex, nil, true)
    schedule(3, "fix_zoom", pindex)
    schedule(4, "sync_build_cursor_graphics", pindex)
    --printout("Press TAB to continue",pindex)
@@ -7670,8 +7682,8 @@ script.on_event("recalibrate-zoom",function(event)
    if not check_for_player(pindex) then
       return
    end
-   fix_zoom(pindex)
-   sync_build_cursor_graphics(pindex)
+   fa_zoom.fix_zoom(pindex)
+   fa_graphics.sync_build_cursor_graphics(pindex)
    printout("Recalibrated",pindex)
 end)
 
@@ -7699,8 +7711,8 @@ script.on_event("pipette-tool-info",function(event)
       if players[pindex].cursor then
          players[pindex].cursor_pos = fa_utils.get_ent_northwest_corner_position(ent)
       end
-      sync_build_cursor_graphics(pindex)
-      cursor_highlight(pindex, ent, nil, nil)
+      fa_graphics.sync_build_cursor_graphics(pindex)
+      fa_graphics.draw_cursor_highlight(pindex, ent, nil, nil)
    end
 end)
 
@@ -7816,7 +7828,7 @@ script.on_event("menu-search-open",function(event)
    if event.tick - players[pindex].last_menu_search_tick < 5 then
       return
    end
-   menu_search_open(pindex)
+   fa_menu_search.open_search_box(pindex)
 end)
 
 script.on_event("menu-search-get-next",function(event)
@@ -7832,7 +7844,7 @@ script.on_event("menu-search-get-next",function(event)
       printout("Press 'CONTROL + F' to start typing in a search term",pindex)
       return
    end
-   menu_search_get_next(pindex,str)
+   fa_menu_search.fetch_next(pindex,str)
 end)
 
 script.on_event("menu-search-get-last",function(event)
@@ -7848,7 +7860,7 @@ script.on_event("menu-search-get-last",function(event)
       printout("Press 'CONTROL + F' to start typing in a search term",pindex)
       return
    end
-   menu_search_get_last(pindex,str)
+   fa_menu_search.fetch_last(pindex,str)
 end)
 
 script.on_event("open-warnings-menu", function(event)
@@ -7924,8 +7936,8 @@ script.on_event(defines.events.on_gui_confirmed,function(event)
          if valid_coords then
             players[pindex].cursor_pos = {x = new_x, y = new_y}
             printout("Cursor jumped to " .. new_x .. ", " .. new_y, pindex)
-            cursor_highlight(pindex)
-            sync_build_cursor_graphics(pindex)
+            fa_graphics.draw_cursor_highlight(pindex)
+            fa_graphics.sync_build_cursor_graphics(pindex)
          else
             printout("Invalid input", pindex)
          end
@@ -8027,10 +8039,10 @@ script.on_event(defines.events.on_gui_confirmed,function(event)
       if result == nil or result == "" then
          result = "unknown"
       end
-      set_train_name(players[pindex].train_menu.locomotive.train, result)
+      fa_trains.set_train_name(players[pindex].train_menu.locomotive.train, result)
       printout("Train renamed to " .. result .. ", menu closed.", pindex)
       event.element.destroy()
-      train_menu_close(pindex, false)
+      fa_trains.menu_close(pindex, false)
    elseif players[pindex].spider_menu.renaming == true then
       players[pindex].spider_menu.renaming = false
       local result = event.element.text
@@ -8040,7 +8052,7 @@ script.on_event(defines.events.on_gui_confirmed,function(event)
       game.get_player(pindex).cursor_stack.connected_entity.entity_label = result
       printout("spidertron renamed to " .. result .. ", menu closed.", pindex)
       event.element.destroy()
-      spider_menu_close(pindex, false)
+      fa_spidertrons.spider_menu_close(pindex, false)
    elseif players[pindex].train_stop_menu.renaming == true then
       players[pindex].train_stop_menu.renaming = false
       local result = event.element.text
@@ -8050,17 +8062,17 @@ script.on_event(defines.events.on_gui_confirmed,function(event)
       players[pindex].train_stop_menu.stop.backer_name = result
       printout("Train stop renamed to " .. result .. ", menu closed.", pindex)
       event.element.destroy()
-      train_stop_menu_close(pindex, false)
+      fa_train_stops.train_stop_menu_close(pindex, false)
    elseif players[pindex].roboport_menu.renaming == true then
       players[pindex].roboport_menu.renaming = false
       local result = event.element.text
       if result == nil or result == "" then
          result = "unknown"
       end
-      set_network_name(players[pindex].roboport_menu.port, result)
+      fa_bot_logistics.set_network_name(players[pindex].roboport_menu.port, result)
       printout("Network renamed to " .. result .. ", menu closed.", pindex)
       event.element.destroy()
-      roboport_menu_close(pindex)
+      fa_bot_logistics.roboport_menu_close(pindex)
    elseif players[pindex].entering_search_term == true then
       local term = string.lower(event.element.text)
       event.element.focus()
@@ -8078,7 +8090,7 @@ script.on_event(defines.events.on_gui_confirmed,function(event)
       if result == nil or result == "" then
          result = "unknown"
       end
-      set_blueprint_label(p.cursor_stack,result)
+      fa_blueprints.set_blueprint_label(p.cursor_stack,result)
       printout("Blueprint label changed to " .. result , pindex)
       event.element.destroy()
       if p.gui.screen["blueprint-edit-label"] ~= nil then
@@ -8091,7 +8103,7 @@ script.on_event(defines.events.on_gui_confirmed,function(event)
       if result == nil or result == "" then
          result = "unknown"
       end
-      set_blueprint_description(p.cursor_stack,result)
+      fa_blueprints.set_blueprint_description(p.cursor_stack,result)
       printout("Blueprint description changed.", pindex)
       event.element.destroy()
       if p.gui.screen["blueprint-edit-description"] ~= nil then
@@ -8104,7 +8116,7 @@ script.on_event(defines.events.on_gui_confirmed,function(event)
       if result == nil or result == "" then
          result = "unknown"
       end
-      apply_blueprint_import(pindex, result)
+      fa_blueprints.apply_blueprint_import(pindex, result)
       event.element.destroy()
       if p.gui.screen["blueprint-edit-import"] ~= nil then
          p.gui.screen["blueprint-edit-import"].destroy()
@@ -8172,7 +8184,7 @@ script.on_event("open-structure-travel-menu", function(event)
       if description == "" then
          description = "No nearby buildings."
       end
-      printout("Now at " .. ent.name .. " " .. extra_info_for_scan_list(ent,pindex,true) .. " " .. description .. ", Select a direction, confirm with same direction, and use perpendicular directions to select a target,  press left bracket to teleport to selection", pindex)
+      printout("Now at " .. ent.name .. " " .. fa_scanner.ent_extra_info(ent,pindex,true) .. " " .. description .. ", Select a direction, confirm with same direction, and use perpendicular directions to select a target,  press left bracket to teleport to selection", pindex)
       local screen = game.get_player(pindex).gui.screen
       local frame = screen.add{type = "frame", name = "structure-travel"}
       frame.bring_to_front()
@@ -8257,7 +8269,7 @@ function cursor_skip(pindex, direction, iteration_limit)
 
    --Read the tile reached 
    read_tile(pindex, result)
-   sync_build_cursor_graphics(pindex)
+   fa_graphics.sync_build_cursor_graphics(pindex)
 end
 
 --Moves the cursor in the same direction multiple times until the reported entity changes. Change includes: new entity name or new direction for entites with the same name, or changing between nil and ent. Returns move count.
@@ -8368,19 +8380,19 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
 end
 
 script.on_event("nudge-up", function(event)
-   nudge_key(defines.direction.north,event)
+   fa_building_tools.nudge_key(defines.direction.north,event)
 end)
 
 script.on_event("nudge-down", function(event)
-   nudge_key(defines.direction.south,event)
+   fa_building_tools.nudge_key(defines.direction.south,event)
 end)
 
 script.on_event("nudge-left", function(event)
-   nudge_key(defines.direction.west,event)
+   fa_building_tools.nudge_key(defines.direction.west,event)
 end)
 
 script.on_event("nudge-right", function(event)
-   nudge_key(defines.direction.east,event)
+   fa_building_tools.nudge_key(defines.direction.east,event)
 end)
 
 script.on_event("alternative-menu-up", function(event)
@@ -8389,9 +8401,9 @@ script.on_event("alternative-menu-up", function(event)
       return
    end
    if players[pindex].in_menu and players[pindex].menu == "train_menu" then
-      train_menu_up(pindex)
+      fa_trains.menu_up(pindex)
    elseif players[pindex].in_menu and players[pindex].menu == "spider_menu" then
-      spider_menu_up(pindex)
+      fa_spidertrons.spider_menu_up(pindex)
    end
 end)
 
@@ -8401,9 +8413,9 @@ script.on_event("alternative-menu-down", function(event)
       return
    end
    if players[pindex].in_menu and players[pindex].menu == "train_menu" then
-      train_menu_down(pindex)
+      fa_trains.menu_down(pindex)
    elseif players[pindex].in_menu and players[pindex].menu == "spider_menu" then
-      spider_menu_down(pindex)
+      fa_spidertrons.spider_menu_down(pindex)
    end
 end)
 
@@ -8413,7 +8425,7 @@ script.on_event("alternative-menu-left", function(event)
       return
    end
    if players[pindex].in_menu and players[pindex].menu == "train_menu" then
-      train_menu_left(pindex)
+      fa_trains.menu_left(pindex)
    end
 end)
 
@@ -8423,7 +8435,7 @@ script.on_event("alternative-menu-right", function(event)
       return
    end
    if players[pindex].in_menu and players[pindex].menu == "train_menu" then
-      train_menu_right(pindex)
+      fa_trains.menu_right(pindex)
    end
 end)
 
@@ -8476,7 +8488,7 @@ script.on_event("set-splitter-input-priority-left", function(event)
    if not ent then
       return
    elseif ent.valid and ent.type == "splitter" then
-      local result = set_splitter_priority(ent, true, true, nil)
+      local result = fa_belts.set_splitter_priority(ent, true, true, nil)
       printout(result,pindex)
    end
 end)
@@ -8490,7 +8502,7 @@ script.on_event("set-splitter-input-priority-right", function(event)
    if not ent then
       return
    elseif ent.valid and ent.type == "splitter" then
-      local result = set_splitter_priority(ent, true, false, nil)
+      local result = fa_belts.set_splitter_priority(ent, true, false, nil)
       printout(result,pindex)
    end
 end)
@@ -8505,7 +8517,7 @@ script.on_event("set-splitter-output-priority-left", function(event)
       return
    end
    if ent.valid and ent.type == "splitter" then
-      local result = set_splitter_priority(ent, false, true, nil)
+      local result = fa_belts.set_splitter_priority(ent, false, true, nil)
       printout(result,pindex)
    end
 end)
@@ -8521,7 +8533,7 @@ script.on_event("set-splitter-output-priority-right", function(event)
    end
    --Build left turns on end rails
    if ent.valid and ent.type == "splitter" then
-      local result = set_splitter_priority(ent, false, false, nil)
+      local result = fa_belts.set_splitter_priority(ent, false, false, nil)
       printout(result,pindex)
    end
 end)
@@ -8545,7 +8557,7 @@ script.on_event("set-entity-filter-from-hand", function(event)
       if stack == nil or not stack.valid_for_read or not stack.valid then
          if ent.type == "splitter" then
             --Clear the filter
-            local result = set_splitter_priority(ent, nil, nil, nil, true)
+            local result = fa_belts.set_splitter_priority(ent, nil, nil, nil, true)
             printout(result,pindex)
          elseif ent.type == "constant-combinator" then
             --Remove the last signal
@@ -8557,7 +8569,7 @@ script.on_event("set-entity-filter-from-hand", function(event)
       else
          if ent.type == "splitter" then
             --Set the filter
-            local result = set_splitter_priority(ent, nil, nil, stack)
+            local result = fa_belts.set_splitter_priority(ent, nil, nil, stack)
             printout(result,pindex)
          elseif ent.type == "constant-combinator" then
             --Add a new signal
@@ -8788,7 +8800,7 @@ script.on_event("help-read", function(event)
    if not check_for_player(pindex) then
       return
    end
-   tutorial_menu_current(pindex)
+   fa_tutorial.read_current_step(pindex)
 end)
 
 script.on_event("help-next", function(event)
@@ -8796,7 +8808,7 @@ script.on_event("help-next", function(event)
    if not check_for_player(pindex) then
       return
    end
-   tutorial_menu_next(pindex)
+   fa_tutorial.next_step(pindex)
 end)
 
 script.on_event("help-back", function(event)
@@ -8804,7 +8816,7 @@ script.on_event("help-back", function(event)
    if not check_for_player(pindex) then
       return
    end
-   tutorial_menu_back(pindex)
+   fa_tutorial.read_prev_step(pindex)
 end)
 
 script.on_event("help-chapter-next", function(event)
@@ -8812,7 +8824,7 @@ script.on_event("help-chapter-next", function(event)
    if not check_for_player(pindex) then
       return
    end
-   tutorial_menu_chapter_next(pindex)
+   fa_tutorial.next_chapter(pindex)
 end)
 
 script.on_event("help-chapter-back", function(event)
@@ -8820,7 +8832,7 @@ script.on_event("help-chapter-back", function(event)
    if not check_for_player(pindex) then
       return
    end
-   tutorial_menu_chapter_back(pindex)
+   fa_tutorial.prev_chapter(pindex)
 end)
 
 script.on_event("help-toggle-header-mode", function(event)
@@ -8828,7 +8840,7 @@ script.on_event("help-toggle-header-mode", function(event)
    if not check_for_player(pindex) then
       return
    end
-   tutorial_menu_toggle_header_detail(pindex)
+   fa_tutorial.toggle_header_detail(pindex)
 end)
 
 script.on_event("help-get-other", function(event)
@@ -8836,7 +8848,7 @@ script.on_event("help-get-other", function(event)
    if not check_for_player(pindex) then
       return
    end
-   tutorial_menu_read_other_once(pindex)
+   fa_tutorial.read_other_once(pindex)
 end)
 
 --**Use this key to test stuff (ALT-G)
@@ -8868,7 +8880,7 @@ script.on_event("logistic-request-read", function(event)
       return
    end
    if game.get_player(pindex).driving == false then
-      logistics_info_key_handler(pindex)
+      fa_bot_logistics.logistics_info_key_handler(pindex)
    end
 end)
 
@@ -8877,7 +8889,7 @@ script.on_event("logistic-request-increment-min", function(event)
    if not check_for_player(pindex) then
       return
    end
-   logistics_request_increment_min_handler(pindex)
+   fa_bot_logistics.logistics_request_increment_min_handler(pindex)
 end)
 
 script.on_event("logistic-request-decrement-min", function(event)
@@ -8885,7 +8897,7 @@ script.on_event("logistic-request-decrement-min", function(event)
    if not check_for_player(pindex) then
       return
    end
-   logistics_request_decrement_min_handler(pindex)
+   fa_bot_logistics.logistics_request_decrement_min_handler(pindex)
 end)
 
 script.on_event("logistic-request-increment-max", function(event)
@@ -8893,7 +8905,7 @@ script.on_event("logistic-request-increment-max", function(event)
    if not check_for_player(pindex) then
       return
    end
-   logistics_request_increment_max_handler(pindex)
+   fa_bot_logistics.logistics_request_increment_max_handler(pindex)
 end)
 
 script.on_event("logistic-request-decrement-max", function(event)
@@ -8901,7 +8913,7 @@ script.on_event("logistic-request-decrement-max", function(event)
    if not check_for_player(pindex) then
       return
    end
-   logistics_request_decrement_max_handler(pindex)
+   fa_bot_logistics.logistics_request_decrement_max_handler(pindex)
 end)
 
 script.on_event("logistic-request-toggle-personal-logistics", function(event)
@@ -8909,7 +8921,7 @@ script.on_event("logistic-request-toggle-personal-logistics", function(event)
    if not check_for_player(pindex) then
       return
    end
-   logistics_request_toggle_handler(pindex)
+   fa_bot_logistics.logistics_request_toggle_handler(pindex)
 end)
 
 script.on_event("send-selected-stack-to-logistic-trash", function(event)
@@ -8917,7 +8929,7 @@ script.on_event("send-selected-stack-to-logistic-trash", function(event)
    if not check_for_player(pindex) then
       return
    end
-   send_selected_stack_to_logistic_trash(pindex)
+   fa_bot_logistics.send_selected_stack_to_logistic_trash(pindex)
 end)
 
 script.on_event(defines.events.on_gui_opened, function(event)
@@ -8956,7 +8968,7 @@ script.on_event(defines.events.on_chunk_charted,function(event)
       return
    end
    players[pindex].mapped[fa_utils.pos2str(event.position)] = true
-   local islands = find_islands(game.surfaces[event.surface_index], event.area, pindex)
+   local islands = fa_scanner.find_islands(game.surfaces[event.surface_index], event.area, pindex)
 
    if table_size(islands) > 0 then
       for i, v in pairs(islands) do
@@ -9500,7 +9512,7 @@ script.on_event(defines.events.on_player_display_scale_changed,function(event)
    schedule(4, "sync_build_cursor_graphics", pindex)
 end)
 
-script.on_event(defines.events.on_string_translated,localising.handler)
+script.on_event(defines.events.on_string_translated,fa_localising.handler)
 
 --If the player has unexpected lateral movement while smooth running in a cardinal direction, like from bumping into an entity or being at the edge of water, play a sound.
 function check_and_play_bump_alert_sound(pindex,this_tick)
@@ -9824,7 +9836,7 @@ function selected_item_production_stats_info(pindex)
             prototype = game.item_prototypes[recipe.products[1].name]
             if prototype then
                internal_name = prototype.name
-               result = localising.get_item_from_name(recipe.products[1].name,pindex) .. " "
+               result = fa_localising.get_item_from_name(recipe.products[1].name,pindex) .. " "
             end
          end
          if recipe.products[1].type == "fluid" then
@@ -9833,7 +9845,7 @@ function selected_item_production_stats_info(pindex)
             prototype = game.fluid_prototypes[recipe.name]
             if prototype then
                internal_name = prototype.name
-               result = localising.get_fluid_from_name(recipe.products[1].name,pindex) .. " "
+               result = fa_localising.get_fluid_from_name(recipe.products[1].name,pindex) .. " "
             end
          end
          if (recipe.products[2] and recipe.products[2].type == "fluid") then
@@ -9842,7 +9854,7 @@ function selected_item_production_stats_info(pindex)
             prototype = game.fluid_prototypes[recipe.products[2].name]
             if prototype then
                internal_name = prototype.name
-               result = localising.get_fluid_from_name(recipe.products[2].name,pindex) .. " "
+               result = fa_localising.get_fluid_from_name(recipe.products[2].name,pindex) .. " "
             end
          end
       end
@@ -9870,11 +9882,11 @@ function selected_item_production_stats_info(pindex)
 end
 
 script.on_event("fa-pda-driving-assistant-info", function(event)
-   read_PDA_assistant_toggled_info(event.player_index)
+   fa_driving.pda_read_assistant_toggled_info(event.player_index)
 end)
 
 script.on_event("fa-pda-cruise-control-info", function(event)
-   read_PDA_cruise_control_toggled_info(event.player_index)
+   fa_driving.pda_read_cruise_control_toggled_info(event.player_index)
 end)
 
 script.on_event("fa-pda-cruise-control-set-speed-info", function(event)
@@ -9993,7 +10005,7 @@ function read_nearest_damaged_ent_info(pos,pindex)--
    else
       min_dist = math.floor(min_dist)
       local dir = fa_utils.get_direction_biased(closest.position,pos)
-      local result = localising.get(closest, pindex) .. "  damaged at " .. min_dist .. " " .. fa_utils.direction_lookup(dir)
+      local result = fa_localising.get(closest, pindex) .. "  damaged at " .. min_dist .. " " .. fa_utils.direction_lookup(dir)
       printout(result, pindex)
    end
 end

@@ -4,8 +4,10 @@ local localising = require("localising")
 local util = require('util')
 local fa_utils = require('fa-utils')
 
+local fa_belts = {}
+
 --Takes some stats about a belt unit and explains what type of junction the belt is.
-function transport_belt_junction_info(sideload_count, backload_count, outload_count, this_dir, outload_dir, say_middle, outload_is_corner)
+function fa_belts.transport_belt_junction_info(sideload_count, backload_count, outload_count, this_dir, outload_dir, say_middle, outload_is_corner)
    local say_middle = say_middle or false
    local outload_is_corner = outload_is_corner or false
    local result = ""
@@ -91,7 +93,7 @@ function transport_belt_junction_info(sideload_count, backload_count, outload_co
 end
 
 --Belt analyzer: Returns a navigable list of items that are found in the input transport belt line.
-function get_line_items(network)
+function fa_belts.get_line_items(network)
    local result = {combined = {left = {}, right = {}}, downstream = {left = {}, right = {}}, upstream = {left = {}, right = {}}}
    local dict = {}
    for i, line in pairs(network.downstream.left) do
@@ -211,7 +213,7 @@ function get_line_items(network)
 end
 
 --Belt analyzer: Creates a list of transport lines that involve the belt uint B.
-function get_connected_lines(B)
+function fa_belts.get_connected_lines(B)
    local left = {}
    local right = {}
    local frontier = {}
@@ -401,7 +403,7 @@ if explored.side == 0 then
 end
 
 --Belt analyzer: Returns a hash table of the belt units connected to the belt unit B.
-function get_connected_belts(B)
+function fa_belts.get_connected_belts(B)
    local result = {}
    local frontier = {table.deepcopy(B)}
    local hash = {}
@@ -430,7 +432,7 @@ function get_connected_belts(B)
 end
 
 --Transport belt analyzer: Read a results list slot
-function read_belt_slot(pindex, start_phrase)
+function fa_belts.read_belt_slot(pindex, start_phrase)
    start_phrase = start_phrase or ""
    local stack = nil
    local array = {}
@@ -508,7 +510,7 @@ end
 
 
 --Set the input priority or the output priority or filter for a splitter
-function set_splitter_priority(splitter, is_input, is_left, filter_item_stack, clear)
+function fa_belts.set_splitter_priority(splitter, is_input, is_left, filter_item_stack, clear)
    local clear = clear or false
    local result = "no message"
    local filter = splitter.splitter_filter
@@ -584,7 +586,7 @@ function set_splitter_priority(splitter, is_input, is_left, filter_item_stack, c
 end
 
 --Returns an info string about a splitter's input and output settings.
-function splitter_priority_info(ent)
+function fa_belts.splitter_priority_info(ent)
    local result = ","
    local input = ent.splitter_input_priority
    local output = ent.splitter_output_priority
@@ -617,3 +619,5 @@ function splitter_priority_info(ent)
    end
    return result
 end
+
+return fa_belts

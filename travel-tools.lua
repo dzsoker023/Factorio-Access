@@ -1,5 +1,8 @@
 --Here: Teleporting, fast travel, structure travel, etc.
 local fa_utils = require("fa-utils")
+local fa_graphics = require("graphics-and-mouse").graphics
+local fa_mouse = require("graphics-and-mouse").mouse
+local fa_scanner = require("scanner")
 
 --Structure travel: Moves the player cursor in the input direction.
 function move_cursor_structure(pindex, dir)
@@ -37,11 +40,11 @@ function move_cursor_structure(pindex, dir)
          end
          local ent = network[network[current][adjusted[(0 + dir) %8]][index].num]
          if ent.ent.valid then
-            cursor_highlight(pindex, ent.ent, nil)
-            move_mouse_pointer(ent.ent.position,pindex)
+            fa_graphics.draw_cursor_highlight(pindex, ent.ent, nil)
+            fa_mouse.move_mouse_pointer(ent.ent.position,pindex)
             players[pindex].cursor_pos = ent.ent.position
             --Case 1: Proposing a new structure
-            printout("To " .. ent.name .. " " .. extra_info_for_scan_list(ent.ent,pindex,true) .. ", " .. description  .. ", " .. index .. " of " .. #network[current][adjusted[(0 + dir) % 8]], pindex)
+            printout("To " .. ent.name .. " " .. fa_scanner.ent_extra_info(ent.ent,pindex,true) .. ", " .. description  .. ", " .. index .. " of " .. #network[current][adjusted[(0 + dir) % 8]], pindex)
          else
             printout("Missing " .. ent.name .. " " .. description, pindex)
          end
@@ -68,11 +71,11 @@ function move_cursor_structure(pindex, dir)
       end
       local ent = network[current]
       if ent.ent.valid then
-         cursor_highlight(pindex, ent.ent, nil)
-         move_mouse_pointer(ent.ent.position,pindex)
+         fa_graphics.draw_cursor_highlight(pindex, ent.ent, nil)
+         fa_mouse.move_mouse_pointer(ent.ent.position,pindex)
          players[pindex].cursor_pos = ent.ent.position
          --Case 2: Returning to the current structure
-         printout("Back at " .. ent.name .. " " .. extra_info_for_scan_list(ent.ent,pindex,true) .. ", " .. description, pindex)
+         printout("Back at " .. ent.name .. " " .. fa_scanner.ent_extra_info(ent.ent,pindex,true) .. ", " .. description, pindex)
       else
          printout("Missing " .. ent.name .. " " .. description, pindex)
       end
@@ -99,11 +102,11 @@ function move_cursor_structure(pindex, dir)
       end
       local ent = network[current]
      if ent.ent.valid then
-         cursor_highlight(pindex, ent.ent, nil)
-         move_mouse_pointer(ent.ent.position,pindex)
+         fa_graphics.draw_cursor_highlight(pindex, ent.ent, nil)
+         fa_mouse.move_mouse_pointer(ent.ent.position,pindex)
          players[pindex].cursor_pos = ent.ent.position
          --Case 3: Moved to the new structure
-         printout("Now at " .. ent.name .. " " .. extra_info_for_scan_list(ent.ent,pindex,true) .. ", " .. description, pindex)
+         printout("Now at " .. ent.name .. " " .. fa_scanner.ent_extra_info(ent.ent,pindex,true) .. ", " .. description, pindex)
       else
          printout("Missing " .. ent.name .. " " .. description, pindex)
       end
@@ -135,11 +138,11 @@ function move_cursor_structure(pindex, dir)
       end
       local ent = network[network[current][direction][index].num]
       if ent.ent.valid then
-         cursor_highlight(pindex, ent.ent, nil)
-         move_mouse_pointer(ent.ent.position,pindex)
+         fa_graphics.draw_cursor_highlight(pindex, ent.ent, nil)
+         fa_mouse.move_mouse_pointer(ent.ent.position,pindex)
          players[pindex].cursor_pos = ent.ent.position
          --Case 4: Propose a new structure within the same direction
-         printout("To " .. ent.name .. " " .. extra_info_for_scan_list(ent.ent,pindex,true) .. ", " .. description  .. ", " .. index .. " of " .. #network[current][direction], pindex)
+         printout("To " .. ent.name .. " " .. fa_scanner.ent_extra_info(ent.ent,pindex,true) .. ", " .. description  .. ", " .. index .. " of " .. #network[current][direction], pindex)
       else
          printout("Missing " .. ent.name .. " " .. description, pindex)
       end
@@ -377,8 +380,8 @@ function teleport_to_closest(pindex, pos, muted, ignore_enemies)
          end
          --Update cursor after teleport
          players[pindex].cursor_pos = table.deepcopy(new_pos)
-         move_mouse_pointer(fa_utils.center_of_tile(players[pindex].cursor_pos),pindex)
-         cursor_highlight(pindex,nil,nil)
+         fa_mouse.move_mouse_pointer(fa_utils.center_of_tile(players[pindex].cursor_pos),pindex)
+         fa_graphics.draw_cursor_highlight(pindex,nil,nil)
       else
          printout("Teleport Failed", pindex)
          return false
@@ -457,7 +460,7 @@ function read_travel_slot(pindex)
       local entry = global.players[pindex].travel[players[pindex].travel.index.y]
       printout(entry.name .. " at " .. math.floor(entry.position.x) .. ", " .. math.floor(entry.position.y), pindex)
       players[pindex].cursor_pos = fa_utils.center_of_tile(entry.position)
-      cursor_highlight(pindex, nil, "train-visualization")
+      fa_graphics.draw_cursor_highlight(pindex, nil, "train-visualization")
    end
 end
 
@@ -476,7 +479,7 @@ function fast_travel_menu_click(pindex)
       else
          players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].position, players[pindex].player_direction, 1)
       end
-      sync_build_cursor_graphics(pindex)
+      fa_graphics.sync_build_cursor_graphics(pindex)
       game.get_player(pindex).opened = nil
 
       if not refresh_player_tile(pindex) then
@@ -487,9 +490,9 @@ function fast_travel_menu_click(pindex)
       --Update cursor highlight
       local ent = get_selected_ent(pindex)
       if ent and ent.valid then
-         cursor_highlight(pindex, ent, nil)
+         fa_graphics.draw_cursor_highlight(pindex, ent, nil)
       else
-         cursor_highlight(pindex, nil, nil)
+         fa_graphics.draw_cursor_highlight(pindex, nil, nil)
       end
    elseif players[pindex].travel.index.x == 2 then --Read description
       local desc = players[pindex].travel[players[pindex].travel.index.y].description
@@ -523,7 +526,7 @@ function fast_travel_menu_click(pindex)
       players[pindex].travel[players[pindex].travel.index.y].position = fa_utils.center_of_tile(players[pindex].position)
       printout("Relocated point ".. players[pindex].travel[players[pindex].travel.index.y].name .. " to " .. math.floor(players[pindex].position.x) .. ", " .. math.floor(players[pindex].position.y), pindex)
       players[pindex].cursor_pos = players[pindex].position
-      cursor_highlight(pindex)
+      fa_graphics.draw_cursor_highlight(pindex)
    elseif players[pindex].travel.index.x == 6 then --Delete
       printout("Deleted " .. global.players[pindex].travel[players[pindex].travel.index.y].name, pindex)
       table.remove(global.players[pindex].travel, players[pindex].travel.index.y)

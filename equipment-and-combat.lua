@@ -3,6 +3,8 @@
 local util = require('util')
 local localising = require('localising')
 local fa_electrical = require("electrical")
+local fa_graphics = require("graphics-and-mouse").graphics
+local fa_mouse = require("graphics-and-mouse").mouse
 
 local fa_equipment = {}
 local fa_combat = {}
@@ -624,8 +626,8 @@ function fa_combat.aim_gun_at_nearest_enemy(pindex,enemy_in)
    --If in range, move the cursor onto the enemy to aim the gun
    if dist < range then 
       players[pindex].cursor_pos = enemy.position
-      move_mouse_pointer(enemy.position,pindex)
-      cursor_highlight(pindex,nil,nil,true)
+      fa_mouse.move_mouse_pointer(enemy.position,pindex)
+      fa_graphics.draw_cursor_highlight(pindex,nil,nil,true)
    end
    return true
 end

@@ -412,6 +412,13 @@ function fa_utils.area_edge(area,dir,pos,name)
    end
 end
 
+--Returns the top left and bottom right corners for a rectangle that takes pos_1 and pos_2 as any of its four corners.
+function fa_utils.get_top_left_and_bottom_right(pos_1, pos_2)
+   local top_left = {x = math.min(pos_1.x, pos_2.x), y = math.min(pos_1.y, pos_2.y)}
+   local bottom_right = {x = math.max(pos_1.x, pos_2.x), y = math.max(pos_1.y, pos_2.y)}
+   return top_left, bottom_right
+end
+
 function fa_utils.table_concat (T1, T2)
    if T2 == nil then
       return
@@ -565,6 +572,39 @@ function fa_utils.floor_to_nearest_k_after_10k(num_in)
       num = 100000 * math.floor(num/100000)
    end
    return num
+end
+
+--Returns a string to say the quantity of an item in terms of stacks, if there is at least one stack
+function fa_utils.express_in_stacks(count,stack_size,precise)
+   local result = ""
+   local new_count = "unknown amount of"
+   local units = " units "
+   if count == nil then
+      count = 0
+   elseif count == 0 then 
+      units = " units "
+      new_count = "0"
+   elseif count == 1 then 
+      units = " unit "
+      new_count = "1"
+   elseif count < stack_size  then 
+      units = " units "
+      new_count = tostring(count)
+   elseif count == stack_size then
+      units = " stack "
+      new_count = "1"
+   elseif count > stack_size then
+      units = " stacks "
+      new_count = tostring(math.floor(count / stack_size))
+   end
+   result = new_count .. units
+   if precise and count > stack_size and count % stack_size > 0 then
+      result = result .. " and " .. count % stack_size .. " units "
+   end
+   if count > 10000 then
+      result = "infinite"
+   end
+   return result
 end
 
 return fa_utils

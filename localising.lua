@@ -1,8 +1,8 @@
 --Here: localisation functions, including event handlers
-local localising = {}
+local fa_localising = {}
 --Returns the localised name of an object as a string. Used for ents and items and fluids
 ---@return string
-function localising.get(object,pindex)
+function fa_localising.get(object,pindex)
       -- Everything, everything uses this function without checking the return
       -- values. Use really annoying strings to make it very clear there's a
       -- bug.
@@ -28,7 +28,7 @@ function localising.get(object,pindex)
 end
 
 --Used for recipes
-function localising.get_alt(object,pindex)
+function fa_localising.get_alt(object,pindex)
    if pindex == nil then
       printout("localising: pindex is nil error")
       return "(nil)"
@@ -47,49 +47,49 @@ function localising.get_alt(object,pindex)
    return result or "(nil)"
 end
 
-function localising.get_item_from_name(name,pindex)
+function fa_localising.get_item_from_name(name,pindex)
    local proto = game.item_prototypes[name]
    if proto == nil then
       return "(nil)"
    end
-   local result = localising.get(proto,pindex)
+   local result = fa_localising.get(proto,pindex)
    return result or "(nil)"
 end
 
-function localising.get_fluid_from_name(name,pindex)
+function fa_localising.get_fluid_from_name(name,pindex)
    local proto = game.fluid_prototypes[name]
    if proto == nil then
       return "nil"
    end
-   local result = localising.get(proto,pindex)
+   local result = fa_localising.get(proto,pindex)
    return result
 end
 
-function localising.get_recipe_from_name(name,pindex)
+function fa_localising.get_recipe_from_name(name,pindex)
    local proto = game.recipe_prototypes[name]
    if proto == nil then
       return "nil"
    end
-   local result = localising.get_alt(proto,pindex)
+   local result = fa_localising.get_alt(proto,pindex)
    return result
 end
 
-function localising.get_item_group_from_name(name,pindex)
+function fa_localising.get_item_group_from_name(name,pindex)
    local proto = game.item_group_prototypes[name]
    if proto == nil then
       return "nil"
    end
-   local result = localising.get_alt(proto,pindex)
+   local result = fa_localising.get_alt(proto,pindex)
    return result
 end
 
-function localising.request_localisation(thing,pindex)
+function fa_localising.request_localisation(thing,pindex)
    local id = game.players[pindex].request_translation(thing.localised_name)
    local lookup=players[pindex].translation_id_lookup
    lookup[id]={thing.object_name,thing.name}
 end
 
-function localising.request_all_the_translations(pindex)
+function fa_localising.request_all_the_translations(pindex)
    for _, cat in pairs({"entity",
       "item",
       "fluid",
@@ -110,13 +110,13 @@ function localising.request_all_the_translations(pindex)
       "equipment_category",
       "shortcut"}) do
       for _, proto in pairs(game[cat.."_prototypes"]) do
-         localising.request_localisation(proto,pindex)
+         fa_localising.request_localisation(proto,pindex)
       end
    end
 end
 
 --Populates the appropriate localised string arrays for every translation
-function localising.handler(event)
+function fa_localising.handler(event)
    local pindex = event.player_index
    local player=players[pindex]
    local successful = event.translated
@@ -139,7 +139,7 @@ function localising.handler(event)
       if last_try == event.result then
          return
       end
-      localising.request_all_the_translations(pindex)
+      fa_localising.request_all_the_translations(pindex)
       player.localisation_test = event.result
       return
    end
@@ -151,7 +151,7 @@ function localising.handler(event)
    translated_list[ translated_thing[2] ] = event.result
 end
 
-function localising.check_player(pindex)
+function fa_localising.check_player(pindex)
    local player=players[pindex]
    local id=game.players[pindex].request_translation({"error.crash-to-desktop-message"})
    if not id then
@@ -161,4 +161,4 @@ function localising.check_player(pindex)
    player.translation_id_lookup[id] = "test_translation"
 end
 
-return localising
+return fa_localising
