@@ -249,6 +249,9 @@ function fa_blueprints.get_blueprint_width_and_height(pindex)
    local p = game.get_player(pindex)
    local bp = p.cursor_stack
    if bp == nil or bp.valid_for_read == false or bp.is_blueprint == false then
+      bp = game.get_player(pindex).get_main_inventory()[players[pindex].inventory.index]
+   end
+   if bp == nil or bp.valid_for_read == false or bp.is_blueprint == false then
       return nil, nil
    end
    local pos = players[pindex].cursor_pos

@@ -5230,6 +5230,10 @@ script.on_event("click-menu-right", function(event)
          local stack_cur = p.cursor_stack
          local stack_inv = table.deepcopy(players[pindex].inventory.lua_inventory[players[pindex].inventory.index])
          p.play_sound{path = "utility/inventory_click"}
+         if stack_inv and stack_inv.valid_for_read and (stack_inv.is_blueprint or stack_inv.is_blueprint_book) then
+            --Do not grab it
+            return
+         end
          if not (stack_cur and stack_cur.valid_for_read) and (stack_inv and stack_inv.valid_for_read) then
             --Take half (sorted inventory)
             local name = stack_inv.name
