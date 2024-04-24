@@ -4,9 +4,10 @@ local fa_utils = require("fa-utils")
 local fa_electrical = require("electrical")
 local dirs = defines.direction
 local fa_graphics = require("graphics-and-mouse").graphics
---local fa_rails = require("rails").rails
+local fa_rails = require("rails").rails
 local fa_belts = require("transport-belts")
 local fa_mining_tools = require("mining-tools")
+local fa_teleport = require("teleport")
 
 local fa_building_tools = {}
 
@@ -16,7 +17,6 @@ local fa_building_tools = {}
 * You can offset the building with respect to the direction the player is facing. The offset is multiplied by the placed building width.
 ]]
 function fa_building_tools.build_item_in_hand(pindex, free_place_straight_rail)
-   local fa_rails_local = require("rails").rails
    local stack = game.get_player(pindex).cursor_stack
    local p = game.get_player(pindex)
 
@@ -43,7 +43,7 @@ function fa_building_tools.build_item_in_hand(pindex, free_place_straight_rail)
       if not (free_place_straight_rail == true) then
          --Append rails unless otherwise stated
          local pos = players[pindex].cursor_pos
-         fa_rails_local.append_rail(pos, pindex)
+         fa_rails.append_rail(pos, pindex)
          return
       end
    elseif stack.name == "rail-signal" or stack.name == "rail-chain-signal" then
@@ -1164,13 +1164,13 @@ function fa_building_tools.teleport_player_out_of_build_area(left_top, right_bot
    --Teleport to exit spots if possible
    for i,pos in ipairs(exits) do
       if p.surface.can_place_entity{name = "character", position = pos} then
-         teleport_to_closest(pindex, pos, false, true)
+         fa_teleport.teleport_to_closest(pindex, pos, false, true)
          return
       end
    end
 
    --Teleport best effort to -2, -2
-   teleport_to_closest(pindex, exits[6], false, true)
+   fa_teleport.teleport_to_closest(pindex, exits[6], false, true)
 end
 
 --Assuming there is a steam engine in hand, this function will automatically build it next to a suitable boiler.

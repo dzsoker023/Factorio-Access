@@ -24,6 +24,8 @@ local fa_belts = require("transport-belts")
 local fa_zoom = require('zoom')
 local fa_bot_logistics = require("worker-robots")
 local fa_blueprints = require("blueprints")
+local fa_travel = require("travel-tools")
+local fa_teleport = require("teleport")
 local fa_warnings = require("warnings")
 
 local circuit_networks = require('circuit-networks')
@@ -2255,9 +2257,9 @@ function menu_cursor_up(pindex)
 
       printout("Option " .. players[pindex].pump.index .. ": " .. math.floor(fa_utils.distance(game.get_player(pindex).position, players[pindex].pump.positions[players[pindex].pump.index].position)) .. " meters " .. fa_utils.direction(game.get_player(pindex).position, players[pindex].pump.positions[players[pindex].pump.index].position) .. " Facing " .. dir, pindex)
    elseif players[pindex].menu == "travel" then
-      fast_travel_menu_up(pindex)
+      fa_travel.fast_travel_menu_up(pindex)
    elseif players[pindex].menu == "structure-travel" then
-      move_cursor_structure(pindex, 0)
+      fa_travel.move_cursor_structure(pindex, 0)
    elseif players[pindex].menu == "rail_builder" then
       fa_rail_builder.menu_up(pindex)
    elseif players[pindex].menu == "train_stop_menu" then
@@ -2505,9 +2507,9 @@ function menu_cursor_down(pindex)
 
       printout("Option " .. players[pindex].pump.index .. ": " .. math.floor(fa_utils.distance(game.get_player(pindex).position, players[pindex].pump.positions[players[pindex].pump.index].position)) .. " meters " .. fa_utils.direction(game.get_player(pindex).position, players[pindex].pump.positions[players[pindex].pump.index].position) .. " Facing " .. dir, pindex)
    elseif players[pindex].menu == "travel" then
-      fast_travel_menu_down(pindex)
+      fa_travel.fast_travel_menu_down(pindex)
    elseif players[pindex].menu == "structure-travel" then
-      move_cursor_structure(pindex, 4)
+      fa_travel.move_cursor_structure(pindex, 4)
    elseif players[pindex].menu == "rail_builder" then
       fa_rail_builder.menu_down(pindex)
    elseif players[pindex].menu == "train_stop_menu" then
@@ -2670,9 +2672,9 @@ function menu_cursor_left(pindex)
       end
       fa_warnings.read_warnings_slot(pindex)
    elseif players[pindex].menu == "travel" then
-      fast_travel_menu_left(pindex)
+      fa_travel.fast_travel_menu_left(pindex)
    elseif players[pindex].menu == "structure-travel" then
-      move_cursor_structure(pindex, 6)
+      fa_travel.move_cursor_structure(pindex, 6)
    elseif players[pindex].menu == "signal_selector" then
       signal_selector_signal_prev(pindex)
       read_selected_signal_slot(pindex, "")
@@ -2839,9 +2841,9 @@ function menu_cursor_right(pindex)
       end
       fa_warnings.read_warnings_slot(pindex)
    elseif players[pindex].menu == "travel" then
-      fast_travel_menu_right(pindex)
+      fa_travel.fast_travel_menu_right(pindex)
    elseif players[pindex].menu == "structure-travel" then
-      move_cursor_structure(pindex, 2)
+      fa_travel.move_cursor_structure(pindex, 2)
    elseif players[pindex].menu == "signal_selector" then
       signal_selector_signal_next(pindex)
       read_selected_signal_slot(pindex, "")
@@ -3339,7 +3341,7 @@ script.on_event(defines.events.on_player_driving_changed_state, function(event)
       if players[pindex].last_vehicle.train ~= nil and players[pindex].last_vehicle.train.schedule == nil then
          players[pindex].last_vehicle.train.manual_mode = true
       end
-      teleport_to_closest(pindex, players[pindex].last_vehicle.position, true, true)
+      fa_teleport.teleport_to_closest(pindex, players[pindex].last_vehicle.position, true, true)
       if players[pindex].menu == "train_menu" then
          fa_trains.menu_close(pindex, false)
       end
@@ -3518,7 +3520,7 @@ script.on_event("teleport-to-cursor", function(event)
    if not check_for_player(pindex) then
       return
    end
-   teleport_to_cursor(pindex, false, false, false)
+   fa_teleport.teleport_to_cursor(pindex, false, false, false)
 end)
 
 script.on_event("teleport-to-cursor-forced", function(event)
@@ -3526,7 +3528,7 @@ script.on_event("teleport-to-cursor-forced", function(event)
    if not check_for_player(pindex) then
       return
    end
-   teleport_to_cursor(pindex, false, true, false)
+   fa_teleport.teleport_to_cursor(pindex, false, true, false)
 end)
 
 script.on_event("teleport-to-alert-forced", function(event)
@@ -3540,7 +3542,7 @@ script.on_event("teleport-to-alert-forced", function(event)
       return
    end
    players[pindex].cursor_pos = alert_pos
-   teleport_to_cursor(pindex, false, true, true)
+   fa_teleport.teleport_to_cursor(pindex, false, true, true)
    players[pindex].cursor_pos = game.get_player(pindex).position
    players[pindex].position = game.get_player(pindex).position
    players[pindex].last_damage_alert_pos = game.get_player(pindex).position
@@ -3999,7 +4001,7 @@ script.on_event("jump-to-scan", function(event)--NOTE: This might be deprecated 
             fa_graphics.sync_build_cursor_graphics(pindex)
             printout("Cursor has jumped to " .. ent.name .. " at " .. math.floor(players[pindex].cursor_pos.x) .. " " .. math.floor(players[pindex].cursor_pos.y), pindex)
          else
-            teleport_to_closest(pindex, ent.position, false, false)
+            fa_teleport.teleport_to_closest(pindex, ent.position, false, false)
             players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].position, players[pindex].player_direction, 1)
             fa_graphics.draw_cursor_highlight(pindex, nil, nil)--laterdo check for new cursor ent here, to update the highlight?
             fa_graphics.sync_build_cursor_graphics(pindex)
@@ -5580,7 +5582,7 @@ script.on_event("click-menu", function(event)
          end
 
       elseif players[pindex].menu == "travel" then
-         fast_travel_menu_click(pindex)
+         fa_travel.fast_travel_menu_click(pindex)
       elseif players[pindex].menu == "structure-travel" then--Also called "b stride"
          ---@type LuaEntity 
          local tar = nil
@@ -5598,7 +5600,7 @@ script.on_event("click-menu", function(event)
          elseif players[pindex].structure_travel.direction == "west" then
             tar = network[network[current].west[index].num]
          end
-         local success = teleport_to_closest(pindex, tar.position, false, false)
+         local success = fa_teleport.teleport_to_closest(pindex, tar.position, false, false)
          if success and players[pindex].cursor then
             players[pindex].cursor_pos = table.deepcopy(tar.position)
          else
@@ -7577,7 +7579,7 @@ script.on_event("open-fast-travel-menu", function(event)
       return
    end
    if game.get_player(pindex).driving ~= true then
-      fast_travel_menu_open(pindex)
+      fa_travel.fast_travel_menu_open(pindex)
    end
 end)
 
@@ -7689,7 +7691,7 @@ script.on_event(defines.events.on_gui_confirmed,function(event)
          --Renaming selected point
          players[pindex].travel.renaming = false
          players[pindex].travel[players[pindex].travel.index.y].name = result
-         read_travel_slot(pindex)
+         fa_travel.read_travel_slot(pindex)
       elseif players[pindex].travel.describing then
          --Save the new description 
          players[pindex].travel.describing = false
@@ -7824,11 +7826,11 @@ script.on_event("open-structure-travel-menu", function(event)
       local initial_scan_radius = 50
       if ent ~= nil and ent.valid and ent.unit_number ~= nil and building_types[ent.type] then
          players[pindex].structure_travel.current = ent.unit_number
-         players[pindex].structure_travel.network = compile_building_network(ent, initial_scan_radius,pindex)
+         players[pindex].structure_travel.network = fa_travel.compile_building_network(ent, initial_scan_radius,pindex)
       else
          ent = game.get_player(pindex).character
          players[pindex].structure_travel.current = ent.unit_number
-         players[pindex].structure_travel.network = compile_building_network(ent, initial_scan_radius,pindex)
+         players[pindex].structure_travel.network = fa_travel.compile_building_network(ent, initial_scan_radius,pindex)
       end
       local description = ""
       local network = players[pindex].structure_travel.network

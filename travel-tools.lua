@@ -1,11 +1,14 @@
---Here: Teleporting, fast travel, structure travel, etc.
+--Here: Fast travel, structure travel, etc.
 local fa_utils = require("fa-utils")
 local fa_graphics = require("graphics-and-mouse").graphics
 local fa_mouse = require("graphics-and-mouse").mouse
 local fa_scanner = require("scanner")
+local fa_teleport = require("teleport")
+
+local fa_travel = {}
 
 --Structure travel: Moves the player cursor in the input direction.
-function move_cursor_structure(pindex, dir)
+function fa_travel.move_cursor_structure(pindex, dir)
    local direction = players[pindex].structure_travel.direction
    local adjusted = {}
    adjusted[0] = "north"
@@ -151,7 +154,7 @@ end
 
 --Structure travel: Creates the building network that is traveled during structure travel. 
 --**Todo bug: Some neighboring structures are not picked up when they should be such as machines next to inserters
-function compile_building_network(ent, radius_in,pindex)
+function fa_travel.compile_building_network(ent, radius_in,pindex)
    local radius = radius_in
    local ents = ent.surface.find_entities_filtered{position = ent.position, radius = radius}
    game.get_player(pindex).print(#ents .. " ents at first pass")
@@ -309,106 +312,7 @@ function compile_building_network(ent, radius_in,pindex)
    return result
 end
 
---Makes the player teleport to the closest valid position to a target position. Uses game's teleport function. Muted makes silent and effectless teleporting
-function teleport_to_closest(pindex, pos, muted, ignore_enemies)
-   local pos = table.deepcopy(pos)
-   local muted = muted or false
-   local first_player = game.get_player(pindex)
-   local surf = first_player.surface
-   local radius = .5
-   local new_pos = surf.find_non_colliding_position("character", pos, radius, .1, true)
-   while new_pos == nil do
-      radius = radius + 1
-      new_pos = surf.find_non_colliding_position("character", pos, radius, .1, true)
-   end
-   --Do not teleport if in a vehicle, in a menu, or already at the desitination
-   if first_player.vehicle ~= nil and first_player.vehicle.valid then
-      printout("Cannot teleport while in a vehicle.", pindex)
-      return false
-   elseif util.distance(game.get_player(pindex).position, pos) <= 1.5 then
-      printout("Already at target", pindex)
-      return false
-   elseif players[pindex].in_menu and players[pindex].menu ~= "travel" and players[pindex].menu ~= "structure-travel" then
-      printout("Cannot teleport while in a menu.", pindex)
-      return false
-   end
-   --Do not teleport near enemies unless instructed to ignore them
-   if not ignore_enemies then
-      local enemy = first_player.surface.find_nearest_enemy{position = new_pos, max_distance = 30, force =  first_player.force}
-      if enemy and enemy.valid then
-         printout("Warning: There are enemies at this location, but you can force teleporting if you press CONTROL + SHIFT + T", pindex)
-         return false
-      end
-   end
-   --Attempt teleport
-   local can_port = first_player.surface.can_place_entity{name = "character", position = new_pos}
-   if can_port then
-      local old_pos = table.deepcopy(first_player.position)
-      if not muted then
-         --Teleporting visuals at origin
-         rendering.draw_circle{color = {0.8, 0.2, 0.0},radius = 0.5,width = 15,target = old_pos, surface = first_player.surface, draw_on_ground = true, time_to_live = 60}
-         rendering.draw_circle{color = {0.6, 0.1, 0.1},radius = 0.3,width = 20,target = old_pos, surface = first_player.surface, draw_on_ground = true, time_to_live = 60}
-         local smoke_effect = first_player.surface.create_entity{name = "iron-chest", position = first_player.position, raise_built = false, force = first_player.force}
-         smoke_effect.destroy{}
-         --Teleport sound at origin
-         game.get_player(pindex).play_sound{path = "player-teleported", volume_modifier = 0.2, position = old_pos}
-         game.get_player(pindex).play_sound{path = "utility/scenario_message", volume_modifier = 0.8, position = old_pos}
-      end
-      local teleported = false
-      if muted then
-         teleported = first_player.teleport(new_pos)
-      else
-         teleported = first_player.teleport(new_pos)
-      end
-      if teleported then
-         first_player.force.chart(first_player.surface, {{new_pos.x-15,new_pos.y-15},{new_pos.x+15,new_pos.y+15}})
-         players[pindex].position = table.deepcopy(new_pos)
-         reset_bump_stats(pindex)
-         if not muted then
-            --Teleporting visuals at target
-            rendering.draw_circle{color = {0.3, 0.3, 0.9},radius = 0.5,width = 15,target = new_pos, surface = first_player.surface, draw_on_ground = true, time_to_live = 60}
-            rendering.draw_circle{color = {0.0, 0.0, 0.9},radius = 0.3,width = 20,target = new_pos, surface = first_player.surface, draw_on_ground = true, time_to_live = 60}
-            local smoke_effect = first_player.surface.create_entity{name = "iron-chest", position = first_player.position, raise_built = false, force = first_player.force}
-            smoke_effect.destroy{}
-            --Teleport sound at target
-            game.get_player(pindex).play_sound{path = "player-teleported", volume_modifier = 0.2, position = new_pos}
-            game.get_player(pindex).play_sound{path = "utility/scenario_message", volume_modifier = 0.8, position = new_pos}
-         end
-         if new_pos.x ~= pos.x or new_pos.y ~= pos.y then
-            if not muted then
-               printout("Teleported " .. math.ceil(fa_utils.distance(pos,first_player.position)) .. " " .. fa_utils.direction(pos, first_player.position) .. " of target", pindex)
-            end
-         end
-         --Update cursor after teleport
-         players[pindex].cursor_pos = table.deepcopy(new_pos)
-         fa_mouse.move_mouse_pointer(fa_utils.center_of_tile(players[pindex].cursor_pos),pindex)
-         fa_graphics.draw_cursor_highlight(pindex,nil,nil)
-      else
-         printout("Teleport Failed", pindex)
-         return false
-      end
-   else
-      printout("Cannot teleport", pindex)--this is unlikely to be reached because we find the first non-colliding position
-      return false
-   end
-
-   -- --Adjust camera
-   -- game.get_player(pindex).close_map()
-
-   return true
-end
-
---Teleports the player character to the cursor position.
-function teleport_to_cursor(pindex, muted, ignore_enemies, return_cursor)
-   local result = teleport_to_closest(pindex, players[pindex].cursor_pos, muted, ignore_enemies)
-   if return_cursor then
-      players[pindex].cursor_pos = players[pindex].position
-   end
-   return result
-end
-
-
-function fast_travel_menu_open(pindex)
+function fa_travel.fast_travel_menu_open(pindex)
    if players[pindex].in_menu == false and game.get_player(pindex).driving == false and game.get_player(pindex).opened == nil then
       game.get_player(pindex).selected = nil
 
@@ -454,7 +358,7 @@ function fast_travel_menu_open(pindex)
 end
 
 --Reads the selected fast travel menu slot
-function read_travel_slot(pindex)
+function fa_travel.read_fast_travel_slot(pindex)
    if #global.players[pindex].travel == 0 then
       printout("Move towards the right and select Create to get started.", pindex)
    else
@@ -465,7 +369,7 @@ function read_travel_slot(pindex)
    end
 end
 
-function fast_travel_menu_click(pindex)
+function fa_travel.fast_travel_menu_click(pindex)
    if players[pindex].travel.input_box then
       players[pindex].travel.input_box.destroy()
    end
@@ -474,7 +378,7 @@ function fast_travel_menu_click(pindex)
    elseif players[pindex].travel.index.y == 0 and players[pindex].travel.index.x < TRAVEL_MENU_LENGTH then
       printout("Navigate up and down to select a fast travel point, then press LEFT BRACKET to get there quickly.", pindex)
    elseif players[pindex].travel.index.x == 1 then --Travel
-      local success = teleport_to_closest(pindex, global.players[pindex].travel[players[pindex].travel.index.y].position, false, false)
+      local success = fa_teleport.teleport_to_closest(pindex, global.players[pindex].travel[players[pindex].travel.index.y].position, false, false)
       if success and players[pindex].cursor then
          players[pindex].cursor_pos = table.deepcopy(global.players[pindex].travel[players[pindex].travel.index.y].position)
       else
@@ -545,7 +449,7 @@ function fast_travel_menu_click(pindex)
 end
 TRAVEL_MENU_LENGTH = 7
 
-function fast_travel_menu_up(pindex)
+function fa_travel.fast_travel_menu_up(pindex)
    if players[pindex].travel.index.y > 1 then
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
       players[pindex].travel.index.y = players[pindex].travel.index.y - 1
@@ -554,10 +458,10 @@ function fast_travel_menu_up(pindex)
       game.get_player(pindex).play_sound{path = "inventory-edge"}
    end
    players[pindex].travel.index.x = 1
-   read_travel_slot(pindex)
+   fa_travel.read_fast_travel_slot(pindex)
 end
 
-function fast_travel_menu_down(pindex)
+function fa_travel.fast_travel_menu_down(pindex)
    if players[pindex].travel.index.y < #players[pindex].travel then
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
       players[pindex].travel.index.y = players[pindex].travel.index.y + 1
@@ -566,10 +470,10 @@ function fast_travel_menu_down(pindex)
       game.get_player(pindex).play_sound{path = "inventory-edge"}
    end
    players[pindex].travel.index.x = 1
-   read_travel_slot(pindex)
+   fa_travel.read_fast_travel_slot(pindex)
 end
 
-function fast_travel_menu_right(pindex)
+function fa_travel.fast_travel_menu_right(pindex)
    if players[pindex].travel.index.x < TRAVEL_MENU_LENGTH then
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
       players[pindex].travel.index.x = players[pindex].travel.index.x + 1
@@ -593,7 +497,7 @@ function fast_travel_menu_right(pindex)
    end
 end
 
-function fast_travel_menu_left(pindex)
+function fa_travel.fast_travel_menu_left(pindex)
    if players[pindex].travel.index.x > 1 then
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
       players[pindex].travel.index.x = players[pindex].travel.index.x - 1
@@ -616,3 +520,5 @@ function fast_travel_menu_left(pindex)
       printout("Create New", pindex)
    end
 end
+
+return fa_travel
