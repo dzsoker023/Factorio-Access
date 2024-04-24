@@ -1328,7 +1328,7 @@ function toggle_cursor_mode(pindex)
    else
       local left_top = {math.floor(players[pindex].cursor_pos.x)-players[pindex].cursor_size,math.floor(players[pindex].cursor_pos.y)-players[pindex].cursor_size}
       local right_bottom = {math.floor(players[pindex].cursor_pos.x)+players[pindex].cursor_size+1,math.floor(players[pindex].cursor_pos.y)+players[pindex].cursor_size+1}
-      fa_graphics.draw_area_as_cursor(left_top,right_bottom,pindex)
+      fa_graphics.draw_large_cursor(left_top,right_bottom,pindex)
    end
 end
 
@@ -1378,7 +1378,7 @@ function jump_to_player(pindex)
    else
       local scan_left_top = {math.floor(players[pindex].cursor_pos.x)-players[pindex].cursor_size,math.floor(players[pindex].cursor_pos.y)-players[pindex].cursor_size}
       local scan_right_bottom = {math.floor(players[pindex].cursor_pos.x)+players[pindex].cursor_size+1,math.floor(players[pindex].cursor_pos.y)+players[pindex].cursor_size+1}
-      fa_graphics.draw_area_as_cursor(scan_left_top,scan_right_bottom,pindex)
+      fa_graphics.draw_large_cursor(scan_left_top,scan_right_bottom,pindex)
    end
 end
 
@@ -3263,7 +3263,7 @@ function cursor_mode_move(direction, pindex, single_only)
       fa_scanner.populate_list_categories(pindex)
       players[pindex].cursor_scan_center = players[pindex].cursor_pos
       local scan_summary = fa_scanner.area_scan_summary_info(scan_left_top, scan_right_bottom, pindex)
-      fa_graphics.draw_area_as_cursor(scan_left_top,scan_right_bottom,pindex)
+      fa_graphics.draw_large_cursor(scan_left_top,scan_right_bottom,pindex)
       printout(scan_summary,pindex)
    end
 
@@ -3601,7 +3601,7 @@ script.on_event("cursor-size-increment", function(event)
       printout("Cursor size " .. say_size .. " by " .. say_size, pindex)
       local scan_left_top = {math.floor(players[pindex].cursor_pos.x)-players[pindex].cursor_size,math.floor(players[pindex].cursor_pos.y)-players[pindex].cursor_size}
       local scan_right_bottom = {math.floor(players[pindex].cursor_pos.x)+players[pindex].cursor_size+1,math.floor(players[pindex].cursor_pos.y)+players[pindex].cursor_size+1}
-      fa_graphics.draw_area_as_cursor(scan_left_top,scan_right_bottom,pindex)
+      fa_graphics.draw_large_cursor(scan_left_top,scan_right_bottom,pindex)
    end
 
    --Play Sound
@@ -3635,7 +3635,7 @@ script.on_event("cursor-size-decrement", function(event)
       printout("Cursor size " .. say_size .. " by " .. say_size, pindex)
       local scan_left_top = {math.floor(players[pindex].cursor_pos.x)-players[pindex].cursor_size,math.floor(players[pindex].cursor_pos.y)-players[pindex].cursor_size}
       local scan_right_bottom = {math.floor(players[pindex].cursor_pos.x)+players[pindex].cursor_size+1,math.floor(players[pindex].cursor_pos.y)+players[pindex].cursor_size+1}
-      fa_graphics.draw_area_as_cursor(scan_left_top,scan_right_bottom,pindex)
+      fa_graphics.draw_large_cursor(scan_left_top,scan_right_bottom,pindex)
    end
 
    --Play Sound
@@ -8483,7 +8483,7 @@ script.on_event("help-back", function(event)
    if not check_for_player(pindex) then
       return
    end
-   fa_tutorial.read_prev_step(pindex)
+   fa_tutorial.prev_step(pindex)
 end)
 
 script.on_event("help-chapter-next", function(event)
