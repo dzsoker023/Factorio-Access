@@ -1,9 +1,18 @@
 --Here: Functions relating to the scanner tool
 --Does not include event handlers directly, but can have functions called by them.
 local util = require('util')
+local fa_utils = require("fa-utils")
+local localising = require('localising')
+local dirs = defines.direction
+local fa_graphics = require("graphics-and-mouse").graphics
+local fa_building_tools = require("building-tools")
+local fa_trains = require("trains").trains
+local fa_zoom = require('zoom')
+local fa_bot_logistics = require("worker-robots")
 
+local fa_scanner = {} 
 --Find islands of resources or water or trees to create the aggregate entries in the scanner list. Does not run for every scan.
-function find_islands(surf, area, pindex)
+function fa_scanner.find_islands(surf, area, pindex)
    local islands = {}
    local ents = surf.find_entities_filtered{area = area, type = "resource"}
    local waters = surf.find_tiles_filtered{area = area, name = "water"}
@@ -37,8 +46,8 @@ function find_islands(surf, area, pindex)
          neighbors = {}
          }
       end
-      islands[ent.name].groups[i] = {pos2str(ent.position)}
-      islands[ent.name].resources[pos2str(ent.position)] = {group=i, edge = false}
+      islands[ent.name].groups[i] = {fa_utils.pos2str(ent.position)}
+      islands[ent.name].resources[fa_utils.pos2str(ent.position)] = {group=i, edge = false}
    end
    if #waters > 0 then
       islands["water"] = {
@@ -50,7 +59,7 @@ function find_islands(surf, area, pindex)
       }
    end
    for i, water in pairs(waters) do
-      local str = pos2str(water.position)
+      local str = fa_utils.pos2str(water.position)
       if islands["water"].resources[str] == nil then
          islands["water"].groups[i] = {str}
          islands["water"].resources[str] = {group=i, edge = false}
@@ -73,7 +82,7 @@ function find_islands(surf, area, pindex)
       pos.x = math.floor(pos.x/8)
       pos.y = math.floor(pos.y/8)
 
-      local str = pos2str(pos)
+      local str = fa_utils.pos2str(pos)
 
       if islands["forest"].resources[str] == nil then
          islands["forest"].groups[i] = {str}
@@ -85,10 +94,10 @@ function find_islands(surf, area, pindex)
 
    for name, entry in pairs(islands) do
       for pos, resource in pairs(entry.resources) do
-         local position = str2pos(pos)
+         local position = fa_utils.str2pos(pos)
          local adj = {}
          for dir = 0, 7 do
-            adj[dir] = pos2str(offset_position(position, dir, 1))         
+            adj[dir] = fa_utils.pos2str(fa_utils.offset_position(position, dir, 1))         
          end
          local new_group = resource.group
          for dir, index in ipairs(adj) do
@@ -101,19 +110,19 @@ function find_islands(surf, area, pindex)
          if resource.edge then
 --            table.insert(entry.edges, pos)
             entry.edges[pos] = false
-            if area_edge(area, 0, position, name) then
+            if fa_utils.area_edge(area, 0, position, name) then
                entry.neighbors[0] = true
             entry.edges[pos] = true
             end
-            if area_edge(area, 6, position, name) then
+            if fa_utils.area_edge(area, 6, position, name) then
                entry.neighbors[6] = true
             entry.edges[pos] = true
             end
-            if area_edge(area, 4, position, name) then
+            if fa_utils.area_edge(area, 4, position, name) then
                entry.neighbors[4] = true
             entry.edges[pos] = true
          end
-         if area_edge(area, 2, position, name) then
+         if fa_utils.area_edge(area, 2, position, name) then
                entry.neighbors[2] = true
                entry.edges[pos] = true
             end
@@ -122,7 +131,7 @@ function find_islands(surf, area, pindex)
          for dir, index in ipairs(adj) do
             if entry.resources[index] ~= nil and entry.resources[index].group ~= new_group then
                local old_group = entry.resources[index].group
-               table_concat(entry.groups[new_group], entry.groups[old_group])
+               fa_utils.table_concat(entry.groups[new_group], entry.groups[old_group])
                for i, index in pairs(entry.groups[old_group]) do
                   entry.resources[index].group = new_group
                end
@@ -136,7 +145,7 @@ function find_islands(surf, area, pindex)
 end
 
 --Run any sort of scan
-function scan_area(x,y,w,h, pindex, filter_direction, start_with_existing_list, close_object_limit_in)
+function fa_scanner.scan_area(x,y,w,h, pindex, filter_direction, start_with_existing_list, close_object_limit_in)
    local first_player = game.get_player(pindex)
    local surf = first_player.surface
    local ents = surf.find_entities_filtered{area = {{x, y},{x+w, y+h}}, type = {"resource", "tree", "highlight-box", "flying-text"}, invert = true} --Get all ents in the area except for these types
@@ -155,14 +164,14 @@ function scan_area(x,y,w,h, pindex, filter_direction, start_with_existing_list, 
       --Insert instances for the entry
       local index = #result
       for group, patch in pairs(resource.patches) do
-         local nearest_edge = nearest_edge(patch.edges, pos, name)
+         local nearest_edge = fa_utils.nearest_edge(patch.edges, pos, name)
          --Filter check 1: Is the entity in the filter diection? (If a filter is set at all)
-         local dir_of_ent = get_direction_of_that_from_this(nearest_edge,pos)
+         local dir_of_ent = fa_utils.get_direction_biased(nearest_edge,pos)
          local filter_passed = (filter_direction == nil or filter_direction == dir_of_ent)
          if not filter_passed then
             --Filter check 2: Is the entity nearby and almost within the filter diection?
             if util.distance(nearest_edge,pos) < close_object_limit then
-               local new_dir_of_ent = get_balanced_direction_of_that_from_this(nearest_edge,pos)--Check with less bias towards diagonal directions to preserve 135 degrees FOV
+               local new_dir_of_ent = fa_utils.get_direction_precise(nearest_edge,pos)--Check with less bias towards diagonal directions to preserve 135 degrees FOV
                local CW_dir = (filter_direction + dirs.northeast) % (2 * dirs.south)
                local CCW_dir = (filter_direction - dirs.northeast) % (2 * dirs.south)
                filter_passed = (new_dir_of_ent == filter_direction or new_dir_of_ent == CW_dir or new_dir_of_ent == CCW_dir)
@@ -172,7 +181,7 @@ function scan_area(x,y,w,h, pindex, filter_direction, start_with_existing_list, 
             --If it is a forest, check density
             if name == "forest" then
                local forest_pos = nearest_edge
-               forest_density = classify_forest(forest_pos,pindex,false)
+               forest_density = fa_scanner.classify_forest(forest_pos,pindex,false)
             else
                forest_density = nil
             end
@@ -190,17 +199,17 @@ function scan_area(x,y,w,h, pindex, filter_direction, start_with_existing_list, 
 
    --Insert entities to the initial list
    for i=1, #ents, 1 do
-      local extra_entry_info = extra_info_for_scan_list(ents[i],pindex,false)
+      local extra_entry_info = fa_scanner.ent_extra_list_info(ents[i],pindex,false)
       local scan_entry = ents[i].name .. extra_entry_info
-      local index = index_of_entity(result, scan_entry)
+      local index = fa_utils.index_of_entity(result, scan_entry)
       
       --Filter check 1: Is the entity in the filter diection? (If a filter is set at all)
-      local dir_of_ent = get_direction_of_that_from_this(ents[i].position,pos)
+      local dir_of_ent = fa_utils.get_direction_biased(ents[i].position,pos)
       local filter_passed = (filter_direction == nil or filter_direction == dir_of_ent)
       if not filter_passed then
          --Filter check 2: Is the entity nearby and almost within the filter diection?
          if util.distance(ents[i].position,pos) < close_object_limit then
-            local new_dir_of_ent = get_balanced_direction_of_that_from_this(ents[i].position,pos)--Check with less bias towards diagonal directions to preserve 135 degrees FOV
+            local new_dir_of_ent = fa_utils.get_direction_precise(ents[i].position,pos)--Check with less bias towards diagonal directions to preserve 135 degrees FOV
             local CW_dir = (filter_direction + 1) % (2 * dirs.south)
             local CCW_dir = (filter_direction - 1) % (2 * dirs.south)
             filter_passed = (new_dir_of_ent == filter_direction or new_dir_of_ent == CW_dir or new_dir_of_ent == CCW_dir)
@@ -236,7 +245,7 @@ function scan_area(x,y,w,h, pindex, filter_direction, start_with_existing_list, 
          local ent2 = nil
          if k1.aggregate then
                table.sort( k1.ents , function(k3, k4) 
-                  return squared_distance(pos, k3.position) < squared_distance(pos, k4.position)
+                  return fa_utils.squared_distance(pos, k3.position) < fa_utils.squared_distance(pos, k4.position)
                end)
                ent1 = k1.ents[1]
 --            end
@@ -245,7 +254,7 @@ function scan_area(x,y,w,h, pindex, filter_direction, start_with_existing_list, 
          end
          if k2.aggregate then
                table.sort( k2.ents , function(k3, k4) 
-                  return squared_distance(pos, k3.position) < squared_distance(pos, k4.position)
+                  return fa_utils.squared_distance(pos, k3.position) < fa_utils.squared_distance(pos, k4.position)
                end)
                ent2 = k2.ents[1]
 --            end
@@ -265,7 +274,7 @@ function scan_area(x,y,w,h, pindex, filter_direction, start_with_existing_list, 
 end
 
 --Scans an area but only for trees. Copies the "Insert entities to the initial list" part from scan_area(). Separate so that one can specify a smaller radius for this.
-function scan_nearby_trees(pindex, filter_direction, radius_in)
+function fa_scanner.scan_nearby_trees(pindex, filter_direction, radius_in)
    local p = game.get_player(pindex)
    local pos = players[pindex].position
    local surf = first_player.surface
@@ -281,14 +290,14 @@ function scan_nearby_trees(pindex, filter_direction, radius_in)
    
    --Insert entities to the initial list
    for i=1, #ents, 1 do
-      local index = index_of_entity(result, scan_entry)
+      local index = fa_utils.index_of_entity(result, scan_entry)
       --Filter check 1: Is the entity in the filter diection? (If a filter is set at all)
-      local dir_of_ent = get_direction_of_that_from_this(ents[i].position,pos)
+      local dir_of_ent = fa_utils.get_direction_biased(ents[i].position,pos)
       local filter_passed = (filter_direction == nil or filter_direction == dir_of_ent)
       if not filter_passed then
          --Filter check 2: Is the entity nearby and almost within the filter diection?
          if util.distance(ents[i].position,pos) < close_object_limit then
-            local new_dir_of_ent = get_balanced_direction_of_that_from_this(ents[i].position,pos)--Check with less bias towards diagonal directions to preserve 135 degrees FOV
+            local new_dir_of_ent = fa_utils.get_direction_precise(ents[i].position,pos)--Check with less bias towards diagonal directions to preserve 135 degrees FOV
             local CW_dir = (filter_direction + 1) % (2 * dirs.south)
             local CCW_dir = (filter_direction - 1) % (2 * dirs.south)
             filter_passed = (new_dir_of_ent == filter_direction or new_dir_of_ent == CW_dir or new_dir_of_ent == CCW_dir)
@@ -313,7 +322,7 @@ function scan_nearby_trees(pindex, filter_direction, radius_in)
 end
 
 --Adds scanned ents to categories of the scan results list.
-function populate_categories(pindex)
+function fa_scanner.populate_list_categories(pindex)
    players[pindex].nearby.resources = {}
    players[pindex].nearby.containers = {}
    players[pindex].nearby.buildings = {}
@@ -361,32 +370,32 @@ function populate_categories(pindex)
    
 end
 
---Run the entity scanner tool
-function rescan(pindex,filter_dir, mute)
+--Run the entity scanner tool ("rescan")
+function fa_scanner.run_scan(pindex,filter_dir, mute)
    players[pindex].nearby.index = 1
    players[pindex].nearby.selection = 1
    first_player = game.get_player(pindex)
-   players[pindex].nearby.ents = scan_nearby_trees(pindex, filter_dir, 25)
-   players[pindex].nearby.ents = scan_area(math.floor(players[pindex].cursor_pos.x)-2500, math.floor(players[pindex].cursor_pos.y)-2500, 5000, 5000, pindex, filter_dir, true)
-   populate_categories(pindex)
+   players[pindex].nearby.ents = fa_scanner.scan_nearby_trees(pindex, filter_dir, 25)
+   players[pindex].nearby.ents = fa_scanner.scan_area(math.floor(players[pindex].cursor_pos.x)-2500, math.floor(players[pindex].cursor_pos.y)-2500, 5000, 5000, pindex, filter_dir, true)
+   fa_scanner.populate_list_categories(pindex)
    players[pindex].nearby.index = 1
    players[pindex].nearby.selection = 1
    players[pindex].cursor_scanned = false
    
    --Use the waiting period as a chance to recalibrate 
-   fix_zoom(pindex)
+   fa_zoom.fix_zoom(pindex)
    
    if mute ~= true then
       if filter_dir == nil then
          printout("Scan complete.", pindex)
       else
-         printout(direction_lookup(filter_dir) .. " direction scan complete.", pindex)
+         printout(fa_utils.direction_lookup(filter_dir) .. " direction scan complete.", pindex)
       end
    end
 end
    
 --Sound and visual effects for the scanner
-function run_scanner_effects(pindex)
+function fa_scanner.run_scanner_effects(pindex)
    --Scanner visual and sound effects
    game.get_player(pindex).play_sound{path = "scanner-pulse"}
    rendering.draw_circle{color = {1, 1, 1},radius = 1,width =  4,target = game.get_player(pindex).position, surface = game.get_player(pindex).surface, draw_on_ground = true, time_to_live = 60}
@@ -394,7 +403,7 @@ function run_scanner_effects(pindex)
 end
 
 --Sort scanner list entries by distance from the reference position, or by total count
-function scan_sort(pindex)
+function fa_scanner.list_sort(pindex)
    for i, name in ipairs(players[pindex].nearby.ents   ) do
       local i1 = 1
       while i1 <= #name.ents do --this appears to be removing invalid ents within a set.
@@ -418,13 +427,13 @@ function scan_sort(pindex)
          local ent2 = nil
          if k1.name == "water" then
             table.sort( k1.ents , function(k3, k4) 
-               return squared_distance(pos, k3.position) < squared_distance(pos, k4.position)
+               return fa_utils.squared_distance(pos, k3.position) < fa_utils.squared_distance(pos, k4.position)
             end)
             ent1 = k1.ents[1]
          else
             if k1.aggregate then
                table.sort( k1.ents , function(k3, k4) 
-                  return squared_distance(pos, k3.position) < squared_distance(pos, k4.position)
+                  return fa_utils.squared_distance(pos, k3.position) < fa_utils.squared_distance(pos, k4.position)
                end)
                ent1 = k1.ents[1]
             else
@@ -433,20 +442,20 @@ function scan_sort(pindex)
          end
          if k2.name == "water" then
             table.sort( k2.ents , function(k3, k4) 
-               return squared_distance(pos, k3.position) < squared_distance(pos, k4.position)
+               return fa_utils.squared_distance(pos, k3.position) < fa_utils.squared_distance(pos, k4.position)
             end)
             ent2 = k2.ents[1]
          else
             if k2.aggregate then
                table.sort( k2.ents , function(k3, k4) 
-                  return squared_distance(pos, k3.position) < squared_distance(pos, k4.position)
+                  return fa_utils.squared_distance(pos, k3.position) < fa_utils.squared_distance(pos, k4.position)
                end)
                ent2 = k2.ents[1]
             else
                ent2 = surf.get_closest(pos, k2.ents)
             end
          end
-         return squared_distance(pos, ent1.position) < squared_distance(pos, ent2.position)
+         return fa_utils.squared_distance(pos, ent1.position) < fa_utils.squared_distance(pos, ent2.position)
       end)
             
    else
@@ -455,12 +464,12 @@ function scan_sort(pindex)
          return k1.count > k2.count
       end)
    end
-   populate_categories(pindex)
+   fa_scanner.populate_list_categories(pindex)
 
 end
 
 --Reads the currently selected entity of the scanner list 
-function scan_index(pindex)
+function fa_scanner.list_index(pindex)
    if not check_for_player(pindex) then
       printout("Scan pindex error.", pindex)
       return
@@ -516,13 +525,13 @@ function scan_index(pindex)
          if #ents[players[pindex].nearby.index].ents == 0 then
             table.remove(ents,players[pindex].nearby.index)
             players[pindex].nearby.index = math.min(players[pindex].nearby.index, #ents)
-            scan_index(pindex)
+            fa_scanner.list_index(pindex)
             return
          end
          --Sort by distance to player pos while describing indexed entries
          table.sort(ents[players[pindex].nearby.index].ents, function(k1, k2) 
             local pos = players[pindex].position
-            return squared_distance(pos, k1.position) < squared_distance(pos, k2.position)
+            return fa_utils.squared_distance(pos, k1.position) < fa_utils.squared_distance(pos, k2.position)
          end)
          if players[pindex].nearby.selection > #ents[players[pindex].nearby.index].ents then
             players[pindex].selection = 1
@@ -538,14 +547,14 @@ function scan_index(pindex)
             return
          end
          --Select northwest corner unless it is a spaceship wreck
-         players[pindex].cursor_pos = get_ent_northwest_corner_position(ent)
+         players[pindex].cursor_pos = fa_utils.get_ent_northwest_corner_position(ent)
          local check = ent.name
          local a = string.find(check,"spaceship") 
          if a ~= nil then 
             players[pindex].cursor_pos = ent.position 
          end
-         cursor_highlight(pindex, ent, "train-visualization")--focus on scanned item 
-         sync_build_cursor_graphics(pindex)
+         fa_graphics.draw_cursor_highlight(pindex, ent, "train-visualization")--focus on scanned item 
+         fa_graphics.sync_build_cursor_graphics(pindex)
          players[pindex].last_indexed_ent = ent
       else
          --The scan target is an aggregate
@@ -559,14 +568,14 @@ function scan_index(pindex)
             if table_size(entry) == 0 or name == "highlight-box" then
                table.remove(ents[players[pindex].nearby.index].ents, players[pindex].nearby.selection)
                players[pindex].nearby.selection = players[pindex].nearby.selection - 1
-               scan_index(pindex)
+               fa_scanner.list_index(pindex)
                return
             end
             --The scan target is an aggregate, select it now
             ent = {name = name, position = table.deepcopy(entry.position), group = entry.group} --maybe use "aggregate = true" ?
             players[pindex].cursor_pos = ent.position
-            cursor_highlight(pindex, nil, "train-visualization")
-            sync_build_cursor_graphics(pindex)
+            fa_graphics.draw_cursor_highlight(pindex, nil, "train-visualization")
+            fa_graphics.sync_build_cursor_graphics(pindex)
             players[pindex].last_indexed_ent = ent
             game.get_player(pindex).selected = nil
          end
@@ -579,7 +588,7 @@ function scan_index(pindex)
       
       if (players[pindex].cursor_scanned == true and util.distance(ent.position,players[pindex].cursor_scan_center) > players[pindex].cursor_size + 1 ) then 
          local final_result = {""}
-         table.insert(final_result,ent_name_locale(ent))
+         table.insert(final_result,fa_utils.ent_name_locale(ent))
          table.insert(final_result," reference point outside of scan area")
          printout(final_result, pindex)
          return
@@ -587,11 +596,11 @@ function scan_index(pindex)
       
       refresh_player_tile(pindex)
       
-      local dir_dist = dir_dist_locale(players[pindex].position, ent.position)
+      local dir_dist = fa_utils.dir_dist_locale(players[pindex].position, ent.position)
       if players[pindex].nearby.count == false then
          --Read the entity in terms of distance and direction
-         local result={"access.thing-producing-listpos-dirdist",ent_name_locale(ent)}
-         table.insert(result,extra_info_for_scan_list(ent,pindex,true))
+         local result={"access.thing-producing-listpos-dirdist",fa_utils.ent_name_locale(ent)}
+         table.insert(result,fa_scanner.ent_extra_list_info(ent,pindex,true))
          table.insert(result,{"description.of", players[pindex].nearby.selection , #ents[players[pindex].nearby.index].ents})--"X of Y"
          table.insert(result,dir_dist)
          local final_result = {""}
@@ -601,7 +610,7 @@ function scan_index(pindex)
          printout(final_result,pindex)
       else
          --Read the entity in terms of count, and give the direction and distance of an example
-         local result = {"access.item_and_quantity-example-at-dirdist", {"access.item-quantity",ent_name_locale(ent),ents[players[pindex].nearby.index].count}, dir_dist}
+         local result = {"access.item_and_quantity-example-at-dirdist", {"access.item-quantity",fa_utils.ent_name_locale(ent),ents[players[pindex].nearby.index].count}, dir_dist}
          local final_result = {""}
          table.insert(final_result,result)
          table.insert(final_result,", ")
@@ -612,7 +621,7 @@ function scan_index(pindex)
 end 
 
 --Move up one entry in the scanner list
-function scan_up(pindex)
+function fa_scanner.list_up(pindex)
    if players[pindex].in_menu then
       --These keys may overlap a lot so might as well
       return
@@ -625,11 +634,11 @@ function scan_up(pindex)
       players[pindex].nearby.selection = 1
       game.get_player(pindex).play_sound{path = "inventory-edge"}
    end
-   scan_index(pindex)
+   fa_scanner.list_index(pindex)
  end
 
 --Move down one entry in the scanner list 
-function scan_down(pindex)
+function fa_scanner.list_down(pindex)
    if players[pindex].in_menu then
       --These keys may overlap a lot so might as well
       return
@@ -648,11 +657,11 @@ function scan_down(pindex)
       game.get_player(pindex).play_sound{path = "inventory-edge"}
       players[pindex].nearby.selection = 1
    end
-   scan_index(pindex)
+   fa_scanner.list_index(pindex)
 end
 
 --Repeat the current entry in the scanner list
-function scan_middle(pindex)
+function fa_scanner.list_current(pindex)
    if players[pindex].in_menu then
       --These keys may overlap a lot so might as well
       return
@@ -683,15 +692,15 @@ function scan_middle(pindex)
    end
 
    if not(pcall(function()
-      scan_index(pindex)
+      fa_scanner.list_index(pindex)
    end)) then
       table.remove(ents, players[pindex].nearby.index)
-      scan_middle(pindex)
+      fa_scanner.list_current(pindex)
    end
  end
 
 --Returns an info string about the entities and tiles found within an area scan done by an enlarged cursor.
-function get_area_scan_summary(scan_left_top, scan_right_bottom, pindex)      
+function fa_scanner.area_scan_summary_info(scan_left_top, scan_right_bottom, pindex)      
    local result = ""
    local explored_left_top = {x = math.floor((players[pindex].cursor_pos.x - 1 - players[pindex].cursor_size) / 32), y = math.floor((players[pindex].cursor_pos.y - 1 - players[pindex].cursor_size)/32)}
    local explored_right_bottom = {x = math.floor((players[pindex].cursor_pos.x + 1 + players[pindex].cursor_size)/32), y = math.floor((players[pindex].cursor_pos.y + 1 + players[pindex].cursor_size)/32)}
@@ -789,11 +798,11 @@ function get_area_scan_summary(scan_left_top, scan_right_bottom, pindex)
       for i, ent in ipairs(players[pindex].nearby.ents) do
          local area = 0
          --this confirmation is necessary because all we have is the ent name, and some distant resources show up on the list.
-         if confirm_ent_is_in_area( get_substring_before_space(get_substring_before_comma(ent.name)) , scan_left_top , scan_right_bottom, pindex) then
-            area = get_ent_area_from_name(get_substring_before_space(get_substring_before_comma(ent.name)),pindex)
+         if fa_utils.is_ent_inside_area( fa_utils.get_substring_before_space(fa_utils.get_substring_before_comma(ent.name)) , scan_left_top , scan_right_bottom, pindex) then
+            area = fa_utils.get_ent_area_from_name(fa_utils.get_substring_before_space(fa_utils.get_substring_before_comma(ent.name)),pindex)
             if area == -1 then
                area = 1
-               game.get_player(pindex).print(get_substring_before_space(get_substring_before_comma(ent.name)) .. " could not be found for the area check ",{volume_modifier = 0})--bug: unable to get area from name
+               game.get_player(pindex).print(fa_utils.get_substring_before_space(fa_utils.get_substring_before_comma(ent.name)) .. " could not be found for the area check ",{volume_modifier = 0})--bug: unable to get area from name
             end
          end 
          local percentage = math.floor((area * players[pindex].nearby.ents[i].count / ((1+players[pindex].cursor_size * 2) ^2) * 100) + .95)--Tolerate up to 0.05%
@@ -828,7 +837,7 @@ function get_area_scan_summary(scan_left_top, scan_right_bottom, pindex)
 end
 
 --Brief extra entity info is given here, for mentioning in the scanner list. If the parameter "info_comes_after_indexing" is not true, then this info distinguishes the entity plus its description as a new line of the scanner list, such as how assembling machines with different recipes are listed separately.
-function extra_info_for_scan_list(ent,pindex,info_comes_after_indexing)
+function fa_scanner.ent_extra_list_info(ent,pindex,info_comes_after_indexing)
    local result = ""
 
    if ent.name ~= "water" and ent.type == "mining-drill"  then
@@ -913,7 +922,7 @@ function extra_info_for_scan_list(ent,pindex,info_comes_after_indexing)
    
    if info_comes_after_indexing == true and ent.train ~= nil and ent.train.valid then
    --Train name for train vehicles
-      result = result .. " of train " .. get_train_name(ent.train)
+      result = result .. " of train " .. fa_trains.get_train_name(ent.train)
    elseif ent.name == "character" then
    --Character names 
       local p = ent.player
@@ -941,10 +950,10 @@ function extra_info_for_scan_list(ent,pindex,info_comes_after_indexing)
       result = result .. " " .. ent.backer_name
    elseif ent.name == "forest" then
    --Forest type by density
-      result = result .. classify_forest(ent.position,pindex,true)
+      result = result .. fa_scanner.classify_forest(ent.position,pindex,true)
    elseif ent.name == "roboport" then
    --Roboport network name 
-      result = result .. " of network " .. get_network_name(ent)
+      result = result .. " of network " .. fa_bot_logistics.get_network_name(ent)
    elseif ent.type == "spider-vehicle" then
       local label = ent.entity_label
       if label == nil then
@@ -953,7 +962,7 @@ function extra_info_for_scan_list(ent,pindex,info_comes_after_indexing)
       result = result .. label
    elseif ent.name == "pipe" or ent.name == "storage-tank" then
       --Pipe ends are labelled to distinguish them
-      if ent.name == "pipe" and is_a_pipe_end(ent,pindex) then
+      if ent.name == "pipe" and fa_building_tools.is_a_pipe_end(ent,pindex) then
          result = result .. " end, "
       end
       --Pipes and storage tanks are separated depending on the fluid they contain 
@@ -977,7 +986,7 @@ function extra_info_for_scan_list(ent,pindex,info_comes_after_indexing)
 end
 
 --Examines a forest position and classifies it by tree density. Used for the scanner list.
-function classify_forest(position,pindex,drawing)
+function fa_scanner.classify_forest(position,pindex,drawing)
    local tree_count = 0
    local tree_group = game.get_player(pindex).surface.find_entities_filtered{type = "tree", position = position, radius = 16, limit = 15}
    if drawing then
@@ -999,3 +1008,5 @@ function classify_forest(position,pindex,drawing)
       return "dense"
    end
 end
+
+return fa_scanner

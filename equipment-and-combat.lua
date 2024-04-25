@@ -1,9 +1,16 @@
 --Here: functions relating to combat, repair packs 
 --Does not include event handlers, guns and equipment, repair work (but maybe it could?)
 local util = require('util')
+local localising = require('localising')
+local fa_electrical = require("electrical")
+local fa_graphics = require("graphics-and-mouse").graphics
+local fa_mouse = require("graphics-and-mouse").mouse
+
+local fa_equipment = {}
+local fa_combat = {}
 
 --Tries to equip a stack. For now called only for a stack in hand when the only the inventory is open.
-function equip_it(stack,pindex)
+function fa_equipment.equip_it(stack,pindex)
    local message = ""
    if players[pindex].menu == "vehicle" and game.get_player(pindex).opened.type == "spider-vehicle" then
       message = localising.get_alt(game.entity_prototypes["spidertron"]) 
@@ -11,7 +18,7 @@ function equip_it(stack,pindex)
          message = "Spidertron "--laterdo possible bug here
       end
    end
-   
+
    if stack == nil or not stack.valid_for_read or not stack.valid then
       return "Nothing found to equip."
    end
@@ -84,7 +91,7 @@ function equip_it(stack,pindex)
 		   break
 		 end
 	  end    
-     local slots_left = count_empty_equipment_slots(grid)
+     local slots_left = fa_equipment.count_empty_equipment_slots(grid)
 	  if placed ~= nil then
 	    message = message .. " equipped " .. stack.name .. ", " .. slots_left .. " empty slots remaining."
 		 stack.count = stack.count - 1
@@ -107,7 +114,7 @@ function equip_it(stack,pindex)
 end
 
 --Returns info on weapons and ammo
-function read_weapons_and_ammo(pindex)
+function fa_equipment.read_weapons_and_ammo(pindex)
    local guns_inv = game.get_player(pindex).get_inventory(defines.inventory.character_guns)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
    local guns_count  = #guns_inv - guns_inv.count_empty_stacks()
@@ -137,7 +144,7 @@ function read_weapons_and_ammo(pindex)
 end
 
 --Reload all ammo possible from the inventory. Existing stacks have priority over fuller stacks.
-function reload_weapons(pindex)
+function fa_equipment.reload_weapons(pindex)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
    local main_inv = game.get_player(pindex).get_inventory(defines.inventory.character_main)
    local result = ""
@@ -158,7 +165,7 @@ function reload_weapons(pindex)
 end
 
 --Move all weapons and ammo back to inventory
-function remove_weapons_and_ammo(pindex)
+function fa_equipment.remove_weapons_and_ammo(pindex)
    local guns_inv = game.get_player(pindex).get_inventory(defines.inventory.character_guns)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
    local main_inv = game.get_player(pindex).get_inventory(defines.inventory.character_main)
@@ -200,7 +207,8 @@ function remove_weapons_and_ammo(pindex)
    return message
 end
 
-function delete_equipped_atomic_bombs(pindex)
+--Temporary safety measure for preventing accidental shooting of atomic bombs
+function fa_equipment.delete_equipped_atomic_bombs(pindex)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
    local main_inv = game.get_player(pindex).get_inventory(defines.inventory.character_main)
    local ammos_count = #ammo_inv - ammo_inv.count_empty_stacks()
@@ -222,7 +230,8 @@ function delete_equipped_atomic_bombs(pindex)
    return 
 end
 
-function restore_equipped_atomic_bombs(pindex)--
+--Temporary safety measure for preventing accidental shooting of atomic bombs
+function fa_equipment.restore_equipped_atomic_bombs(pindex)
    local guns_inv = game.get_player(pindex).get_inventory(defines.inventory.character_guns)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
    local main_inv = game.get_player(pindex).get_inventory(defines.inventory.character_main)
@@ -242,7 +251,7 @@ function restore_equipped_atomic_bombs(pindex)--
    end
 end
 
-function count_empty_equipment_slots(grid)
+function fa_equipment.count_empty_equipment_slots(grid)
     local slots_left = 0
 	for i = 0, grid.width-1, 1 do
 	   for j = 0, grid.height-1, 1 do
@@ -256,7 +265,7 @@ function count_empty_equipment_slots(grid)
 end
 
 --Read armor stats such as type and bonuses
-function read_armor_stats(pindex)
+function fa_equipment.read_armor_stats(pindex)
    local armor_inv = game.get_player(pindex).get_inventory(defines.inventory.character_armor)
    local result = ""
    if armor_inv.is_empty() then
@@ -304,23 +313,23 @@ function read_armor_stats(pindex)
    if grid.generator_energy > 0 or grid.max_solar_energy > 0 then
       result = result .. " generating "
 	  if grid.generator_energy > 0 then
-	     result = result .. get_power_string(grid.generator_energy*60) .. " nonstop, "
+	     result = result .. fa_electrical.get_power_string(grid.generator_energy*60) .. " nonstop, "
 	  end
 	  if grid.max_solar_energy > 0 then
-	     result = result .. get_power_string(grid.max_solar_energy*60) .. " at daytime, "
+	     result = result .. fa_electrical.get_power_string(grid.max_solar_energy*60) .. " at daytime, "
 	  end
    end
    
    --Movement bonus
    if grid.count("exoskeleton-equipment") > 0 then
-      result = result .. " movement bonus " .. grid.count("exoskeleton-equipment") * 30 .. " percent for " .. get_power_string(grid.count("exoskeleton-equipment")*200000)
+      result = result .. " movement bonus " .. grid.count("exoskeleton-equipment") * 30 .. " percent for " .. fa_electrical.get_power_string(grid.count("exoskeleton-equipment")*200000)
    end
    
    return result
 end
 
 --List armor equipment
-function read_equipment_list(pindex)
+function fa_equipment.read_equipment_list(pindex)
    local armor_inv = game.get_player(pindex).get_inventory(defines.inventory.character_armor)
    local result = ""
    if armor_inv.is_empty() then
@@ -359,13 +368,13 @@ function read_equipment_list(pindex)
       end
    end
    
-   result = result .. count_empty_equipment_slots(grid) .. " empty slots remaining "
+   result = result .. fa_equipment.count_empty_equipment_slots(grid) .. " empty slots remaining "
    
    return result
 end
 
---Remove equipment and then armor. laterdo "inv full" checks
-function remove_equipment_and_armor(pindex)
+--Remove all armor equipment and then the armor. laterdo "inv full" checks
+function fa_equipment.remove_equipment_and_armor(pindex)
    local armor_inv = game.get_player(pindex).get_inventory(defines.inventory.character_armor)
    local result = ""
    if armor_inv.is_empty() then
@@ -410,8 +419,104 @@ function remove_equipment_and_armor(pindex)
    return result
 end
 
+--One-click repair pack usage.
+function fa_equipment.repair_pack_used(ent,pindex)
+   local p = game.get_player(pindex)
+   local stack = p.cursor_stack
+   --Repair the entity found
+   if ent and ent.valid and ent.is_entity_with_health and ent.get_health_ratio() < 1 
+   and ent.type ~= "resource" and not ent.force.is_enemy(p.force) and ent.name ~= "character" then
+      p.play_sound{path = "utility/default_manual_repair"}
+      local health_diff = ent.prototype.max_health - ent.health
+      local dura = stack.durability or 0
+      if health_diff < 10 then --free repair for tiny damages
+         ent.health = ent.prototype.max_health 
+         printout("Fully repaired " .. ent.name, pindex)
+      elseif health_diff < dura then
+         ent.health = ent.prototype.max_health 
+         stack.drain_durability(health_diff)
+         printout("Fully repaired " .. ent.name, pindex)
+      else--if health_diff >= dura then
+         stack.drain_durability(dura)
+         ent.health = ent.health + dura
+         printout("Partially repaired " .. ent.name .. " and consumed a repair pack", pindex)
+         --Note: This automatically subtracts correctly and decerements the pack in hand.
+      end
+   end
+   --Note: game.get_player(pindex).use_from_cursor{players[pindex].cursor_pos.x,players[pindex].cursor_pos.y}--This does not work.
+end
+
+--Tries to repair all relevant entities within a certain distance from the player
+function fa_equipment.repair_area(radius_in,pindex)
+   local p = game.get_player(pindex)
+   local stack = p.cursor_stack
+   local repaired_count = 0
+   local packs_used = 0
+   local radius = math.min(radius_in,25)
+   if stack.count < 2 then
+      --If you are low on repair packs, stop
+      printout("You need at least 2 repair packs to repair the area.",pindex)
+      return 
+   end
+   local ents = p.surface.find_entities_filtered{position = p.position, radius = radius}
+   for i,ent in ipairs(ents) do 
+      --Repair the entity found
+      if ent and ent.valid and ent.is_entity_with_health and ent.get_health_ratio() < 1 
+      and ent.type ~= "resource" and not ent.force.is_enemy(p.force) and ent.name ~= "character" then
+         p.play_sound{path = "utility/default_manual_repair"}
+         local health_diff = ent.prototype.max_health - ent.health
+         local dura = stack.durability or 0
+         if health_diff < 10 then --free repair for tiny damages
+            ent.health = ent.prototype.max_health 
+            repaired_count = repaired_count + 1
+         elseif health_diff < dura then
+            ent.health = ent.prototype.max_health 
+            stack.drain_durability(health_diff)
+            repaired_count = repaired_count + 1
+         elseif stack.count < 2 then
+            --If you are low on repair packs, stop
+            printout("Repaired " .. repaired_count .. " structures using " .. packs_used .. " repair packs, stopped because you are low on repair packs.",pindex)
+            return 
+         else
+            --Finish the current repair pack
+            stack.drain_durability(dura)
+            packs_used = packs_used + 1
+            ent.health = ent.health + dura
+            
+            --Repeat unhtil fully repaired or out of packs
+            while ent.get_health_ratio() < 1 do
+               health_diff = ent.prototype.max_health - ent.health
+               dura = stack.durability or 0
+               if health_diff < 10 then --free repair for tiny damages
+                  ent.health = ent.prototype.max_health 
+                  repaired_count = repaired_count + 1
+               elseif health_diff < dura then
+                  ent.health = ent.prototype.max_health 
+                  stack.drain_durability(health_diff)
+                  repaired_count = repaired_count + 1
+               elseif stack.count < 2 then
+                  --If you are low on repair packs, stop
+                  printout("Repaired " .. repaired_count .. " structures using " .. packs_used .. " repair packs, stopped because you are low on repair packs.",pindex)
+                  return 
+               else
+                  --Finish the current repair pack
+                  stack.drain_durability(dura)
+                  packs_used = packs_used + 1
+                  ent.health = ent.health + dura
+               end
+            end 
+         end
+      end
+   end
+   if repaired_count == 0 then
+      printout("Nothing to repair within " .. radius .. " tiles of you.",pindex)
+      return
+   end
+   printout("Repaired all " .. repaired_count .. " structures within " .. radius .. " tiles of you, using " .. packs_used .. " repair packs.",pindex)
+end
+
 --Plays enemy proximity alert sounds. Frequency is determined by distance and mode, and intensity is determined by the threat level.
-function check_and_play_enemy_alert_sound(mode_in)
+function fa_combat.check_and_play_enemy_alert_sound(mode_in)
    for pindex, player in pairs(players) do
       local mode = mode_in or 1
       local p = game.get_player(pindex)
@@ -474,7 +579,7 @@ function check_and_play_enemy_alert_sound(mode_in)
 end
 
 --Locks the cursor to the nearest enemy within 50 tiles. Also plays a sound if the enemy is within range of the gun in hand.
-function aim_gun_at_nearest_enemy(pindex,enemy_in)
+function fa_combat.aim_gun_at_nearest_enemy(pindex,enemy_in)
    local p = game.get_player(pindex)
    if p == nil or p.character == nil or p.character.valid == false then
       return
@@ -521,104 +626,10 @@ function aim_gun_at_nearest_enemy(pindex,enemy_in)
    --If in range, move the cursor onto the enemy to aim the gun
    if dist < range then 
       players[pindex].cursor_pos = enemy.position
-      move_mouse_pointer(enemy.position,pindex)
-      cursor_highlight(pindex,nil,nil,true)
+      fa_mouse.move_mouse_pointer(enemy.position,pindex)
+      fa_graphics.draw_cursor_highlight(pindex,nil,nil,true)
    end
    return true
 end
 
---One-click repair pack usage.
-function repair_pack_used(ent,pindex)
-   local p = game.get_player(pindex)
-   local stack = p.cursor_stack
-   --Repair the entity found
-   if ent and ent.valid and ent.is_entity_with_health and ent.get_health_ratio() < 1 
-   and ent.type ~= "resource" and not ent.force.is_enemy(p.force) and ent.name ~= "character" then
-      p.play_sound{path = "utility/default_manual_repair"}
-      local health_diff = ent.prototype.max_health - ent.health
-      local dura = stack.durability
-      if health_diff < 10 then --free repair for tiny damages
-         ent.health = ent.prototype.max_health 
-         printout("Fully repaired " .. ent.name, pindex)
-      elseif health_diff < dura then
-         ent.health = ent.prototype.max_health 
-         stack.drain_durability(health_diff)
-         printout("Fully repaired " .. ent.name, pindex)
-      else--if health_diff >= dura then
-         stack.drain_durability(dura)
-         ent.health = ent.health + dura
-         printout("Partially repaired " .. ent.name .. " and consumed a repair pack", pindex)
-         --Note: This automatically subtracts correctly and decerements the pack in hand.
-      end
-   end
-   --Note: game.get_player(pindex).use_from_cursor{players[pindex].cursor_pos.x,players[pindex].cursor_pos.y}--This does not work.
-end
-
---Tries to repair all relevant entities within a certain distance from the player
-function repair_area(radius_in,pindex)
-   local p = game.get_player(pindex)
-   local stack = p.cursor_stack
-   local repaired_count = 0
-   local packs_used = 0
-   local radius = math.min(radius_in,25)
-   if stack.count < 2 then
-      --If you are low on repair packs, stop
-      printout("You need at least 2 repair packs to repair the area.",pindex)
-      return 
-   end
-   local ents = p.surface.find_entities_filtered{position = p.position, radius = radius}
-   for i,ent in ipairs(ents) do 
-      --Repair the entity found
-      if ent and ent.valid and ent.is_entity_with_health and ent.get_health_ratio() < 1 
-      and ent.type ~= "resource" and not ent.force.is_enemy(p.force) and ent.name ~= "character" then
-         p.play_sound{path = "utility/default_manual_repair"}
-         local health_diff = ent.prototype.max_health - ent.health
-         local dura = stack.durability
-         if health_diff < 10 then --free repair for tiny damages
-            ent.health = ent.prototype.max_health 
-            repaired_count = repaired_count + 1
-         elseif health_diff < dura then
-            ent.health = ent.prototype.max_health 
-            stack.drain_durability(health_diff)
-            repaired_count = repaired_count + 1
-         elseif stack.count < 2 then
-            --If you are low on repair packs, stop
-            printout("Repaired " .. repaired_count .. " structures using " .. packs_used .. " repair packs, stopped because you are low on repair packs.",pindex)
-            return 
-         else
-            --Finish the current repair pack
-            stack.drain_durability(dura)
-            packs_used = packs_used + 1
-            ent.health = ent.health + dura
-            
-            --Repeat unhtil fully repaired or out of packs
-            while ent.get_health_ratio() < 1 do
-               health_diff = ent.prototype.max_health - ent.health
-               dura = stack.durability
-               if health_diff < 10 then --free repair for tiny damages
-                  ent.health = ent.prototype.max_health 
-                  repaired_count = repaired_count + 1
-               elseif health_diff < dura then
-                  ent.health = ent.prototype.max_health 
-                  stack.drain_durability(health_diff)
-                  repaired_count = repaired_count + 1
-               elseif stack.count < 2 then
-                  --If you are low on repair packs, stop
-                  printout("Repaired " .. repaired_count .. " structures using " .. packs_used .. " repair packs, stopped because you are low on repair packs.",pindex)
-                  return 
-               else
-                  --Finish the current repair pack
-                  stack.drain_durability(dura)
-                  packs_used = packs_used + 1
-                  ent.health = ent.health + dura
-               end
-            end 
-         end
-      end
-   end
-   if repaired_count == 0 then
-      printout("Nothing to repair within " .. radius .. " tiles of you.",pindex)
-      return
-   end
-   printout("Repaired all " .. repaired_count .. " structures within " .. radius .. " tiles of you, using " .. packs_used .. " repair packs.",pindex)
-end
+return {equipment = fa_equipment, combat = fa_combat}

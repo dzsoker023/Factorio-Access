@@ -76,7 +76,7 @@ Date: 2024.04.06
     - Note: Earlier changelog entries use a different format and thus are not automatically loaded.
 
   Features:
-    -The tutorial has been rewritten, doubling in length. The game should now be more accessible to new players.
+    - The tutorial has been rewritten, doubling in length. The game should now be more accessible to new players.
       * There are now 12 chapters covering everything up to producing logistic science packs, and general tips chapter at the end.
       * There is a total of over 300 steps in total, with generally only 1 or 2 instructions per step.
       * Recently added features such as blueprints, cursor skipping, and steam engine snapping have been included.

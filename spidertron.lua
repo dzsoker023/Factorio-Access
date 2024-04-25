@@ -1,4 +1,9 @@
-function spider_menu(menu_index, pindex, spiderin, clicked, other_input)
+--Here: Spidertron remote menu 
+
+local fa_spidertrons = {}
+
+--This menu is opened via a spidertron remote.
+function fa_spidertrons.run_spider_menu(menu_index, pindex, spiderin, clicked, other_input)
    local index = menu_index
    local spider
    local remote =  game.get_player(pindex).cursor_stack
@@ -179,7 +184,7 @@ function spider_menu(menu_index, pindex, spiderin, clicked, other_input)
 end
 SPIDER_MENU_LENGTH = 7
 
-function spider_menu_open(pindex, stack)
+function fa_spidertrons.spider_menu_open(pindex, stack)
    if players[pindex].vanilla_mode then
       return 
    end
@@ -195,11 +200,11 @@ function spider_menu_open(pindex, stack)
    game.get_player(pindex).play_sound{path = "Open-Inventory-Sound"}
    
    --Load menu 
-   spider_menu(players[pindex].spider_menu.index, pindex, spider, false)
+   fa_spidertrons.run_spider_menu(players[pindex].spider_menu.index, pindex, spider, false)
 end
 
 
-function spider_menu_close(pindex, mute_in)
+function fa_spidertrons.spider_menu_close(pindex, mute_in)
    local mute = mute_in
    --Set the player menu tracker to none
    players[pindex].menu = "none"
@@ -222,7 +227,7 @@ function spider_menu_close(pindex, mute_in)
    end
 end
 
-function spider_menu_up(pindex, spider)
+function fa_spidertrons.spider_menu_up(pindex, spider)
    players[pindex].spider_menu.index = players[pindex].spider_menu.index - 1
    if players[pindex].spider_menu.index < 0 then
       players[pindex].spider_menu.index = 0
@@ -232,10 +237,10 @@ function spider_menu_up(pindex, spider)
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
    end
    --Load menu
-   spider_menu(players[pindex].spider_menu.index, pindex, spider, false)
+   fa_spidertrons.run_spider_menu(players[pindex].spider_menu.index, pindex, spider, false)
 end
 
-function spider_menu_down(pindex, spider)
+function fa_spidertrons.spider_menu_down(pindex, spider)
    players[pindex].spider_menu.index = players[pindex].spider_menu.index + 1
    if players[pindex].spider_menu.index > SPIDER_MENU_LENGTH then
       players[pindex].spider_menu.index = SPIDER_MENU_LENGTH
@@ -246,5 +251,7 @@ function spider_menu_down(pindex, spider)
    end
    --Load menu
 
-   spider_menu(players[pindex].spider_menu.index, pindex, spider, false)
+   fa_spidertrons.run_spider_menu(players[pindex].spider_menu.index, pindex, spider, false)
 end
+
+return fa_spidertrons
