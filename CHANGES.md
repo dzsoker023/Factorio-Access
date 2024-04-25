@@ -1,70 +1,89 @@
+# Version 0.11.0 BETA - EXPERIMENTAL
+Released? 
+
+## Summary
+- Not written yet.
+
+## Info
+- None.
+
+## Features
+- None.
+
+## Changes
+- None.
+
+## Bugfixes
+- None.
+
+
 # Version 0.10.1 BETA
 Released on April 13th, 2024.
 
 ## Summary
-    - This update comes after some restructuring of the mod repository and joining the official Factorio Mod Portal. Note that releases still need to be installed from the GitHub page because of the launcher and config changes required to run the mod properly. The update itself includes tweaks, additions, and bugfixes across the board thanks to community feedback. Notably, several blueprint bugs have been fixed and Remote View has been added. 
+- This update comes after some restructuring of the mod repository and joining the official Factorio Mod Portal. Note that releases still need to be installed from the GitHub page because of the launcher and config changes required to run the mod properly. The update itself includes tweaks, additions, and bugfixes across the board thanks to community feedback. Notably, several blueprint bugs have been fixed and Remote View has been added. 
 
 ## Info
-    - The mod's GitHub repository has been moved to a new address to make contributions easier: https://github.com/Factorio-Access/FactorioAccess. Hyperlinks to it have been automatically updated.
+- The mod's GitHub repository has been moved to a new address to make contributions easier: https://github.com/Factorio-Access/FactorioAccess. Hyperlinks to it have been automatically updated.
 
-    - The mod's wiki has been moved to this address as well, and hyperlinks to it have been updated manually. You may need to update your own wiki related browser bookmarks.
+- The mod's wiki has been moved to this address as well, and hyperlinks to it have been updated manually. You may need to update your own wiki related browser bookmarks.
 
-    - The mod has now been officially added to the Factorio Mod Portal, but please note that downloading and installing it from the portal does not make it playable. You still need to use the mod launcher for vocalization and also making game configuration changes to accommodate this mod. Therefore please use the GitHub releases page and follow the install instructions.
+- The mod has now been officially added to the Factorio Mod Portal, but please note that downloading and installing it from the portal does not make it playable. You still need to use the mod launcher for vocalization and also making game configuration changes to accommodate this mod. Therefore please use the GitHub releases page and follow the install instructions.
     
-    - Release folder contents now include mod dependency info and a mod portal compatible changelog, which is what prompted formatting changes for the main changelog.
+- Release folder contents now include mod dependency info and a mod portal compatible changelog, which is what prompted formatting changes for the main changelog.
 
-    - Settings for configuring other mods are now updated using data stage code, as it should be. Meanwhile, the feature for in-game settings changing is still being worked on.
+- Settings for configuring other mods are now updated using data stage code, as it should be. Meanwhile, the feature for in-game settings changing is still being worked on.
 
 ## Features
-    - Added Remote View, which is when the camera and microphone focuses on the player's cursor instead of the player's character. Press "ALT + I" to toggle it.
-      * Press arrow keys to move the cursor in remote view. Do not use the "W" "A" "S" "D" keys because this makes the camera pan too fast in a way we cannot control.
-      * This view allows focusing on distant locations, although blurred or uncharted areas offer limited info and no sounds. You need to keep them fully loaded using radars.
-      * Remote view automatically opens and closes Cursor Mode along with itself.
-      * For now, most sounds are muffled in remote view, but this will be fixed. 
+- Added Remote View, which is when the camera and microphone focuses on the player's cursor instead of the player's character. Press "ALT + I" to toggle it.
+  * Press arrow keys to move the cursor in remote view. Do not use the "W" "A" "S" "D" keys because this makes the camera pan too fast in a way we cannot control.
+  * This view allows focusing on distant locations, although blurred or uncharted areas offer limited info and no sounds. You need to keep them fully loaded using radars.
+  * Remote view automatically opens and closes Cursor Mode along with itself.
+  * For now, most sounds are muffled in remote view, but this will be fixed. 
 
-    - Added basic support for the Kruise Kontrol mod, which allows automatic walking to the cursor location.
-      * Press "CONTROL + ALT + RIGHT BRACKET" twice, to first open the cursor location in remote view, and then to instruct an action.
-      * Usually the action is to walk or drive to that spot. Special cases include selecting a resource to start mining it, selecting a ghost to start building them, selected a descontruction marked building to start removing them, selecting trees to start chopping them, and selecting enemies to start fighting them.
-      * Press "ENTER" to cancel ongoing actions. Some actions may be unclear at times so this is recommended if things are taking to long.
-      * The character cuts trees along their automatic walking paths.
+- Added basic support for the Kruise Kontrol mod, which allows automatic walking to the cursor location.
+  * Press "CONTROL + ALT + RIGHT BRACKET" twice, to first open the cursor location in remote view, and then to instruct an action.
+  * Usually the action is to walk or drive to that spot. Special cases include selecting a resource to start mining it, selecting a ghost to start building them, selected a descontruction marked building to start removing them, selecting trees to start chopping them, and selecting enemies to start fighting them.
+  * Press "ENTER" to cancel ongoing actions. Some actions may be unclear at times so this is recommended if things are taking to long.
+  * The character cuts trees along their automatic walking paths.
 
-    - The pollution level at the cursor position can now be read, by pressing "SHIFT + U". Note that "high" pollution is usually when trees start taking pollution damage. Other than that, the most important thing to track regarding pollution is how heavily polluted enemy spawners are, which can be checked with the scanner tool.
+- The pollution level at the cursor position can now be read, by pressing "SHIFT + U". Note that "high" pollution is usually when trees start taking pollution damage. Other than that, the most important thing to track regarding pollution is how heavily polluted enemy spawners are, which can be checked with the scanner tool.
 
-    - The scanner can now locate the nearest damaged entity of the player's own team, by pressing "SHIFT + P". This has a range limit of 1000 tiles.
+- The scanner can now locate the nearest damaged entity of the player's own team, by pressing "SHIFT + P". This has a range limit of 1000 tiles.
 
 ## Changes
-    - Launcher: Changed the description of the Compass Valley preset to make it more beginner friendly.
+- Launcher: Changed the description of the Compass Valley preset to make it more beginner friendly.
 
-    - Cursor area scanning now reports coverage percentages only for ground tiles. It also notes whether there are other things in the area after listing the first 4 things.
+- Cursor area scanning now reports coverage percentages only for ground tiles. It also notes whether there are other things in the area after listing the first 4 things.
 
-    - Cursor area scanning now updates the scan result list properly so that the list can be used to examine in detail what is within the area.
+- Cursor area scanning now updates the scan result list properly so that the list can be used to examine in detail what is within the area.
 
-    - Cursor size options now include 51 by 51.
+- Cursor size options now include 51 by 51.
 
-    - Minor revisions were made in some tutorial steps for clarity.
+- Minor revisions were made in some tutorial steps for clarity.
 
-    - Checking technology info now also reads the localised description of the technology. Technology required ingredient names have been localised too.
+- Checking technology info now also reads the localised description of the technology. Technology required ingredient names have been localised too.
 
-    - You can now teleport from the structure travel menu as well.
+- You can now teleport from the structure travel menu as well.
 
-    - Alternate controls for SCAN-UP and SCAN-DOWN have been changed to "ALT + UP" and "ALT + DOWN". The main controls are still "PAGEUP" and "PAGEDOWN".
+- Alternate controls for SCAN-UP and SCAN-DOWN have been changed to "ALT + UP" and "ALT + DOWN". The main controls are still "PAGEUP" and "PAGEDOWN".
 
 ## Bugfixes
-    - Fixed a mod initialization crash that was preventing it from running on dedicated servers.
+- Fixed a mod initialization crash that was preventing it from running on dedicated servers.
 
-    - Removed deprecated cursor release keybind, which was interfering with rail analysis.
+- Removed deprecated cursor release keybind, which was interfering with rail analysis.
 
-    - Fixed the incorrect reporting of blueprint dimensions from inside the blueprint menu.
+- Fixed the incorrect reporting of blueprint dimensions from inside the blueprint menu.
 
-    - Fixed a crash during the re-selection of blueprints with no names or descriptions.
+- Fixed a crash during the re-selection of blueprints with no names or descriptions.
 
-    - Fixed a crash during the reading of blueprints with invalid items or icons in them, such as old science pack versions.
+- Fixed a crash during the reading of blueprints with invalid items or icons in them, such as old science pack versions.
 
-    - Fixed the ambiguity about the "electronics" technology having no direct unlocks.
+- Fixed the ambiguity about the "electronics" technology having no direct unlocks.
 
-    - Fixed the input for locking 5 inventory slots of chests.
+- Fixed the input for locking 5 inventory slots of chests.
 
-    - Fixed some mod menu typos.
+- Fixed some mod menu typos.
 
 
 # Version 0.10.0 BETA
