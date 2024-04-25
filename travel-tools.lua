@@ -47,7 +47,7 @@ function fa_travel.move_cursor_structure(pindex, dir)
             fa_mouse.move_mouse_pointer(ent.ent.position,pindex)
             players[pindex].cursor_pos = ent.ent.position
             --Case 1: Proposing a new structure
-            printout("To " .. ent.name .. " " .. fa_scanner.ent_extra_info(ent.ent,pindex,true) .. ", " .. description  .. ", " .. index .. " of " .. #network[current][adjusted[(0 + dir) % 8]], pindex)
+            printout("To " .. ent.name .. " " .. fa_scanner.ent_extra_list_info(ent.ent,pindex,true) .. ", " .. description  .. ", " .. index .. " of " .. #network[current][adjusted[(0 + dir) % 8]], pindex)
          else
             printout("Missing " .. ent.name .. " " .. description, pindex)
          end
@@ -78,7 +78,7 @@ function fa_travel.move_cursor_structure(pindex, dir)
          fa_mouse.move_mouse_pointer(ent.ent.position,pindex)
          players[pindex].cursor_pos = ent.ent.position
          --Case 2: Returning to the current structure
-         printout("Back at " .. ent.name .. " " .. fa_scanner.ent_extra_info(ent.ent,pindex,true) .. ", " .. description, pindex)
+         printout("Back at " .. ent.name .. " " .. fa_scanner.ent_extra_list_info(ent.ent,pindex,true) .. ", " .. description, pindex)
       else
          printout("Missing " .. ent.name .. " " .. description, pindex)
       end
@@ -109,7 +109,7 @@ function fa_travel.move_cursor_structure(pindex, dir)
          fa_mouse.move_mouse_pointer(ent.ent.position,pindex)
          players[pindex].cursor_pos = ent.ent.position
          --Case 3: Moved to the new structure
-         printout("Now at " .. ent.name .. " " .. fa_scanner.ent_extra_info(ent.ent,pindex,true) .. ", " .. description, pindex)
+         printout("Now at " .. ent.name .. " " .. fa_scanner.ent_extra_list_info(ent.ent,pindex,true) .. ", " .. description, pindex)
       else
          printout("Missing " .. ent.name .. " " .. description, pindex)
       end
@@ -145,7 +145,7 @@ function fa_travel.move_cursor_structure(pindex, dir)
          fa_mouse.move_mouse_pointer(ent.ent.position,pindex)
          players[pindex].cursor_pos = ent.ent.position
          --Case 4: Propose a new structure within the same direction
-         printout("To " .. ent.name .. " " .. fa_scanner.ent_extra_info(ent.ent,pindex,true) .. ", " .. description  .. ", " .. index .. " of " .. #network[current][direction], pindex)
+         printout("To " .. ent.name .. " " .. fa_scanner.ent_extra_list_info(ent.ent,pindex,true) .. ", " .. description  .. ", " .. index .. " of " .. #network[current][direction], pindex)
       else
          printout("Missing " .. ent.name .. " " .. description, pindex)
       end

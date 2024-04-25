@@ -583,6 +583,8 @@ function fa_trains.menu_close(pindex, mute_in)
 
    --Set the menu line counter to 0
    players[pindex].train_menu.index = 0
+   players[pindex].train_menu.index_2 = 0
+   players[pindex].train_menu.selecting_station = false
    
    --play sound
    if not mute then

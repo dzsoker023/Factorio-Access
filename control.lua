@@ -7855,7 +7855,7 @@ script.on_event("open-structure-travel-menu", function(event)
       if description == "" then
          description = "No nearby buildings."
       end
-      printout("Now at " .. ent.name .. " " .. fa_scanner.ent_extra_info(ent,pindex,true) .. " " .. description .. ", Select a direction, confirm with same direction, and use perpendicular directions to select a target,  press left bracket to teleport to selection", pindex)
+      printout("Now at " .. ent.name .. " " .. fa_scanner.ent_extra_list_info(ent,pindex,true) .. " " .. description .. ", Select a direction, confirm with same direction, and use perpendicular directions to select a target,  press left bracket to teleport to selection", pindex)
       local screen = game.get_player(pindex).gui.screen
       local frame = screen.add{type = "frame", name = "structure-travel"}
       frame.bring_to_front()
