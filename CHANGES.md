@@ -2,19 +2,32 @@
 Released? 
 
 ## Summary
-- Not written yet.
+- This update is mostly about changes under the hood while the mod codebase is being refactored so that the code is easier to follow and maintain, for contributors both new and old. The update also includes some bug fixes and small improvements, but the refactor has caused new bugs. Extensive testing is needed to find and fix the new bugs. Therefore this release is labeled as "experimental" and is recommended only to players who are interested in bug hunting.
 
 ## Info
-- None.
+- Started to significantly refactor the mod codebase, with huge help from @eph and @ahicks.
+  * The aim is to make the code easier to follow and maintain, for contributors both new and old.
+  * Improved the explanations of functions, and renamed several of them to more accurate or concise names.
+  * Moved most functions into Lua modules that have their own lua files and are required by other files as local objects, as per best practices. This makes it easier to examine independent modules and their dependencies.
+  * Added "fa-info-for-contributors.md" as an introductory resource for contributors. 
+  * Fixed several IDE warnings.
+  * Further work is underway for simplifying event handlers and other functions inside "control.lua" by moving their contents into smaller functions inside appropriate modules.
+  * The refactor introduced some new bugs, and many of them have been found and fixed. However, further testing is needed so that other bugs can be found and/or fixed.
 
 ## Features
 - None.
 
 ## Changes
-- None.
+- Color info was added to descriptions of electronic chips and transport belts, because the colors are commonly used by the community to distinguish them.
+
+- Added alternate keybinds for increasing and decreasing chest locked slots and train wait times: You can use "ALT + UP" / "ALT + DOWN" instead of "PAGE UP" / "PAGE DOWN". You can also use "SHIFT"/"CONTROL" and "UP"/"DOWN" instead of "SHIFT"/"CONTROL" and "PAGE UP"/"PAGE DOWN".
 
 ## Bugfixes
-- None.
+- Fixed a stray textbox bug that softlocks the game. Closing any menu should should now remove stray GUI elements such as these textboxes. Also, pressing ENTER to confirm these textboxes now closes them too.
+
+- Pressing "RIGHT BRACKET" on a blueprint in the inventory now does nothing instead of deleting it.
+
+- Train menu: Fixed an updating issue with the single time travel feature so that it resets correctly.
 
 
 # Version 0.10.1 BETA
