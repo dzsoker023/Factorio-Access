@@ -1,15 +1,17 @@
 
 for name, proto in pairs(data.raw.item) do
    local pr = proto.place_result
+   local pr_name = ""
    if pr then
+      ---@diagnostic disable: undefined-field
       if pr.name then
-         pr = pr.name
+         pr_name = pr.name
       end
       if not proto.localised_description then
-         proto.localised_description = { "entity-description." .. pr }
+         proto.localised_description = { "entity-description." .. pr_name }
       end
       if not proto.localised_name then
-         proto.localised_name = { "entity-name." .. pr }
+         proto.localised_name = { "entity-name." .. pr_name }
       end
    end
 end

@@ -1,5 +1,5 @@
 # Version 0.11.0 BETA - EXPERIMENTAL
-Released? 
+Released preview 0.11.0e1 on April 27th, 2024.
 
 ## Summary
 - This update is mostly about changes under the hood while the mod codebase is being refactored so that the code is easier to follow and maintain, for contributors both new and old. The update also includes some bug fixes and small improvements, but the refactor has caused new bugs. Extensive testing is needed to find and fix the new bugs. Therefore this release is labeled as "experimental" and is recommended only to players who are interested in bug hunting.
