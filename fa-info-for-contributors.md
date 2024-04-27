@@ -2,6 +2,20 @@
 
 Hello and thank you for your interest in contributing to Factorio Access! Here is some general information about how Factorio mods work, and how this mod in particular works.
 
+## Dev environment setup
+
+1. These instrucitons assume a default setup. Lots of variations are possible though so take with a grain of salt, and ask for help with deviations if needed.
+2. Create a fork on github
+3. Replace the FactorioAccess mod folder in %appdata%\Factorio\mods\ with a clone of your fork.
+4. Ensure you have a somewhat up to date version of vs code installed
+5. Open a new vccode window and open that newlly created FactorioAccess folder.
+6. It may or may not prompt you to install some extentions, in either case install the recommended extensions. (Extensions: show recommended extentions)
+7. Save your workspace with the file save workspace as menu. You can save it anywhere you'll remeber and you should use that file to reopen your workspace whenever you want to restart working on Facotrio Access. This workspace file is used to store your settings that are not shared by different developers like folder locations. 
+8. If you'd like to do live debugging while still hearing what's going on you'll need a special version of the the launcher that doesn't have a console. You can find that [here](https://github.com/Factorio-Access/Factorio-Access-Launcher/releases). It should be placed next to facotrio.exe in Facotrio\bin\x64\ .
+9. To get Factorio Modding Tool Kit (FMTK) working you'll need to select your factorio version. Rather than pointing to facotorio.exe you should set it to the launcher downloaded in the previous step. This can be achomplished with ctrl+shift+P and selecting Facotrio: select version.
+10. Pick a save file of yours that you'd like to do your debugging on and rename it test.zip.
+11. Back in VS Code open up any lua file you'd like to debug, set any breakpoints you'd like, and press F5. Hopefully, you'll hear Hello Facotrio like usual and be dumped into your game.
+
 ## Factorio data lifecycle
 
 Factorio allows mods to run Lua code either during the startup of the game before the main menu loads, or during runtime after a save file loads.
@@ -18,7 +32,7 @@ Read more about the data lifecycle on [this official documentation page](https:/
 
 ## Data structures used in Factorio Access
 
-During runtime, the API allows you to reference game objects directly, with read and/or write permissions for their listed properties. Game objects include the `surface`, which is the world made up of `tiles`, and covered in `entities`. Every entity has a `ùnit_number` that is unqiue to it, and a class `name` explaining what it is and what it can do. Usually doing something in the mod begins with referencing an entity or a tile.
+During runtime, the API allows you to reference game objects directly, with read and/or write permissions for their listed properties. Game objects include the `surface`, which is the world made up of `tiles`, and covered in `entities`. Every entity has a `unit_number` that is unqiue to it, and a class `name` explaining what it is and what it can do. Usually doing something in the mod begins with referencing an entity or a tile.
 
 When not referencing game objects, the mod has a global data table where persistent variables can be saved in custom tables. The access mod's most extensively used custom table is `global.players`, where mod-related data for each player is stored separately. This table is usually referenced using a variable named "pindex", which is the index number for a particular player.
 
@@ -53,7 +67,8 @@ Every other lua file in the Factorio Access folder is for the runtime stage and 
 
 ### Config change files
 
-The mod has a number of ".ini" files in the folder named `config_changes`. These files define which game settings are changed by the Factorio Access launcher during game configuration. There are multiple files for backwards compatibility between mod releases.
+The mod has a number of ".ini" files in the folder named `config_changes`. These files define which game settings are changed by the Factorio Access launcher during game configuration. There are multiple files to allow for existing players to only get the new changes when they update while not clobering any customisations. If you want to change a setting between releases, it should go into a new file, that way players that are up to date with all the previous suggestions will recieve the new setting. If you want to update a setting that was already changed, it should still go in a new file, and ideally that setting wold be deleted from the old file that set it. That way new players don't have to have that setting changed twice which would be annoying if they're doing it interactively. Removal of settings is the only substantial change that should be made to old files, but comments can be updated anytime. All new setting changes for a particular release can go into one new file and the first two letters of that file should start with the next alphabetical options ie. AG_whatever.ini follows AF_something_or_other.ini and BA_wow_the_two_letters_was_a_good_idea.ini follows AZ_another_non_descript_name.ini.
+
 
 ### Locale files
 
