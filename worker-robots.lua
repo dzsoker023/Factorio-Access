@@ -727,10 +727,11 @@ end
 
 --Calls the appropriate function after a keypress for logistic info 
 function mod.logistics_info_key_handler(pindex)
-   if players[pindex].in_menu == false or players[pindex].menu == "inventory" then
+   if players[pindex].in_menu == false or players[pindex].menu == "inventory" or players[pindex].menu == "player_trash" then
       --Personal logistics
       local stack = game.get_player(pindex).cursor_stack
       local stack_inv = game.get_player(pindex).get_main_inventory()[players[pindex].inventory.index]
+      local stack_tra = game.get_player(pindex).get_inventory(defines.inventory.character_trash)[players[pindex].inventory.index]
       --Check item in hand or item in inventory
       if stack and stack.valid_for_read and stack.valid then
          --Item in hand
@@ -738,6 +739,8 @@ function mod.logistics_info_key_handler(pindex)
       elseif players[pindex].menu == "inventory" and stack_inv and stack_inv.valid_for_read and stack_inv.valid then
          --Item in inv
          mod.player_logistic_request_read(stack_inv,pindex,true)
+      elseif players[pindex].menu == "player_trash" and stack_tra and stack_tra.valid_for_read and stack_tra.valid then
+         mod.player_logistic_request_read(stack_tra,pindex,true)
       else
          --Logistic chest in front
          local ent = get_selected_ent(pindex)
@@ -806,7 +809,7 @@ end
 
 --Call the appropriate function after a keypress for modifying a logistic request
 function mod.logistics_request_increment_min_handler(pindex)
-   if not players[pindex].in_menu or players[pindex].menu == "inventory" then
+   if not players[pindex].in_menu or players[pindex].menu == "inventory" or players[pindex].menu == "player_trash" then
       --Personal logistics
       local stack = game.get_player(pindex).cursor_stack
       local stack_inv = game.get_player(pindex).get_main_inventory()[players[pindex].inventory.index]
@@ -817,6 +820,9 @@ function mod.logistics_request_increment_min_handler(pindex)
       elseif players[pindex].menu == "inventory" and stack_inv ~= nil and stack_inv.valid_for_read and stack_inv.valid then
          --Item in inv
          player_logistic_request_increment_min(stack_inv,pindex)
+      elseif players[pindex].menu == "player_trash" then
+         --Item in trash
+         printout("Take this item in hand to change its requests",pindex)
       else
          --Empty hand, empty inventory slot
          --(do nothing)
@@ -880,7 +886,7 @@ end
 
 --Call the appropriate function after a keypress for modifying a logistic request
 function mod.logistics_request_decrement_min_handler(pindex)
-   if not players[pindex].in_menu or players[pindex].menu == "inventory" then
+   if not players[pindex].in_menu or players[pindex].menu == "inventory" or players[pindex].menu == "player_trash" then
       --Personal logistics
       local stack = game.get_player(pindex).cursor_stack
       local stack_inv = game.get_player(pindex).get_main_inventory()[players[pindex].inventory.index]
@@ -891,6 +897,9 @@ function mod.logistics_request_decrement_min_handler(pindex)
       elseif players[pindex].menu == "inventory" and stack_inv ~= nil and stack_inv.valid_for_read and stack_inv.valid then
          --Item in inv
          player_logistic_request_decrement_min(stack_inv,pindex)
+      elseif players[pindex].menu == "player_trash" then
+         --Item in trash
+         printout("Take this item in hand to change its requests",pindex)
       else
          --Empty hand, empty inventory slot
          --(do nothing)
@@ -954,7 +963,7 @@ end
 
 --Call the appropriate function after a keypress for modifying a logistic request
 function mod.logistics_request_increment_max_handler(pindex)
-   if not players[pindex].in_menu or players[pindex].menu == "inventory" then
+   if not players[pindex].in_menu or players[pindex].menu == "inventory" or players[pindex].menu == "player_trash" then
       --Personal logistics
       local stack = game.get_player(pindex).cursor_stack
       local stack_inv = game.get_player(pindex).get_main_inventory()[players[pindex].inventory.index]
@@ -965,6 +974,9 @@ function mod.logistics_request_increment_max_handler(pindex)
       elseif players[pindex].menu == "inventory" and stack_inv ~= nil and stack_inv.valid_for_read and stack_inv.valid then
          --Item in inv
          player_logistic_request_increment_max(stack_inv,pindex)
+      elseif players[pindex].menu == "player_trash" then
+         --Item in trash
+         printout("Take this item in hand to change its requests",pindex)
       else
          --Empty hand, empty inventory slot
          --(do nothing)
@@ -994,7 +1006,7 @@ end
 
 --Call the appropriate function after a keypress for modifying a logistic request
 function mod.logistics_request_decrement_max_handler(pindex)
-   if not players[pindex].in_menu or players[pindex].menu == "inventory" then
+   if not players[pindex].in_menu or players[pindex].menu == "inventory" or players[pindex].menu == "player_trash" then
       --Personal logistics
       local stack = game.get_player(pindex).cursor_stack
       local stack_inv = game.get_player(pindex).get_main_inventory()[players[pindex].inventory.index]
@@ -1005,6 +1017,9 @@ function mod.logistics_request_decrement_max_handler(pindex)
       elseif players[pindex].menu == "inventory" and stack_inv ~= nil and stack_inv.valid_for_read and stack_inv.valid then
          --Item in inv
          player_logistic_request_decrement_max(stack_inv,pindex)
+      elseif players[pindex].menu == "player_trash" then
+         --Item in trash
+         printout("Take this item in hand to change its requests",pindex)
       else
          --Empty hand, empty inventory slot
          --(do nothing)
@@ -1035,7 +1050,7 @@ end
 --Call the appropriate function after a keypress for modifying a logistic request
 function mod.logistics_request_toggle_handler(pindex)
    local ent = game.get_player(pindex).opened
-   if not players[pindex].in_menu or players[pindex].menu == "inventory" then
+   if not players[pindex].in_menu or players[pindex].menu == "inventory" or players[pindex].menu == "player_trash" then
       --Player: Toggle enabling requests
       logistics_request_toggle_personal_logistics(pindex)
    elseif players[pindex].menu == "vehicle" and mod.can_make_logistic_requests(ent) then
