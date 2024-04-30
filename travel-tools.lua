@@ -5,10 +5,10 @@ local fa_mouse = require("graphics-and-mouse").mouse
 local fa_scanner = require("scanner")
 local fa_teleport = require("teleport")
 
-local fa_travel = {}
+local mod = {}
 
 --Structure travel: Moves the player cursor in the input direction.
-function fa_travel.move_cursor_structure(pindex, dir)
+function mod.move_cursor_structure(pindex, dir)
    local direction = players[pindex].structure_travel.direction
    local adjusted = {}
    adjusted[0] = "north"
@@ -154,7 +154,7 @@ end
 
 --Structure travel: Creates the building network that is traveled during structure travel. 
 --**Todo bug: Some neighboring structures are not picked up when they should be such as machines next to inserters
-function fa_travel.compile_building_network(ent, radius_in,pindex)
+function mod.compile_building_network(ent, radius_in,pindex)
    local radius = radius_in
    local ents = ent.surface.find_entities_filtered{position = ent.position, radius = radius}
    game.get_player(pindex).print(#ents .. " ents at first pass")
@@ -312,7 +312,7 @@ function fa_travel.compile_building_network(ent, radius_in,pindex)
    return result
 end
 
-function fa_travel.fast_travel_menu_open(pindex)
+function mod.fast_travel_menu_open(pindex)
    if players[pindex].in_menu == false and game.get_player(pindex).driving == false and game.get_player(pindex).opened == nil then
       game.get_player(pindex).selected = nil
 
@@ -358,7 +358,7 @@ function fa_travel.fast_travel_menu_open(pindex)
 end
 
 --Reads the selected fast travel menu slot
-function fa_travel.read_fast_travel_slot(pindex)
+function mod.read_fast_travel_slot(pindex)
    if #global.players[pindex].travel == 0 then
       printout("Move towards the right and select Create to get started.", pindex)
    else
@@ -369,7 +369,7 @@ function fa_travel.read_fast_travel_slot(pindex)
    end
 end
 
-function fa_travel.fast_travel_menu_click(pindex)
+function mod.fast_travel_menu_click(pindex)
    if players[pindex].travel.input_box then
       players[pindex].travel.input_box.destroy()
    end
@@ -449,7 +449,7 @@ function fa_travel.fast_travel_menu_click(pindex)
 end
 TRAVEL_MENU_LENGTH = 7
 
-function fa_travel.fast_travel_menu_up(pindex)
+function mod.fast_travel_menu_up(pindex)
    if players[pindex].travel.index.y > 1 then
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
       players[pindex].travel.index.y = players[pindex].travel.index.y - 1
@@ -458,10 +458,10 @@ function fa_travel.fast_travel_menu_up(pindex)
       game.get_player(pindex).play_sound{path = "inventory-edge"}
    end
    players[pindex].travel.index.x = 1
-   fa_travel.read_fast_travel_slot(pindex)
+   mod.read_fast_travel_slot(pindex)
 end
 
-function fa_travel.fast_travel_menu_down(pindex)
+function mod.fast_travel_menu_down(pindex)
    if players[pindex].travel.index.y < #players[pindex].travel then
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
       players[pindex].travel.index.y = players[pindex].travel.index.y + 1
@@ -470,10 +470,10 @@ function fa_travel.fast_travel_menu_down(pindex)
       game.get_player(pindex).play_sound{path = "inventory-edge"}
    end
    players[pindex].travel.index.x = 1
-   fa_travel.read_fast_travel_slot(pindex)
+   mod.read_fast_travel_slot(pindex)
 end
 
-function fa_travel.fast_travel_menu_right(pindex)
+function mod.fast_travel_menu_right(pindex)
    if players[pindex].travel.index.x < TRAVEL_MENU_LENGTH then
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
       players[pindex].travel.index.x = players[pindex].travel.index.x + 1
@@ -497,7 +497,7 @@ function fa_travel.fast_travel_menu_right(pindex)
    end
 end
 
-function fa_travel.fast_travel_menu_left(pindex)
+function mod.fast_travel_menu_left(pindex)
    if players[pindex].travel.index.x > 1 then
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
       players[pindex].travel.index.x = players[pindex].travel.index.x - 1
@@ -521,4 +521,4 @@ function fa_travel.fast_travel_menu_left(pindex)
    end
 end
 
-return fa_travel
+return mod

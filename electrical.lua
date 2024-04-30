@@ -2,11 +2,11 @@
 local util = require("util")
 local fa_utils = require("fa-utils")
 
-local fa_electrical = {}
+local mod = {}
 
 --Formats a power value in watts to summarize it as a string according to its magnitude.
 ---@param power float
-function fa_electrical.get_power_string(power)
+function mod.get_power_string(power)
    result = ""
    if power > 1000000000000 then
       power = power/1000000000000
@@ -27,7 +27,7 @@ function fa_electrical.get_power_string(power)
 end
 
 --Spawns a lamp at the electric pole and uses its energy level to approximate the network satisfaction percentage with high accuracy
-function fa_electrical.get_electricity_satisfaction(electric_pole)
+function mod.get_electricity_satisfaction(electric_pole)
    local satisfaction = -1
    local test_lamp = electric_pole.surface.create_entity{name = "small-lamp", position = electric_pole.position, raise_built = false, force = electric_pole.force}
    satisfaction = math.ceil(test_lamp.energy * 9/8)--Experimentally found coefficient
@@ -37,7 +37,7 @@ end
 
 --For an electricity producer, returns an info string on the current and maximum production.
 ---@param ent LuaEntity
-function fa_electrical.get_electricity_flow_info(ent)
+function mod.get_electricity_flow_info(ent)
    local result = ""
    local power = 0
    local capacity = 0
@@ -57,12 +57,12 @@ function fa_electrical.get_electricity_flow_info(ent)
    end
   power = power * 60
   capacity = capacity * 60
-  result = result .. fa_electrical.get_power_string(power) .. " being produced out of " .. fa_electrical.get_power_string(capacity) .. " capacity, "
+  result = result .. mod.get_power_string(power) .. " being produced out of " .. mod.get_power_string(capacity) .. " capacity, "
   return result
 end
 
 --Finds the neearest electric pole. Can be set to determine whether to check only for poles with electricity flow. Can call using only the first two parameters.
-function fa_electrical.find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, alt_pos)
+function mod.find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, alt_pos)
    ---@type LuaEntity
    local nearest = nil
    local min_dist = 99999
@@ -84,13 +84,13 @@ function fa_electrical.find_nearest_electric_pole(ent, require_supplied, radius,
    if #poles == 0 then
       if radius < 100 then
          radius = 100
-         return fa_electrical.find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, alt_pos)
+         return mod.find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, alt_pos)
       elseif radius < 1000 then
          radius = 1000
-         return fa_electrical.find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, alt_pos)
+         return mod.find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, alt_pos)
       elseif radius < 10000 then
          radius = 10000
-         return fa_electrical.find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, alt_pos)
+         return mod.find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, alt_pos)
       else
          return nil, nil --Nothing within 10000 tiles!
       end
@@ -99,7 +99,7 @@ function fa_electrical.find_nearest_electric_pole(ent, require_supplied, radius,
    --Find the nearest among the poles with electric networks
    for i,pole in ipairs(poles) do
       --Check if the pole's network has power producers
-	   local has_power = fa_electrical.get_electricity_satisfaction(pole) > 0
+	   local has_power = mod.get_electricity_satisfaction(pole) > 0
       local dict = pole.electric_network_statistics.output_counts
       local network_producers = {}
       for name, count in pairs(dict) do
@@ -120,13 +120,13 @@ function fa_electrical.find_nearest_electric_pole(ent, require_supplied, radius,
    if nearest == nil then
       if radius < 100 then
 	     radius = 100
-		 return fa_electrical.find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, alt_pos)
+		 return mod.find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, alt_pos)
 	  elseif radius < 1000 then
 	     radius = 1000
-		 return fa_electrical.find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, alt_pos)
+		 return mod.find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, alt_pos)
 	  elseif radius < 10000 then
 	     radius = 10000
-		 return fa_electrical.find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, alt_pos)
+		 return mod.find_nearest_electric_pole(ent, require_supplied, radius, alt_surface, alt_pos)
 	  else
 	     return nil, nil --Nothing within 10000 tiles!
 	  end
@@ -136,9 +136,9 @@ function fa_electrical.find_nearest_electric_pole(ent, require_supplied, radius,
 end
 
 --Returns an info string on the nearest supplied electric pole for this entity.
-function fa_electrical.report_nearest_supplied_electric_pole(ent)
+function mod.report_nearest_supplied_electric_pole(ent)
    local result = ""
-   local pole, dist = fa_electrical.find_nearest_electric_pole(ent, true)
+   local pole, dist = mod.find_nearest_electric_pole(ent, true)
    local dir = -1
    if pole ~= nil then
       dir = fa_utils.get_direction_biased(pole.position,ent.position)
@@ -149,4 +149,4 @@ function fa_electrical.report_nearest_supplied_electric_pole(ent)
    return result
 end
 
-return fa_electrical
+return mod

@@ -7,17 +7,17 @@ local fa_utils = require('fa-utils')
 local fa_mining_tools = require("mining-tools")
 local dirs = defines.direction
 
-local fa_rail_builder = {}
-local fa_rails = {}
+local mod_b = {}
+local mod_r = {}
 
 --Key information about rail units. 
-function fa_rails.rail_ent_info(pindex, ent, description)  
+function mod_r.rail_ent_info(pindex, ent, description)  
    local result = ""
    local is_end_rail = false
    local is_horz_or_vert = false
    
    --Check if end rail: The rail is at the end of its segment and is also not connected to another rail
-   is_end_rail, end_rail_dir, build_comment = fa_rails.check_end_rail(ent,pindex)
+   is_end_rail, end_rail_dir, build_comment = mod_r.check_end_rail(ent,pindex)
    if is_end_rail then
       --Further check if it is a single rail
       if build_comment == "single rail" then
@@ -109,11 +109,11 @@ function fa_rails.rail_ent_info(pindex, ent, description)
    end
    
    --Check if intersection
-   if fa_rails.is_intersection_rail(ent, pindex) then
+   if mod_r.is_intersection_rail(ent, pindex) then
       result = result .. ", intersection " 
    end
    --Check if at junction: The rail has at least 3 connections
-   local connection_count = fa_rails.count_rail_connections(ent)
+   local connection_count = mod_r.count_rail_connections(ent)
    if connection_count > 2 then
       result = result .. ", fork "
    end
@@ -240,7 +240,7 @@ function fa_rails.rail_ent_info(pindex, ent, description)
 end
 
 --Determines how many connections a rail has
-function fa_rails.count_rail_connections(ent)
+function mod_r.count_rail_connections(ent)
    local front_left_rail,r_dir_back,c_dir_back = ent.get_connected_rail{ rail_direction = defines.rail_direction.front,rail_connection_direction = defines.rail_connection_direction.left}
    local front_right_rail,r_dir_back,c_dir_back = ent.get_connected_rail{rail_direction = defines.rail_direction.front,rail_connection_direction = defines.rail_connection_direction.right}
    local back_left_rail,r_dir_back,c_dir_back = ent.get_connected_rail{ rail_direction = defines.rail_direction.back,rail_connection_direction = defines.rail_connection_direction.left}
@@ -271,7 +271,7 @@ function fa_rails.count_rail_connections(ent)
 end
 
 --Determines how many connections a rail has
-function fa_rails.list_rail_fork_directions(ent)
+function mod_r.list_rail_fork_directions(ent)
    local result = ""
    local front_left_rail,r_dir_back,c_dir_back = ent.get_connected_rail{ rail_direction = defines.rail_direction.front,rail_connection_direction = defines.rail_connection_direction.left}
    local front_right_rail,r_dir_back,c_dir_back = ent.get_connected_rail{rail_direction = defines.rail_direction.front,rail_connection_direction = defines.rail_connection_direction.right}
@@ -302,7 +302,7 @@ function fa_rails.list_rail_fork_directions(ent)
 end
 
 --Determines if an entity is an end rail. Returns boolean is_end_rail, integer end rail direction, and string comment for errors.
-function fa_rails.check_end_rail(check_rail, pindex)
+function mod_r.check_end_rail(check_rail, pindex)
    local is_end_rail = false
    local dir = -1
    local comment = "Check function error."
@@ -327,7 +327,7 @@ function fa_rails.check_end_rail(check_rail, pindex)
    --Check if end rail: The rail is at the end of its segment and has only 1 connection.
    end_rail_1, end_dir_1 = check_rail.get_rail_segment_end(defines.rail_direction.front)
    end_rail_2, end_dir_2 = check_rail.get_rail_segment_end(defines.rail_direction.back)
-   local connection_count = fa_rails.count_rail_connections(check_rail)
+   local connection_count = mod_r.count_rail_connections(check_rail)
    if (check_rail.unit_number == end_rail_1.unit_number or check_rail.unit_number == end_rail_2.unit_number) and connection_count < 2 then
       --End rail confirmed, get direction
       is_end_rail = true
@@ -457,7 +457,7 @@ function fa_rails.check_end_rail(check_rail, pindex)
 end
 
 --Look up and translate the signal state.
-function fa_rails.get_signal_state_info(signal)
+function mod_r.get_signal_state_info(signal)
    local state_id = 0
    local state_lookup = nil
    local state_name = ""
@@ -478,7 +478,7 @@ function fa_rails.get_signal_state_info(signal)
 end
 
 --Returns the rail at the end of an input rail's segment. If the input rail is already one end of the segment then it returns the other end. NOT TESTED
-function fa_rails.get_rail_segment_other_end(rail)
+function mod_r.get_rail_segment_other_end(rail)
    local end_rail_1, end_dir_1 = rail.get_rail_segment_end(defines.rail_direction.front) --Cannot be nil
    local end_rail_2, end_dir_2 = rail.get_rail_segment_end(defines.rail_direction.back) --Cannot be nil
    
@@ -493,7 +493,7 @@ function fa_rails.get_rail_segment_other_end(rail)
 end
 
 --For a rail at the end of its segment, returns the neighboring rail segment's end rail. Respects dir in terms of left/right/straight if it is given, else returns the first found option.
-function fa_rails.get_neighbor_rail_segment_end(rail, con_dir_in)
+function mod_r.get_neighbor_rail_segment_end(rail, con_dir_in)
    local dir = con_dir_in or nil
    local requested_neighbor_rail_1 = nil
    local requested_neighbor_rail_2 = nil
@@ -549,7 +549,7 @@ end
 --Reads all rail segment entities around a rail.
 --Result 1: A rail or chain signal creates a new segment and is at the end of one of the two segments.
 --Result 2: A train creates a new segment and is at the end of one of the two segments. It can be reported twice for FW1 and BACK2 or for FW2 and BACK1.
-function fa_rails.read_all_rail_segment_entities(pindex, rail)
+function mod_r.read_all_rail_segment_entities(pindex, rail)
    local message = ""
    local ent_f1 = rail.get_rail_segment_entity(defines.rail_direction.front, true)
    local ent_f2 = rail.get_rail_segment_entity(defines.rail_direction.front, false)
@@ -561,9 +561,9 @@ function fa_rails.read_all_rail_segment_entities(pindex, rail)
    elseif ent_f1.name == "train-stop" then
       message = message .. "forward 1 is train stop "               .. ent_f1.backer_name .. ", "
    elseif ent_f1.name == "rail-signal" then 
-      message = message .. "forward 1 is rails signal with signal " .. fa_rails.get_signal_state_info(ent_f1) .. ", "
+      message = message .. "forward 1 is rails signal with signal " .. mod_r.get_signal_state_info(ent_f1) .. ", "
    elseif ent_f1.name == "rail-chain-signal" then 
-      message = message .. "forward 1 is chain signal with signal " .. fa_rails.get_signal_state_info(ent_f1) .. ", "
+      message = message .. "forward 1 is chain signal with signal " .. mod_r.get_signal_state_info(ent_f1) .. ", "
    else
       message = message .. "forward 1 is else, "                    .. ent_f1.name .. ", "
    end
@@ -573,9 +573,9 @@ function fa_rails.read_all_rail_segment_entities(pindex, rail)
    elseif ent_f2.name == "train-stop" then
       message = message .. "forward 2 is train stop "               .. ent_f2.backer_name .. ", "
    elseif ent_f2.name == "rail-signal" then 
-      message = message .. "forward 2 is rails signal with signal " .. fa_rails.get_signal_state_info(ent_f2) .. ", "
+      message = message .. "forward 2 is rails signal with signal " .. mod_r.get_signal_state_info(ent_f2) .. ", "
    elseif ent_f2.name == "rail-chain-signal" then 
-      message = message .. "forward 2 is chain signal with signal " .. fa_rails.get_signal_state_info(ent_f2) .. ", "
+      message = message .. "forward 2 is chain signal with signal " .. mod_r.get_signal_state_info(ent_f2) .. ", "
    else
       message = message .. "forward 2 is else, "                    .. ent_f2.name .. ", "
    end
@@ -585,9 +585,9 @@ function fa_rails.read_all_rail_segment_entities(pindex, rail)
    elseif ent_b1.name == "train-stop" then
       message = message .. "back 1 is train stop "               .. ent_b1.backer_name .. ", "
    elseif ent_b1.name == "rail-signal" then 
-      message = message .. "back 1 is rails signal with signal " .. fa_rails.get_signal_state_info(ent_b1) .. ", "
+      message = message .. "back 1 is rails signal with signal " .. mod_r.get_signal_state_info(ent_b1) .. ", "
    elseif ent_b1.name == "rail-chain-signal" then 
-      message = message .. "back 1 is chain signal with signal " .. fa_rails.get_signal_state_info(ent_b1) .. ", "
+      message = message .. "back 1 is chain signal with signal " .. mod_r.get_signal_state_info(ent_b1) .. ", "
    else
       message = message .. "back 1 is else, "                    .. ent_b1.name .. ", "
    end
@@ -597,9 +597,9 @@ function fa_rails.read_all_rail_segment_entities(pindex, rail)
    elseif ent_b2.name == "train-stop" then
       message = message .. "back 2 is train stop "               .. ent_b2.backer_name .. ", "
    elseif ent_b2.name == "rail-signal" then 
-      message = message .. "back 2 is rails signal with signal " .. fa_rails.get_signal_state_info(ent_b2) .. ", "
+      message = message .. "back 2 is rails signal with signal " .. mod_r.get_signal_state_info(ent_b2) .. ", "
    elseif ent_b2.name == "rail-chain-signal" then 
-      message = message .. "back 2 is chain signal with signal " .. fa_rails.get_signal_state_info(ent_b2) .. ", "
+      message = message .. "back 2 is chain signal with signal " .. mod_r.get_signal_state_info(ent_b2) .. ", "
    else
       message = message .. "back 2 is else, "                    .. ent_b2.name .. ", "
    end
@@ -609,7 +609,7 @@ function fa_rails.read_all_rail_segment_entities(pindex, rail)
 end
 
 --Gets opposite rail direction
-function fa_rails.get_opposite_rail_direction(dir)
+function mod_r.get_opposite_rail_direction(dir)
    if dir == defines.rail_direction.front then
       return defines.rail_direction.back
    else
@@ -619,7 +619,7 @@ end
 
 --Return what is ahead at the end of this rail's segment in this given direction.
 --Return the entity, a label, an extra value sometimes, and whether the entity faces the forward direction
-function fa_rails.identify_rail_segment_end_object(rail, dir_ahead, accept_only_forward, prefer_back)
+function mod_r.identify_rail_segment_end_object(rail, dir_ahead, accept_only_forward, prefer_back)
    local result_entity = nil
    local result_entity_label = ""
    local result_extra = nil
@@ -635,7 +635,7 @@ function fa_rails.identify_rail_segment_end_object(rail, dir_ahead, accept_only_
    --Correction: Flip the correct direction ahead for mismatching diagonal rails
    if rail.name == "straight-rail" and (rail.direction == dirs.southwest or rail.direction == dirs.northwest) 
       or rail.name == "curved-rail" and (rail.direction == dirs.north or rail.direction == dirs.northeast or rail.direction == dirs.east or rail.direction == dirs.southeast) then
-      dir_ahead = fa_rails.get_opposite_rail_direction(dir_ahead)
+      dir_ahead = mod_r.get_opposite_rail_direction(dir_ahead)
    end
    
    local segment_last_rail = rail.get_rail_segment_end(dir_ahead)
@@ -643,8 +643,8 @@ function fa_rails.identify_rail_segment_end_object(rail, dir_ahead, accept_only_
    local entity_ahead_forward = rail.get_rail_segment_entity(dir_ahead,false)
    local entity_ahead_reverse = rail.get_rail_segment_entity(dir_ahead,true)
    
-   local segment_last_is_end_rail, end_rail_dir, comment = fa_rails.check_end_rail(segment_last_rail, pindex)
-   local segment_last_neighbor_count = fa_rails.count_rail_connections(segment_last_rail)
+   local segment_last_is_end_rail, end_rail_dir, comment = mod_r.check_end_rail(segment_last_rail, pindex)
+   local segment_last_neighbor_count = mod_r.count_rail_connections(segment_last_rail)
    
    if entity_ahead_forward ~= nil then
       entity_ahead = entity_ahead_forward
@@ -675,22 +675,22 @@ function fa_rails.identify_rail_segment_end_object(rail, dir_ahead, accept_only_
          return result_entity, result_entity_label, result_extra, result_is_forward
       else
          --The neighbor of the segment end rail is either a fork or an end rail or has an entity instead
-		 neighbor_rail, neighbor_r_dir, neighbor_c_dir = fa_rails.get_neighbor_rail_segment_end(segment_last_rail, nil)
+		 neighbor_rail, neighbor_r_dir, neighbor_c_dir = mod_r.get_neighbor_rail_segment_end(segment_last_rail, nil)
 		 if neighbor_rail == nil then
 		    --This must be a closed loop?
 			result_entity = nil
             result_entity_label = "loop" 
             result_extra = nil
 			return result_entity, result_entity_label, result_extra, result_is_forward
-		 elseif fa_rails.count_rail_connections(neighbor_rail) > 2 then
+		 elseif mod_r.count_rail_connections(neighbor_rail) > 2 then
 		    --The neighbor is a forking rail
 			result_entity = neighbor_rail
             result_entity_label = "fork merge" 
             result_extra = nil
 			return result_entity, result_entity_label, result_extra, result_is_forward
-		 elseif fa_rails.count_rail_connections(neighbor_rail) == 1 then
+		 elseif mod_r.count_rail_connections(neighbor_rail) == 1 then
 		    --The neighbor is an end rail
-			local neighbor_is_end_rail, end_rail_dir, comment = fa_rails.check_end_rail(neighbor_rail, pindex)
+			local neighbor_is_end_rail, end_rail_dir, comment = mod_r.check_end_rail(neighbor_rail, pindex)
 			result_entity = neighbor_rail
             result_entity_label = "neighbor end" 
             result_extra = end_rail_dir
@@ -708,12 +708,12 @@ function fa_rails.identify_rail_segment_end_object(rail, dir_ahead, accept_only_
       if entity_ahead.name == "rail-signal" then
          result_entity = entity_ahead
          result_entity_label = "rail signal"
-         result_extra = fa_rails.get_signal_state_info(entity_ahead)
+         result_extra = mod_r.get_signal_state_info(entity_ahead)
          return result_entity, result_entity_label, result_extra, result_is_forward
       elseif entity_ahead.name == "rail-chain-signal" then
          result_entity = entity_ahead
          result_entity_label = "chain signal"
-         result_extra = fa_rails.get_signal_state_info(entity_ahead)
+         result_extra = mod_r.get_signal_state_info(entity_ahead)
          return result_entity, result_entity_label, result_extra, result_is_forward
       elseif entity_ahead.name == "train-stop" then
          result_entity = entity_ahead
@@ -732,8 +732,8 @@ end
 
 --Reads out the nearest railway object ahead with relevant details. Skips to the next segment if needed. 
 --The output could be an end rail, junction rail, rail signal, chain signal, or train stop. 
-function fa_rails.get_next_rail_entity_ahead(origin_rail, dir_ahead, only_this_segment)
-   local next_entity, next_entity_label, result_extra, next_is_forward = fa_rails.identify_rail_segment_end_object(origin_rail, dir_ahead, false, false)
+function mod_r.get_next_rail_entity_ahead(origin_rail, dir_ahead, only_this_segment)
+   local next_entity, next_entity_label, result_extra, next_is_forward = mod_r.identify_rail_segment_end_object(origin_rail, dir_ahead, false, false)
    local iteration_count = 1
    local segment_end_ahead, dir_se = origin_rail.get_rail_segment_end(dir_ahead)
    local prev_rail = segment_end_ahead
@@ -743,19 +743,19 @@ function fa_rails.get_next_rail_entity_ahead(origin_rail, dir_ahead, only_this_s
    
    --First correction for the train stop exception
    if next_entity_label == "train stop" and next_is_forward == false then
-      next_entity, next_entity_label, result_extra, next_is_forward = fa_rails.identify_rail_segment_end_object(current_rail, neighbor_r_dir, true, false)
+      next_entity, next_entity_label, result_extra, next_is_forward = mod_r.identify_rail_segment_end_object(current_rail, neighbor_r_dir, true, false)
    end
    
    --Skip all "other rail" cases
    while not only_this_segment and next_entity_label == "other rail" and iteration_count < 100 do 
       if iteration_count % 2 == 1 then
          --Switch to neighboring segment
-         current_rail, neighbor_r_dir, neighbor_c_dir = fa_rails.get_neighbor_rail_segment_end(prev_rail, nil)
+         current_rail, neighbor_r_dir, neighbor_c_dir = mod_r.get_neighbor_rail_segment_end(prev_rail, nil)
          prev_rail = current_rail
-         next_entity, next_entity_label, result_extra, next_is_forward = fa_rails.identify_rail_segment_end_object(current_rail, neighbor_r_dir, false, true)
+         next_entity, next_entity_label, result_extra, next_is_forward = mod_r.identify_rail_segment_end_object(current_rail, neighbor_r_dir, false, true)
          --Correction for the train stop exception
          if next_entity_label == "train stop" and next_is_forward == false then
-            next_entity, next_entity_label, result_extra, next_is_forward = fa_rails.identify_rail_segment_end_object(current_rail, neighbor_r_dir, true, true)
+            next_entity, next_entity_label, result_extra, next_is_forward = mod_r.identify_rail_segment_end_object(current_rail, neighbor_r_dir, true, true)
          end
          --Correction for flipped direction
          if next_is_forward ~= nil then
@@ -764,11 +764,11 @@ function fa_rails.get_next_rail_entity_ahead(origin_rail, dir_ahead, only_this_s
          iteration_count = iteration_count + 1
       else
          --Check other end of the segment. NOTE: Never got more than 2 iterations in tests so far...
-         neighbor_r_dir = fa_rails.get_opposite_rail_direction(neighbor_r_dir)
-         next_entity, next_entity_label, result_extra, next_is_forward = fa_rails.identify_rail_segment_end_object(current_rail, neighbor_r_dir, false, false)
+         neighbor_r_dir = mod_r.get_opposite_rail_direction(neighbor_r_dir)
+         next_entity, next_entity_label, result_extra, next_is_forward = mod_r.identify_rail_segment_end_object(current_rail, neighbor_r_dir, false, false)
          --Correction for the train stop exception
          if next_entity_label == "train stop" and next_is_forward == false then
-            next_entity, next_entity_label, result_extra, next_is_forward = fa_rails.identify_rail_segment_end_object(current_rail, neighbor_r_dir, true, false)
+            next_entity, next_entity_label, result_extra, next_is_forward = mod_r.identify_rail_segment_end_object(current_rail, neighbor_r_dir, true, false)
          end
          iteration_count = iteration_count + 1
       end
@@ -778,7 +778,7 @@ function fa_rails.get_next_rail_entity_ahead(origin_rail, dir_ahead, only_this_s
 end
 
 --Takes all the output from the get_next_rail_entity_ahead and adds extra info before reading them out. Does NOT detect trains.
-function fa_rails.rail_read_next_rail_entity_ahead(pindex, rail, is_forward)
+function mod_r.rail_read_next_rail_entity_ahead(pindex, rail, is_forward)
    local message = "Up this rail, "
    local origin_rail = rail
    local dir_ahead = defines.rail_direction.front
@@ -786,7 +786,7 @@ function fa_rails.rail_read_next_rail_entity_ahead(pindex, rail, is_forward)
       dir_ahead = defines.rail_direction.back
 	  message = "Down this rail, "
    end
-   local next_entity, next_entity_label, result_extra, next_is_forward, iteration_count = fa_rails.get_next_rail_entity_ahead(origin_rail, dir_ahead, false)
+   local next_entity, next_entity_label, result_extra, next_is_forward, iteration_count = mod_r.get_next_rail_entity_ahead(origin_rail, dir_ahead, false)
    if next_entity == nil then
       printout("Analysis error. This rail might be looping.",pindex)
       return
@@ -812,7 +812,7 @@ function fa_rails.rail_read_next_rail_entity_ahead(pindex, rail, is_forward)
    elseif next_entity_label == "fork split" then
       local entering_segment_rail = result_extra  
       message = message .. "rail fork splitting "
-      message = message .. fa_rails.list_rail_fork_directions(next_entity)
+      message = message .. mod_r.list_rail_fork_directions(next_entity)
    
    elseif next_entity_label == "fork merge" then
       local entering_segment_rail = result_extra  
@@ -823,10 +823,10 @@ function fa_rails.rail_read_next_rail_entity_ahead(pindex, rail, is_forward)
       message = message .. "end rail "
 	  
    elseif next_entity_label == "rail signal" then
-      message = message .. "rail signal with state " .. fa_rails.get_signal_state_info(next_entity) .. " "
+      message = message .. "rail signal with state " .. mod_r.get_signal_state_info(next_entity) .. " "
       
    elseif next_entity_label == "chain signal" then
-      message = message .. "chain signal with state " .. fa_rails.get_signal_state_info(next_entity) .. " "
+      message = message .. "chain signal with state " .. mod_r.get_signal_state_info(next_entity) .. " "
       
    elseif next_entity_label == "train stop" then
       local stop_name = next_entity.backer_name
@@ -864,12 +864,12 @@ function fa_rails.rail_read_next_rail_entity_ahead(pindex, rail, is_forward)
 end
 
 --WIP. laterdo here: Rail analyzer menu where you will use arrow keys to go forward/back and left/right along a rail.
-function fa_rails.run_rail_analyzer_menu(pindex, origin_rail,is_called_from_train)
+function mod_r.run_rail_analyzer_menu(pindex, origin_rail,is_called_from_train)
    return
 end
 
 --Builds a 45 degree rail turn to the right from a horizontal or vertical end rail that is the anchor rail. 
-function fa_rail_builder.build_rail_turn_right_45_degrees(anchor_rail, pindex)
+function mod_b.build_rail_turn_right_45_degrees(anchor_rail, pindex)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
@@ -898,7 +898,7 @@ function fa_rail_builder.build_rail_turn_right_45_degrees(anchor_rail, pindex)
    end
    
    --2. Secondly, verify the end rail and find its direction
-   is_end_rail, dir, build_comment = fa_rails.check_end_rail(anchor_rail,pindex)
+   is_end_rail, dir, build_comment = mod_r.check_end_rail(anchor_rail,pindex)
    if not is_end_rail then
       game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout(build_comment, pindex)
@@ -1046,7 +1046,7 @@ end
 
 
 --Builds a 90 degree rail turn to the right from a horizontal or vertical end rail that is the anchor rail. 
-function fa_rail_builder.build_rail_turn_right_90_degrees(anchor_rail, pindex)
+function mod_b.build_rail_turn_right_90_degrees(anchor_rail, pindex)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
@@ -1074,7 +1074,7 @@ function fa_rail_builder.build_rail_turn_right_90_degrees(anchor_rail, pindex)
    end
    
    --2. Secondly, verify the end rail and find its direction
-   is_end_rail, dir, build_comment = fa_rails.check_end_rail(anchor_rail,pindex)
+   is_end_rail, dir, build_comment = mod_r.check_end_rail(anchor_rail,pindex)
    if not is_end_rail then
       game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout(build_comment, pindex)
@@ -1168,7 +1168,7 @@ end
 
 
 --Builds a 45 degree rail turn to the left from a horizontal or vertical end rail that is the anchor rail. 
-function fa_rail_builder.build_rail_turn_left_45_degrees(anchor_rail, pindex)
+function mod_b.build_rail_turn_left_45_degrees(anchor_rail, pindex)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
@@ -1197,7 +1197,7 @@ function fa_rail_builder.build_rail_turn_left_45_degrees(anchor_rail, pindex)
    end
    
    --2. Secondly, verify the end rail and find its direction
-   is_end_rail, dir, build_comment = fa_rails.check_end_rail(anchor_rail,pindex)
+   is_end_rail, dir, build_comment = mod_r.check_end_rail(anchor_rail,pindex)
    if not is_end_rail then
       game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout(build_comment, pindex)
@@ -1345,7 +1345,7 @@ end
 
 
 --Builds a 90 degree rail turn to the left from a horizontal or vertical end rail that is the anchor rail. 
-function fa_rail_builder.build_rail_turn_left_90_degrees(anchor_rail, pindex)
+function mod_b.build_rail_turn_left_90_degrees(anchor_rail, pindex)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
@@ -1373,7 +1373,7 @@ function fa_rail_builder.build_rail_turn_left_90_degrees(anchor_rail, pindex)
    end
    
    --2. Secondly, verify the end rail and find its direction
-   is_end_rail, dir, build_comment = fa_rails.check_end_rail(anchor_rail,pindex)
+   is_end_rail, dir, build_comment = mod_r.check_end_rail(anchor_rail,pindex)
    if not is_end_rail then
       game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout(build_comment, pindex)
@@ -1466,7 +1466,7 @@ end
 
 
 --Builds a fork at the end rail with exits 45 degrees left, and 45 degrees right, and forward.
-function fa_rail_builder.build_fork_at_end_rail(anchor_rail, pindex, include_forward)
+function mod_b.build_fork_at_end_rail(anchor_rail, pindex, include_forward)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
@@ -1495,7 +1495,7 @@ function fa_rail_builder.build_fork_at_end_rail(anchor_rail, pindex, include_for
    end
    
    --2. Secondly, verify the end rail and find its direction
-   is_end_rail, dir, build_comment = fa_rails.check_end_rail(anchor_rail,pindex)
+   is_end_rail, dir, build_comment = mod_r.check_end_rail(anchor_rail,pindex)
    if not is_end_rail then
       game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout(build_comment, pindex)
@@ -1804,7 +1804,7 @@ function fa_rail_builder.build_fork_at_end_rail(anchor_rail, pindex, include_for
 end
 
 --Builds a starter for a rail bypass junction with 2 rails
-function fa_rail_builder.build_rail_bypass_junction(anchor_rail, pindex)
+function mod_b.build_rail_bypass_junction(anchor_rail, pindex)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
@@ -1845,7 +1845,7 @@ function fa_rail_builder.build_rail_bypass_junction(anchor_rail, pindex)
    end
    
    --2. Secondly, verify the end rail and find its direction
-   is_end_rail, dir, build_comment = fa_rails.check_end_rail(anchor_rail,pindex)
+   is_end_rail, dir, build_comment = mod_r.check_end_rail(anchor_rail,pindex)
    if not is_end_rail then
       game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout(build_comment, pindex)
@@ -2039,7 +2039,7 @@ function fa_rail_builder.build_rail_bypass_junction(anchor_rail, pindex)
 end
 
 --Builds a starter for a rail bypass junction with 3 rails ***todo complete and test
-function fa_rail_builder.build_rail_bypass_junction_triple(anchor_rail, pindex)
+function mod_b.build_rail_bypass_junction_triple(anchor_rail, pindex)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
@@ -2080,7 +2080,7 @@ function fa_rail_builder.build_rail_bypass_junction_triple(anchor_rail, pindex)
    end
    
    --2. Secondly, verify the end rail and find its direction
-   is_end_rail, dir, build_comment = fa_rails.check_end_rail(anchor_rail,pindex)
+   is_end_rail, dir, build_comment = mod_r.check_end_rail(anchor_rail,pindex)
    if not is_end_rail then
       game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout(build_comment, pindex)
@@ -2296,7 +2296,7 @@ function fa_rail_builder.build_rail_bypass_junction_triple(anchor_rail, pindex)
 end
 
 --Appends a new straight or diagonal rail to a rail end found near the input position. The cursor needs to be holding rails.
-function fa_rails.append_rail(pos, pindex)
+function mod_r.append_rail(pos, pindex)
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
    local is_end_rail = false
@@ -2318,7 +2318,7 @@ function fa_rails.append_rail(pos, pindex)
    
    --1 Check the cursor entity. If it is an end rail, use this instead of scanning to extend the rail you want.
    local ent = players[pindex].tile.ents[1]
-   is_end_rail, end_rail_dir, comment = fa_rails.check_end_rail(ent,pindex)
+   is_end_rail, end_rail_dir, comment = mod_r.check_end_rail(ent,pindex)
    if is_end_rail then
       end_found = ent
       end_rail_1, end_dir_1 = ent.get_rail_segment_end(defines.rail_direction.front)
@@ -2363,7 +2363,7 @@ function fa_rails.append_rail(pos, pindex)
       end
       
       --4 Check if the found segment end is an end rail
-      is_end_rail, end_rail_dir, comment = fa_rails.check_end_rail(end_found,pindex)
+      is_end_rail, end_rail_dir, comment = mod_r.check_end_rail(end_found,pindex)
       if not is_end_rail then
          game.get_player(pindex).play_sound{path = "utility/cannot_build"}
          --printout(comment, pindex)
@@ -2431,7 +2431,7 @@ function fa_rails.append_rail(pos, pindex)
       
    elseif end_found.name == "curved-rail" then
       --Make sure to use the reported end direction for curved rails
-      is_end_rail, end_rail_dir, comment = fa_rails.check_end_rail(ent,pindex)
+      is_end_rail, end_rail_dir, comment = mod_r.check_end_rail(ent,pindex)
       if end_rail_dir == dirs.north then
          if rail_api_dir == dirs.south then
             append_rail_pos = {end_rail_pos.x-2, end_rail_pos.y-6}
@@ -2552,14 +2552,14 @@ function fa_rails.append_rail(pos, pindex)
    game.get_player(pindex).play_sound{path = "entity-build/straight-rail"}
    
    --8. Check if the appended rail is with 4 tiles of a parallel rail. If so, delete it.
-   if created_rail.valid and fa_rails.has_parallel_neighbor(created_rail,pindex) then
+   if created_rail.valid and mod_r.has_parallel_neighbor(created_rail,pindex) then
       game.get_player(pindex).mine_entity(created_rail,true)
 	  game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout("Cannot place, parallel rail segments should be at least 4 tiles apart.",pindex)
    end
    
    --9. Check if the appended rail has created an intersection. If so, notify the player.
-   if created_rail.valid and fa_rails.is_intersection_rail(created_rail,pindex) then
+   if created_rail.valid and mod_r.is_intersection_rail(created_rail,pindex) then
       printout("Intersection created.",pindex)
    end
       
@@ -2570,7 +2570,7 @@ end
 --end
 
 --Counts rails within range of a selected rail.
-function fa_rails.count_rails_within_range(rail, range, pindex)
+function mod_r.count_rails_within_range(rail, range, pindex)
    --1. Scan around the rail for other rails
    local counter = 0
    local pos = rail.position
@@ -2591,7 +2591,7 @@ function fa_rails.count_rails_within_range(rail, range, pindex)
 end
 
 --Checks if the rail is parallel to another neighboring segment.
-function fa_rails.has_parallel_neighbor(rail, pindex)
+function mod_r.has_parallel_neighbor(rail, pindex)
    --1. Scan around the rail for other rails
    local pos = rail.position
    local dir = rail.direction
@@ -2618,7 +2618,7 @@ function fa_rails.has_parallel_neighbor(rail, pindex)
 end
 
 --Checks if the rail is amid an intersection.
-function fa_rails.is_intersection_rail(rail, pindex)
+function mod_r.is_intersection_rail(rail, pindex)
    --1. Scan around the rail for other rails
    local pos = rail.position
    local dir = rail.direction
@@ -2637,7 +2637,7 @@ function fa_rails.is_intersection_rail(rail, pindex)
    return false
 end
 
-function fa_rails.find_nearest_intersection(rail, pindex, radius_in)
+function mod_r.find_nearest_intersection(rail, pindex, radius_in)
    --1. Scan around the rail for other rails
    local radius = radius_in or 1000
    local pos = rail.position
@@ -2647,7 +2647,7 @@ function fa_rails.find_nearest_intersection(rail, pindex, radius_in)
    local min_dist = radius
    for i,other_rail in ipairs(ents) do
       --2. For each rail, is it an intersection rail?
-      if other_rail.valid and fa_rails.is_intersection_rail(other_rail, pindex) then
+      if other_rail.valid and mod_r.is_intersection_rail(other_rail, pindex) then
          local dist = math.ceil(util.distance(pos, other_rail.position))
 		   --Set as nearest if valid
 		   if dist < min_dist then
@@ -2665,7 +2665,7 @@ function fa_rails.find_nearest_intersection(rail, pindex, radius_in)
 end
 
 --Places a chain signal pair around a rail depending on its direction. May fail if the spots are full.
-function fa_rail_builder.place_chain_signal_pair(rail,pindex)
+function mod_b.place_chain_signal_pair(rail,pindex)
    local stack = game.get_player(pindex).cursor_stack
    local stack2 = nil
    local build_comment = "no comment"
@@ -2779,7 +2779,7 @@ function fa_rail_builder.place_chain_signal_pair(rail,pindex)
 end
 
 --Places a rail signal pair around a rail depending on its direction. May fail if the spots are full. Copy of chain signal function
-function fa_rail_builder.place_rail_signal_pair(rail,pindex)
+function mod_b.place_rail_signal_pair(rail,pindex)
    local stack = game.get_player(pindex).cursor_stack
    local stack2 = nil
    local build_comment = "no comment"
@@ -2893,7 +2893,7 @@ function fa_rail_builder.place_rail_signal_pair(rail,pindex)
 end
 
 --Deletes rail signals around a rail.
-function fa_rail_builder.destroy_signals(rail)
+function mod_b.destroy_signals(rail)
    local chains = rail.surface.find_entities_filtered{position = rail.position, radius = 2, name = "rail-chain-signal"}
    for i,chain in ipairs(chains) do
       chain.destroy()
@@ -2905,7 +2905,7 @@ function fa_rail_builder.destroy_signals(rail)
 end
 
 --Mines for the player the rail signals around a rail.
-function fa_rails.mine_signals(rail,pindex)
+function mod_r.mine_signals(rail,pindex)
    local chains = rail.surface.find_entities_filtered{position = rail.position, radius = 2, name = "rail-chain-signal"}
    for i,chain in ipairs(chains) do
       game.get_player(pindex).mine_entity(chain,true)
@@ -2917,7 +2917,7 @@ function fa_rails.mine_signals(rail,pindex)
 end
 
 --Places a train stop facing the direction of the end rail.
-function fa_rail_builder.build_train_stop(anchor_rail, pindex)
+function mod_b.build_train_stop(anchor_rail, pindex)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
    local stack = game.get_player(pindex).cursor_stack
@@ -2945,7 +2945,7 @@ function fa_rail_builder.build_train_stop(anchor_rail, pindex)
    end
    
    --2. Secondly, find the direction based on end rail or player direction
-   is_end_rail, end_rail_dir, build_comment = fa_rails.check_end_rail(anchor_rail,pindex)
+   is_end_rail, end_rail_dir, build_comment = mod_r.check_end_rail(anchor_rail,pindex)
    if is_end_rail then
       dir = end_rail_dir
    else
@@ -3024,7 +3024,7 @@ function fa_rail_builder.build_train_stop(anchor_rail, pindex)
 end
 
 --Loads and opens the rail builder menu
-function fa_rail_builder.open_menu(pindex, rail)
+function mod_b.open_menu(pindex, rail)
    if players[pindex].vanilla_mode then
       return 
    end
@@ -3037,7 +3037,7 @@ function fa_rail_builder.open_menu(pindex, rail)
    players[pindex].rail_builder.index = 0
    
    --Determine rail type
-   local is_end_rail, end_dir, comment = fa_rails.check_end_rail(rail,pindex)
+   local is_end_rail, end_dir, comment = mod_r.check_end_rail(rail,pindex)
    local dir = rail.direction
    if is_end_rail then
       if dir == dirs.north or dir == dirs.east or dir == dirs.south or dir == dirs.west then 
@@ -3066,11 +3066,11 @@ function fa_rail_builder.open_menu(pindex, rail)
    
    --Load menu 
    players[pindex].rail_builder.rail = rail
-   fa_rail_builder.run_menu(pindex, false)
+   mod_b.run_menu(pindex, false)
 end
 
 --Resets and closes the rail builder menu
-function fa_rail_builder.close_menu(pindex, mute_in)
+function mod_b.close_menu(pindex, mute_in)
    local mute = mute_in or false
    --Set the player menu tracker to none
    players[pindex].menu = "none"
@@ -3086,7 +3086,7 @@ function fa_rail_builder.close_menu(pindex, mute_in)
 end
 
 --Moves up the rail builder menu
-function fa_rail_builder.menu_up(pindex)
+function mod_b.menu_up(pindex)
    --Decrement the index
    players[pindex].rail_builder.index = players[pindex].rail_builder.index - 1
 
@@ -3100,11 +3100,11 @@ function fa_rail_builder.menu_up(pindex)
    end
    
    --Load menu 
-   fa_rail_builder.run_menu(pindex, false)
+   mod_b.run_menu(pindex, false)
 end
 
 --Moves down the rail buidler menu
-function fa_rail_builder.menu_down(pindex)
+function mod_b.menu_down(pindex)
    --Increment the index
    players[pindex].rail_builder.index = players[pindex].rail_builder.index + 1
 
@@ -3118,11 +3118,11 @@ function fa_rail_builder.menu_down(pindex)
    end
    
    --Load menu 
-   fa_rail_builder.run_menu(pindex, false)
+   mod_b.run_menu(pindex, false)
 end
 
 --Builder menu to build rail structures
-function fa_rail_builder.run_menu(pindex, clicked_in)
+function mod_b.run_menu(pindex, clicked_in)
    local clicked = clicked_in
    local comment = ""
    local menu_line = players[pindex].rail_builder.index
@@ -3132,7 +3132,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
    if rail == nil then
       comment = " Rail nil error "
       printout(comment,pindex)
-      fa_rail_builder.close_menu(pindex, false)
+      mod_b.close_menu(pindex, false)
       return
    end
    
@@ -3150,7 +3150,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            fa_rail_builder.build_rail_turn_left_45_degrees(rail, pindex)
+            mod_b.build_rail_turn_left_45_degrees(rail, pindex)
          end
       elseif menu_line == 2 then
          if not clicked then
@@ -3158,7 +3158,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            fa_rail_builder.build_rail_turn_right_45_degrees(rail, pindex)
+            mod_b.build_rail_turn_right_45_degrees(rail, pindex)
          end
       elseif menu_line == 3 then
          if not clicked then
@@ -3166,7 +3166,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            fa_rail_builder.build_rail_turn_left_90_degrees(rail, pindex)
+            mod_b.build_rail_turn_left_90_degrees(rail, pindex)
          end
       elseif menu_line == 4 then
          if not clicked then
@@ -3174,7 +3174,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            fa_rail_builder.build_rail_turn_right_90_degrees(rail, pindex)
+            mod_b.build_rail_turn_right_90_degrees(rail, pindex)
          end
       elseif menu_line == 5 then
          if not clicked then
@@ -3182,7 +3182,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            fa_rail_builder.build_train_stop(rail, pindex)
+            mod_b.build_train_stop(rail, pindex)
          end
       elseif menu_line == 6 then
          if not clicked then
@@ -3190,7 +3190,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            fa_rail_builder.build_fork_at_end_rail(rail, pindex, false)
+            mod_b.build_fork_at_end_rail(rail, pindex, false)
          end
       elseif menu_line == 7 then
          if not clicked then
@@ -3198,7 +3198,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            fa_rail_builder.build_fork_at_end_rail(rail, pindex, true)
+            mod_b.build_fork_at_end_rail(rail, pindex, true)
          end
       elseif menu_line == 8 then
          if not clicked then
@@ -3206,7 +3206,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            fa_rail_builder.build_rail_bypass_junction(rail, pindex)
+            mod_b.build_rail_bypass_junction(rail, pindex)
          end
       end
    elseif rail_type == 2 then
@@ -3217,7 +3217,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            fa_rail_builder.build_rail_turn_left_45_degrees(rail, pindex)
+            mod_b.build_rail_turn_left_45_degrees(rail, pindex)
          end
       elseif menu_line == 2 then
          if not clicked then
@@ -3225,7 +3225,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
             printout(comment,pindex)
          else
             --Build it here
-            fa_rail_builder.build_rail_turn_right_45_degrees(rail, pindex)
+            mod_b.build_rail_turn_right_45_degrees(rail, pindex)
          end
       end
    elseif rail_type == 3 then
@@ -3235,7 +3235,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
             comment = comment .. "Pair of chain rail signals."
             printout(comment,pindex)
          else
-            local success, build_comment = fa_rail_builder.place_chain_signal_pair(rail,pindex)
+            local success, build_comment = mod_b.place_chain_signal_pair(rail,pindex)
             if success then
                comment = "Chain signals placed."
             else
@@ -3248,7 +3248,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
             comment = comment .. "Pair of regular rail signals, warning: do not use regular rail signals unless you are sure about what you are doing because trains can easily get deadlocked at them"
             printout(comment,pindex)
          else
-            local success, build_comment = fa_rail_builder.place_rail_signal_pair(rail,pindex)
+            local success, build_comment = mod_b.place_rail_signal_pair(rail,pindex)
             if success then
                comment = "Rail signals placed, warning: do not use regular rail signals unless you are sure about what you are doing because trains can easily get deadlocked at them"
             else
@@ -3261,7 +3261,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
             comment = comment .. "Clear rail signals"
             printout(comment,pindex)
          else
-            fa_rails.mine_signals(rail,pindex)
+            mod_r.mine_signals(rail,pindex)
             printout("Signals cleared.",pindex)
          end
       end
@@ -3272,7 +3272,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
             comment = comment .. "Pair of chain rail signals." 
             printout(comment,pindex)
          else
-            local success, build_comment = fa_rail_builder.place_chain_signal_pair(rail,pindex)
+            local success, build_comment = mod_b.place_chain_signal_pair(rail,pindex)
             if success then
                comment = "Chain signals placed."
             else
@@ -3285,7 +3285,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
             comment = comment .. "Pair of regular rail signals, warning: do not use regular rail signals unless you are sure about what you are doing because trains can easily get deadlocked at them"
             printout(comment,pindex)
          else
-            local success, build_comment = fa_rail_builder.place_rail_signal_pair(rail,pindex)
+            local success, build_comment = mod_b.place_rail_signal_pair(rail,pindex)
             if success then
                comment = "Rail signals placed, warning: do not use regular rail signals unless you are sure about what you are doing because trains can easily get deadlocked at them"
             else
@@ -3298,7 +3298,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
             comment = comment .. "Clear rail signals"
             printout(comment,pindex)
          else
-            fa_rails.mine_signals(rail,pindex)
+            mod_r.mine_signals(rail,pindex)
             printout("Signals cleared.",pindex)
          end
       end
@@ -3307,7 +3307,7 @@ function fa_rail_builder.run_menu(pindex, clicked_in)
 end
 
 --Plays a train track alert sound for every player standing on or facing train tracks that meet the condition.
-function fa_rails.check_and_play_train_track_alert_sounds(step)
+function mod_r.check_and_play_train_track_alert_sounds(step)
    for pindex, player in pairs(players) do
       --Check if the player is standing on a rail
       local p = game.get_player(pindex)
@@ -3386,4 +3386,4 @@ function fa_rails.check_and_play_train_track_alert_sounds(step)
    end
 end
 
-return {rails = fa_rails, rail_builder = fa_rail_builder}
+return {rails = mod_r, rail_builder = mod_b}

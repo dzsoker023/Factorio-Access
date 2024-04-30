@@ -6,12 +6,12 @@ local fa_utils = require('fa-utils')
 local fa_rails = require("rails").rails
 local dirs = defines.direction
 
-local fa_trains = {}
-local fa_train_stops = {}
+local mod_t = {}
+local mod_s = {}
 
 
 --Look up and translate the train state. -laterdo better state explanations**
-function fa_trains.get_train_state_info(train)
+function mod_t.get_train_state_info(train)
    local train_state_id = train.state
    local train_state_text = ""
    local state_lookup = fa_utils.into_lookup(defines.train_state)
@@ -33,7 +33,7 @@ function fa_trains.get_train_state_info(train)
 end
 
 --Gets a train's name. The idea is that every locomotive on a train has the same backer name and this is the train's name. If there are multiple names, a warning returned.
-function fa_trains.get_train_name(train)
+function mod_t.get_train_name(train)
    local locos = train.locomotives
    local train_name = ""
    local multiple_names = false
@@ -58,8 +58,8 @@ function fa_trains.get_train_name(train)
    if train_name == "" then
       return "without a name"
    elseif multiple_names then
-      local oldest_name = fa_trains.resolve_train_name(train)
-      fa_trains.set_train_name(train,oldest_name)
+      local oldest_name = mod_t.resolve_train_name(train)
+      mod_t.set_train_name(train,oldest_name)
       return oldest_name
    else
       return train_name
@@ -67,7 +67,7 @@ function fa_trains.get_train_name(train)
 end
 
 --Sets a train's name. The idea is that every locomotive on a train has the same backer name and this is the train's name.
-function fa_trains.set_train_name(train,new_name)
+function mod_t.set_train_name(train,new_name)
    if new_name == nil or new_name == "" then
       return false
    end
@@ -85,7 +85,7 @@ function fa_trains.set_train_name(train,new_name)
 end
 
 --Finds the oldest locomotive and applies its name across the train. Any new loco will be newwer and so the older names will be kept.
-function fa_trains.resolve_train_name(train)
+function mod_t.resolve_train_name(train)
    local locos = train.locomotives
    local oldest_loco = nil
    
@@ -116,7 +116,7 @@ function fa_trains.resolve_train_name(train)
 end
 
 --Checks if the train is all in one segment, which means the front and back rails are in the same segment.
-function fa_trains.train_is_all_in_one_segment(train)
+function mod_t.train_is_all_in_one_segment(train)
 	return train.front_rail.is_rail_in_same_rail_segment_as(train.back_rail)
 end
 
@@ -129,7 +129,7 @@ end
  * For the leading rail, the connected rail that is farthest from the leading stock is in the "ahead" direction.
 
 --]]
-function fa_trains.get_relative_leading_rail_and_train_dir(pindex, train)
+function mod_t.get_relative_leading_rail_and_train_dir(pindex, train)
    local leading_rail = nil
    local trailing_rail = nil
    local leading_stock = nil
@@ -227,11 +227,11 @@ end
 --]]
 
 --Takes all the output from the get_next_rail_entity_ahead and adds extra info before reading them out. Does NOT detect trains.
-function fa_trains.train_read_next_rail_entity_ahead(pindex, invert, mute_in)
+function mod_t.train_read_next_rail_entity_ahead(pindex, invert, mute_in)
    local message = "Ahead, "
    local honk_score = 0
    local train = game.get_player(pindex).vehicle.train
-   local leading_rail, dir_ahead, leading_stock = fa_trains.get_relative_leading_rail_and_train_dir(pindex,train)
+   local leading_rail, dir_ahead, leading_stock = mod_t.get_relative_leading_rail_and_train_dir(pindex,train)
    if invert then
       dir_ahead = fa_rails.get_opposite_rail_direction(dir_ahead)
 	  message = "Behind, "
@@ -396,7 +396,7 @@ end
 
    This menu opens when the player presses LEFT BRACKET on a locomotive that they are either riding or looking at with the cursor.
 ]]
-function fa_trains.run_train_menu(menu_index, pindex, clicked, other_input)
+function mod_t.run_train_menu(menu_index, pindex, clicked, other_input)
    local index = menu_index
    local other = other_input or -1
    local locomotive = nil
@@ -416,12 +416,12 @@ function fa_trains.run_train_menu(menu_index, pindex, clicked, other_input)
    
    if index == 0 then
       --Give basic info about this train, such as its name and ID. Instructions.
-      printout("Train ".. fa_trains.get_train_name(train) .. ", with ID " .. train.id 
+      printout("Train ".. mod_t.get_train_name(train) .. ", with ID " .. train.id 
       .. ", Press UP ARROW and DOWN ARROW to navigate options, press LEFT BRACKET to select an option or press E to exit this menu.", pindex)
    elseif index == 1 then
       --Get train state and toggle manual control
       if not clicked then
-         local result = "Train state, " .. fa_trains.get_train_state_info(train)
+         local result = "Train state, " .. mod_t.get_train_state_info(train)
          if train.path_end_stop ~= nil then
             result = result .. ", going to station " .. train.path_end_stop.backer_name
          end
@@ -462,7 +462,7 @@ function fa_trains.run_train_menu(menu_index, pindex, clicked, other_input)
       .. #train.fluid_wagons .. " fluid wagons, ", pindex) 
    elseif index == 4 then 
 	  --Train cargo info
-      printout("Cargo, " .. fa_trains.train_top_contents_info(train) .. " ", pindex)
+      printout("Cargo, " .. mod_t.train_top_contents_info(train) .. " ", pindex)
    elseif index == 5 then 
       --Train schedule info
       local result = ""
@@ -515,7 +515,7 @@ function fa_trains.run_train_menu(menu_index, pindex, clicked, other_input)
 	  if not clicked then
          printout(" Set a new instant schedule for the train here by pressing LEFT BRACKET, where the train waits for a set amount of time at immediately reachable station, modify this time with PAGE UP or PAGE DOWN before settting the schedule and hold CONTROL to increase the step size", pindex)
       else
-         local comment = fa_trains.instant_schedule(train,players[pindex].train_menu.wait_time)
+         local comment = mod_t.instant_schedule(train,players[pindex].train_menu.wait_time)
          printout(comment,pindex)
       end
    elseif index == 7 then 
@@ -536,17 +536,17 @@ function fa_trains.run_train_menu(menu_index, pindex, clicked, other_input)
             local comment = "Select a station with LEFT and RIGHT arrow keys and confirm with LEFT BRACKET."
             printout(comment,pindex)
             players[pindex].train_menu.selecting_station = true
-            fa_trains.refresh_valid_train_stop_list(train,pindex)
+            mod_t.refresh_valid_train_stop_list(train,pindex)
             train.manual_mode = true
          end
       else
          train.manual_mode = true
          if not clicked then
             --Read the list item
-            fa_trains.read_valid_train_stop_from_list(pindex)
+            mod_t.read_valid_train_stop_from_list(pindex)
          else
             --Go to the list item
-            fa_trains.go_to_valid_train_stop_from_list(pindex,train)
+            mod_t.go_to_valid_train_stop_from_list(pindex,train)
             players[pindex].train_menu.selecting_station = false
          end
       end
@@ -555,7 +555,7 @@ end
 TRAIN_MENU_LENGTH = 8
 
 --Loads and opens the train menu
-function fa_trains.menu_open(pindex)
+function mod_t.menu_open(pindex)
    if players[pindex].vanilla_mode then
       return 
    end
@@ -571,11 +571,11 @@ function fa_trains.menu_open(pindex)
    game.get_player(pindex).play_sound{path = "Open-Inventory-Sound"}
    
    --Load menu 
-   fa_trains.run_train_menu(players[pindex].train_menu.index, pindex, false)
+   mod_t.run_train_menu(players[pindex].train_menu.index, pindex, false)
 end
 
 --Resets and closes the train menu
-function fa_trains.menu_close(pindex, mute_in)
+function mod_t.menu_close(pindex, mute_in)
    local mute = mute_in
    --Set the player menu tracker to none
    players[pindex].menu = "none"
@@ -600,7 +600,7 @@ function fa_trains.menu_close(pindex, mute_in)
    end
 end
 
-function fa_trains.menu_up(pindex)
+function mod_t.menu_up(pindex)
    players[pindex].train_menu.index = players[pindex].train_menu.index - 1
    if players[pindex].train_menu.index < 0 then
       players[pindex].train_menu.index = 0
@@ -610,10 +610,10 @@ function fa_trains.menu_up(pindex)
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
    end
    --Load menu
-   fa_trains.run_train_menu(players[pindex].train_menu.index, pindex, false)
+   mod_t.run_train_menu(players[pindex].train_menu.index, pindex, false)
 end
 
-function fa_trains.menu_down(pindex)
+function mod_t.menu_down(pindex)
    players[pindex].train_menu.index = players[pindex].train_menu.index + 1
    if players[pindex].train_menu.index > TRAIN_MENU_LENGTH then
       players[pindex].train_menu.index = TRAIN_MENU_LENGTH
@@ -623,10 +623,10 @@ function fa_trains.menu_down(pindex)
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
    end
    --Load menu
-   fa_trains.run_train_menu(players[pindex].train_menu.index, pindex, false)
+   mod_t.run_train_menu(players[pindex].train_menu.index, pindex, false)
 end
 
-function fa_trains.menu_left(pindex)
+function mod_t.menu_left(pindex)
    local index = players[pindex].train_menu.index_2
    if index == nil then
       index = 1
@@ -639,10 +639,10 @@ function fa_trains.menu_left(pindex)
    end
    players[pindex].train_menu.index_2 = index
    --Load menu
-   fa_trains.run_train_menu(players[pindex].train_menu.index, pindex, false)
+   mod_t.run_train_menu(players[pindex].train_menu.index, pindex, false)
 end
 
-function fa_trains.menu_right(pindex)
+function mod_t.menu_right(pindex)
    local index = players[pindex].train_menu.index_2
    if index == nil then
       index = 1
@@ -655,12 +655,12 @@ function fa_trains.menu_right(pindex)
    end
    players[pindex].train_menu.index_2 = index
    --Load menu
-   fa_trains.run_train_menu(players[pindex].train_menu.index, pindex, false)
+   mod_t.run_train_menu(players[pindex].train_menu.index, pindex, false)
 end
 
 
 --This menu opens when the cursor presses LEFT BRACKET on a train stop.
-function fa_train_stops.run_train_stop_menu(menu_index, pindex, clicked, other_input)
+function mod_s.run_train_stop_menu(menu_index, pindex, clicked, other_input)
    local index = menu_index
    local other = other_input or -1
    local train_stop = nil
@@ -690,7 +690,7 @@ function fa_train_stops.run_train_stop_menu(menu_index, pindex, clicked, other_i
          input.focus()
       end
    elseif index == 2 then
-      local result = fa_train_stops.nearby_train_schedule_read_this_stop(train_stop)
+      local result = mod_s.nearby_train_schedule_read_this_stop(train_stop)
          printout(result .. ", Use the below menu options to modify the train schedule.",pindex)
    elseif index == 3 then
       if not clicked then
@@ -746,28 +746,28 @@ function fa_train_stops.run_train_stop_menu(menu_index, pindex, clicked, other_i
       if not clicked then
          printout("ADD A NEW ENTRY for this train stop by selecting here, with the proposed conditions applied, for a train parked by this train stop.",pindex)
       else
-         local result = fa_train_stops.nearby_train_schedule_add_stop(train_stop, players[pindex].train_stop_menu.wait_condition, players[pindex].train_stop_menu.wait_time_seconds)
+         local result = mod_s.nearby_train_schedule_add_stop(train_stop, players[pindex].train_stop_menu.wait_condition, players[pindex].train_stop_menu.wait_time_seconds)
          printout(result,pindex)
       end
    elseif index == 7 then
       if not clicked then
          printout("UPDATE ALL ENTRIES for this train stop by selecting here, with the proposed conditions applied, for a train parked by this train stop.",pindex)
       else
-         local result = fa_train_stops.nearby_train_schedule_update_stop(train_stop, players[pindex].train_stop_menu.wait_condition, players[pindex].train_stop_menu.wait_time_seconds)
+         local result = mod_s.nearby_train_schedule_update_stop(train_stop, players[pindex].train_stop_menu.wait_condition, players[pindex].train_stop_menu.wait_time_seconds)
          printout(result,pindex)
       end
    elseif index == 8 then
       if not clicked then
          printout("REMOVE ALL ENTRIES for this train stop by selecting here, for a train parked by this train stop.",pindex)
       else
-         local result = fa_train_stops.nearby_train_schedule_remove_stop(train_stop)
+         local result = mod_s.nearby_train_schedule_remove_stop(train_stop)
          printout(result,pindex)
       end
    end
 end
 
 
-function fa_train_stops.train_stop_menu_open(pindex)
+function mod_s.train_stop_menu_open(pindex)
    if players[pindex].vanilla_mode then
       return 
    end
@@ -783,11 +783,11 @@ function fa_train_stops.train_stop_menu_open(pindex)
    game.get_player(pindex).play_sound{path = "Open-Inventory-Sound"}  
    
    --Load menu 
-   fa_train_stops.run_train_stop_menu(players[pindex].train_stop_menu.index, pindex, false)
+   mod_s.run_train_stop_menu(players[pindex].train_stop_menu.index, pindex, false)
 end
 
 
-function fa_train_stops.train_stop_menu_close(pindex, mute_in)
+function mod_s.train_stop_menu_close(pindex, mute_in)
    local mute = mute_in
    --Set the player menu tracker to none
    players[pindex].menu = "none"
@@ -808,7 +808,7 @@ function fa_train_stops.train_stop_menu_close(pindex, mute_in)
 end
 
 
-function fa_train_stops.train_stop_menu_up(pindex)
+function mod_s.train_stop_menu_up(pindex)
    players[pindex].train_stop_menu.index = players[pindex].train_stop_menu.index - 1
    if players[pindex].train_stop_menu.index < 0 then
       players[pindex].train_stop_menu.index = 0
@@ -818,11 +818,11 @@ function fa_train_stops.train_stop_menu_up(pindex)
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
    end
    --Load menu 
-   fa_train_stops.run_train_stop_menu(players[pindex].train_stop_menu.index, pindex, false)
+   mod_s.run_train_stop_menu(players[pindex].train_stop_menu.index, pindex, false)
 end
 
 
-function fa_train_stops.train_stop_menu_down(pindex)
+function mod_s.train_stop_menu_down(pindex)
    players[pindex].train_stop_menu.index = players[pindex].train_stop_menu.index + 1
    if players[pindex].train_stop_menu.index > 8 then
       players[pindex].train_stop_menu.index = 8
@@ -832,11 +832,11 @@ function fa_train_stops.train_stop_menu_down(pindex)
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
    end
    --Load menu 
-   fa_train_stops.run_train_stop_menu(players[pindex].train_stop_menu.index, pindex, false)
+   mod_s.run_train_stop_menu(players[pindex].train_stop_menu.index, pindex, false)
 end
 
 --For the selected train stop, changes assigned wait time in seconds for the parked train. The increment is a positive or negative integer. 
-function fa_train_stops.nearby_train_schedule_add_to_wait_time(increment,pindex)
+function mod_s.nearby_train_schedule_add_to_wait_time(increment,pindex)
    local seconds = players[pindex].train_stop_menu.wait_time_seconds
    if seconds == nil then 
       seconds = 300 
@@ -852,7 +852,7 @@ function fa_train_stops.nearby_train_schedule_add_to_wait_time(increment,pindex)
 end
 
 --Returns an info string on what the parked train at this stop is scheduled to do at this stop.
-function fa_train_stops.nearby_train_schedule_read_this_stop(train_stop)
+function mod_s.nearby_train_schedule_read_this_stop(train_stop)
    local result = "Reading parked train: "
    local found_any = false
 
@@ -907,7 +907,7 @@ function fa_train_stops.nearby_train_schedule_read_this_stop(train_stop)
 end
 
 --Returns an info string after adding this train stop to the parked train.
-function fa_train_stops.nearby_train_schedule_add_stop(train_stop, wait_condition_type, wait_time_seconds)
+function mod_s.nearby_train_schedule_add_stop(train_stop, wait_condition_type, wait_time_seconds)
    local result = "initial"
    --Locate the nearby train
    local train = train_stop.get_stopped_train()
@@ -949,7 +949,7 @@ function fa_train_stops.nearby_train_schedule_add_stop(train_stop, wait_conditio
 end
 
 --Returns an info string after updating every entry for this train stop for the parked train.
-function fa_train_stops.nearby_train_schedule_update_stop(train_stop, wait_condition_type, wait_time_seconds)
+function mod_s.nearby_train_schedule_update_stop(train_stop, wait_condition_type, wait_time_seconds)
    local result = "initial"
    --Locate the nearby train
    local train = train_stop.get_stopped_train()
@@ -1008,7 +1008,7 @@ function fa_train_stops.nearby_train_schedule_update_stop(train_stop, wait_condi
 end
 
 --Returns an info string after removing every entry for this train stop for the parked train.
-function fa_train_stops.nearby_train_schedule_remove_stop(train_stop)
+function mod_s.nearby_train_schedule_remove_stop(train_stop)
    local result = "initial"
    --Locate the nearby train
    local train = train_stop.get_stopped_train()
@@ -1066,7 +1066,7 @@ function fa_train_stops.nearby_train_schedule_remove_stop(train_stop)
 end
 
 --Returns most common items in a cargo wagon. laterdo a full inventory screen maybe.
-function fa_trains.cargo_wagon_top_contents_info(wagon)
+function mod_t.cargo_wagon_top_contents_info(wagon)
    local result = ""
    local itemset = wagon.get_inventory(defines.inventory.cargo_wagon).get_contents()
    local itemtable = {}
@@ -1101,7 +1101,7 @@ function fa_trains.cargo_wagon_top_contents_info(wagon)
 end
 
 --Returns most common items in a fluid wagon or train.
-function fa_trains.fluid_contents_info(wagon)
+function mod_t.fluid_contents_info(wagon)
    local result = ""
    local itemset = wagon.get_fluid_contents()
    local itemtable = {}
@@ -1132,7 +1132,7 @@ function fa_trains.fluid_contents_info(wagon)
 end
 
 --Returns most common items and fluids in a train (sum of all wagons)
-function fa_trains.train_top_contents_info(train)
+function mod_t.train_top_contents_info(train)
    local result = ""
    local itemset = train.get_contents()
    local itemtable = {}
@@ -1156,12 +1156,12 @@ function fa_trains.train_top_contents_info(train)
          result = result .. " and other items, "
       end
    end
-   result = result .. fa_trains.fluid_contents_info(train)
+   result = result .. mod_t.fluid_contents_info(train)
    return result
 end
 
 --For the selected train, adds every reachable train stop to its schedule with the waiting condition of 5 minutes.
-function fa_trains.instant_schedule(train,seconds_in)
+function mod_t.instant_schedule(train,seconds_in)
    local seconds = seconds_in or 300
    local surf = train.front_stock.surface
    local train_stops = surf.get_train_stops()
@@ -1239,7 +1239,7 @@ function fa_trains.instant_schedule(train,seconds_in)
    return str
 end
 
-function fa_trains.change_instant_schedule_wait_time(increment,pindex)
+function mod_t.change_instant_schedule_wait_time(increment,pindex)
    local seconds = players[pindex].train_menu.wait_time
    if seconds == nil then 
       seconds = 300 
@@ -1255,7 +1255,7 @@ function fa_trains.change_instant_schedule_wait_time(increment,pindex)
 end
 
 --Subautomatic one-time travel to a reachable train stop that is at least 3 rails away. Does not delete the train schedule. Note: Now obsolete?
-function fa_trains.sub_automatic_travel_to_other_stop(train)
+function mod_t.sub_automatic_travel_to_other_stop(train)
    local surf = train.front_stock.surface
    local train_stops = surf.get_train_stops()
    local str = ""
@@ -1308,7 +1308,7 @@ function fa_trains.sub_automatic_travel_to_other_stop(train)
    return str
 end
 
-function fa_trains.refresh_valid_train_stop_list(train,pindex)--table.insert
+function mod_t.refresh_valid_train_stop_list(train,pindex)--table.insert
    players[pindex].valid_train_stop_list = {}
    train.manual_mode = true
    local surf = train.front_stock.surface
@@ -1353,7 +1353,7 @@ function fa_trains.refresh_valid_train_stop_list(train,pindex)--table.insert
 end
 
 --Train menu: Reads out a valid train stop from the reachable train stops list
-function fa_trains.read_valid_train_stop_from_list(pindex)
+function mod_t.read_valid_train_stop_from_list(pindex)
    local index = players[pindex].train_menu.index_2
    local name = ""
    if players[pindex].valid_train_stop_list == nil or #players[pindex].valid_train_stop_list == 0 then
@@ -1370,7 +1370,7 @@ function fa_trains.read_valid_train_stop_from_list(pindex)
    printout(name,pindex)
 end
 
-function fa_trains.go_to_valid_train_stop_from_list(pindex,train)
+function mod_t.go_to_valid_train_stop_from_list(pindex,train)
    local index = players[pindex].train_menu.index_2
    local name = ""
    if players[pindex].valid_train_stop_list == nil or #players[pindex].valid_train_stop_list == 0 then
@@ -1428,11 +1428,11 @@ function fa_trains.go_to_valid_train_stop_from_list(pindex,train)
       --Train will announce its new path by itself
    end
    
-   fa_trains.menu_close(pindex, false)
+   mod_t.menu_close(pindex, false)
 end
 
 --Honks if the following conditions are met: 1. The player is manually driving a train, 2. The train is moving, 3. Ahead of the train is a closed rail signal or rail chain signal, 4. It has been 5 seconds since the last honk.
-function fa_trains.check_and_honk_at_closed_signal(tick,pindex)
+function mod_t.check_and_honk_at_closed_signal(tick,pindex)
    if not check_for_player(pindex) then
       return
    end
@@ -1456,7 +1456,7 @@ function fa_trains.check_and_honk_at_closed_signal(tick,pindex)
       return
    end
    --3. Check if ahead of the train is a closed rail signal or rail chain signal
-   local honk_score = fa_trains.train_read_next_rail_entity_ahead(pindex, false, true)
+   local honk_score = mod_t.train_read_next_rail_entity_ahead(pindex, false, true)
    if honk_score < 2 then 
       return
    end
@@ -1466,7 +1466,7 @@ function fa_trains.check_and_honk_at_closed_signal(tick,pindex)
 end
 
 --Honks if the following conditions are met: 1. The player is on a train, 2. The train is moving, 3. There is another train within the same rail block, 4. It has been 5 seconds since the last honk.
-function fa_trains.check_and_honk_at_trains_in_same_block(tick,pindex)
+function mod_t.check_and_honk_at_trains_in_same_block(tick,pindex)
    if not check_for_player(pindex) then
       return
    end
@@ -1502,7 +1502,7 @@ function fa_trains.check_and_honk_at_trains_in_same_block(tick,pindex)
 end
 
 --Play a sound to indicate the train is turning
-function fa_trains.check_and_play_sound_for_turning_trains(pindex)
+function mod_t.check_and_play_sound_for_turning_trains(pindex)
    local p = game.get_player(pindex)
    if p.vehicle == nil or p.vehicle.valid == false or p.vehicle.train == nil then
       return 
@@ -1514,4 +1514,4 @@ function fa_trains.check_and_play_sound_for_turning_trains(pindex)
    players[pindex].last_train_orientation = ori
 end
 
-return {trains = fa_trains, train_stops = fa_train_stops}
+return {trains = mod_t, train_stops = mod_s}

@@ -1,8 +1,8 @@
 --Here: localisation functions, including event handlers
-local fa_localising = {}
+local mod = {}
 --Returns the localised name of an object as a string. Used for ents and items and fluids
 ---@return string
-function fa_localising.get(object,pindex)
+function mod.get(object,pindex)
       -- Everything, everything uses this function without checking the return
       -- values. Use really annoying strings to make it very clear there's a
       -- bug.
@@ -28,7 +28,7 @@ function fa_localising.get(object,pindex)
 end
 
 --Used for recipes
-function fa_localising.get_alt(object,pindex)
+function mod.get_alt(object,pindex)
    if pindex == nil then
       printout("localising: pindex is nil error")
       return "(nil)"
@@ -47,49 +47,49 @@ function fa_localising.get_alt(object,pindex)
    return result or "(nil)"
 end
 
-function fa_localising.get_item_from_name(name,pindex)
+function mod.get_item_from_name(name,pindex)
    local proto = game.item_prototypes[name]
    if proto == nil then
       return "(nil)"
    end
-   local result = fa_localising.get(proto,pindex)
+   local result = mod.get(proto,pindex)
    return result or "(nil)"
 end
 
-function fa_localising.get_fluid_from_name(name,pindex)
+function mod.get_fluid_from_name(name,pindex)
    local proto = game.fluid_prototypes[name]
    if proto == nil then
       return "nil"
    end
-   local result = fa_localising.get(proto,pindex)
+   local result = mod.get(proto,pindex)
    return result
 end
 
-function fa_localising.get_recipe_from_name(name,pindex)
+function mod.get_recipe_from_name(name,pindex)
    local proto = game.recipe_prototypes[name]
    if proto == nil then
       return "nil"
    end
-   local result = fa_localising.get_alt(proto,pindex)
+   local result = mod.get_alt(proto,pindex)
    return result
 end
 
-function fa_localising.get_item_group_from_name(name,pindex)
+function mod.get_item_group_from_name(name,pindex)
    local proto = game.item_group_prototypes[name]
    if proto == nil then
       return "nil"
    end
-   local result = fa_localising.get_alt(proto,pindex)
+   local result = mod.get_alt(proto,pindex)
    return result
 end
 
-function fa_localising.request_localisation(thing,pindex)
+function mod.request_localisation(thing,pindex)
    local id = game.players[pindex].request_translation(thing.localised_name)
    local lookup=players[pindex].translation_id_lookup
    lookup[id]={thing.object_name,thing.name}
 end
 
-function fa_localising.request_all_the_translations(pindex)
+function mod.request_all_the_translations(pindex)
    for _, cat in pairs({"entity",
       "item",
       "fluid",
@@ -110,13 +110,13 @@ function fa_localising.request_all_the_translations(pindex)
       "equipment_category",
       "shortcut"}) do
       for _, proto in pairs(game[cat.."_prototypes"]) do
-         fa_localising.request_localisation(proto,pindex)
+         mod.request_localisation(proto,pindex)
       end
    end
 end
 
 --Populates the appropriate localised string arrays for every translation
-function fa_localising.handler(event)
+function mod.handler(event)
    local pindex = event.player_index
    local player=players[pindex]
    local successful = event.translated
@@ -139,7 +139,7 @@ function fa_localising.handler(event)
       if last_try == event.result then
          return
       end
-      fa_localising.request_all_the_translations(pindex)
+      mod.request_all_the_translations(pindex)
       player.localisation_test = event.result
       return
    end
@@ -151,7 +151,7 @@ function fa_localising.handler(event)
    translated_list[ translated_thing[2] ] = event.result
 end
 
-function fa_localising.check_player(pindex)
+function mod.check_player(pindex)
    local player=players[pindex]
    local id=game.players[pindex].request_translation({"error.crash-to-desktop-message"})
    if not id then
@@ -161,4 +161,4 @@ function fa_localising.check_player(pindex)
    player.translation_id_lookup[id] = "test_translation"
 end
 
-return fa_localising
+return mod

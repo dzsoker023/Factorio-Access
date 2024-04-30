@@ -6,27 +6,27 @@ local fa_mining_tools = require("mining-tools")
 local localising = require("localising")
 local dirs = defines.direction
 
-local fa_blueprints = {}
+local mod = {}
 
 --todo cleanup blueprint calls in control.lua so that blueprint data editing calls happen only within this module
 
-function fa_blueprints.get_bp_data_for_edit(stack)
+function mod.get_bp_data_for_edit(stack)
    ---@diagnostic disable-next-line: param-type-mismatch
       return game.json_to_table(game.decode_string(string.sub(stack.export_stack(),2)))
 end
 
-function fa_blueprints.set_stack_bp_from_data(stack,bp_data)
+function mod.set_stack_bp_from_data(stack,bp_data)
    stack.import_stack("0"..game.encode_string(game.table_to_json(bp_data)))
 end
 
-function fa_blueprints.set_blueprint_description(stack,description)
-   local bp_data = fa_blueprints.get_bp_data_for_edit(stack)
+function mod.set_blueprint_description(stack,description)
+   local bp_data = mod.get_bp_data_for_edit(stack)
    bp_data.blueprint.description = description
-   fa_blueprints.set_stack_bp_from_data(stack,bp_data)
+   mod.set_stack_bp_from_data(stack,bp_data)
 end
 
-function fa_blueprints.get_blueprint_description(stack)
-   local bp_data = fa_blueprints.get_bp_data_for_edit(stack)
+function mod.get_blueprint_description(stack)
+   local bp_data = mod.get_bp_data_for_edit(stack)
    local desc = bp_data.blueprint.description
    if desc == nil then
       desc = ""
@@ -34,14 +34,14 @@ function fa_blueprints.get_blueprint_description(stack)
    return desc
 end
 
-function fa_blueprints.set_blueprint_label(stack,label)
-   local bp_data=fa_blueprints.get_bp_data_for_edit(stack)
+function mod.set_blueprint_label(stack,label)
+   local bp_data=mod.get_bp_data_for_edit(stack)
    bp_data.blueprint.label = label
-   fa_blueprints.set_stack_bp_from_data(stack,bp_data)
+   mod.set_stack_bp_from_data(stack,bp_data)
 end
 
-function fa_blueprints.get_blueprint_label(stack)
-   local bp_data = fa_blueprints.get_bp_data_for_edit(stack)
+function mod.get_blueprint_label(stack)
+   local bp_data = mod.get_bp_data_for_edit(stack)
    local label = bp_data.blueprint.label
    if label == nil then
       label = ""
@@ -50,7 +50,7 @@ function fa_blueprints.get_blueprint_label(stack)
 end
 
 --Create a blueprint from a rectangle between any two points and give it to the player's hand
-function fa_blueprints.create_blueprint(pindex, point_1, point_2, prior_bp_data)
+function mod.create_blueprint(pindex, point_1, point_2, prior_bp_data)
    local top_left, bottom_right = fa_utils.get_top_left_and_bottom_right(point_1, point_2)
    local p = game.get_player(pindex)
    if prior_bp_data ~= nil then
@@ -88,7 +88,7 @@ function fa_blueprints.create_blueprint(pindex, point_1, point_2, prior_bp_data)
    
    --Copy label and description and icons from previous version
    if prior_bp_data ~= nil then
-      local bp_data = fa_blueprints.get_bp_data_for_edit(p.cursor_stack)
+      local bp_data = mod.get_bp_data_for_edit(p.cursor_stack)
       bp_data.blueprint.label = prior_bp_data.blueprint.label or ""
       bp_data.blueprint.label_color = prior_bp_data.blueprint.label_color or {1,1,1}
       bp_data.blueprint.description = prior_bp_data.blueprint.description or ""
@@ -96,17 +96,17 @@ function fa_blueprints.create_blueprint(pindex, point_1, point_2, prior_bp_data)
       if ent_count == 0 then
          bp_data.blueprint.entities = prior_bp_data.blueprint.entities
       end
-      fa_blueprints.set_stack_bp_from_data(p.cursor_stack,bp_data) 
+      mod.set_stack_bp_from_data(p.cursor_stack,bp_data) 
    end
 
    --Use this opportunity to update saved information about the blueprint's corners (used when drawing the footprint)
-   local width, height = fa_blueprints.get_blueprint_width_and_height(pindex)
+   local width, height = mod.get_blueprint_width_and_height(pindex)
    players[pindex].blueprint_width_in_hand = width + 1
    players[pindex].blueprint_height_in_hand = height + 1
 end 
 
 --Building function for bluelprints
-function fa_blueprints.paste_blueprint(pindex)
+function mod.paste_blueprint(pindex)
    local p = game.get_player(pindex)
    local bp = p.cursor_stack
    local pos = players[pindex].cursor_pos
@@ -121,7 +121,7 @@ function fa_blueprints.paste_blueprint(pindex)
    end
    
    --Get the offset blueprint positions
-   local left_top, right_bottom, build_pos = fa_blueprints.get_blueprint_corners(pindex, false)
+   local left_top, right_bottom, build_pos = mod.get_blueprint_corners(pindex, false)
    
    --Clear build area (if not far away)
    if util.distance(p.position, build_pos) < 2 * p.reach_distance then
@@ -157,13 +157,13 @@ function fa_blueprints.paste_blueprint(pindex)
       return false
    else
       p.play_sound{path = "Close-Inventory-Sound"}--laterdo maybe better blueprint placement sound
-      printout("Placed blueprint "  .. fa_blueprints.get_blueprint_label(bp), pindex)
+      printout("Placed blueprint "  .. mod.get_blueprint_label(bp), pindex)
       return true
    end
 end
 
 --Returns the left top and right bottom corners of the blueprint
-function fa_blueprints.get_blueprint_corners(pindex, draw_rect)
+function mod.get_blueprint_corners(pindex, draw_rect)
    local p = game.get_player(pindex)
    local bp = p.cursor_stack
    if bp == nil or bp.valid_for_read == false or bp.is_blueprint == false then
@@ -245,7 +245,7 @@ function fa_blueprints.get_blueprint_corners(pindex, draw_rect)
    return left_top, right_bottom, mouse_pos
 end 
 
-function fa_blueprints.get_blueprint_width_and_height(pindex)
+function mod.get_blueprint_width_and_height(pindex)
    local p = game.get_player(pindex)
    local bp = p.cursor_stack
    if bp == nil or bp.valid_for_read == false or bp.is_blueprint == false then
@@ -317,17 +317,17 @@ function fa_blueprints.get_blueprint_width_and_height(pindex)
 end 
 
 --Export and import the same blueprint so that its parameters reset, e.g. rotation.
-function fa_blueprints.refresh_blueprint_in_hand(pindex)
+function mod.refresh_blueprint_in_hand(pindex)
    local p = game.get_player(pindex)
    if p.cursor_stack.is_blueprint_setup() == false then 
       return 
    end
-   local bp_data = fa_blueprints.get_bp_data_for_edit(p.cursor_stack)
-   fa_blueprints.set_stack_bp_from_data(p.cursor_stack, bp_data)
+   local bp_data = mod.get_bp_data_for_edit(p.cursor_stack)
+   mod.set_stack_bp_from_data(p.cursor_stack, bp_data)
 end
 
 --Basic info for when the blueprint item is read.
-function fa_blueprints.get_blueprint_info(stack, in_hand)
+function mod.get_blueprint_info(stack, in_hand)
    --Not a blueprint
    if stack.is_blueprint == false then
       return ""
@@ -338,7 +338,7 @@ function fa_blueprints.get_blueprint_info(stack, in_hand)
    end
    
    --Get name
-   local name = fa_blueprints.get_blueprint_label(stack)
+   local name = mod.get_blueprint_label(stack)
    if name == nil then
       name = ""
    end
@@ -369,13 +369,13 @@ function fa_blueprints.get_blueprint_info(stack, in_hand)
    --game.print(result)
 
    --Use this opportunity to update saved information about the blueprint's corners (used when drawing the footprint)
-   local width, height = fa_blueprints.get_blueprint_width_and_height(pindex)
+   local width, height = mod.get_blueprint_width_and_height(pindex)
    players[pindex].blueprint_width_in_hand = width + 1
    players[pindex].blueprint_height_in_hand = height + 1
    return result
 end
 
-function fa_blueprints.get_blueprint_icons_info(bp_table)
+function mod.get_blueprint_icons_info(bp_table)
    local result = ""
    --Use icons as extra info (in case it is not named)
    local icons = bp_table.icons
@@ -397,13 +397,13 @@ function fa_blueprints.get_blueprint_icons_info(bp_table)
    return result
 end
 
-function fa_blueprints.apply_blueprint_import(pindex, text)
+function mod.apply_blueprint_import(pindex, text)
    local bp = game.get_player(pindex).cursor_stack
    --local result = bp.import_stack("0"..text)
    local result = bp.import_stack(text)
    if result == 0 then
       if bp.is_blueprint then
-         printout("Successfully imported blueprint " .. fa_blueprints.get_blueprint_label(bp), pindex)
+         printout("Successfully imported blueprint " .. mod.get_blueprint_label(bp), pindex)
       elseif bp.is_blueprint_book then
          printout("Successfully imported blueprint book ", pindex)
       else
@@ -411,7 +411,7 @@ function fa_blueprints.apply_blueprint_import(pindex, text)
       end
    elseif result == -1 then 
       if bp.is_blueprint then
-         printout("Imported with errors, blueprint " .. fa_blueprints.get_blueprint_label(bp), pindex)
+         printout("Imported with errors, blueprint " .. mod.get_blueprint_label(bp), pindex)
       elseif bp.is_blueprint_book then
          printout("Imported with errors, blueprint book ", pindex)
       else
@@ -440,7 +440,7 @@ end
 
    This menu opens when you press RIGHT BRACKET on a blueprint in hand 
 ]]
-function fa_blueprints.run_blueprint_menu(menu_index, pindex, clicked, other_input)
+function mod.run_blueprint_menu(menu_index, pindex, clicked, other_input)
    local index = menu_index
    local other = other_input or -1
    local p = game.get_player(pindex)
@@ -480,7 +480,7 @@ function fa_blueprints.run_blueprint_menu(menu_index, pindex, clicked, other_inp
    
    if index == 0 then
       --Give basic info ...
-      printout("Blueprint " .. fa_blueprints.get_blueprint_label(bp) 
+      printout("Blueprint " .. mod.get_blueprint_label(bp) 
       .. ", Press 'W' and 'S' to navigate options, press 'LEFT BRACKET' to select an option or press 'E' to exit this menu.", pindex)
    elseif index == 1 then
       --Read the description of this blueprint
@@ -488,7 +488,7 @@ function fa_blueprints.run_blueprint_menu(menu_index, pindex, clicked, other_inp
          local result = "Read the description of this blueprint"
          printout(result, pindex)
       else
-         local result = fa_blueprints.get_blueprint_description(bp)
+         local result = mod.get_blueprint_description(bp)
          if result == nil or result == "" then
             result = "no description"
          end
@@ -527,7 +527,7 @@ function fa_blueprints.run_blueprint_menu(menu_index, pindex, clicked, other_inp
          printout(result, pindex)
       else
          local count = bp.get_blueprint_entity_count()
-         local width, height = fa_blueprints.get_blueprint_width_and_height(pindex)
+         local width, height = mod.get_blueprint_width_and_height(pindex)
          local result = "This blueprint is " .. (width + 1) .. " tiles wide and " .. (height + 1) .. " tiles high and contains " .. count .. " entities "
          printout(result, pindex)
       end
@@ -674,7 +674,7 @@ function fa_blueprints.run_blueprint_menu(menu_index, pindex, clicked, other_inp
          bp.set_stack(nil)--calls event handler to delete empty planners.
          local result = "Blueprint deleted and menu closed"
          printout(result, pindex)
-         fa_blueprints.blueprint_menu_close(pindex)
+         mod.blueprint_menu_close(pindex)
       end
    elseif index == 10 then
       --Export this blueprint as a text string
@@ -717,13 +717,13 @@ function fa_blueprints.run_blueprint_menu(menu_index, pindex, clicked, other_inp
          players[pindex].blueprint_reselecting = true
          local result = "Select the first point now."
          printout(result, pindex)
-         fa_blueprints.blueprint_menu_close(pindex, true)
+         mod.blueprint_menu_close(pindex, true)
       end
    end
 end
 BLUEPRINT_MENU_LENGTH = 12
 
-function fa_blueprints.blueprint_menu_open(pindex)
+function mod.blueprint_menu_open(pindex)
    if players[pindex].vanilla_mode then
       return 
    end
@@ -745,10 +745,10 @@ function fa_blueprints.blueprint_menu_open(pindex)
    game.get_player(pindex).play_sound{path = "Open-Inventory-Sound"}
    
    --Load menu 
-   fa_blueprints.run_blueprint_menu(players[pindex].blueprint_menu.index, pindex, false)
+   mod.run_blueprint_menu(players[pindex].blueprint_menu.index, pindex, false)
 end
 
-function fa_blueprints.blueprint_menu_close(pindex, mute_in)
+function mod.blueprint_menu_close(pindex, mute_in)
    local mute = mute_in
    --Set the player menu tracker to none
    players[pindex].menu = "none"
@@ -780,7 +780,7 @@ function fa_blueprints.blueprint_menu_close(pindex, mute_in)
    end
 end
 
-function fa_blueprints.blueprint_menu_up(pindex)
+function mod.blueprint_menu_up(pindex)
    players[pindex].blueprint_menu.index = players[pindex].blueprint_menu.index - 1
    if players[pindex].blueprint_menu.index < 0 then
       players[pindex].blueprint_menu.index = 0
@@ -790,10 +790,10 @@ function fa_blueprints.blueprint_menu_up(pindex)
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
    end
    --Load menu
-   fa_blueprints.run_blueprint_menu(players[pindex].blueprint_menu.index, pindex, false)
+   mod.run_blueprint_menu(players[pindex].blueprint_menu.index, pindex, false)
 end
 
-function fa_blueprints.blueprint_menu_down(pindex)
+function mod.blueprint_menu_down(pindex)
    players[pindex].blueprint_menu.index = players[pindex].blueprint_menu.index + 1
    if players[pindex].blueprint_menu.index > BLUEPRINT_MENU_LENGTH then
       players[pindex].blueprint_menu.index = BLUEPRINT_MENU_LENGTH
@@ -803,7 +803,7 @@ function fa_blueprints.blueprint_menu_down(pindex)
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
    end
    --Load menu
-   fa_blueprints.run_blueprint_menu(players[pindex].blueprint_menu.index, pindex, false)
+   mod.run_blueprint_menu(players[pindex].blueprint_menu.index, pindex, false)
 end
 
 local function get_bp_book_data_for_edit(stack)
@@ -816,7 +816,7 @@ local function set_bp_book_data_from_cursor(pindex)
    players[pindex].blueprint_book_menu.book_data = get_bp_book_data_for_edit(game.get_player(pindex).cursor_stack)
 end
 
-function fa_blueprints.blueprint_book_get_name(pindex)
+function mod.blueprint_book_get_name(pindex)
    local bp_data = players[pindex].blueprint_book_menu.book_data
    local label = bp_data.blueprint_book.label
    if label == nil then
@@ -825,15 +825,15 @@ function fa_blueprints.blueprint_book_get_name(pindex)
    return label
 end
 
-function fa_blueprints.blueprint_book_set_name(pindex, new_name)
+function mod.blueprint_book_set_name(pindex, new_name)
    local bp_data = players[pindex].blueprint_book_menu.book_data
    bp_data.blueprint_book.label = new_name
    -- TODO: stack is a global but too generically named to find.  If it's not
    -- this is nil and that's bad.
-   fa_blueprints.set_stack_bp_from_data(stack,bp_data)
+   mod.set_stack_bp_from_data(stack,bp_data)
 end
 
-function fa_blueprints.blueprint_book_get_item_count(pindex)
+function mod.blueprint_book_get_item_count(pindex)
    local bp_data = players[pindex].blueprint_book_menu.book_data
    local items = bp_data.blueprint_book.blueprints
    if items == nil or items == {} then
@@ -843,7 +843,7 @@ function fa_blueprints.blueprint_book_get_item_count(pindex)
    end
 end
 
-function fa_blueprints.blueprint_book_data_get_item_count(book_data)
+function mod.blueprint_book_data_get_item_count(book_data)
    local items = book_data.blueprint_book.blueprints
    if items == nil or items == {} then
       return 0 
@@ -853,14 +853,14 @@ function fa_blueprints.blueprint_book_data_get_item_count(book_data)
 end
 
 --Reads a blueprint within the blueprint book
-function fa_blueprints.blueprint_book_read_item(pindex,i)
+function mod.blueprint_book_read_item(pindex,i)
    local bp_data = players[pindex].blueprint_book_menu.book_data
    local items = bp_data.blueprint_book.blueprints
    return items[i]["blueprint"]
 end
 
 --Puts the book away and imports the selected blueprint to hand 
-function fa_blueprints.blueprint_book_copy_item_to_hand(pindex,i)
+function mod.blueprint_book_copy_item_to_hand(pindex,i)
    local bp_data = players[pindex].blueprint_book_menu.book_data
    local items = bp_data.blueprint_book.blueprints
    local item = items[i]["blueprint"]
@@ -873,12 +873,12 @@ function fa_blueprints.blueprint_book_copy_item_to_hand(pindex,i)
 end
 
 --todo ***
-function fa_blueprints.blueprint_book_take_out_item(pindex,index)
+function mod.blueprint_book_take_out_item(pindex,index)
    --todo ***
 end
 
 --todo ***
-function fa_blueprints.blueprint_book_add_item(pindex,bp)
+function mod.blueprint_book_add_item(pindex,bp)
    --todo ***
 end
 
@@ -898,11 +898,11 @@ end
 
    Note: BPB normally supports description and icons, but it is unclear whether the json tables can access these.
 ]]
-function fa_blueprints.run_blueprint_book_menu(pindex, menu_index, list_mode, left_clicked, right_clicked)
+function mod.run_blueprint_book_menu(pindex, menu_index, list_mode, left_clicked, right_clicked)
    local index = menu_index
    local p = game.get_player(pindex)
    local bpb = p.cursor_stack
-   local item_count = fa_blueprints.blueprint_book_get_item_count(pindex)
+   local item_count = mod.blueprint_book_get_item_count(pindex)
    --Update menu length
    players[pindex].blueprint_book_menu.menu_length = BLUEPRINT_BOOK_SETTINGS_MENU_LENGTH
    if list_mode then 
@@ -914,11 +914,11 @@ function fa_blueprints.run_blueprint_book_menu(pindex, menu_index, list_mode, le
       --Blueprint book list mode 
       if index == 0 then
          --stuff
-         printout("Browsing blueprint book "  .. fa_blueprints.blueprint_book_get_name(pindex) .. ", with "  .. item_count .. " items,"
+         printout("Browsing blueprint book "  .. mod.blueprint_book_get_name(pindex) .. ", with "  .. item_count .. " items,"
          .. ", Press 'W' and 'S' to navigate options, press 'LEFT BRACKET' to copy a blueprint to hand, press 'E' to exit this menu.", pindex)
       else
          --Examine items 
-         local item = fa_blueprints.blueprint_book_read_item(pindex, index)
+         local item = mod.blueprint_book_read_item(pindex, index)
          local name = ""
          if item == nil or item.item == nil then
             name = "Unknown item (" .. index .. ")"
@@ -927,7 +927,7 @@ function fa_blueprints.run_blueprint_book_menu(pindex, menu_index, list_mode, le
             if label == nil then
                label = ""
             end
-            name = "Blueprint " .. label .. ", featuring " .. fa_blueprints.get_blueprint_icons_info(item)
+            name = "Blueprint " .. label .. ", featuring " .. mod.get_blueprint_icons_info(item)
          elseif item.item == "blueprint-book" or item.item == "blueprint_book" or item.item == "book" then
             local label = item.label
             if label == nil then
@@ -936,7 +936,7 @@ function fa_blueprints.run_blueprint_book_menu(pindex, menu_index, list_mode, le
             -- TODO: nil in the following line used to be an undefined global
             -- book_data.  Someone needs to determine what that's supposed to
             -- be.
-            name = "Blueprint book " .. label .. ", with " .. fa_blueprints.blueprint_book_data_get_item_count(nil) .. " items "
+            name = "Blueprint book " .. label .. ", with " .. mod.blueprint_book_data_get_item_count(nil) .. " items "
          else
             name = "unknown item " .. item.item
          end
@@ -949,7 +949,7 @@ function fa_blueprints.run_blueprint_book_menu(pindex, menu_index, list_mode, le
             if item == nil or item.item == nil then
                printout("Cannot get this.", pindex)
             elseif item.item == "blueprint" or item.item == "blueprint-book" then
-               fa_blueprints.blueprint_book_copy_item_to_hand(pindex,index)
+               mod.blueprint_book_copy_item_to_hand(pindex,index)
             else
                printout("Cannot get this.", pindex)
             end
@@ -961,9 +961,9 @@ function fa_blueprints.run_blueprint_book_menu(pindex, menu_index, list_mode, le
    else
       --Blueprint book settings mode 
       if true then
-         printout("Settings for blueprint book "  .. fa_blueprints.blueprint_book_get_name(pindex) .. " not yet implemented ", pindex)--***
+         printout("Settings for blueprint book "  .. mod.blueprint_book_get_name(pindex) .. " not yet implemented ", pindex)--***
       elseif index == 0 then
-         printout("Settings for blueprint book "  .. fa_blueprints.blueprint_book_get_name(pindex) .. ", with "  .. item_count .. " items,"
+         printout("Settings for blueprint book "  .. mod.blueprint_book_get_name(pindex) .. ", with "  .. item_count .. " items,"
          .. " Press 'W' and 'S' to navigate options, press 'LEFT BRACKET' to select, press 'E' to exit this menu.", pindex)
       elseif index == 1 then
          --Read the icons of this blueprint book, which are its featured components
@@ -1018,7 +1018,7 @@ function fa_blueprints.run_blueprint_book_menu(pindex, menu_index, list_mode, le
 end
 BLUEPRINT_BOOK_SETTINGS_MENU_LENGTH = 1
 
-function fa_blueprints.blueprint_book_menu_open(pindex, open_in_list_mode)
+function mod.blueprint_book_menu_open(pindex, open_in_list_mode)
    if players[pindex].vanilla_mode then
       return 
    end
@@ -1045,10 +1045,10 @@ function fa_blueprints.blueprint_book_menu_open(pindex, open_in_list_mode)
    
    --Load menu 
    local bpb_menu = players[pindex].blueprint_book_menu
-   fa_blueprints.run_blueprint_book_menu(pindex, bpb_menu.index, bpb_menu.list_mode, false, false)
+   mod.run_blueprint_book_menu(pindex, bpb_menu.index, bpb_menu.list_mode, false, false)
 end
 
-function fa_blueprints.blueprint_book_menu_close(pindex, mute_in)
+function mod.blueprint_book_menu_close(pindex, mute_in)
    local mute = mute_in
    --Set the player menu tracker to none
    players[pindex].menu = "none"
@@ -1080,7 +1080,7 @@ function fa_blueprints.blueprint_book_menu_close(pindex, mute_in)
    end
 end
 
-function fa_blueprints.blueprint_book_menu_up(pindex)
+function mod.blueprint_book_menu_up(pindex)
    players[pindex].blueprint_book_menu.index = players[pindex].blueprint_book_menu.index - 1
    if players[pindex].blueprint_book_menu.index < 0 then
       players[pindex].blueprint_book_menu.index = 0
@@ -1091,10 +1091,10 @@ function fa_blueprints.blueprint_book_menu_up(pindex)
    end
    --Load menu
    local bpb_menu = players[pindex].blueprint_book_menu
-   fa_blueprints.run_blueprint_book_menu(pindex, bpb_menu.index, bpb_menu.list_mode, false, false)
+   mod.run_blueprint_book_menu(pindex, bpb_menu.index, bpb_menu.list_mode, false, false)
 end
 
-function fa_blueprints.blueprint_book_menu_down(pindex)
+function mod.blueprint_book_menu_down(pindex)
    players[pindex].blueprint_book_menu.index = players[pindex].blueprint_book_menu.index + 1
    if players[pindex].blueprint_book_menu.index > players[pindex].blueprint_book_menu.menu_length then
       players[pindex].blueprint_book_menu.index = players[pindex].blueprint_book_menu.menu_length
@@ -1105,7 +1105,7 @@ function fa_blueprints.blueprint_book_menu_down(pindex)
    end
    --Load menu
    local bpb_menu = players[pindex].blueprint_book_menu
-   fa_blueprints.run_blueprint_book_menu(pindex, bpb_menu.index, bpb_menu.list_mode, false, false)
+   mod.run_blueprint_book_menu(pindex, bpb_menu.index, bpb_menu.list_mode, false, false)
 end
 
-return fa_blueprints
+return mod

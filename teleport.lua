@@ -3,11 +3,11 @@ local fa_utils = require("fa-utils")
 local fa_graphics = require("graphics-and-mouse").graphics
 local fa_mouse = require("graphics-and-mouse").mouse
 
-local fa_teleport = {}
+local mod = {}
 
 --Teleports the player character to the cursor position.
-function fa_teleport.teleport_to_cursor(pindex, muted, ignore_enemies, return_cursor)
-   local result = fa_teleport.teleport_to_closest(pindex, players[pindex].cursor_pos, muted, ignore_enemies)
+function mod.teleport_to_cursor(pindex, muted, ignore_enemies, return_cursor)
+   local result = mod.teleport_to_closest(pindex, players[pindex].cursor_pos, muted, ignore_enemies)
    if return_cursor then
       players[pindex].cursor_pos = players[pindex].position
    end
@@ -15,7 +15,7 @@ function fa_teleport.teleport_to_cursor(pindex, muted, ignore_enemies, return_cu
 end
 
 --Makes the player teleport to the closest valid position to a target position. Uses game's teleport function. Muted makes silent and effectless teleporting
-function fa_teleport.teleport_to_closest(pindex, pos, muted, ignore_enemies)
+function mod.teleport_to_closest(pindex, pos, muted, ignore_enemies)
    local pos = table.deepcopy(pos)
    local muted = muted or false
    local first_player = game.get_player(pindex)
@@ -103,4 +103,4 @@ function fa_teleport.teleport_to_closest(pindex, pos, muted, ignore_enemies)
    return true
 end
 
-return fa_teleport
+return mod

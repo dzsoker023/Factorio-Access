@@ -2,25 +2,25 @@
 local util = require('util')
 local dirs = defines.direction
 
-local fa_utils = {}
+local mod = {}
 
-function fa_utils.center_of_tile(pos)
+function mod.center_of_tile(pos)
    return {x = math.floor(pos.x)+0.5, y = math.floor(pos.y)+ 0.5}
 end
 
-function fa_utils.add_position(p1,p2)
+function mod.add_position(p1,p2)
    return { x = p1.x + p2.x, y = p1.y + p2.y}
 end
 
-function fa_utils.sub_position(p1,p2)
+function mod.sub_position(p1,p2)
    return { x = p1.x - p2.x, y = p1.y - p2.y}
 end
 
-function fa_utils.mult_position(p,m)
+function mod.mult_position(p,m)
    return { x = p.x * m, y = p.y * m }
 end
 
-function fa_utils.offset_position(oldpos,direction,distance)
+function mod.offset_position(oldpos,direction,distance)
    if direction == defines.direction.north then
       return { x = oldpos.x, y = oldpos.y - distance}
    elseif direction == defines.direction.south then
@@ -40,7 +40,7 @@ function fa_utils.offset_position(oldpos,direction,distance)
    end
 end
 
-function fa_utils.dir_dist(pos1,pos2)
+function mod.dir_dist(pos1,pos2)
    local x1 = pos1.x
    local x2 = pos2.x
    local dx = x2 - x1
@@ -59,19 +59,19 @@ function fa_utils.dir_dist(pos1,pos2)
    return {dir, dist}
 end
 
-function fa_utils.dir(pos1,pos2)
-   return fa_utils.dir_dist(pos1,pos2)[1]
+function mod.dir(pos1,pos2)
+   return mod.dir_dist(pos1,pos2)[1]
 end
 
-function fa_utils.direction(pos1, pos2)
-   return fa_utils.direction_lookup(fa_utils.dir(pos1,pos2))
+function mod.direction(pos1, pos2)
+   return mod.direction_lookup(mod.dir(pos1,pos2))
 end
 
-function fa_utils.distance(pos1, pos2)
-   return fa_utils.dir_dist( pos1, pos2)[2]
+function mod.distance(pos1, pos2)
+   return mod.dir_dist( pos1, pos2)[2]
 end
 
-function fa_utils.squared_distance(pos1, pos2)
+function mod.squared_distance(pos1, pos2)
    local offset = {x = pos1.x - pos2.x, y = pos1.y - pos2.y}
    local result = offset.x * offset.x + offset.y * offset.y
    return result
@@ -82,7 +82,7 @@ end
 * Returns 1 of 8 main directions, based on the ratios of the x and y distances. 
 * The deciding ratio is 1 to 4, meaning that for an object that is 100 tiles north, it can be offset by up to 25 tiles east or west before it stops being counted as "directly" in the north. 
 * The arctangent of 1/4 is about 14 degrees, meaning that the field of view that directly counts as a cardinal direction is about 30 degrees, while for a diagonal direction it is about 60 degrees.]]
-function fa_utils.get_direction_biased(pos_that,pos_this)
+function mod.get_direction_biased(pos_that,pos_this)
    local diff_x = pos_that.x - pos_this.x
    local diff_y = pos_that.y - pos_this.y
    local dir = -1
@@ -126,7 +126,7 @@ end
 * Returns 1 of 8 main directions, based on the ratios of the x and y distances. 
 * The deciding ratio is 1 to 2.5, meaning that for an object that is 25 tiles north, it can be offset by up to 10 tiles east or west before it stops being counted as "directly" in the north. 
 * The arctangent of 1/2.5 is about 22 degrees, meaning that the field of view that directly counts as a cardinal direction is about 44 degrees, while for a diagonal direction it is about 46 degrees.]]
-function fa_utils.get_direction_precise(pos_that,pos_this)
+function mod.get_direction_precise(pos_that,pos_this)
    local diff_x = pos_that.x - pos_this.x
    local diff_y = pos_that.y - pos_this.y
    local dir = -1
@@ -167,7 +167,7 @@ end
 
 --Converts an input direction into a localised string. 
 --Note: Directions are integeres but we need to use only defines because they will change in update 2.0. Todo: localise error cases.
-function fa_utils.direction_lookup(dir)
+function mod.direction_lookup(dir)
    local reading = "unknown"
    if dir < 0 then
       return "unknown direction ID " .. dir
@@ -184,24 +184,24 @@ function fa_utils.direction_lookup(dir)
    end
 end
 
-function fa_utils.rotate_90(dir)
+function mod.rotate_90(dir)
    return (dir + dirs.east) % (2 * dirs.south)
 end
 
-function fa_utils.rotate_180(dir)
+function mod.rotate_180(dir)
    return (dir + dirs.south) % (2 * dirs.south)
 end
 
-function fa_utils.rotate_270(dir)
+function mod.rotate_270(dir)
    return (dir + dirs.east * 3) % (2 * dirs.south)
 end
 
-function fa_utils.reset_rotation(pindex)
+function mod.reset_rotation(pindex)
    players[pindex].building_direction = dirs.north
 end
 
 --Converts the entity orientation value to a heading direction string, with all directions having equal bias.
-function fa_utils.get_heading_info(ent)
+function mod.get_heading_info(ent)
    ---@diagnostic disable: cast-local-type
    local heading = "unknown"
    if ent == nil then
@@ -209,29 +209,29 @@ function fa_utils.get_heading_info(ent)
    end
    local ori = ent.orientation
    if ori < 0.0625 then
-      heading = fa_utils.direction_lookup(dirs.north)
+      heading = mod.direction_lookup(dirs.north)
    elseif ori < 0.1875 then
-      heading = fa_utils.direction_lookup(dirs.northeast)
+      heading = mod.direction_lookup(dirs.northeast)
    elseif ori < 0.3125 then
-      heading = fa_utils.direction_lookup(dirs.east)
+      heading = mod.direction_lookup(dirs.east)
    elseif ori < 0.4375 then
-      heading = fa_utils.direction_lookup(dirs.southeast)
+      heading = mod.direction_lookup(dirs.southeast)
    elseif ori < 0.5625 then
-      heading = fa_utils.direction_lookup(dirs.south)
+      heading = mod.direction_lookup(dirs.south)
    elseif ori < 0.6875 then
-      heading = fa_utils.direction_lookup(dirs.southwest)
+      heading = mod.direction_lookup(dirs.southwest)
    elseif ori < 0.8125 then
-      heading = fa_utils.direction_lookup(dirs.west)
+      heading = mod.direction_lookup(dirs.west)
    elseif ori < 0.9375 then
-      heading = fa_utils.direction_lookup(dirs.northwest)
+      heading = mod.direction_lookup(dirs.northwest)
    else
-      heading = fa_utils.direction_lookup(dirs.north)--default
+      heading = mod.direction_lookup(dirs.north)--default
    end      
    return heading
 end
 
 --Converts the entity orientation into a heading direction, with all directions having equal bias.
-function fa_utils.get_heading_value(ent)
+function mod.get_heading_value(ent)
    local heading = nil
    if ent == nil then
       return nil
@@ -260,7 +260,7 @@ function fa_utils.get_heading_value(ent)
 end
 
 --Returns the length and width of the entity version of an item. Todo: review and cleanup direction defines.
-function fa_utils.get_tile_dimensions(item, dir)
+function mod.get_tile_dimensions(item, dir)
    if item.place_result ~= nil then
       local dimensions = item.place_result.selection_box
       x = math.ceil(dimensions.right_bottom.x - dimensions.left_top.x)
@@ -276,7 +276,7 @@ end
 
 
 --Small utility function for getting an entity's footprint area using just its name.
-function fa_utils.get_ent_area_from_name(ent_name,pindex)
+function mod.get_ent_area_from_name(ent_name,pindex)
    -- local ents = game.get_player(pindex).surface.find_entities_filtered{name = ent_name, limit = 1}
    -- if #ents == 0 then
       -- return -1
@@ -287,13 +287,13 @@ function fa_utils.get_ent_area_from_name(ent_name,pindex)
 end
 
 --Returns true/false on whether an entity is located within a defined area.
-function fa_utils.is_ent_inside_area(ent_name, area_left_top, area_right_bottom, pindex)
+function mod.is_ent_inside_area(ent_name, area_left_top, area_right_bottom, pindex)
    local ents = game.get_player(pindex).surface.find_entities_filtered{name = ent_name, area = {area_left_top,area_right_bottom}, limit = 1}
    return #ents > 0
 end
 
 --Returns the map position of the northwest corner of an entity.
-function fa_utils.get_ent_northwest_corner_position(ent)
+function mod.get_ent_northwest_corner_position(ent)
    if ent.valid == false or ent.tile_width == nil then
       return ent.position
    end
@@ -303,13 +303,13 @@ function fa_utils.get_ent_northwest_corner_position(ent)
       width  = ent.tile_height
       height = ent.tile_width
    end
-   local pos = fa_utils.center_of_tile({x = ent.position.x - math.floor(width/2), y = ent.position.y - math.floor(height/2)})
+   local pos = mod.center_of_tile({x = ent.position.x - math.floor(width/2), y = ent.position.y - math.floor(height/2)})
    --rendering.draw_rectangle{color = {0.75,1,1,0.75}, surface = ent.surface, draw_on_ground = true, players = nil, width = 2, left_top = {math.floor(pos.x)+0.05,math.floor(pos.y)+0.05}, right_bottom = {math.ceil(pos.x)-0.05,math.ceil(pos.y)-0.05}, time_to_live = 30}
    return pos
 end
 
 --Reports which part of the selected entity has the cursor. E.g. southwest corner, center...
-function fa_utils.get_entity_part_at_cursor(pindex)
+function mod.get_entity_part_at_cursor(pindex)
 	 local p = game.get_player(pindex)
 	 local x = players[pindex].cursor_pos.x
 	 local y = players[pindex].cursor_pos.y
@@ -401,7 +401,7 @@ function fa_utils.get_entity_part_at_cursor(pindex)
 end
 
 --For a list of edge points of an aggregate entity, returns the nearest one.
-function fa_utils.nearest_edge(edges, pos, name)
+function mod.nearest_edge(edges, pos, name)
    local pos = table.deepcopy(pos)
    if name == "forest" then
       pos.x = pos.x / 8 
@@ -410,7 +410,7 @@ function fa_utils.nearest_edge(edges, pos, name)
    local result = {}
    local min = math.huge
    for str, b in pairs(edges) do
-      local edge_pos = fa_utils.str2pos(str)
+      local edge_pos = mod.str2pos(str)
       local d = util.distance(pos, edge_pos)
       if d < min then
          result = edge_pos
@@ -424,7 +424,7 @@ function fa_utils.nearest_edge(edges, pos, name)
    return result
 end
 
-function fa_utils.scale_area(area, factor)
+function mod.scale_area(area, factor)
    result = table.deepcopy(area)
    result.left_top.x = area.left_top.x * factor
    result.left_top.y = area.left_top.y * factor
@@ -434,7 +434,7 @@ function fa_utils.scale_area(area, factor)
 end
 
 --todo: use defines directions here
-function fa_utils.area_edge(area,dir,pos,name)
+function mod.area_edge(area,dir,pos,name)
    local adjusted_area = table.deepcopy(area)
    if name == "forest" then
       local chunk_size = 8
@@ -472,14 +472,14 @@ function fa_utils.area_edge(area,dir,pos,name)
 end
 
 --Returns the top left and bottom right corners for a rectangle that takes pos_1 and pos_2 as any of its four corners.
-function fa_utils.get_top_left_and_bottom_right(pos_1, pos_2)
+function mod.get_top_left_and_bottom_right(pos_1, pos_2)
    local top_left = {x = math.min(pos_1.x, pos_2.x), y = math.min(pos_1.y, pos_2.y)}
    local bottom_right = {x = math.max(pos_1.x, pos_2.x), y = math.max(pos_1.y, pos_2.y)}
    return top_left, bottom_right
 end
 
 --Finds the nearest roboport
-function fa_utils.find_nearest_roboport(surf,pos,radius_in)
+function mod.find_nearest_roboport(surf,pos,radius_in)
    local nearest = nil
    local min_dist = radius_in
    local ports = surf.find_entities_filtered{name = "roboport" , position = pos , radius = radius_in}
@@ -496,7 +496,7 @@ function fa_utils.find_nearest_roboport(surf,pos,radius_in)
    return nearest, min_dist
 end
 
-function fa_utils.table_concat (T1, T2)
+function mod.table_concat (T1, T2)
    if T2 == nil then
       return
    end
@@ -508,11 +508,11 @@ function fa_utils.table_concat (T1, T2)
    end
 end
 
-function fa_utils.pos2str (pos)
+function mod.pos2str (pos)
    return pos.x .. " " .. pos.y
 end
 
-function fa_utils.str2pos(str)
+function mod.str2pos(str)
    local t = {}
    for s in string.gmatch(str, "([^%s]+)") do
       table.insert(t, s)
@@ -520,7 +520,7 @@ function fa_utils.str2pos(str)
       return {x = t[1], y = t[2]}
 end
 
-function fa_utils.breakup_string(str)
+function mod.breakup_string(str)
    result = {""}
    if table_size(str) > 20 then
       local i = 0
@@ -539,7 +539,7 @@ function fa_utils.breakup_string(str)
 end
 
 --Converts a dictionary into an iterable array.
-function fa_utils.get_iterable_array(dict)
+function mod.get_iterable_array(dict)
    result = {}
    for i, v in pairs(dict) do
       table.insert(result, v)
@@ -548,7 +548,7 @@ function fa_utils.get_iterable_array(dict)
 end
 
 --Converts an array into a lookup table based on the keys it has.
-function fa_utils.into_lookup(array)
+function mod.into_lookup(array)
     local lookup = {}
     for key, value in pairs(array) do
         lookup[value] = key
@@ -557,7 +557,7 @@ function fa_utils.into_lookup(array)
 end
 
 --Returns the part of a substring before a space character. BUG: Breaks when parsing dashes.
-function fa_utils.get_substring_before_space(str)
+function mod.get_substring_before_space(str)
    local first, final = string.find(str," ")
    if first == nil or first == 1 then --No space, or space at the start only
       return str
@@ -567,7 +567,7 @@ function fa_utils.get_substring_before_space(str)
 end
 
 --Returns the part of a substring after a space character. BUG: Breaks when parsing dashes.
-function fa_utils.get_substring_after_space(str)
+function mod.get_substring_after_space(str)
    local first, final = string.find(str," ")
    if final == nil then --No spaces
       return str
@@ -584,7 +584,7 @@ function fa_utils.get_substring_after_space(str)
 end
 
 --Returns the part of a substring before a comma character. BUG: Breaks when parsing dashes.
-function fa_utils.get_substring_before_comma(str)
+function mod.get_substring_before_comma(str)
    local first, final = string.find(str,",")
    if first == nil or first == 1 then
       return str
@@ -593,7 +593,7 @@ function fa_utils.get_substring_before_comma(str)
    end
 end
 
-function fa_utils.get_substring_before_dash(str)
+function mod.get_substring_before_dash(str)
    local first, final = string.find(str,"-")
    if first == nil or first == 1 then
       return str
@@ -602,15 +602,15 @@ function fa_utils.get_substring_before_dash(str)
    end
 end
 
-function fa_utils.dir_dist_locale_h(dir_dist)
+function mod.dir_dist_locale_h(dir_dist)
    return {"access.dir-dist",{"access.direction",dir_dist[1]},math.floor(dir_dist[2]+0.5)}
 end
 
-function fa_utils.dir_dist_locale(pos1,pos2)
-   return fa_utils.dir_dist_locale_h( fa_utils.dir_dist(pos1,pos2) )
+function mod.dir_dist_locale(pos1,pos2)
+   return mod.dir_dist_locale_h( mod.dir_dist(pos1,pos2) )
 end
 
-function fa_utils.ent_name_locale(ent)
+function mod.ent_name_locale(ent)
    if ent.name == "water" then
       print("todo: water isn't an entity")
       return {"gui-map-generator.water"}
@@ -626,7 +626,7 @@ function fa_utils.ent_name_locale(ent)
 end
 
 --small utility function for getting the index of a named object from an array of objects.
-function fa_utils.index_of_entity(array, value)
+function mod.index_of_entity(array, value)
    if next(array) == nil then
       return nil
    end
@@ -639,7 +639,7 @@ function fa_utils.index_of_entity(array, value)
 end
 
 --Rounds down a number to the nearest thousand after 10 thousand, and nearest 100 thousand after 1 million.
-function fa_utils.floor_to_nearest_k_after_10k(num_in)
+function mod.floor_to_nearest_k_after_10k(num_in)
    local num = num_in
    num = math.ceil(num)
    if num > 10000 then
@@ -652,7 +652,7 @@ function fa_utils.floor_to_nearest_k_after_10k(num_in)
 end
 
 --Returns a string to say the quantity of an item in terms of stacks, if there is at least one stack
-function fa_utils.express_in_stacks(count,stack_size,precise)
+function mod.express_in_stacks(count,stack_size,precise)
    local result = ""
    local new_count = "unknown amount of"
    local units = " units "
@@ -684,7 +684,7 @@ function fa_utils.express_in_stacks(count,stack_size,precise)
    return result
 end
 
-function fa_utils.factorio_default_sort(k1, k2)
+function mod.factorio_default_sort(k1, k2)
    if k1.group.order ~= k2.group.order then
       return k1.group.order < k2.group.order
    elseif k1.subgroup.order ~= k2.subgroup.order then
@@ -697,7 +697,7 @@ function fa_utils.factorio_default_sort(k1, k2)
 end
 
 --If the cursor is over a water tile, this function is called to check if it is open water or a shore.
-function fa_utils.identify_water_shores(pindex)
+function mod.identify_water_shores(pindex)
    local p = game.get_player(pindex)
    local water_tile_names = {"water", "deepwater", "water-green", "deepwater-green", "water-shallow", "water-mud", "water-wube"}
    local pos = players[pindex].cursor_pos
@@ -742,4 +742,4 @@ function fa_utils.identify_water_shores(pindex)
    return result
 end
 
-return fa_utils
+return mod

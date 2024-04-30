@@ -9,14 +9,14 @@ local fa_belts = require("transport-belts")
 local fa_mining_tools = require("mining-tools")
 local fa_teleport = require("teleport")
 
-local fa_building_tools = {}
+local mod = {}
 
 --[[Attempts to build the item in hand.
 * Does nothing if the hand is empty or the item is not a place-able entity.
 * If the item is an offshore pump, calls a different, special function for it.
 * You can offset the building with respect to the direction the player is facing. The offset is multiplied by the placed building width.
 ]]
-function fa_building_tools.build_item_in_hand(pindex, free_place_straight_rail)
+function mod.build_item_in_hand(pindex, free_place_straight_rail)
    local stack = game.get_player(pindex).cursor_stack
    local p = game.get_player(pindex)
 
@@ -37,7 +37,7 @@ function fa_building_tools.build_item_in_hand(pindex, free_place_straight_rail)
 
    --Exceptional build cases
    if stack.name == "offshore-pump" then
-      fa_building_tools.build_offshore_pump_in_hand(pindex)
+      mod.build_offshore_pump_in_hand(pindex)
       return
    elseif stack.name == "rail" then
       if not (free_place_straight_rail == true) then
@@ -226,7 +226,7 @@ function fa_building_tools.build_item_in_hand(pindex, free_place_straight_rail)
       fa_mining_tools.clear_obstacles_in_rectangle(players[pindex].building_footprint_left_top, players[pindex].building_footprint_right_bottom, pindex)
 
       --Teleport player out of build area  
-      fa_building_tools.teleport_player_out_of_build_area(players[pindex].building_footprint_left_top, players[pindex].building_footprint_right_bottom, pindex)
+      mod.teleport_player_out_of_build_area(players[pindex].building_footprint_left_top, players[pindex].building_footprint_right_bottom, pindex)
 
 	  --Try to build it
       local build_successful = false
@@ -312,7 +312,7 @@ end
 --[[Assisted building function for offshore pumps.
 * Called as a special case by build_item_in_hand
 ]]
-function fa_building_tools.build_offshore_pump_in_hand(pindex)
+function mod.build_offshore_pump_in_hand(pindex)
    local stack = game.get_player(pindex).cursor_stack
 
    if stack and stack.valid and stack.valid_for_read and stack.name == "offshore-pump" then
@@ -348,7 +348,7 @@ function fa_building_tools.build_offshore_pump_in_hand(pindex)
 end
 
 --Reads the result of trying to rotate a building, which is a vanilla action.
-function fa_building_tools.rotate_building_info_read(event, forward)
+function mod.rotate_building_info_read(event, forward)
    pindex = event.player_index
    if not check_for_player(pindex) then
       return
@@ -453,7 +453,7 @@ function fa_building_tools.rotate_building_info_read(event, forward)
 end
 
 --Does everything to handle the nudging feature, taking the keypress event and the nudge direction as the input. Nothing happens if an entity cannot be selected.
-function fa_building_tools.nudge_key(direction,event)
+function mod.nudge_key(direction,event)
    local pindex = event.player_index
    local p = game.get_player(pindex)
    if not check_for_player(pindex) or players[pindex].menu == "prompt" then
@@ -556,7 +556,7 @@ function fa_building_tools.nudge_key(direction,event)
 end
 
 --Returns a list of positions for this entity where it has its heat pipe connections.
-function fa_building_tools.get_heat_connection_positions(ent_name, ent_position, ent_direction)
+function mod.get_heat_connection_positions(ent_name, ent_position, ent_direction)
    local pos = ent_position
    local positions = {}
    if ent_name == "heat-pipe" then
@@ -579,7 +579,7 @@ function fa_building_tools.get_heat_connection_positions(ent_name, ent_position,
 end
 
 --Returns a list of positions for this entity where it expects to find other heat pipe interfaces that it can connect to.
-function fa_building_tools.get_heat_connection_target_positions(ent_name, ent_position, ent_direction)
+function mod.get_heat_connection_target_positions(ent_name, ent_position, ent_direction)
    local pos = ent_position
    local positions = {}
    if ent_name == "heat-pipe" then
@@ -611,7 +611,7 @@ function fa_building_tools.get_heat_connection_target_positions(ent_name, ent_po
 end
 
 --Returns an info string about trying to build the entity in hand. The info type depends on the entity. Note: Limited usefulness for entities with sizes greater than 1 by 1.
-function fa_building_tools.build_preview_checks_info(stack, pindex)
+function mod.build_preview_checks_info(stack, pindex)
    if stack == nil or not stack.valid_for_read or not stack.valid then
       return "invalid stack"
    end
@@ -835,10 +835,10 @@ function fa_building_tools.build_preview_checks_info(stack, pindex)
             west_ent = ent_cand
          end
       end
-      box, relevant_fluid_north, dir_from_pos = fa_building_tools.get_relevant_fluidbox_and_fluid_name(north_ent, pos, dirs.north)
-      box, relevant_fluid_south, dir_from_pos = fa_building_tools.get_relevant_fluidbox_and_fluid_name(south_ent, pos, dirs.south)
-      box, relevant_fluid_east, dir_from_pos  = fa_building_tools.get_relevant_fluidbox_and_fluid_name(east_ent, pos, dirs.east)
-      box, relevant_fluid_west, dir_from_pos  = fa_building_tools.get_relevant_fluidbox_and_fluid_name(west_ent, pos, dirs.west)
+      box, relevant_fluid_north, dir_from_pos = mod.get_relevant_fluidbox_and_fluid_name(north_ent, pos, dirs.north)
+      box, relevant_fluid_south, dir_from_pos = mod.get_relevant_fluidbox_and_fluid_name(south_ent, pos, dirs.south)
+      box, relevant_fluid_east, dir_from_pos  = mod.get_relevant_fluidbox_and_fluid_name(east_ent, pos, dirs.east)
+      box, relevant_fluid_west, dir_from_pos  = mod.get_relevant_fluidbox_and_fluid_name(west_ent, pos, dirs.west)
 
       --Prepare result string 
       if relevant_fluid_north ~= nil or relevant_fluid_east ~= nil or relevant_fluid_south ~= nil or relevant_fluid_west ~= nil then
@@ -895,7 +895,7 @@ function fa_building_tools.build_preview_checks_info(stack, pindex)
          end
       end
 
-      box, relevant_fluid_faced, dir_from_pos = fa_building_tools.get_relevant_fluidbox_and_fluid_name(faced_ent, pos, face_dir)
+      box, relevant_fluid_faced, dir_from_pos = mod.get_relevant_fluidbox_and_fluid_name(faced_ent, pos, face_dir)
       --Prepare result string 
       if relevant_fluid_faced ~= nil then
          local count = 0
@@ -908,7 +908,7 @@ function fa_building_tools.build_preview_checks_info(stack, pindex)
    --For heat pipes, preview the connection directions
    if ent_p.type == "heat-pipe" then
       result = result .. " heat pipe can connect "
-      local con_targets = fa_building_tools.get_heat_connection_target_positions("heat-pipe", pos, dirs.north)
+      local con_targets = mod.get_heat_connection_target_positions("heat-pipe", pos, dirs.north)
       local con_count = 0
       if #con_targets > 0 then
          for i, con_target_pos in ipairs(con_targets) do
@@ -916,8 +916,8 @@ function fa_building_tools.build_preview_checks_info(stack, pindex)
             rendering.draw_circle{color = {1.0, 0.0, 0.5},radius = 0.1,width = 2,target = con_target_pos, surface = p.surface, time_to_live = 30}
             local target_ents = p.surface.find_entities_filtered{position = con_target_pos}
             for j, target_ent in ipairs(target_ents) do
-               if target_ent.valid and #fa_building_tools.get_heat_connection_positions(target_ent.name, target_ent.position, target_ent.direction) > 0 then
-                  for k, spot in ipairs(fa_building_tools.get_heat_connection_positions(target_ent.name, target_ent.position, target_ent.direction)) do
+               if target_ent.valid and #mod.get_heat_connection_positions(target_ent.name, target_ent.position, target_ent.direction) > 0 then
+                  for k, spot in ipairs(mod.get_heat_connection_positions(target_ent.name, target_ent.position, target_ent.direction)) do
                      --For each heat connection of the found target entity 
                      rendering.draw_circle{color = {1.0, 1.0, 0.5},radius = 0.2,width = 2,target = spot, surface = p.surface, time_to_live = 30}
                      if util.distance(con_target_pos,spot) < 0.2 then
@@ -1116,7 +1116,7 @@ function fa_building_tools.build_preview_checks_info(stack, pindex)
 end
 
 --For a building with fluidboxes, returns the external fluidbox and fluid name that would connect to one of the building's own fluidboxes at a particular position, from a particular direction. Importantly, ignores fluidboxes that are positioned correctly but would not connect, such as a pipe to ground facing a perpebdicular direction. 
-function fa_building_tools.get_relevant_fluidbox_and_fluid_name(building, pos, dir_from_pos)
+function mod.get_relevant_fluidbox_and_fluid_name(building, pos, dir_from_pos)
    local relevant_box = nil
    local relevant_fluid_name = nil
    if building ~= nil and building.valid and building.fluidbox ~= nil then
@@ -1147,7 +1147,7 @@ function fa_building_tools.get_relevant_fluidbox_and_fluid_name(building, pos, d
    return relevant_box, relevant_fluid_name, dir_from_pos
 end
 
-function fa_building_tools.teleport_player_out_of_build_area(left_top, right_bottom, pindex)
+function mod.teleport_player_out_of_build_area(left_top, right_bottom, pindex)
    local p = game.get_player(pindex)
    local pos = p.position
    if pos.x < left_top.x or pos.x > right_bottom.x or pos.y < left_top.y or pos.y > right_bottom.y then
@@ -1174,7 +1174,7 @@ function fa_building_tools.teleport_player_out_of_build_area(left_top, right_bot
 end
 
 --Assuming there is a steam engine in hand, this function will automatically build it next to a suitable boiler.
-function fa_building_tools.snap_place_steam_engine_to_a_boiler(pindex)
+function mod.snap_place_steam_engine_to_a_boiler(pindex)
    local p = game.get_player(pindex)
    local found_empty_spot = false
    local found_valid_spot = false
@@ -1238,7 +1238,7 @@ function fa_building_tools.snap_place_steam_engine_to_a_boiler(pindex)
 end
 
 --Identifies if a pipe is a pipe end, so that it can be singled out. The motivation is that pipe ends generally should not exist because the pipes should connect to something. Laterdo review
-function fa_building_tools.is_a_pipe_end(ent, pindex)
+function mod.is_a_pipe_end(ent, pindex)
    local p = game.get_player(pindex)
    local pos = players[pindex].cursor_pos
    local ents_north = p.surface.find_entities_filtered{position = {x = pos.x+0, y = pos.y-1} }
@@ -1321,7 +1321,7 @@ function fa_building_tools.is_a_pipe_end(ent, pindex)
    end
 end
 
-function fa_building_tools.delete_empty_planners_in_inventory(pindex)
+function mod.delete_empty_planners_in_inventory(pindex)
    local inv = game.get_player(pindex).get_main_inventory()
    local length = #inv
    for i=1,length,1 do
@@ -1338,4 +1338,4 @@ function fa_building_tools.delete_empty_planners_in_inventory(pindex)
    end
 end
 
-return fa_building_tools
+return mod

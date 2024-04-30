@@ -6,10 +6,10 @@ local fa_utils = require("fa-utils")
 local fa_trains = require("trains").trains
 local dirs = defines.direction
 
-local fa_driving = {}
+local mod = {}
 
 --Report more info about a vehicle. For trains, this would include the name, ID, and train state.
-function fa_driving.vehicle_info(pindex)
+function mod.vehicle_info(pindex)
    local result = ""
    if not game.get_player(pindex).driving then
       return "Not in a vehicle."
@@ -19,7 +19,7 @@ function fa_driving.vehicle_info(pindex)
    local train = game.get_player(pindex).vehicle.train
    if train == nil then
       --This is a type of car or tank.
-      result = "Driving " .. vehicle.name .. ", " .. fa_driving.fuel_inventory_info(vehicle)
+      result = "Driving " .. vehicle.name .. ", " .. mod.fuel_inventory_info(vehicle)
       --laterdo**: car info: health, ammo contents, trunk contents
       return result
    else
@@ -46,7 +46,7 @@ function fa_driving.vehicle_info(pindex)
 end
 
 --Return fuel content in a fuel inventory
-function fa_driving.fuel_inventory_info(ent)
+function mod.fuel_inventory_info(ent)
    local result = "Contains no fuel."
    local itemset = ent.get_fuel_inventory().get_contents()
    local itemtable = {}
@@ -69,7 +69,7 @@ function fa_driving.fuel_inventory_info(ent)
 end
 
 --Plays an alert depending on the distance to the entity ahead. Returns whether a larger radius check is needed. Driving proximity alert
-function fa_driving.check_and_play_driving_alert_sound(pindex, tick, mode_in)
+function mod.check_and_play_driving_alert_sound(pindex, tick, mode_in)
    for pindex, player in pairs(players) do
       local mode = mode_in or 1
       local p = game.get_player(pindex)
@@ -183,7 +183,7 @@ function fa_driving.check_and_play_driving_alert_sound(pindex, tick, mode_in)
    end
 end
 
-function fa_driving.stop_vehicle(pindex)
+function mod.stop_vehicle(pindex)
    local vehicle = game.get_player(pindex).vehicle
    if vehicle and vehicle.valid then
       if vehicle.train == nil then
@@ -194,7 +194,7 @@ function fa_driving.stop_vehicle(pindex)
    end
 end
 
-function fa_driving.halve_vehicle_speed(pindex)
+function mod.halve_vehicle_speed(pindex)
    local vehicle = game.get_player(pindex).vehicle
    if vehicle and vehicle.valid then
       if vehicle.train == nil then
@@ -206,7 +206,7 @@ function fa_driving.halve_vehicle_speed(pindex)
 end
 
 --Pavement Driving Assist: Read CC state
-function fa_driving.pda_get_state_of_cruise_control(pindex)
+function mod.pda_get_state_of_cruise_control(pindex)
    if remote.interfaces.PDA and remote.interfaces.PDA.get_state_of_cruise_control then
       return remote.call("PDA", "get_state_of_cruise_control",pindex)
    else
@@ -215,7 +215,7 @@ function fa_driving.pda_get_state_of_cruise_control(pindex)
 end
 
 --Pavement Driving Assist: Set CC state
-function fa_driving.pda_set_state_of_cruise_control(pindex,new_state)
+function mod.pda_set_state_of_cruise_control(pindex,new_state)
    if remote.interfaces.PDA and remote.interfaces.PDA.set_state_of_cruise_control then
       remote.call("PDA", "set_state_of_cruise_control",pindex,new_state)
       return 1
@@ -225,7 +225,7 @@ function fa_driving.pda_set_state_of_cruise_control(pindex,new_state)
 end
 
 --Pavement Driving Assist: Read CC speed limit in kmh
-function fa_driving.pda_get_cruise_control_limit(pindex)
+function mod.pda_get_cruise_control_limit(pindex)
    if remote.interfaces.PDA and remote.interfaces.PDA.get_cruise_control_limit then
       return remote.call("PDA", "get_cruise_control_limit",pindex)
    else
@@ -234,7 +234,7 @@ function fa_driving.pda_get_cruise_control_limit(pindex)
 end
 
 --Pavement Driving Assist: Set CC speed limit in kmh
-function fa_driving.pda_set_cruise_control_limit(pindex,new_value)
+function mod.pda_set_cruise_control_limit(pindex,new_value)
    if remote.interfaces.PDA and remote.interfaces.PDA.set_cruise_control_limit then
       remote.call("PDA", "set_cruise_control_limit",pindex,new_value)
       return 1
@@ -244,7 +244,7 @@ function fa_driving.pda_set_cruise_control_limit(pindex,new_value)
 end
 
 --Pavement Driving Assist: Read assistant state
-function fa_driving.pda_get_state_of_driving_assistant(pindex)
+function mod.pda_get_state_of_driving_assistant(pindex)
    if remote.interfaces.PDA and remote.interfaces.PDA.get_state_of_driving_assistant then
       return remote.call("PDA", "get_state_of_driving_assistant",pindex)
    else
@@ -253,7 +253,7 @@ function fa_driving.pda_get_state_of_driving_assistant(pindex)
 end
 
 --Pavement Driving Assist: Set assistant state
-function fa_driving.pda_set_state_of_driving_assistant(pindex,new_state)
+function mod.pda_set_state_of_driving_assistant(pindex,new_state)
    if remote.interfaces.PDA and remote.interfaces.PDA.set_state_of_driving_assistant then
       remote.call("PDA", "set_state_of_driving_assistant",pindex,new_state)
       return 1
@@ -263,9 +263,9 @@ function fa_driving.pda_set_state_of_driving_assistant(pindex,new_state)
 end
 
 --Pavement Driving Assist: Read assistant state after it has been toggled
-function fa_driving.pda_read_assistant_toggled_info(pindex)
+function mod.pda_read_assistant_toggled_info(pindex)
    if game.get_player(pindex).driving then  
-      local is_on = not fa_driving.pda_get_state_of_driving_assistant(pindex)
+      local is_on = not mod.pda_get_state_of_driving_assistant(pindex)
       if is_on == true then 
          printout("Enabled pavement driving asssistant",pindex)
       elseif is_on == false then 
@@ -277,9 +277,9 @@ function fa_driving.pda_read_assistant_toggled_info(pindex)
 end
 
 --Pavement Driving Assist: Read CC state after it has been toggled
-function fa_driving.pda_read_cruise_control_toggled_info(pindex)
+function mod.pda_read_cruise_control_toggled_info(pindex)
    if game.get_player(pindex).driving then 
-      local is_on = not fa_driving.pda_get_state_of_cruise_control(pindex)
+      local is_on = not mod.pda_get_state_of_cruise_control(pindex)
       if is_on == true then
          printout("Enabled cruise control",pindex)
       elseif is_on == false then
@@ -287,8 +287,8 @@ function fa_driving.pda_read_cruise_control_toggled_info(pindex)
       else
          printout("Missing cruise control",pindex)
       end
-      fa_driving.pda_set_cruise_control_limit(pindex,0.16)
+      mod.pda_set_cruise_control_limit(pindex,0.16)
    end
 end
 
-return fa_driving
+return mod

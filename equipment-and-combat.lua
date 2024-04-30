@@ -6,11 +6,11 @@ local fa_electrical = require("electrical")
 local fa_graphics = require("graphics-and-mouse").graphics
 local fa_mouse = require("graphics-and-mouse").mouse
 
-local fa_equipment = {}
-local fa_combat = {}
+local mod_e = {}
+local mod_c = {}
 
 --Tries to equip a stack. For now called only for a stack in hand when the only the inventory is open.
-function fa_equipment.equip_it(stack,pindex)
+function mod_e.equip_it(stack,pindex)
    local message = ""
    if players[pindex].menu == "vehicle" and game.get_player(pindex).opened.type == "spider-vehicle" then
       message = localising.get_alt(game.entity_prototypes["spidertron"]) 
@@ -91,7 +91,7 @@ function fa_equipment.equip_it(stack,pindex)
 		   break
 		 end
 	  end    
-     local slots_left = fa_equipment.count_empty_equipment_slots(grid)
+     local slots_left = mod_e.count_empty_equipment_slots(grid)
 	  if placed ~= nil then
 	    message = message .. " equipped " .. stack.name .. ", " .. slots_left .. " empty slots remaining."
 		 stack.count = stack.count - 1
@@ -114,7 +114,7 @@ function fa_equipment.equip_it(stack,pindex)
 end
 
 --Returns info on weapons and ammo
-function fa_equipment.read_weapons_and_ammo(pindex)
+function mod_e.read_weapons_and_ammo(pindex)
    local guns_inv = game.get_player(pindex).get_inventory(defines.inventory.character_guns)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
    local guns_count  = #guns_inv - guns_inv.count_empty_stacks()
@@ -144,7 +144,7 @@ function fa_equipment.read_weapons_and_ammo(pindex)
 end
 
 --Reload all ammo possible from the inventory. Existing stacks have priority over fuller stacks.
-function fa_equipment.reload_weapons(pindex)
+function mod_e.reload_weapons(pindex)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
    local main_inv = game.get_player(pindex).get_inventory(defines.inventory.character_main)
    local result = ""
@@ -165,7 +165,7 @@ function fa_equipment.reload_weapons(pindex)
 end
 
 --Move all weapons and ammo back to inventory
-function fa_equipment.remove_weapons_and_ammo(pindex)
+function mod_e.remove_weapons_and_ammo(pindex)
    local guns_inv = game.get_player(pindex).get_inventory(defines.inventory.character_guns)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
    local main_inv = game.get_player(pindex).get_inventory(defines.inventory.character_main)
@@ -208,7 +208,7 @@ function fa_equipment.remove_weapons_and_ammo(pindex)
 end
 
 --Temporary safety measure for preventing accidental shooting of atomic bombs
-function fa_equipment.delete_equipped_atomic_bombs(pindex)
+function mod_e.delete_equipped_atomic_bombs(pindex)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
    local main_inv = game.get_player(pindex).get_inventory(defines.inventory.character_main)
    local ammos_count = #ammo_inv - ammo_inv.count_empty_stacks()
@@ -231,7 +231,7 @@ function fa_equipment.delete_equipped_atomic_bombs(pindex)
 end
 
 --Temporary safety measure for preventing accidental shooting of atomic bombs
-function fa_equipment.restore_equipped_atomic_bombs(pindex)
+function mod_e.restore_equipped_atomic_bombs(pindex)
    local guns_inv = game.get_player(pindex).get_inventory(defines.inventory.character_guns)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
    local main_inv = game.get_player(pindex).get_inventory(defines.inventory.character_main)
@@ -251,7 +251,7 @@ function fa_equipment.restore_equipped_atomic_bombs(pindex)
    end
 end
 
-function fa_equipment.count_empty_equipment_slots(grid)
+function mod_e.count_empty_equipment_slots(grid)
     local slots_left = 0
 	for i = 0, grid.width-1, 1 do
 	   for j = 0, grid.height-1, 1 do
@@ -265,7 +265,7 @@ function fa_equipment.count_empty_equipment_slots(grid)
 end
 
 --Read armor stats such as type and bonuses
-function fa_equipment.read_armor_stats(pindex)
+function mod_e.read_armor_stats(pindex)
    local armor_inv = game.get_player(pindex).get_inventory(defines.inventory.character_armor)
    local result = ""
    if armor_inv.is_empty() then
@@ -329,7 +329,7 @@ function fa_equipment.read_armor_stats(pindex)
 end
 
 --List armor equipment
-function fa_equipment.read_equipment_list(pindex)
+function mod_e.read_equipment_list(pindex)
    local armor_inv = game.get_player(pindex).get_inventory(defines.inventory.character_armor)
    local result = ""
    if armor_inv.is_empty() then
@@ -368,13 +368,13 @@ function fa_equipment.read_equipment_list(pindex)
       end
    end
    
-   result = result .. fa_equipment.count_empty_equipment_slots(grid) .. " empty slots remaining "
+   result = result .. mod_e.count_empty_equipment_slots(grid) .. " empty slots remaining "
    
    return result
 end
 
 --Remove all armor equipment and then the armor. laterdo "inv full" checks
-function fa_equipment.remove_equipment_and_armor(pindex)
+function mod_e.remove_equipment_and_armor(pindex)
    local armor_inv = game.get_player(pindex).get_inventory(defines.inventory.character_armor)
    local result = ""
    if armor_inv.is_empty() then
@@ -420,7 +420,7 @@ function fa_equipment.remove_equipment_and_armor(pindex)
 end
 
 --One-click repair pack usage.
-function fa_equipment.repair_pack_used(ent,pindex)
+function mod_e.repair_pack_used(ent,pindex)
    local p = game.get_player(pindex)
    local stack = p.cursor_stack
    --Repair the entity found
@@ -447,7 +447,7 @@ function fa_equipment.repair_pack_used(ent,pindex)
 end
 
 --Tries to repair all relevant entities within a certain distance from the player
-function fa_equipment.repair_area(radius_in,pindex)
+function mod_e.repair_area(radius_in,pindex)
    local p = game.get_player(pindex)
    local stack = p.cursor_stack
    local repaired_count = 0
@@ -516,7 +516,7 @@ function fa_equipment.repair_area(radius_in,pindex)
 end
 
 --Plays enemy proximity alert sounds. Frequency is determined by distance and mode, and intensity is determined by the threat level.
-function fa_combat.check_and_play_enemy_alert_sound(mode_in)
+function mod_c.check_and_play_enemy_alert_sound(mode_in)
    for pindex, player in pairs(players) do
       local mode = mode_in or 1
       local p = game.get_player(pindex)
@@ -579,7 +579,7 @@ function fa_combat.check_and_play_enemy_alert_sound(mode_in)
 end
 
 --Locks the cursor to the nearest enemy within 50 tiles. Also plays a sound if the enemy is within range of the gun in hand.
-function fa_combat.aim_gun_at_nearest_enemy(pindex,enemy_in)
+function mod_c.aim_gun_at_nearest_enemy(pindex,enemy_in)
    local p = game.get_player(pindex)
    if p == nil or p.character == nil or p.character.valid == false then
       return
@@ -632,4 +632,4 @@ function fa_combat.aim_gun_at_nearest_enemy(pindex,enemy_in)
    return true
 end
 
-return {equipment = fa_equipment, combat = fa_combat}
+return {equipment = mod_e, combat = mod_c}

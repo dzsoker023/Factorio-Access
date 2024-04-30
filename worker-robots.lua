@@ -6,7 +6,7 @@ local fa_utils = require('fa-utils')
 local dirs = defines.direction
 local MAX_STACK_COUNT = 10
 
-local fa_bot_logistics = {}
+local mod = {}
 
 --Increments: nil, 1, half-stack, 1 stack, n stacks
 local function increment_logistic_request_min_amount(stack_size, amount_min_in)
@@ -116,7 +116,7 @@ local function logistics_request_toggle_spidertron_logistics(spidertron,pindex)
 end
 
 --Checks if the request for the given item is fulfilled. You can pass the personal logistics request slot index if you have it already
-function fa_bot_logistics.is_this_player_logistic_request_fulfilled(item_stack,pindex,slot_index_in)
+function mod.is_this_player_logistic_request_fulfilled(item_stack,pindex,slot_index_in)
    local result = false
    local slot_index = slot_index_in or nil
    --todo**
@@ -124,7 +124,7 @@ function fa_bot_logistics.is_this_player_logistic_request_fulfilled(item_stack,p
 end
 
 --Returns info string on the current logistics network, or the nearest one, for the current position
-function fa_bot_logistics.logistics_networks_info(ent,pos_in)
+function mod.logistics_networks_info(ent,pos_in)
    local result = ""
    local result_code = -1
    local network = nil
@@ -282,7 +282,7 @@ local function player_logistic_request_increment_min(item_stack,pindex)
    end
    
    --Read new status
-   fa_bot_logistics.player_logistic_request_read(item_stack,pindex,false)
+   mod.player_logistic_request_read(item_stack,pindex,false)
 end
 
 local function player_logistic_request_decrement_min(item_stack,pindex)
@@ -327,7 +327,7 @@ local function player_logistic_request_decrement_min(item_stack,pindex)
    end
    
    --Read new status
-   fa_bot_logistics.player_logistic_request_read(item_stack,pindex)
+   mod.player_logistic_request_read(item_stack,pindex)
 end
 
 local function player_logistic_request_increment_max(item_stack,pindex)
@@ -372,7 +372,7 @@ local function player_logistic_request_increment_max(item_stack,pindex)
    end
    
    --Read new status
-   fa_bot_logistics.player_logistic_request_read(item_stack,pindex)
+   mod.player_logistic_request_read(item_stack,pindex)
 end
 
 local function player_logistic_request_decrement_max(item_stack,pindex)
@@ -417,7 +417,7 @@ local function player_logistic_request_decrement_max(item_stack,pindex)
    end
    
    --Read new status
-   fa_bot_logistics.player_logistic_request_read(item_stack,pindex,false)
+   mod.player_logistic_request_read(item_stack,pindex,false)
 end
 
 --Finds or assigns the logistic request slot for the item, for chests or vehicles 
@@ -502,7 +502,7 @@ local function chest_logistic_request_increment_min(item_stack,chest,pindex)
    end
    
    --Read new status
-   fa_bot_logistics.chest_logistic_request_read(item_stack,chest,pindex)
+   mod.chest_logistic_request_read(item_stack,chest,pindex)
 end
 
 --Decrements min value
@@ -546,7 +546,7 @@ local function chest_logistic_request_decrement_min(item_stack,chest, pindex)
    end
    
    --Read new status
-   fa_bot_logistics.chest_logistic_request_read(item_stack,chest,pindex)
+   mod.chest_logistic_request_read(item_stack,chest,pindex)
 end
 
 local function spidertron_logistic_request_increment_min(item_stack,spidertron,pindex)
@@ -590,7 +590,7 @@ local function spidertron_logistic_request_increment_min(item_stack,spidertron,p
    end
    
    --Read new status
-   fa_bot_logistics.spidertron_logistic_request_read(item_stack,spidertron,pindex,false)
+   mod.spidertron_logistic_request_read(item_stack,spidertron,pindex,false)
 end
 
 local function spidertron_logistic_request_decrement_min(item_stack,spidertron,pindex)
@@ -634,7 +634,7 @@ local function spidertron_logistic_request_decrement_min(item_stack,spidertron,p
    end
    
    --Read new status
-   fa_bot_logistics.spidertron_logistic_request_read(item_stack,spidertron,pindex,false)
+   mod.spidertron_logistic_request_read(item_stack,spidertron,pindex,false)
 end
 
 local function spidertron_logistic_request_increment_max(item_stack,spidertron,pindex)
@@ -678,7 +678,7 @@ local function spidertron_logistic_request_increment_max(item_stack,spidertron,p
    end
    
    --Read new status
-   fa_bot_logistics.spidertron_logistic_request_read(item_stack,spidertron,pindex,false)
+   mod.spidertron_logistic_request_read(item_stack,spidertron,pindex,false)
 end
 
 local function spidertron_logistic_request_decrement_max(item_stack,spidertron,pindex)
@@ -722,11 +722,11 @@ local function spidertron_logistic_request_decrement_max(item_stack,spidertron,p
    end
    
    --Read new status
-   fa_bot_logistics.spidertron_logistic_request_read(item_stack,spidertron,pindex,false)
+   mod.spidertron_logistic_request_read(item_stack,spidertron,pindex,false)
 end
 
 --Calls the appropriate function after a keypress for logistic info 
-function fa_bot_logistics.logistics_info_key_handler(pindex)
+function mod.logistics_info_key_handler(pindex)
    if players[pindex].in_menu == false or players[pindex].menu == "inventory" then
       --Personal logistics
       local stack = game.get_player(pindex).cursor_stack
@@ -734,17 +734,17 @@ function fa_bot_logistics.logistics_info_key_handler(pindex)
       --Check item in hand or item in inventory
       if stack and stack.valid_for_read and stack.valid then
          --Item in hand
-         fa_bot_logistics.player_logistic_request_read(stack,pindex,true)
+         mod.player_logistic_request_read(stack,pindex,true)
       elseif players[pindex].menu == "inventory" and stack_inv and stack_inv.valid_for_read and stack_inv.valid then
          --Item in inv
-         fa_bot_logistics.player_logistic_request_read(stack_inv,pindex,true)
+         mod.player_logistic_request_read(stack_inv,pindex,true)
       else
          --Logistic chest in front
          local ent = get_selected_ent(pindex)
-         if fa_bot_logistics.can_make_logistic_requests(ent) then
-            fa_bot_logistics.read_entity_requests_summary(ent,pindex)
+         if mod.can_make_logistic_requests(ent) then
+            mod.read_entity_requests_summary(ent,pindex)
             return
-         elseif fa_bot_logistics.can_set_logistic_filter(ent) then
+         elseif mod.can_set_logistic_filter(ent) then
             local filter = ent.storage_filter
             local result = "Nothing"
             if filter ~= nil then
@@ -754,10 +754,10 @@ function fa_bot_logistics.logistics_info_key_handler(pindex)
             return
          end
          --Empty hand and empty inventory slot
-         local result = fa_bot_logistics.player_logistic_requests_summary_info(pindex)
+         local result = mod.player_logistic_requests_summary_info(pindex)
          printout(result,pindex)
       end
-   elseif players[pindex].menu == "building" and fa_bot_logistics.can_make_logistic_requests(game.get_player(pindex).opened) then
+   elseif players[pindex].menu == "building" and mod.can_make_logistic_requests(game.get_player(pindex).opened) then
       --Chest logistics
       local stack = game.get_player(pindex).cursor_stack
       local stack_inv = game.get_player(pindex).opened.get_output_inventory()[players[pindex].building.index]
@@ -765,15 +765,15 @@ function fa_bot_logistics.logistics_info_key_handler(pindex)
       --Check item in hand or item in inventory
       if stack ~= nil and stack.valid_for_read and stack.valid then
          --Item in hand
-         fa_bot_logistics.chest_logistic_request_read(stack, chest, pindex)
+         mod.chest_logistic_request_read(stack, chest, pindex)
       elseif stack_inv ~= nil and stack_inv.valid_for_read and stack_inv.valid then
          --Item in output inv
-         fa_bot_logistics.chest_logistic_request_read(stack_inv, chest, pindex)
+         mod.chest_logistic_request_read(stack_inv, chest, pindex)
       else
          --Empty hand, empty inventory slot
-         fa_bot_logistics.read_entity_requests_summary(chest,pindex)
+         mod.read_entity_requests_summary(chest,pindex)
       end
-   elseif players[pindex].menu == "vehicle" and fa_bot_logistics.can_make_logistic_requests(game.get_player(pindex).opened) then
+   elseif players[pindex].menu == "vehicle" and mod.can_make_logistic_requests(game.get_player(pindex).opened) then
       --spidertron logistics
       local stack = game.get_player(pindex).cursor_stack
       local invs = defines.inventory
@@ -782,15 +782,15 @@ function fa_bot_logistics.logistics_info_key_handler(pindex)
       --Check item in hand or item in inventory
       if stack ~= nil and stack.valid_for_read and stack.valid then
          --Item in hand
-         fa_bot_logistics.spidertron_logistic_request_read(stack, spidertron, pindex, true)
+         mod.spidertron_logistic_request_read(stack, spidertron, pindex, true)
       elseif stack_inv ~= nil and stack_inv.valid_for_read and stack_inv.valid then
          --Item in output inv
-         fa_bot_logistics.spidertron_logistic_request_read(stack_inv, spidertron, pindex, true)
+         mod.spidertron_logistic_request_read(stack_inv, spidertron, pindex, true)
       else
          --Empty hand, empty inventory slot
-         fa_bot_logistics.read_entity_requests_summary(spidertron,pindex)      
+         mod.read_entity_requests_summary(spidertron,pindex)      
 end
-   elseif players[pindex].menu == "building" and fa_bot_logistics.can_set_logistic_filter(game.get_player(pindex).opened) then
+   elseif players[pindex].menu == "building" and mod.can_set_logistic_filter(game.get_player(pindex).opened) then
       local filter = game.get_player(pindex).opened.storage_filter
       local result = "Nothing"
       if filter ~= nil then
@@ -805,7 +805,7 @@ end
 end
 
 --Call the appropriate function after a keypress for modifying a logistic request
-function fa_bot_logistics.logistics_request_increment_min_handler(pindex)
+function mod.logistics_request_increment_min_handler(pindex)
    if not players[pindex].in_menu or players[pindex].menu == "inventory" then
       --Personal logistics
       local stack = game.get_player(pindex).cursor_stack
@@ -821,7 +821,7 @@ function fa_bot_logistics.logistics_request_increment_min_handler(pindex)
          --Empty hand, empty inventory slot
          --(do nothing)
       end
-   elseif players[pindex].menu == "building" and fa_bot_logistics.can_make_logistic_requests(game.get_player(pindex).opened) then
+   elseif players[pindex].menu == "building" and mod.can_make_logistic_requests(game.get_player(pindex).opened) then
       --Chest logistics
       local stack = game.get_player(pindex).cursor_stack
       local stack_inv = game.get_player(pindex).opened.get_output_inventory()[players[pindex].building.index]
@@ -837,7 +837,7 @@ function fa_bot_logistics.logistics_request_increment_min_handler(pindex)
          --Empty hand, empty inventory slot
          printout("No actions",pindex)
       end
-   elseif players[pindex].menu == "vehicle" and fa_bot_logistics.can_make_logistic_requests(game.get_player(pindex).opened) then
+   elseif players[pindex].menu == "vehicle" and mod.can_make_logistic_requests(game.get_player(pindex).opened) then
       --spidertron logistics
       local stack = game.get_player(pindex).cursor_stack
       local invs = defines.inventory
@@ -854,7 +854,7 @@ function fa_bot_logistics.logistics_request_increment_min_handler(pindex)
          --Empty hand, empty inventory slot
          printout("No actions",pindex)
       end
-   elseif players[pindex].menu == "building" and fa_bot_logistics.can_set_logistic_filter(game.get_player(pindex).opened) then
+   elseif players[pindex].menu == "building" and mod.can_set_logistic_filter(game.get_player(pindex).opened) then
       --Chest logistics
       local stack = game.get_player(pindex).cursor_stack
       local stack_inv = game.get_player(pindex).opened.get_output_inventory()[players[pindex].building.index]
@@ -862,13 +862,13 @@ function fa_bot_logistics.logistics_request_increment_min_handler(pindex)
       --Check item in hand or item in inventory
       if stack ~= nil and stack.valid_for_read and stack.valid then
          --Item in hand
-         fa_bot_logistics.set_logistic_filter(stack, chest, pindex)
+         mod.set_logistic_filter(stack, chest, pindex)
       elseif stack_inv ~= nil and stack_inv.valid_for_read and stack_inv.valid then
          --Item in output inv
-         fa_bot_logistics.set_logistic_filter(stack_inv, chest, pindex)
+         mod.set_logistic_filter(stack_inv, chest, pindex)
       else
          --Empty hand, empty inventory slot
-         fa_bot_logistics.set_logistic_filter(nil, chest, pindex)
+         mod.set_logistic_filter(nil, chest, pindex)
       end
    elseif players[pindex].menu == "building" then
       printout("Logistic requests not supported for this building",pindex)
@@ -879,7 +879,7 @@ function fa_bot_logistics.logistics_request_increment_min_handler(pindex)
 end
 
 --Call the appropriate function after a keypress for modifying a logistic request
-function fa_bot_logistics.logistics_request_decrement_min_handler(pindex)
+function mod.logistics_request_decrement_min_handler(pindex)
    if not players[pindex].in_menu or players[pindex].menu == "inventory" then
       --Personal logistics
       local stack = game.get_player(pindex).cursor_stack
@@ -895,7 +895,7 @@ function fa_bot_logistics.logistics_request_decrement_min_handler(pindex)
          --Empty hand, empty inventory slot
          --(do nothing)
       end
-   elseif players[pindex].menu == "building" and fa_bot_logistics.can_make_logistic_requests(game.get_player(pindex).opened) then
+   elseif players[pindex].menu == "building" and mod.can_make_logistic_requests(game.get_player(pindex).opened) then
       --Chest logistics
       local stack = game.get_player(pindex).cursor_stack
       local stack_inv = game.get_player(pindex).opened.get_output_inventory()[players[pindex].building.index]
@@ -911,7 +911,7 @@ function fa_bot_logistics.logistics_request_decrement_min_handler(pindex)
          --Empty hand, empty inventory slot
          printout("No actions",pindex)
       end
-   elseif players[pindex].menu == "vehicle" and fa_bot_logistics.can_make_logistic_requests(game.get_player(pindex).opened) then
+   elseif players[pindex].menu == "vehicle" and mod.can_make_logistic_requests(game.get_player(pindex).opened) then
       --spidertron logistics
       local stack = game.get_player(pindex).cursor_stack
       local invs = defines.inventory
@@ -928,7 +928,7 @@ function fa_bot_logistics.logistics_request_decrement_min_handler(pindex)
          --Empty hand, empty inventory slot
          printout("No actions",pindex)
       end
-   elseif players[pindex].menu == "building" and fa_bot_logistics.can_set_logistic_filter(game.get_player(pindex).opened) then
+   elseif players[pindex].menu == "building" and mod.can_set_logistic_filter(game.get_player(pindex).opened) then
       --Chest logistics
       local stack = game.get_player(pindex).cursor_stack
       local stack_inv = game.get_player(pindex).opened.get_output_inventory()[players[pindex].building.index]
@@ -936,13 +936,13 @@ function fa_bot_logistics.logistics_request_decrement_min_handler(pindex)
       --Check item in hand or item in inventory
       if stack ~= nil and stack.valid_for_read and stack.valid then
          --Item in hand
-         fa_bot_logistics.set_logistic_filter(stack, chest, pindex)
+         mod.set_logistic_filter(stack, chest, pindex)
       elseif stack_inv ~= nil and stack_inv.valid_for_read and stack_inv.valid then
          --Item in output inv
-         fa_bot_logistics.set_logistic_filter(stack, chest, pindex)
+         mod.set_logistic_filter(stack, chest, pindex)
       else
          --Empty hand, empty inventory slot
-         fa_bot_logistics.set_logistic_filter(nil, chest, pindex)
+         mod.set_logistic_filter(nil, chest, pindex)
       end
    elseif players[pindex].menu == "building" then
       printout("Logistic requests not supported for this building",pindex)
@@ -953,7 +953,7 @@ function fa_bot_logistics.logistics_request_decrement_min_handler(pindex)
 end
 
 --Call the appropriate function after a keypress for modifying a logistic request
-function fa_bot_logistics.logistics_request_increment_max_handler(pindex)
+function mod.logistics_request_increment_max_handler(pindex)
    if not players[pindex].in_menu or players[pindex].menu == "inventory" then
       --Personal logistics
       local stack = game.get_player(pindex).cursor_stack
@@ -969,7 +969,7 @@ function fa_bot_logistics.logistics_request_increment_max_handler(pindex)
          --Empty hand, empty inventory slot
          --(do nothing)
       end
-   elseif players[pindex].menu == "vehicle" and fa_bot_logistics.can_make_logistic_requests(game.get_player(pindex).opened) then
+   elseif players[pindex].menu == "vehicle" and mod.can_make_logistic_requests(game.get_player(pindex).opened) then
       --spidertron logistics
       local stack = game.get_player(pindex).cursor_stack
       local invs = defines.inventory
@@ -993,7 +993,7 @@ function fa_bot_logistics.logistics_request_increment_max_handler(pindex)
 end
 
 --Call the appropriate function after a keypress for modifying a logistic request
-function fa_bot_logistics.logistics_request_decrement_max_handler(pindex)
+function mod.logistics_request_decrement_max_handler(pindex)
    if not players[pindex].in_menu or players[pindex].menu == "inventory" then
       --Personal logistics
       local stack = game.get_player(pindex).cursor_stack
@@ -1009,7 +1009,7 @@ function fa_bot_logistics.logistics_request_decrement_max_handler(pindex)
          --Empty hand, empty inventory slot
          --(do nothing)
       end
-   elseif players[pindex].menu == "vehicle" and fa_bot_logistics.can_make_logistic_requests(game.get_player(pindex).opened) then
+   elseif players[pindex].menu == "vehicle" and mod.can_make_logistic_requests(game.get_player(pindex).opened) then
       --spidertron logistics
       local stack = game.get_player(pindex).cursor_stack
       local invs = defines.inventory
@@ -1033,17 +1033,17 @@ function fa_bot_logistics.logistics_request_decrement_max_handler(pindex)
 end
 
 --Call the appropriate function after a keypress for modifying a logistic request
-function fa_bot_logistics.logistics_request_toggle_handler(pindex)
+function mod.logistics_request_toggle_handler(pindex)
    local ent = game.get_player(pindex).opened
    if not players[pindex].in_menu or players[pindex].menu == "inventory" then
       --Player: Toggle enabling requests
       logistics_request_toggle_personal_logistics(pindex)
-   elseif players[pindex].menu == "vehicle" and fa_bot_logistics.can_make_logistic_requests(ent) then
+   elseif players[pindex].menu == "vehicle" and mod.can_make_logistic_requests(ent) then
       --Vehicles: Toggle enabling requests
       logistics_request_toggle_spidertron_logistics(ent, pindex)
    elseif players[pindex].menu == "building" then
       --Requester chests: Toggle requesting from buffers
-      if fa_bot_logistics.can_make_logistic_requests(ent) then
+      if mod.can_make_logistic_requests(ent) then
          ent.request_from_buffers = not ent.request_from_buffers
       else
          return 
@@ -1057,7 +1057,7 @@ function fa_bot_logistics.logistics_request_toggle_handler(pindex)
 end
 
 --Returns summary info string
-function fa_bot_logistics.player_logistic_requests_summary_info(pindex)
+function mod.player_logistic_requests_summary_info(pindex)
    --***todo improve: "y of z personal logistic requests fulfilled, x items in trash, missing items include [3], take an item in hand and press L to check its request status." maybe use logistics_networks_info(ent,pos_in)
    local p = game.get_player(pindex)
    local current_slot = nil
@@ -1099,7 +1099,7 @@ function fa_bot_logistics.player_logistic_requests_summary_info(pindex)
 end
 
 --Read the current personal logistics request set for this item
-function fa_bot_logistics.player_logistic_request_read(item_stack,pindex,additional_checks)
+function mod.player_logistic_request_read(item_stack,pindex,additional_checks)
    local p = game.get_player(pindex)
    local current_slot = nil
    local correct_slot_id = nil
@@ -1173,7 +1173,7 @@ function fa_bot_logistics.player_logistic_request_read(item_stack,pindex,additio
 end
 
 --Read the chest's current logistics request set for this item
-function fa_bot_logistics.chest_logistic_request_read(item_stack,chest,pindex)
+function mod.chest_logistic_request_read(item_stack,chest,pindex)
    local current_slot = nil
    local correct_slot_id = nil
    local result = ""
@@ -1220,7 +1220,7 @@ function fa_bot_logistics.chest_logistic_request_read(item_stack,chest,pindex)
    end
 end
 
-function fa_bot_logistics.send_selected_stack_to_logistic_trash(pindex)
+function mod.send_selected_stack_to_logistic_trash(pindex)
    local p = game.get_player(pindex)
    local stack = p.cursor_stack
    --Check cursor stack 
@@ -1244,7 +1244,7 @@ function fa_bot_logistics.send_selected_stack_to_logistic_trash(pindex)
    end
 end
 
-function fa_bot_logistics.spidertron_logistic_requests_summary_info(spidertron,pindex)
+function mod.spidertron_logistic_requests_summary_info(spidertron,pindex)
    --***todo improve: "y of z personal logistic requests fulfilled, x items in trash, missing items include [3], take an item in hand and press L to check its request status." maybe use logistics_networks_info(ent,pos_in)
    local p = game.get_player(pindex)
    local current_slot = nil
@@ -1286,7 +1286,7 @@ function fa_bot_logistics.spidertron_logistic_requests_summary_info(spidertron,p
 end
 
 --Read the current spidertron's logistics request set for this item
-function fa_bot_logistics.spidertron_logistic_request_read(item_stack,spidertron,pindex,additional_checks)
+function mod.spidertron_logistic_request_read(item_stack,spidertron,pindex,additional_checks)
    local current_slot = nil
    local correct_slot_id = nil
    local result = ""
@@ -1359,7 +1359,7 @@ function fa_bot_logistics.spidertron_logistic_request_read(item_stack,spidertron
 end
 
 --Logistic requests can be made by chests or spidertrons
-function fa_bot_logistics.can_make_logistic_requests(ent)
+function mod.can_make_logistic_requests(ent)
    if ent == nil or ent.valid == false then
       return false
    end
@@ -1378,7 +1378,7 @@ function fa_bot_logistics.can_make_logistic_requests(ent)
 end
 
 --Logistic filters are set by storage chests
-function fa_bot_logistics.can_set_logistic_filter(ent)
+function mod.can_set_logistic_filter(ent)
    if ent == nil or ent.valid == false then
       return false
    end
@@ -1393,7 +1393,7 @@ function fa_bot_logistics.can_set_logistic_filter(ent)
    end
 end
 
-function fa_bot_logistics.set_logistic_filter(stack, ent, pindex)
+function mod.set_logistic_filter(stack, ent, pindex)
    if stack == nil or stack.valid_for_read == false then
       ent.storage_filter = nil
       printout("logistic storage filter cleared",pindex)
@@ -1409,7 +1409,7 @@ function fa_bot_logistics.set_logistic_filter(stack, ent, pindex)
    end
 end
 
-function fa_bot_logistics.read_entity_requests_summary(ent,pindex)--**laterdo improve
+function mod.read_entity_requests_summary(ent,pindex)--**laterdo improve
    if ent.type == "spider-vehicle" then
       printout(ent.request_slot_count .. " spidertron logistic requests set", pindex)
    else
@@ -1420,13 +1420,13 @@ end
 --laterdo** maybe use surf.find_closest_logistic_network_by_position(position, force)
 
 --The idea is that every roboport of the network has the same backer name and this is the networks's name.
-function fa_bot_logistics.get_network_name(port)
-   fa_bot_logistics.resolve_network_name(port)
+function mod.get_network_name(port)
+   mod.resolve_network_name(port)
    return port.backer_name
 end
 
 --Sets a logistic network's name. The idea is that every roboport of the network has the same backer name and this is the networks's name.
-function fa_bot_logistics.set_network_name(port,new_name)
+function mod.set_network_name(port,new_name)
    --Rename this port
    if new_name == nil or new_name == "" then
       return false
@@ -1450,7 +1450,7 @@ function fa_bot_logistics.set_network_name(port,new_name)
 end
 
 --Finds the oldest roboport and applies its name across the network. Any built roboport will be newer and so the older names will be kept.
-function fa_bot_logistics.resolve_network_name(port_in)
+function mod.resolve_network_name(port_in)
    local oldest_port = port_in
    local nw = oldest_port.logistic_network
    --No network means resolved
@@ -1466,7 +1466,7 @@ function fa_bot_logistics.resolve_network_name(port_in)
       end
    end
    --Rename all
-   fa_bot_logistics.set_network_name(oldest_port, oldest_port.backer_name)
+   mod.set_network_name(oldest_port, oldest_port.backer_name)
    return 
 end
 
@@ -1481,7 +1481,7 @@ end
 
    This menu opens when you click on a roboport.
 ]]
-function fa_bot_logistics.run_roboport_menu(menu_index, pindex, clicked)
+function mod.run_roboport_menu(menu_index, pindex, clicked)
    local index = menu_index
    local port = nil
    local ent = get_selected_ent(pindex)
@@ -1500,7 +1500,7 @@ function fa_bot_logistics.run_roboport_menu(menu_index, pindex, clicked)
    
    if index == 0 then
       --0. Roboport of logistic network NAME, instructions
-      printout("Roboport of logistic network ".. fa_bot_logistics.get_network_name(port)
+      printout("Roboport of logistic network ".. mod.get_network_name(port)
       .. ", Press 'W' and 'S' to navigate options, press 'LEFT BRACKET' to select an option or press 'E' to exit this menu.", pindex)
    elseif index == 1 then
       --1. Rename roboport networks
@@ -1522,7 +1522,7 @@ function fa_bot_logistics.run_roboport_menu(menu_index, pindex, clicked)
       if not clicked then
          printout("Read roboport neighbours", pindex)
       else
-         local result = fa_bot_logistics.roboport_neighbours_info(port)
+         local result = mod.roboport_neighbours_info(port)
          printout(result, pindex)
       end
    elseif index == 3 then
@@ -1530,7 +1530,7 @@ function fa_bot_logistics.run_roboport_menu(menu_index, pindex, clicked)
       if not clicked then
          printout("Read roboport contents", pindex)
       else
-         local result = fa_bot_logistics.roboport_contents_info(port)
+         local result = mod.roboport_contents_info(port)
          printout(result, pindex)
       end
    elseif index == 4 then
@@ -1539,7 +1539,7 @@ function fa_bot_logistics.run_roboport_menu(menu_index, pindex, clicked)
          printout("Read robots info for the network", pindex)
       else
          if nw ~= nil then
-            local result = fa_bot_logistics.logistic_network_members_info(port)
+            local result = mod.logistic_network_members_info(port)
             printout(result, pindex)
          else
             printout("Error: No network", pindex)
@@ -1551,7 +1551,7 @@ function fa_bot_logistics.run_roboport_menu(menu_index, pindex, clicked)
          printout("Read chests info for the network", pindex)
       else
          if nw ~= nil then
-            local result = fa_bot_logistics.logistic_network_chests_info(port)
+            local result = mod.logistic_network_chests_info(port)
             printout(result, pindex)
          else
             printout("Error: No network", pindex)
@@ -1563,7 +1563,7 @@ function fa_bot_logistics.run_roboport_menu(menu_index, pindex, clicked)
          printout("Read items info for the network", pindex)
       else
          if nw ~= nil then
-            local result = fa_bot_logistics.logistic_network_items_info(port)
+            local result = mod.logistic_network_items_info(port)
             printout(result, pindex)
          else
             printout("Error: No network", pindex)
@@ -1573,7 +1573,7 @@ function fa_bot_logistics.run_roboport_menu(menu_index, pindex, clicked)
 end
 ROBOPORT_MENU_LENGTH = 6
 
-function fa_bot_logistics.roboport_menu_open(pindex)
+function mod.roboport_menu_open(pindex)
    if players[pindex].vanilla_mode then
       return 
    end
@@ -1593,10 +1593,10 @@ function fa_bot_logistics.roboport_menu_open(pindex)
    game.get_player(pindex).play_sound{path = "Open-Inventory-Sound"}
    
    --Load menu 
-   fa_bot_logistics.run_roboport_menu(players[pindex].roboport_menu.index, pindex, false)
+   mod.run_roboport_menu(players[pindex].roboport_menu.index, pindex, false)
 end
 
-function fa_bot_logistics.roboport_menu_close(pindex, mute_in)
+function mod.roboport_menu_close(pindex, mute_in)
    local mute = mute_in
    --Set the player menu tracker to none
    players[pindex].menu = "none"
@@ -1620,7 +1620,7 @@ function fa_bot_logistics.roboport_menu_close(pindex, mute_in)
    end
 end
 
-function fa_bot_logistics.roboport_menu_up(pindex)
+function mod.roboport_menu_up(pindex)
    players[pindex].roboport_menu.index = players[pindex].roboport_menu.index - 1
    if players[pindex].roboport_menu.index < 0 then
       players[pindex].roboport_menu.index = 0
@@ -1630,10 +1630,10 @@ function fa_bot_logistics.roboport_menu_up(pindex)
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
    end
    --Load menu
-   fa_bot_logistics.run_roboport_menu(players[pindex].roboport_menu.index, pindex, false)
+   mod.run_roboport_menu(players[pindex].roboport_menu.index, pindex, false)
 end
 
-function fa_bot_logistics.roboport_menu_down(pindex)
+function mod.roboport_menu_down(pindex)
    players[pindex].roboport_menu.index = players[pindex].roboport_menu.index + 1
    if players[pindex].roboport_menu.index > ROBOPORT_MENU_LENGTH then
       players[pindex].roboport_menu.index = ROBOPORT_MENU_LENGTH
@@ -1643,10 +1643,10 @@ function fa_bot_logistics.roboport_menu_down(pindex)
       game.get_player(pindex).play_sound{path = "Inventory-Move"}
    end
    --Load menu
-   fa_bot_logistics.run_roboport_menu(players[pindex].roboport_menu.index, pindex, false)
+   mod.run_roboport_menu(players[pindex].roboport_menu.index, pindex, false)
 end
 
-function fa_bot_logistics.roboport_contents_info(port)
+function mod.roboport_contents_info(port)
    local result = ""
    local cell = port.logistic_cell
    result = result .. " charging " .. cell.charging_robot_count .. " robots with " .. cell.to_charge_robot_count .. " in queue, " .. 
@@ -1655,7 +1655,7 @@ function fa_bot_logistics.roboport_contents_info(port)
    return result
 end
 
-function fa_bot_logistics.roboport_neighbours_info(port)
+function mod.roboport_neighbours_info(port)
    local result = ""
    local cell = port.logistic_cell
    local neighbour_count = #cell.neighbours
@@ -1676,7 +1676,7 @@ function fa_bot_logistics.roboport_neighbours_info(port)
    return result
 end
 
-function fa_bot_logistics.logistic_network_members_info(port)
+function mod.logistic_network_members_info(port)
    local result = ""
    local cell = port.logistic_cell
    local nw = cell.logistic_network
@@ -1688,7 +1688,7 @@ function fa_bot_logistics.logistic_network_members_info(port)
    return result
 end
 
-function fa_bot_logistics.logistic_network_chests_info(port)
+function mod.logistic_network_chests_info(port)
    local result = ""
    local cell = port.logistic_cell
    local nw = cell.logistic_network
@@ -1732,7 +1732,7 @@ function fa_bot_logistics.logistic_network_chests_info(port)
    return result
 end
 
-function fa_bot_logistics.logistic_network_items_info(port)
+function mod.logistic_network_items_info(port)
    local result = " Network "
    local nw = port.logistic_cell.logistic_network
    if nw == nil or nw.valid == false then
@@ -1772,4 +1772,4 @@ end
 
 --laterdo full personal logistics menu where you can go line by line along requests and edit them, iterate through trash?
 
-return fa_bot_logistics
+return mod

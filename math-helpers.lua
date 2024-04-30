@@ -5,7 +5,7 @@ These are pure functions: no side effects, and return the same value out for the
 same values in.
 ]]
 
-local _m = {}
+local mod = {}
 
 --[[
 Computes a 1-based modulus.
@@ -18,8 +18,8 @@ in a zero-based language, but offset so that it works with lua tables.
 
 E.g. given 1, 2, 3, 4, 5,  6, and mod1(i, 3), you get 1, 2, 3, 1, 2, 3
 ]]
-function _m.mod1(index, length)
+function mod.mod1(index, length)
    return ((index - 1) % length) + 1
 end
 
-return _m
+return mod

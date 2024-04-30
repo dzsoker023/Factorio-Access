@@ -1,8 +1,8 @@
 --Here: mining functions, such as obstacle clearing
 
-local fa_mining_tools = {}
+local mod = {}
 
-function fa_mining_tools.play_mining_sound(pindex)
+function mod.play_mining_sound(pindex)
    local player= game.players[pindex]
    --game.print("1",{volume_modifier=0})--
    if player and player.mining_state.mining and player.selected and player.selected.valid then
@@ -18,7 +18,7 @@ function fa_mining_tools.play_mining_sound(pindex)
 end
 
 --Mines an entity with the right sound
-function fa_mining_tools.try_to_mine_with_soun(ent,pindex)
+function mod.try_to_mine_with_soun(ent,pindex)
    if ent ~= nil and ent.valid and ((ent.destructible and ent.type ~= "resource") or ent.name == "item-on-ground") then
 	 local ent_name = ent.name
 	 if game.get_player(pindex).mine_entity(ent,false) and game.is_valid_sound_path("entity-mined/" .. ent_name) then
@@ -31,7 +31,7 @@ function fa_mining_tools.try_to_mine_with_soun(ent,pindex)
 end
 
 --Mines all trees and rocks and ground items in a selected circular area. Useful when placing structures. Forces mining. laterdo add deleting stumps maybe but they do fade away eventually 
-function fa_mining_tools.clear_obstacles_in_circle(position, radius, pindex)
+function mod.clear_obstacles_in_circle(position, radius, pindex)
    local surf = game.get_player(pindex).surface
    local comment = ""
    local trees_cleared = 0
@@ -86,7 +86,7 @@ function fa_mining_tools.clear_obstacles_in_circle(position, radius, pindex)
 end
 
 --Same as function above for a circle, but the area is defined differently
-function fa_mining_tools.clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
+function mod.clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
    local surf = game.get_player(pindex).surface
    local comment = ""
    local trees_cleared = 0
@@ -146,4 +146,4 @@ function fa_mining_tools.clear_obstacles_in_rectangle(left_top, right_bottom, pi
    return (trees_cleared + rocks_cleared + remnants_cleared + ground_items_cleared), comment
 end
 
-return fa_mining_tools
+return mod

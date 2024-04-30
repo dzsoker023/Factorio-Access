@@ -5,7 +5,7 @@ local fa_crafting = require("crafting")
 local localising = require('localising')
 local fa_sectors = require("building-vehicle-sectors")
 
-local fa_menu_search = {}
+local mod = {}
 
 --Returns the index for the next inventory item to match the search term, for any lua inventory
 local function inventory_find_index_of_next_name_match(inv,index,str,pindex)
@@ -207,7 +207,7 @@ local function prototypes_find_index_of_next_name_match(array,index,str,pindex)
 end
 
 --Allows searching a menu that has support written for this
-function fa_menu_search.open_search_box(pindex)
+function mod.open_search_box(pindex)
    --Only allow "inventory" and "building" menus for now
    if not players[pindex].in_menu then
       printout("This menu does not support searching.",pindex)
@@ -239,7 +239,7 @@ function fa_menu_search.open_search_box(pindex)
 end
 
 --Reads out the next inventory/menu item to match the search term. Used in all searchable menus.
-function fa_menu_search.fetch_next(pindex, str, start_phrase_in)
+function mod.fetch_next(pindex, str, start_phrase_in)
    --Only allow "inventory" and "building" menus for now
    if not players[pindex].in_menu then
       printout("This menu does not support searching.",pindex)
@@ -424,7 +424,7 @@ function fa_menu_search.fetch_next(pindex, str, start_phrase_in)
 end
 
 --Reads out the last inventory/menu item to match the search term. Used only in some menus.
-function fa_menu_search.fetch_last(pindex,str)
+function mod.fetch_last(pindex,str)
    --Only allow "inventory" and "building" menus for now
    if not players[pindex].in_menu then
       printout("This menu does not support searching backwards.",pindex)
@@ -476,4 +476,4 @@ function fa_menu_search.fetch_last(pindex,str)
    end
 end
 
-return fa_menu_search
+return mod
