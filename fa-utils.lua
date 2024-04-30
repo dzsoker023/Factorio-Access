@@ -175,7 +175,9 @@ function mod.direction_lookup(dir)
    if dir >= dirs.north and dir <= dirs.northwest then
       return game.direction_to_string(dir)
    else
-      if dir == 99 then --Defined by mod 
+      if dir == 8 then --Returned by the game when there is no direction in particular
+         reading = ""
+      elseif dir == 99 then --Defined by mod 
          reading = "Here"
       else
          reading = "unknown direction ID " .. dir
