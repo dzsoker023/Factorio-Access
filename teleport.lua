@@ -1,7 +1,7 @@
 --Here: teleporting
 local fa_utils = require("fa-utils")
-local fa_graphics = require("graphics-and-mouse").graphics
-local fa_mouse = require("graphics-and-mouse").mouse
+local fa_graphics = require("graphics")
+local fa_mouse = require("mouse")
 
 local mod = {}
 
