@@ -4,8 +4,8 @@ local fa_utils = require('fa-utils')
 local fa_localising = require('localising')
 local fa_crafting = require("crafting")
 local fa_electrical = require("electrical")
-local fa_equipment = require("equipment-and-combat").equipment
-local fa_combat = require("equipment-and-combat").combat
+local fa_equipment = require("equipment")
+local fa_combat = require("combat")
 local fa_graphics = require("graphics-and-mouse").graphics
 local fa_mouse = require("graphics-and-mouse").mouse
 local fa_tutorial = require("tutorial-system")
@@ -5720,7 +5720,7 @@ script.on_event("click-hand", function(event)
          fa_spidertrons.run_spider_menu(3, pindex, stack.connected_entity, true, nil)
       elseif stack.is_repair_tool then
          --If holding a repair pack, try to use it (will not work on enemies)
-         fa_equipment.repair_pack_used(ent,pindex)
+         fa_combat.repair_pack_used(ent,pindex)
       elseif stack.is_blueprint and stack.is_blueprint_setup() and players[pindex].blueprint_reselecting ~= true then
          --Paste a ready blueprint 
          players[pindex].last_held_blueprint = stack
@@ -6099,7 +6099,7 @@ script.on_event("repair-area", function(event)
       --If something is in hand...     
       if stack.is_repair_tool then
          --If holding a repair pack
-         fa_equipment.repair_area(math.ceil(game.get_player(pindex).reach_distance),pindex)
+         fa_combat.repair_area(math.ceil(game.get_player(pindex).reach_distance),pindex)
       end
    end
 end)

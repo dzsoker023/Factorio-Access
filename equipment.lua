@@ -1,16 +1,13 @@
---Here: functions relating to combat, repair packs 
---Does not include event handlers, guns and equipment, repair work (but maybe it could?)
-local util = require('util')
+--Here: functions relating to guns and equipment management
+--Does not include event handlers, combat, repair packs
+
 local localising = require('localising')
 local fa_electrical = require("electrical")
-local fa_graphics = require("graphics-and-mouse").graphics
-local fa_mouse = require("graphics-and-mouse").mouse
 
-local mod_e = {}
-local mod_c = {}
+local mod = {}
 
 --Tries to equip a stack. For now called only for a stack in hand when the only the inventory is open.
-function mod_e.equip_it(stack,pindex)
+function mod.equip_it(stack,pindex)
    local message = ""
    if players[pindex].menu == "vehicle" and game.get_player(pindex).opened.type == "spider-vehicle" then
       message = localising.get_alt(game.entity_prototypes["spidertron"]) 
@@ -91,7 +88,7 @@ function mod_e.equip_it(stack,pindex)
 		   break
 		 end
 	  end    
-     local slots_left = mod_e.count_empty_equipment_slots(grid)
+     local slots_left = mod.count_empty_equipment_slots(grid)
 	  if placed ~= nil then
 	    message = message .. " equipped " .. stack.name .. ", " .. slots_left .. " empty slots remaining."
 		 stack.count = stack.count - 1
@@ -114,7 +111,7 @@ function mod_e.equip_it(stack,pindex)
 end
 
 --Returns info on weapons and ammo
-function mod_e.read_weapons_and_ammo(pindex)
+function mod.read_weapons_and_ammo(pindex)
    local guns_inv = game.get_player(pindex).get_inventory(defines.inventory.character_guns)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
    local guns_count  = #guns_inv - guns_inv.count_empty_stacks()
@@ -144,7 +141,7 @@ function mod_e.read_weapons_and_ammo(pindex)
 end
 
 --Reload all ammo possible from the inventory. Existing stacks have priority over fuller stacks.
-function mod_e.reload_weapons(pindex)
+function mod.reload_weapons(pindex)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
    local main_inv = game.get_player(pindex).get_inventory(defines.inventory.character_main)
    local result = ""
@@ -165,7 +162,7 @@ function mod_e.reload_weapons(pindex)
 end
 
 --Move all weapons and ammo back to inventory
-function mod_e.remove_weapons_and_ammo(pindex)
+function mod.remove_weapons_and_ammo(pindex)
    local guns_inv = game.get_player(pindex).get_inventory(defines.inventory.character_guns)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
    local main_inv = game.get_player(pindex).get_inventory(defines.inventory.character_main)
@@ -208,7 +205,7 @@ function mod_e.remove_weapons_and_ammo(pindex)
 end
 
 --Temporary safety measure for preventing accidental shooting of atomic bombs
-function mod_e.delete_equipped_atomic_bombs(pindex)
+function mod.delete_equipped_atomic_bombs(pindex)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
    local main_inv = game.get_player(pindex).get_inventory(defines.inventory.character_main)
    local ammos_count = #ammo_inv - ammo_inv.count_empty_stacks()
@@ -231,7 +228,7 @@ function mod_e.delete_equipped_atomic_bombs(pindex)
 end
 
 --Temporary safety measure for preventing accidental shooting of atomic bombs
-function mod_e.restore_equipped_atomic_bombs(pindex)
+function mod.restore_equipped_atomic_bombs(pindex)
    local guns_inv = game.get_player(pindex).get_inventory(defines.inventory.character_guns)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
    local main_inv = game.get_player(pindex).get_inventory(defines.inventory.character_main)
@@ -251,7 +248,7 @@ function mod_e.restore_equipped_atomic_bombs(pindex)
    end
 end
 
-function mod_e.count_empty_equipment_slots(grid)
+function mod.count_empty_equipment_slots(grid)
     local slots_left = 0
 	for i = 0, grid.width-1, 1 do
 	   for j = 0, grid.height-1, 1 do
@@ -265,7 +262,7 @@ function mod_e.count_empty_equipment_slots(grid)
 end
 
 --Read armor stats such as type and bonuses
-function mod_e.read_armor_stats(pindex)
+function mod.read_armor_stats(pindex)
    local armor_inv = game.get_player(pindex).get_inventory(defines.inventory.character_armor)
    local result = ""
    if armor_inv.is_empty() then
@@ -329,7 +326,7 @@ function mod_e.read_armor_stats(pindex)
 end
 
 --List armor equipment
-function mod_e.read_equipment_list(pindex)
+function mod.read_equipment_list(pindex)
    local armor_inv = game.get_player(pindex).get_inventory(defines.inventory.character_armor)
    local result = ""
    if armor_inv.is_empty() then
@@ -368,13 +365,13 @@ function mod_e.read_equipment_list(pindex)
       end
    end
    
-   result = result .. mod_e.count_empty_equipment_slots(grid) .. " empty slots remaining "
+   result = result .. mod.count_empty_equipment_slots(grid) .. " empty slots remaining "
    
    return result
 end
 
 --Remove all armor equipment and then the armor. laterdo "inv full" checks
-function mod_e.remove_equipment_and_armor(pindex)
+function mod.remove_equipment_and_armor(pindex)
    local armor_inv = game.get_player(pindex).get_inventory(defines.inventory.character_armor)
    local result = ""
    if armor_inv.is_empty() then
@@ -419,217 +416,4 @@ function mod_e.remove_equipment_and_armor(pindex)
    return result
 end
 
---One-click repair pack usage.
-function mod_e.repair_pack_used(ent,pindex)
-   local p = game.get_player(pindex)
-   local stack = p.cursor_stack
-   --Repair the entity found
-   if ent and ent.valid and ent.is_entity_with_health and ent.get_health_ratio() < 1 
-   and ent.type ~= "resource" and not ent.force.is_enemy(p.force) and ent.name ~= "character" then
-      p.play_sound{path = "utility/default_manual_repair"}
-      local health_diff = ent.prototype.max_health - ent.health
-      local dura = stack.durability or 0
-      if health_diff < 10 then --free repair for tiny damages
-         ent.health = ent.prototype.max_health 
-         printout("Fully repaired " .. ent.name, pindex)
-      elseif health_diff < dura then
-         ent.health = ent.prototype.max_health 
-         stack.drain_durability(health_diff)
-         printout("Fully repaired " .. ent.name, pindex)
-      else--if health_diff >= dura then
-         stack.drain_durability(dura)
-         ent.health = ent.health + dura
-         printout("Partially repaired " .. ent.name .. " and consumed a repair pack", pindex)
-         --Note: This automatically subtracts correctly and decerements the pack in hand.
-      end
-   end
-   --Note: game.get_player(pindex).use_from_cursor{players[pindex].cursor_pos.x,players[pindex].cursor_pos.y}--This does not work.
-end
-
---Tries to repair all relevant entities within a certain distance from the player
-function mod_e.repair_area(radius_in,pindex)
-   local p = game.get_player(pindex)
-   local stack = p.cursor_stack
-   local repaired_count = 0
-   local packs_used = 0
-   local radius = math.min(radius_in,25)
-   if stack.count < 2 then
-      --If you are low on repair packs, stop
-      printout("You need at least 2 repair packs to repair the area.",pindex)
-      return 
-   end
-   local ents = p.surface.find_entities_filtered{position = p.position, radius = radius}
-   for i,ent in ipairs(ents) do 
-      --Repair the entity found
-      if ent and ent.valid and ent.is_entity_with_health and ent.get_health_ratio() < 1 
-      and ent.type ~= "resource" and not ent.force.is_enemy(p.force) and ent.name ~= "character" then
-         p.play_sound{path = "utility/default_manual_repair"}
-         local health_diff = ent.prototype.max_health - ent.health
-         local dura = stack.durability or 0
-         if health_diff < 10 then --free repair for tiny damages
-            ent.health = ent.prototype.max_health 
-            repaired_count = repaired_count + 1
-         elseif health_diff < dura then
-            ent.health = ent.prototype.max_health 
-            stack.drain_durability(health_diff)
-            repaired_count = repaired_count + 1
-         elseif stack.count < 2 then
-            --If you are low on repair packs, stop
-            printout("Repaired " .. repaired_count .. " structures using " .. packs_used .. " repair packs, stopped because you are low on repair packs.",pindex)
-            return 
-         else
-            --Finish the current repair pack
-            stack.drain_durability(dura)
-            packs_used = packs_used + 1
-            ent.health = ent.health + dura
-            
-            --Repeat unhtil fully repaired or out of packs
-            while ent.get_health_ratio() < 1 do
-               health_diff = ent.prototype.max_health - ent.health
-               dura = stack.durability or 0
-               if health_diff < 10 then --free repair for tiny damages
-                  ent.health = ent.prototype.max_health 
-                  repaired_count = repaired_count + 1
-               elseif health_diff < dura then
-                  ent.health = ent.prototype.max_health 
-                  stack.drain_durability(health_diff)
-                  repaired_count = repaired_count + 1
-               elseif stack.count < 2 then
-                  --If you are low on repair packs, stop
-                  printout("Repaired " .. repaired_count .. " structures using " .. packs_used .. " repair packs, stopped because you are low on repair packs.",pindex)
-                  return 
-               else
-                  --Finish the current repair pack
-                  stack.drain_durability(dura)
-                  packs_used = packs_used + 1
-                  ent.health = ent.health + dura
-               end
-            end 
-         end
-      end
-   end
-   if repaired_count == 0 then
-      printout("Nothing to repair within " .. radius .. " tiles of you.",pindex)
-      return
-   end
-   printout("Repaired all " .. repaired_count .. " structures within " .. radius .. " tiles of you, using " .. packs_used .. " repair packs.",pindex)
-end
-
---Plays enemy proximity alert sounds. Frequency is determined by distance and mode, and intensity is determined by the threat level.
-function mod_c.check_and_play_enemy_alert_sound(mode_in)
-   for pindex, player in pairs(players) do
-      local mode = mode_in or 1
-      local p = game.get_player(pindex)
-      if p ~= nil and p.valid then
-         local nearest_enemy = p.surface.find_nearest_enemy{position = p.position, max_distance = 100, force = p.force}
-         local dist = -1
-         if nearest_enemy ~= nil and nearest_enemy.valid then
-            dist = math.floor(util.distance(nearest_enemy.position,p.position))
-         else
-            return
-         end
-         --Attempt to detect if west or east
-         local diffx = nearest_enemy.position.x - p.position.x
-         local diffy = nearest_enemy.position.y - p.position.y
-         local x_offset = 0
-         if math.abs(diffx) > 2 * math.abs(diffy) then
-            --Counts as east or west
-            if diffx > 0 then 
-               x_offset = 7
-            elseif diffx < 0 then
-               x_offset = -7
-            end
-         end
-         local pos = {x = p.position.x + x_offset, y = p.position.y } 
-         
-         --Play sounds according to mode
-         if mode == 1 then     -- Nearest enemy is far (lowest freq)
-            if dist < 100 then
-               p.play_sound{path = "alert-enemy-presence-low", position = pos}
-            end
-            --Additional alert if there are more than 5 enemies nearby
-            local enemies = p.surface.find_enemy_units(p.position, 25, p.force)
-            if #enemies > 5 then
-               p.play_sound{path = "alert-enemy-presence-high", position = pos}
-            else
-               for i, enemy in ipairs(enemies) do 
-                  --Also check for strong enemies: big/huge biters, huge spitters, medium or larger worms, not spawners
-                  if enemy.prototype.max_health > 360 then
-                     p.play_sound{path = "alert-enemy-presence-high", position = pos}
-                     return
-                  end
-               end
-            end
-         elseif mode == 2 then -- Nearest enemy is closer (medium freq)
-            if dist < 50 then
-               p.play_sound{path = "alert-enemy-presence-low", position = pos}
-            end
-            --Additional alert if there are more than 10 enemies nearby
-            local enemies = p.surface.find_enemy_units(p.position, 25, p.force)
-            if #enemies > 10 then
-               p.play_sound{path = "alert-enemy-presence-high", position = pos}
-            end
-         elseif mode == 3 then -- Nearest enemy is too close (highest freq)
-            if dist < 25 then
-               p.play_sound{path = "alert-enemy-presence-low", position = pos}
-            end
-         end
-      end
-   end
-end
-
---Locks the cursor to the nearest enemy within 50 tiles. Also plays a sound if the enemy is within range of the gun in hand.
-function mod_c.aim_gun_at_nearest_enemy(pindex,enemy_in)
-   local p = game.get_player(pindex)
-   if p == nil or p.character == nil or p.character.valid == false then
-      return
-   end
-   local gun_index  = p.character.selected_gun_index
-   local guns_inv   = p.get_inventory(defines.inventory.character_guns)
-   local ammo_inv   = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
-   local gun_stack  = guns_inv[gun_index]
-   local ammo_stack = ammo_inv[gun_index]
-   local enemy = enemy_in
-   --Return if missing a gun or ammo
-   if gun_stack == nil or not gun_stack.valid_for_read or not gun_stack.valid then
-      return false
-   end
-   if ammo_stack == nil or not ammo_stack.valid_for_read or not ammo_stack.valid then
-      return false
-   end
-   --Return if in Cursor Mode
-   if players[pindex].cursor then
-      return false
-   end
-   --Return if in a menu
-   if players[pindex].in_menu then
-      return false
-   end
-   --Check for nearby enemies
-   if enemy_in == nil or not enemy_in.valid then
-      enemy = p.surface.find_nearest_enemy{position = p.position, max_distance = 50, force = p.force}
-   end
-   if enemy == nil or not enemy.valid then
-      return false
-   end
-   --Play a sound when the enemy is within range of the gun 
-   local range = gun_stack.prototype.attack_parameters.range
-   local dist = util.distance(p.position,enemy.position)
-   if dist < range and p.character.can_shoot(enemy,enemy.position) then      
-      p.play_sound{path = "player-aim-locked",volume_modifier=0.5}
-   end
-   --Return if there is a gun and ammo combination that already aims by itself
-   if gun_stack.name == "pistol" or gun_stack.name == "submachine-gun" and dist < 10 then --or ammo_stack.name == "rocket" or ammo_stack.name == "explosive-rocket" then
-      --**Note: normal/explosive rockets only fire when they lock on a target anyway. Meanwhile the SMG auto-aims only when close enough 
-      return true
-   end 
-   --If in range, move the cursor onto the enemy to aim the gun
-   if dist < range then 
-      players[pindex].cursor_pos = enemy.position
-      fa_mouse.move_mouse_pointer(enemy.position,pindex)
-      fa_graphics.draw_cursor_highlight(pindex,nil,nil,true)
-   end
-   return true
-end
-
-return {equipment = mod_e, combat = mod_c}
+return mod
