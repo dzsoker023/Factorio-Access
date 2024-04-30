@@ -3500,6 +3500,9 @@ script.on_event("cursor-bookmark-load", function(event)
       return
    end
    local pos = players[pindex].cursor_bookmark
+   if pos == nil or pos.x == nil or pos.y == nil then
+      return
+   end
    players[pindex].cursor_pos = pos
    fa_graphics.draw_cursor_highlight(pindex, nil, nil)
    fa_graphics.sync_build_cursor_graphics(pindex)
