@@ -3,7 +3,7 @@
 
 local util = require('util')
 local fa_utils = require('fa-utils')
-local fa_rails = require("rails").rails
+local fa_rails = require("rails")
 local dirs = defines.direction
 
 local mod_t = {}

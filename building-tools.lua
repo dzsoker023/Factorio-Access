@@ -4,7 +4,7 @@ local fa_utils = require("fa-utils")
 local fa_electrical = require("electrical")
 local dirs = defines.direction
 local fa_graphics = require("graphics")
-local fa_rails = require("rails").rails
+local fa_rail_builder = require("rail-builder")
 local fa_belts = require("transport-belts")
 local fa_mining_tools = require("mining-tools")
 local fa_teleport = require("teleport")
@@ -43,7 +43,7 @@ function mod.build_item_in_hand(pindex, free_place_straight_rail)
       if not (free_place_straight_rail == true) then
          --Append rails unless otherwise stated
          local pos = players[pindex].cursor_pos
-         fa_rails.append_rail(pos, pindex)
+         fa_rail_builder.append_rail(pos, pindex)
          return
       end
    elseif stack.name == "rail-signal" or stack.name == "rail-chain-signal" then
