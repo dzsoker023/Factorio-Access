@@ -359,11 +359,11 @@ end
 
 --Reads the selected fast travel menu slot
 function mod.read_fast_travel_slot(pindex)
-   if #global.players[pindex].travel == 0 then
+   if #players[pindex].travel == 0 then
       printout("Move towards the right and select Create to get started.", pindex)
    else
-      local entry = global.players[pindex].travel[players[pindex].travel.index.y]
-      printout(entry.name .. " at " .. math.floor(entry.position.x) .. ", " .. math.floor(entry.position.y), pindex)
+      local entry = players[pindex].travel[players[pindex].travel.index.y]
+      printout(entry.name .. " at " .. math.floor(entry.position.x) .. ", " .. math.floor(entry.position.y) .. ", cursor moved.", pindex)
       players[pindex].cursor_pos = fa_utils.center_of_tile(entry.position)
       fa_graphics.draw_cursor_highlight(pindex, nil, "train-visualization")
    end
@@ -519,6 +519,22 @@ function mod.fast_travel_menu_left(pindex)
    elseif players[pindex].travel.index.x == 7 then
       printout("Create New", pindex)
    end
+end
+
+function mod.fast_travel_menu_close(pindex)
+   if game.get_player(pindex).gui.screen["travel"] then
+      game.get_player(pindex).gui.screen["travel"].destroy()
+   end
+   players[pindex].menu = "none"
+   players[pindex].in_menu = false
+end
+
+function mod.structure_travel_menu_close(pindex)
+   if game.get_player(pindex).gui.screen["structure-travel"] then
+      game.get_player(pindex).gui.screen["structure-travel"].destroy()
+   end
+   players[pindex].menu = "none"
+   players[pindex].in_menu = false
 end
 
 return mod

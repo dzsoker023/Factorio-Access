@@ -3380,6 +3380,7 @@ script.on_event("pause-game-fa", function(event)
    for i, elem in ipairs(fa_utils.get_iterable_array(game.get_player(pindex).gui.children)) do
       if elem.get_mod() == "FactorioAccess" or elem.get_mod() == nil then
          elem.clear()
+         close_menu_resets(pindex)
       end
    end
 end)
@@ -4405,11 +4406,9 @@ end)
 function close_menu_resets(pindex)
    local p = game.get_player(pindex)
    if players[pindex].menu == "travel" then
-      game.get_player(pindex).gui.screen["travel"].destroy()
-      players[pindex].cursor_pos = fa_utils.center_of_tile(players[pindex].position)
-      fa_graphics.draw_cursor_highlight(pindex, nil, "train-visualization")
+      fa_travel.fast_travel_menu_close(pindex)
    elseif players[pindex].menu == "structure-travel" then
-      game.get_player(pindex).gui.screen["structure-travel"].destroy()
+      fa_travel.structure_travel_menu_close(pindex)
    elseif players[pindex].menu == "rail_builer" then
       fa_rail_builder.close_menu(pindex, false)
    elseif players[pindex].menu == "train_menu" then
