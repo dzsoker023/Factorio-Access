@@ -1,9 +1,169 @@
---Data:
+--Data changes: Including vanilla prototype changes, new prototypes, new sound files, new custom input events
 
---Universal belt immunity:
+--Vanilla prototype changes--
+
+---Apply universal belt immunity
 data.raw.character.character.has_belt_immunity = true
 
---Create resource map node entities as aggregate entities
+---Make selected vanilla objects not collide with players
+----Pipes
+local pipe = data.raw.pipe.pipe
+pipe.collision_mask = {"object-layer", "floor-layer", "water-tile"}
+local pipe_to_ground = data.raw["pipe-to-ground"]["pipe-to-ground"]
+pipe_to_ground.collision_mask = {"object-layer", "floor-layer", "water-tile"}
+
+----Small & medium electric poles
+local small_electric_pole = data.raw["electric-pole"]["small-electric-pole"]
+small_electric_pole.collision_mask = {"object-layer", "floor-layer", "water-tile"}
+local medium_electric_pole = data.raw["electric-pole"]["medium-electric-pole"]
+medium_electric_pole.collision_mask = {"object-layer", "floor-layer", "water-tile"}
+
+----Constant combinators (because of when they are placed to explain transport belts)
+local constant_combinator = data.raw["constant-combinator"]["constant-combinator"]
+constant_combinator.collision_mask = {"object-layer", "floor-layer", "water-tile"}
+
+----Inserters
+local inserter = data.raw["inserter"]["inserter"]
+inserter.collision_mask = {"object-layer", "floor-layer", "water-tile"}
+local burner_inserter = data.raw["inserter"]["burner-inserter"]
+burner_inserter.collision_mask = {"object-layer", "floor-layer", "water-tile"}
+local fast_inserter = data.raw["inserter"]["fast-inserter"]
+fast_inserter.collision_mask = {"object-layer", "floor-layer", "water-tile"}
+local long_handed_inserter = data.raw["inserter"]["long-handed-inserter"]
+long_handed_inserter.collision_mask = {"object-layer", "floor-layer", "water-tile"}
+local stack_inserter = data.raw["inserter"]["stack-inserter"]
+stack_inserter.collision_mask = {"object-layer", "floor-layer", "water-tile"}
+
+----Filter inserters
+local filter_inserter = data.raw["inserter"]["filter-inserter"]
+filter_inserter.collision_mask = {"object-layer", "floor-layer", "water-tile"}
+local stack_filter_inserter = data.raw["inserter"]["stack-filter-inserter"]
+stack_filter_inserter.collision_mask = {"object-layer", "floor-layer", "water-tile"}
+
+--Removal of vanilla tips and tricks--
+vanilla_tip_and_tricks_item_table=
+{
+   "introduction",
+      "game-interaction",
+      "show-info",
+      --"e-confirm",
+      "clear-cursor",
+      "pipette",
+      "stack-transfers",
+      
+      "entity-transfers",
+      "z-dropping",
+      "shoot-targeting",
+      "bulk-crafting",
+   
+   
+   "inserters",
+      "burner-inserter-refueling",
+      "long-handed-inserters",
+      "move-between-labs",
+      "insertion-limits",
+      "limit-chests",
+   
+   
+   "transport-belts",--in category "belt"
+      "belt-lanes",
+      "splitters",
+      "splitter-filters",
+      "underground-belts",
+   
+   
+   "electric-network",
+      "steam-power",
+      "low-power",
+      "electric-pole-connections",
+      "connect-switch",
+   
+   
+   "copy-entity-settings",--in category "copy-paste"
+      "copy-paste-trains",
+      "copy-paste-filters",
+      "copy-paste-requester-chest",
+      "copy-paste-spidertron",
+   
+   
+   "drag-building",
+      "drag-building-poles",
+      "pole-dragging-coverage",
+      "drag-building-underground-belts",
+      "fast-belt-bending",
+      "fast-obstacle-traversing",
+   
+   
+   "trains",
+      "rail-building",
+      "train-stops",
+      "rail-signals-basic",
+      "rail-signals-advanced",
+      "gate-over-rail",
+      
+      "pump-connection",
+      "train-stop-same-name",
+   
+   
+   "logistic-network",
+      "personal-logistics",
+      "construction-robots",
+      "passive-provider-chest",
+      "storage-chest",
+      "requester-chest",
+   
+      "active-provider-chest",
+      "buffer-chest",
+   
+   
+   "ghost-building",
+      "ghost-rail-planner",
+      "copy-paste",
+   
+   
+   "fast-replace",
+      "fast-replace-direction",
+      "fast-replace-belt-splitter",
+      "fast-replace-belt-underground",
+   
+   --no category
+      "rotating-assemblers",
+      "circuit-network",
+   
+};
+
+function remove_tip_and_tricks_item(inname)
+   data.raw["tips-and-tricks-item"][inname]=nil;
+   for _,item in pairs(data.raw["tips-and-tricks-item"]) do
+      if(item.dependencies) then
+         local backup=table.deepcopy(item.dependencies);
+         item.dependencies={"e-confirm"};
+        ---@diagnostic disable-next-line: param-type-mismatch
+         for _,str in pairs(backup) do
+            if(str~=inname) then table.insert(item.dependencies,str); end
+         end
+      end
+   end
+end
+
+data.raw["tips-and-tricks-item"]["introduction"].category="game-interaction";
+data.raw["tips-and-tricks-item"]["introduction"].trigger=nil;
+
+data.raw["tips-and-tricks-item"]["show-info"].starting_status="unlocked";
+data.raw["tips-and-tricks-item"]["show-info"].dependencies=nil;
+
+data.raw["tips-and-tricks-item"]["e-confirm"].starting_status="unlocked";
+data.raw["tips-and-tricks-item"]["e-confirm"].trigger=nil;
+data.raw["tips-and-tricks-item"]["e-confirm"].skip_trigger={type="use-confirm"};--**nil
+data.raw["tips-and-tricks-item"]["e-confirm"].dependencies=nil;
+
+for _,item in pairs(vanilla_tip_and_tricks_item_table) do
+   remove_tip_and_tricks_item(item);
+end
+
+--New prototypes--
+
+---Resource map node entities, also called aggregate entities
 local resource_map_node = {}
 resource_map_node.name = "map-node"
 resource_map_node.type = "simple-entity-with-force"
@@ -18,46 +178,10 @@ resource_map_node.picture = {
 	height = 1,
 	direction_count = 1
 }
+data:extend({resource_map_node})
 
---Make selected vanilla objects not collide with players
---  Pipes
-local pipe = data.raw.pipe.pipe
-pipe.collision_mask = {"object-layer", "floor-layer", "water-tile"}
-local pipe_to_ground = data.raw["pipe-to-ground"]["pipe-to-ground"]
-pipe_to_ground.collision_mask = {"object-layer", "floor-layer", "water-tile"}
-
---  Small & medium electric poles
-local small_electric_pole = data.raw["electric-pole"]["small-electric-pole"]
-small_electric_pole.collision_mask = {"object-layer", "floor-layer", "water-tile"}
-local medium_electric_pole = data.raw["electric-pole"]["medium-electric-pole"]
-medium_electric_pole.collision_mask = {"object-layer", "floor-layer", "water-tile"}
-
---  Constant combinators (because of when they are placed to explain transport belts)
-local constant_combinator = data.raw["constant-combinator"]["constant-combinator"]
-constant_combinator.collision_mask = {"object-layer", "floor-layer", "water-tile"}
-
---  Inserters
-local inserter = data.raw["inserter"]["inserter"]
-inserter.collision_mask = {"object-layer", "floor-layer", "water-tile"}
-local burner_inserter = data.raw["inserter"]["burner-inserter"]
-burner_inserter.collision_mask = {"object-layer", "floor-layer", "water-tile"}
-local fast_inserter = data.raw["inserter"]["fast-inserter"]
-fast_inserter.collision_mask = {"object-layer", "floor-layer", "water-tile"}
-local long_handed_inserter = data.raw["inserter"]["long-handed-inserter"]
-long_handed_inserter.collision_mask = {"object-layer", "floor-layer", "water-tile"}
-local stack_inserter = data.raw["inserter"]["stack-inserter"]
-stack_inserter.collision_mask = {"object-layer", "floor-layer", "water-tile"}
-
---  Filter inserters
-local filter_inserter = data.raw["inserter"]["filter-inserter"]
-filter_inserter.collision_mask = {"object-layer", "floor-layer", "water-tile"}
-local stack_filter_inserter = data.raw["inserter"]["stack-filter-inserter"]
-stack_filter_inserter.collision_mask = {"object-layer", "floor-layer", "water-tile"}
-
-
---Add new radar type that does long distance scanning
+---New radar type: This radar scans a new sector every 5 seconds instead of 33, and it refreshes its short range every 5 seconds (precisely fast enough) instead of 1 second, but the short range is smaller and the radar costs double the power.
 local ar_tint = {r=0.5,g=0.5,b=0.5,a=0.9}
-
 local access_radar = table.deepcopy(data.raw["radar"]["radar"])
 access_radar.icons = {
   {
@@ -66,7 +190,6 @@ access_radar.icons = {
     tint = ar_tint
   }
 }
---New building: This radar scans a new sector every 5 seconds instead of 33, and it refreshes its short range every 5 seconds (precisely fast enough) instead of 1 second, but the short range is smaller and the radar costs double the power.
 access_radar.name = "access-radar"
 access_radar.energy_usage = "600kW"  --Default: "300kW"
 access_radar.energy_per_sector = "3MJ" --Default: "10MJ"
@@ -99,7 +222,7 @@ access_radar_recipe.ingredients = {{"electronic-circuit", 10}, {"iron-gear-wheel
 data:extend{access_radar,access_radar_item}
 data:extend{access_radar_item,access_radar_recipe}
 
---Map generation preset attempts
+---New presets for map generation (deprecated?)
 resource_def={richness = 4}
 
 data.raw["map-gen-presets"].default["faccess-compass-valley"] = {
@@ -136,8 +259,6 @@ data.raw["map-gen-presets"].default["faccess-compass-valley"] = {
     }
 }
 
-
-
 data.raw["map-gen-presets"].default["faccess-enemies-off"] = {
     order="_B",
     basic_settings={
@@ -154,9 +275,8 @@ data.raw["map-gen-presets"].default["faccess-peaceful"] = {
     }
 }
 
+--New sound files--
 data:extend({
- resource_map_node,
-
 {
    type = "sound",
    name = "alert-enemy-presence-high",
@@ -403,8 +523,10 @@ data:extend({
    filename = "__FactorioAccess__/Audio/tank-horn-zapsplat-Blastwave_FX_FireTruckHornHonk_SFXB.458.wav",
    volume = 1,
    preload = true
-},
+}})
 
+--New custom input events--
+data:extend({
 {
     type = "custom-input",
     name = "pause-game-fa",
@@ -1866,129 +1988,4 @@ data:extend({
     name = "access-config-version2-DO-NOT-EDIT",
     key_sequence = "A",
     consuming = "none"
-}
-
-})
-
---*Additions below for removing tips and tricks to prevent screen clutter*
-vanilla_tip_and_tricks_item_table=
-{
-   "introduction",
-      "game-interaction",
-      "show-info",
-      --"e-confirm",
-      "clear-cursor",
-      "pipette",
-      "stack-transfers",
-      
-      "entity-transfers",
-      "z-dropping",
-      "shoot-targeting",
-      "bulk-crafting",
-   
-   
-   "inserters",
-      "burner-inserter-refueling",
-      "long-handed-inserters",
-      "move-between-labs",
-      "insertion-limits",
-      "limit-chests",
-   
-   
-   "transport-belts",--in category "belt"
-      "belt-lanes",
-      "splitters",
-      "splitter-filters",
-      "underground-belts",
-   
-   
-   "electric-network",
-      "steam-power",
-      "low-power",
-      "electric-pole-connections",
-      "connect-switch",
-   
-   
-   "copy-entity-settings",--in category "copy-paste"
-      "copy-paste-trains",
-      "copy-paste-filters",
-      "copy-paste-requester-chest",
-      "copy-paste-spidertron",
-   
-   
-   "drag-building",
-      "drag-building-poles",
-      "pole-dragging-coverage",
-      "drag-building-underground-belts",
-      "fast-belt-bending",
-      "fast-obstacle-traversing",
-   
-   
-   "trains",
-      "rail-building",
-      "train-stops",
-      "rail-signals-basic",
-      "rail-signals-advanced",
-      "gate-over-rail",
-      
-      "pump-connection",
-      "train-stop-same-name",
-   
-   
-   "logistic-network",
-      "personal-logistics",
-      "construction-robots",
-      "passive-provider-chest",
-      "storage-chest",
-      "requester-chest",
-   
-      "active-provider-chest",
-      "buffer-chest",
-   
-   
-   "ghost-building",
-      "ghost-rail-planner",
-      "copy-paste",
-   
-   
-   "fast-replace",
-      "fast-replace-direction",
-      "fast-replace-belt-splitter",
-      "fast-replace-belt-underground",
-   
-   --no category
-      "rotating-assemblers",
-      "circuit-network",
-   
-};
-
-function remove_tip_and_tricks_item(inname)
-   data.raw["tips-and-tricks-item"][inname]=nil;
-   for _,item in pairs(data.raw["tips-and-tricks-item"]) do
-      if(item.dependencies) then
-         local backup=table.deepcopy(item.dependencies);
-         item.dependencies={"e-confirm"};
-        ---@diagnostic disable-next-line: param-type-mismatch
-         for _,str in pairs(backup) do
-            if(str~=inname) then table.insert(item.dependencies,str); end
-         end
-      end
-   end
-end
-
-data.raw["tips-and-tricks-item"]["introduction"].category="game-interaction";
-data.raw["tips-and-tricks-item"]["introduction"].trigger=nil;
-
-data.raw["tips-and-tricks-item"]["show-info"].starting_status="unlocked";
-data.raw["tips-and-tricks-item"]["show-info"].dependencies=nil;
-
-data.raw["tips-and-tricks-item"]["e-confirm"].starting_status="unlocked";
-data.raw["tips-and-tricks-item"]["e-confirm"].trigger=nil;
-data.raw["tips-and-tricks-item"]["e-confirm"].skip_trigger={type="use-confirm"};--**nil
-data.raw["tips-and-tricks-item"]["e-confirm"].dependencies=nil;
-
-
-for _,item in pairs(vanilla_tip_and_tricks_item_table) do
-   remove_tip_and_tricks_item(item);
-end
---*Additions above for removing tips and tricks*
+}})
