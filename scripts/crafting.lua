@@ -1,8 +1,8 @@
 --Here: Crafting menu, crafting queue menu, technology menu, related functions
 
 local util = require('util')
-local fa_utils = require('fa-utils')
-local localising = require('localising')
+local fa_utils = require('scripts.fa-utils')
+local localising = require('scripts.localising')
 
 local mod = {}
 

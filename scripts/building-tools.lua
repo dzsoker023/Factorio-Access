@@ -1,13 +1,13 @@
 --Here: Functions for building with the mod, both basics and advanced tools.
-local localising = require("localising")
-local fa_utils = require("fa-utils")
-local fa_electrical = require("electrical")
+local localising = require("scripts.localising")
+local fa_utils = require("scripts.fa-utils")
+local fa_electrical = require("scripts.electrical")
 local dirs = defines.direction
-local fa_graphics = require("graphics")
-local fa_rail_builder = require("rail-builder")
-local fa_belts = require("transport-belts")
-local fa_mining_tools = require("mining-tools")
-local fa_teleport = require("teleport")
+local fa_graphics = require("scripts.graphics")
+local fa_rail_builder = require("scripts.rail-builder")
+local fa_belts = require("scripts.transport-belts")
+local fa_mining_tools = require("scripts.mining-tools")
+local fa_teleport = require("scripts.teleport")
 
 local mod = {}
 

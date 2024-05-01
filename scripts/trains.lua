@@ -2,8 +2,8 @@
 --Does not include event handlers
 
 local util = require('util')
-local fa_utils = require('fa-utils')
-local fa_rails = require("rails")
+local fa_utils = require('scripts.fa-utils')
+local fa_rails = require("scripts.rails")
 local dirs = defines.direction
 
 local mod = {}

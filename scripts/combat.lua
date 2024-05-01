@@ -2,8 +2,8 @@
 --Does not include event handlers, guns and equipment maanagement
 
 local util = require('util')
-local fa_graphics = require("graphics")
-local fa_mouse = require("mouse")
+local fa_graphics = require("scripts.graphics")
+local fa_mouse = require("scripts.mouse")
 
 local mod = {}
 

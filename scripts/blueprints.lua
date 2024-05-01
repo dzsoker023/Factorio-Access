@@ -1,9 +1,9 @@
 --Here: Functions related to blueprints and blueprint books
 --Does not include event handlers
 
-local fa_utils = require("fa-utils")
-local fa_mining_tools = require("mining-tools")
-local localising = require("localising")
+local fa_utils = require("scripts.fa-utils")
+local fa_mining_tools = require("scripts.mining-tools")
+local localising = require("scripts.localising")
 local dirs = defines.direction
 
 local mod = {}

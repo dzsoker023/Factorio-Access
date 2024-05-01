@@ -2,8 +2,8 @@
 --Note: Some train-specific functions are in rails-and-trains.lua 
 
 local util = require("util")
-local fa_utils = require("fa-utils")
-local fa_trains = require("trains")
+local fa_utils = require("scripts.fa-utils")
+local fa_trains = require("scripts.trains")
 local dirs = defines.direction
 
 local mod = {}

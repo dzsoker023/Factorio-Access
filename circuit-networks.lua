@@ -1,9 +1,9 @@
 --Here: Functions relating to circuit networks, virtual signals, wiring and unwiring buildings, and the such.
 --Does not include event handlers directly, but can have functions called by them.
 local circular = require('ds/circular-options-list')
-local localising = require('localising')
+local localising = require('scripts.localising')
 local util = require('util')
-local fa_utils = require('fa-utils')
+local fa_utils = require('scripts.fa-utils')
 
 local dcb = defines.control_behavior
 

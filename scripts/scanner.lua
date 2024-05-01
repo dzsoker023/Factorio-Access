@@ -1,14 +1,14 @@
 --Here: Functions relating to the scanner tool
 --Does not include event handlers directly, but can have functions called by them.
 local util = require('util')
-local fa_utils = require("fa-utils")
-local localising = require('localising')
+local fa_utils = require("scripts.fa-utils")
+local localising = require('scripts.localising')
 local dirs = defines.direction
-local fa_graphics = require("graphics")
-local fa_building_tools = require("building-tools")
-local fa_trains = require("trains")
-local fa_zoom = require('zoom')
-local fa_bot_logistics = require("worker-robots")
+local fa_graphics = require("scripts.graphics")
+local fa_building_tools = require("scripts.building-tools")
+local fa_trains = require("scripts.trains")
+local fa_zoom = require('scripts.zoom')
+local fa_bot_logistics = require("scripts.worker-robots")
 
 local mod = {} 
 --Find islands of resources or water or trees to create the aggregate entries in the scanner list. Does not run for every scan.

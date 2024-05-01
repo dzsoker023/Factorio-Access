@@ -1,9 +1,9 @@
 --Here: Fast travel, structure travel, etc.
-local fa_utils = require("fa-utils")
-local fa_graphics = require("graphics")
-local fa_mouse = require("mouse")
-local fa_scanner = require("scanner")
-local fa_teleport = require("teleport")
+local fa_utils = require("scripts.fa-utils")
+local fa_graphics = require("scripts.graphics")
+local fa_mouse = require("scripts.mouse")
+local fa_scanner = require("scripts.scanner")
+local fa_teleport = require("scripts.teleport")
 
 local mod = {}
 

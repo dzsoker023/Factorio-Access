@@ -1,5 +1,5 @@
 --Here: Functions about the zoom system
-local fa_graphics = require("graphics")
+local fa_graphics = require("scripts.graphics")
 
 local MIN_ZOOM = 0.275
 local MAX_ZOOM = 3.282

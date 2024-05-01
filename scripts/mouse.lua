@@ -1,7 +1,7 @@
 --Here: Movement of the mouse pointer on screen
 --Note: Does not include the mod cursor functions!
 
-local fa_utils = require("fa-utils")
+local fa_utils = require("scripts.fa-utils")
 local dirs = defines.direction
 local mod = {}
 

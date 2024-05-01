@@ -1,8 +1,8 @@
 --Here: Mod GUI and graphics drawing
 --Note: Does not include every single rendering call made by the mod, such as circles being drawn by obstacle clearing.
 
-local fa_utils = require("fa-utils")
-local fa_mouse = require("mouse")
+local fa_utils = require("scripts.fa-utils")
+local fa_mouse = require("scripts.mouse")
 local dirs = defines.direction
 
 local mod = {}

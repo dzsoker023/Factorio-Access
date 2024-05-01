@@ -1,10 +1,10 @@
 --Here: functions specific to building menus
 local util = require('util')
-local fa_utils = require('fa-utils')
-local fa_crafting = require("crafting")
-local localising = require('localising')
-local fa_belts = require("transport-belts")
-local fa_blueprints = require("blueprints")
+local fa_utils = require('scripts.fa-utils')
+local fa_crafting = require("scripts.crafting")
+local localising = require('scripts.localising')
+local fa_belts = require("scripts.transport-belts")
+local fa_blueprints = require("scripts.blueprints")
 
 local mod = {}
 

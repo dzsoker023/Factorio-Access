@@ -1,8 +1,8 @@
 --Here: functions relating to guns and equipment management
 --Does not include event handlers, combat, repair packs
 
-local localising = require('localising')
-local fa_electrical = require("electrical")
+local localising = require('scripts.localising')
+local fa_electrical = require("scripts.electrical")
 
 local mod = {}
 
