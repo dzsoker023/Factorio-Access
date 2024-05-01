@@ -1968,6 +1968,7 @@ function remove_tip_and_tricks_item(inname)
       if(item.dependencies) then
          local backup=table.deepcopy(item.dependencies);
          item.dependencies={"e-confirm"};
+        ---@diagnostic disable-next-line: param-type-mismatch
          for _,str in pairs(backup) do
             if(str~=inname) then table.insert(item.dependencies,str); end
          end
