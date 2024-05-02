@@ -33,7 +33,7 @@ function mod.append_rail(pos, pindex)
    
    --1 Check the cursor entity. If it is an end rail, use this instead of scanning to extend the rail you want.
    local ent = players[pindex].tile.ents[1]
-   is_end_rail, end_rail_dir, comment = mod.check_end_rail(ent,pindex)
+   is_end_rail, end_rail_dir, comment = fa_rails.check_end_rail(ent,pindex)
    if is_end_rail then
       end_found = ent
       end_rail_1, end_dir_1 = ent.get_rail_segment_end(defines.rail_direction.front)
@@ -78,7 +78,7 @@ function mod.append_rail(pos, pindex)
       end
       
       --4 Check if the found segment end is an end rail
-      is_end_rail, end_rail_dir, comment = mod.check_end_rail(end_found,pindex)
+      is_end_rail, end_rail_dir, comment = fa_rails.check_end_rail(end_found,pindex)
       if not is_end_rail then
          game.get_player(pindex).play_sound{path = "utility/cannot_build"}
          --printout(comment, pindex)
@@ -146,7 +146,7 @@ function mod.append_rail(pos, pindex)
       
    elseif end_found.name == "curved-rail" then
       --Make sure to use the reported end direction for curved rails
-      is_end_rail, end_rail_dir, comment = mod.check_end_rail(ent,pindex)
+      is_end_rail, end_rail_dir, comment = fa_rails.check_end_rail(ent,pindex)
       if end_rail_dir == dirs.north then
          if rail_api_dir == dirs.south then
             append_rail_pos = {end_rail_pos.x-2, end_rail_pos.y-6}
@@ -267,14 +267,14 @@ function mod.append_rail(pos, pindex)
    game.get_player(pindex).play_sound{path = "entity-build/straight-rail"}
    
    --8. Check if the appended rail is with 4 tiles of a parallel rail. If so, delete it.
-   if created_rail.valid and mod.has_parallel_neighbor(created_rail,pindex) then
+   if created_rail.valid and fa_rails.has_parallel_neighbor(created_rail,pindex) then
       game.get_player(pindex).mine_entity(created_rail,true)
 	  game.get_player(pindex).play_sound{path = "utility/cannot_build"}
       printout("Cannot place, parallel rail segments should be at least 4 tiles apart.",pindex)
    end
    
    --9. Check if the appended rail has created an intersection. If so, notify the player.
-   if created_rail.valid and mod.is_intersection_rail(created_rail,pindex) then
+   if created_rail.valid and fa_rails.is_intersection_rail(created_rail,pindex) then
       printout("Intersection created.",pindex)
    end
       
