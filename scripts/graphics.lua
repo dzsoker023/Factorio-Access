@@ -332,7 +332,7 @@ function mod.sync_build_cursor_graphics(pindex)
          rendering.set_visible(player.building_footprint,true)
 
          --Move the mouse pointer
-         if cursor_position_is_on_screen_with_player_centered(pindex) then
+         if fa_mouse.cursor_position_is_on_screen_with_player_centered(pindex) then
             fa_mouse.move_mouse_pointer(center_pos,pindex)
          else
             fa_mouse.move_mouse_pointer(players[pindex].position,pindex)
@@ -434,7 +434,7 @@ function mod.draw_cursor_highlight(pindex, ent, box_type, skip_mouse_movement)
    end
 
    --Move the mouse cursor to the object on screen or to the player position for objects off screen 
-   if cursor_position_is_on_screen_with_player_centered(pindex) then
+   if fa_mouse.cursor_position_is_on_screen_with_player_centered(pindex) then
       fa_mouse.move_mouse_pointer(fa_utils.center_of_tile(c_pos),pindex)
    else
       fa_mouse.move_mouse_pointer(fa_utils.center_of_tile(p.position),pindex)

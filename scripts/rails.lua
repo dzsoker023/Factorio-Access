@@ -3,6 +3,7 @@
 
 local util = require('util')
 local fa_utils = require('scripts.fa-utils')
+local fa_mouse = require('scripts.mouse')
 local dirs = defines.direction
 
 local mod = {}
@@ -451,6 +452,93 @@ function mod.check_end_rail(check_rail, pindex)
    end
    
    return is_end_rail, dir, comment
+end
+
+--Determines whether the cursor is at the outer tip of a rail, by checking the 8 tiles around the cursor and confirming that they do not contain other rails.
+function mod.cursor_is_at_straight_end_rail_tip(pindex)
+   local p = game.get_player(pindex)
+   local pos = players[pindex].cursor_pos
+   --Get the rail at the cursor
+   local rails_at_cursor = p.surface.find_entities_filtered{name = "straight-rail",position = pos}
+   if rails_at_cursor == nil or #rails_at_cursor == 0 then
+      return false
+   end
+   --Check if it is an end rail that faces a cardinal direction
+   local rail_at_cursor = rails_at_cursor[1]
+   local is_end_rail, dir, comment = mod.check_end_rail(rail_at_cursor, pindex)
+   if is_end_rail == false or (dir ~= dirs.north and dir ~= dirs.south and dir ~= dirs.east and dir ~= dirs.west) then
+      return false
+   end
+   --Check if any rails around the cursor position have a different unit number
+   local perimeter = {}
+   perimeter[1] = fa_utils.add_position(pos,{x = -1, y = -1})
+   perimeter[2] = fa_utils.add_position(pos,{x = -1, y =  0})
+   perimeter[3] = fa_utils.add_position(pos,{x = -1, y =  1})
+   perimeter[4] = fa_utils.add_position(pos,{x =  0, y = -1})
+   perimeter[5] = fa_utils.add_position(pos,{x =  0, y =  1})
+   perimeter[6] = fa_utils.add_position(pos,{x =  1, y = -1})
+   perimeter[7] = fa_utils.add_position(pos,{x =  1, y =  0})
+   perimeter[8] = fa_utils.add_position(pos,{x =  1, y =  1})
+   for pos_p in perimeter do
+      --Find rails, if any
+      local ents = p.surface.find_entities_filtered{name = {"straight-rail","curved-rail"},position = pos_p}
+      if ents ~= nil and #ents > 0 then
+         for rail in ents do
+            --For rails found, check whether the unit number is different
+            if rail.unit_number ~= rail_at_cursor.unit_number then
+               return false
+            end
+         end
+      end
+   end
+   --Given that the cursor is on an end rail and no other rails are around the cursor, return true
+   return true
+end
+
+--Acknowledges that the ghost rail planner has been allowed and updates player info
+function mod.start_ghost_rail_planning(pindex)
+   --Notify the ghost rail planner starting
+   players[pindex].ghost_rail_planning = true
+   players[pindex].ghost_rail_start_pos = {x = players[pindex].cursor_pos.x, y = players[pindex].cursor_pos.y}
+   printout("Started ghost rail planner", pindex)
+end
+
+--WIP todo: Checks the selected end location and cancels if too close by (to prevent big unplanned curves)
+--Note: The rail planner itself does nothing if an invalid location is chosen
+function mod.end_ghost_rail_planning(pindex)
+   local p = game.get_player(pindex)
+   --Check if cursor is on screen OR if remote view is running
+   local on_screen = fa_mouse.cursor_position_is_on_screen_with_player_centered(pindex) == true or players[pindex].remote_view == true
+   if not on_screen then
+      p.clear_cursor()
+      printout("Rail planner error: cursor was not on screen", pindex)
+      return
+   end
+   --Check if too close
+   local start_pos = players[pindex].ghost_rail_start_pos
+   local end_pos = players[pindex].cursor_pos
+   local far_enough = 50 > util.distance(start_pos,end_pos)
+   --Give warning and clear hand if too close
+   if not far_enough then
+      p.clear_cursor()
+      printout("Rail planner error: Target position must be at least 50 tiles away", pindex)
+      return
+   end
+
+   --No errors, but rail planner may still fail at invalid placements. Clear the cursor anyway
+   p.clear_cursor()
+
+   --Check whether there is a ghost rail at the cursor location (from before processing this action) 
+   --todo****
+   --Schedule to check whether successful (which can be verified by there being a rail ghost near the cursor 2 ticks later)
+   schedule(2,"call_to_check_ghost_rails",pindex)
+end
+
+--WIP todo: Reports on whether the rail planning was successful based on whether there is a ghost rail near the cursor
+function mod.check_ghost_rail_planning_results(pindex)
+   --Look for a ghost rail near the cursor
+
+   --If it exists, you were successful
 end
 
 --Look up and translate the signal state.

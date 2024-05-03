@@ -60,6 +60,11 @@ function call_to_restore_equipped_atomic_bombs(pindex)
    fa_equipment.restore_equipped_atomic_bombs(pindex)
 end
 
+--This function gets scheduled.
+function call_to_check_ghost_rails(pindex)
+   fa_rails.check_ghost_rail_planning_results(pindex)
+end
+
 --Returns the entity at this player's cursor selected tile
 function get_selected_ent(pindex)
    local tile=players[pindex].tile
@@ -3028,7 +3033,7 @@ function move_characters(event)
                fa_graphics.sync_build_cursor_graphics(pindex)
             else
                --Force the pointer to the cursor location (if on screen)
-               if cursor_position_is_on_screen_with_player_centered(pindex) then
+               if fa_mouse.cursor_position_is_on_screen_with_player_centered(pindex) then
                   fa_mouse.move_mouse_pointer(players[pindex].cursor_pos,pindex)
                else
                   fa_mouse.move_mouse_pointer(players[pindex].position,pindex)
@@ -3208,6 +3213,11 @@ function move_key(direction,event, force_single_tile)
 
    --Play a sound to indicate ongoing selection
    if pex.bp_selecting then
+      game.get_player(pindex).play_sound{path = "utility/upgrade_selection_started"}
+   end
+
+   --Play a sound to indicate ongoing ghost rail planner
+   if pex.ghost_rail_planning then
       game.get_player(pindex).play_sound{path = "utility/upgrade_selection_started"}
    end
 
@@ -6239,20 +6249,37 @@ script.on_event("equip-item", function(event)
    end
 end)
 
+--Has the same input as the ghost placement function and so it uses that
 script.on_event("open-rail-builder", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then
       return
    end
    if players[pindex].in_menu then
+      if players[pindex].ghost_rail_planning == true then
+         game.get_player(pindex).clear_cursor()
+      end
       return
+   elseif players[pindex].ghost_rail_planning == true then
+      fa_rails.end_ghost_rail_planning(pindex)
    else
       --Not in a menu
       local ent =  get_selected_ent(pindex)
+      local stack = game.get_player(pindex).cursor_stack
       if ent then
          if ent.name == "straight-rail" then
-            --Open rail builder
-            fa_rail_builder.open_menu(pindex, ent)
+            --If holding a rail item and selecting the tip of the end rail, notify about the ghost rail planner activation
+            local ghost_rail_case = false
+            if stack and stack.valid_for_read and stack.name == "rail" then
+               ghost_rail_case = fa_rails.cursor_is_at_straight_end_rail_tip(pindex)
+            end
+            if ghost_rail_case then
+               fa_rails.start_ghost_rail_planning(pindex)
+            else
+               --Open rail builder
+               game.get_player(pindex).clear_cursor()
+               fa_rail_builder.open_menu(pindex, ent)
+            end
          elseif ent.name == "curved-rail" then
             printout("Rail builder menu cannot use curved rails.", pindex)
          end
@@ -8997,13 +9024,6 @@ function set_inserter_filter_by_hand(pindex, ent)
 
 end
 
---Checks if the map position of the mod cursor falls on screen when the camera is locked on the player character.
-function cursor_position_is_on_screen_with_player_centered(pindex)
-   local range_y = math.floor(16/players[pindex].zoom)--found experimentally by counting tile ranges at different zoom levels
-   local range_x = range_y * game.get_player(pindex).display_scale * 1.5--found experimentally by checking scales
-   return (math.abs(players[pindex].cursor_pos.y - players[pindex].position.y) <= range_y and math.abs(players[pindex].cursor_pos.x - players[pindex].position.x) <= range_x)
-end
-
 --Feature for typing in coordinates for moving the mod cursor.
 function type_cursor_position(pindex)
    printout("Enter new co-ordinates for the cursor, separated by a space", pindex)
@@ -9563,7 +9583,7 @@ function cursor_visibility_info(pindex)
    elseif p.force.is_chunk_visible(p.surface,chunk_pos) == false then
       result = result .. " blurred "
    end
-   if cursor_position_is_on_screen_with_player_centered(pindex) == false then
+   if fa_mouse.cursor_position_is_on_screen_with_player_centered(pindex) == false then
       result = result .. " distant "
    end
    return result
