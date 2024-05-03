@@ -1,10 +1,10 @@
 --Here: The tutorial system
 
-local fa_tutorial = {}
+local mod = {}
 
 --The tutorial strings are fetched according to locale, with the main set of tutorial strings being im English ("en").
 --Other locales are expected to have the same arrangement of tutorial steps.
-function fa_tutorial.load_tutorial(pindex)
+function mod.load_tutorial(pindex)
    local tutorial = players[pindex].tutorial 
    local p = game.get_player(pindex)
    tutorial = {}
@@ -81,43 +81,43 @@ function fa_tutorial.load_tutorial(pindex)
    players[pindex].tutorial = tutorial
 end
 
-function fa_tutorial.read_current_step(pindex)
+function mod.read_current_step(pindex)
    local tutorial = players[pindex].tutorial
    if tutorial == nil then
-      fa_tutorial.load_tutorial(pindex)
-      fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked) 
+      mod.load_tutorial(pindex)
+      mod.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked) 
       return
    end
    players[pindex].tutorial = tutorial
-   fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked) 
+   mod.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked) 
 end
 
-function fa_tutorial.toggle_header_detail(pindex)
+function mod.toggle_header_detail(pindex)
    local tutorial = players[pindex].tutorial
    if tutorial == nil then
-      fa_tutorial.load_tutorial(pindex)
-      fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked) 
+      mod.load_tutorial(pindex)
+      mod.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked) 
       return 
    end
    tutorial.reading_the_header = not tutorial.reading_the_header
    players[pindex].tutorial = tutorial
-   fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked) 
+   mod.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked) 
 end 
 
 --Reads the header in detail mode and vice versa.
-function fa_tutorial.read_other_once(pindex)
+function mod.read_other_once(pindex)
    local tutorial = players[pindex].tutorial
    if tutorial == nil then
-      fa_tutorial.load_tutorial(pindex)
+      mod.load_tutorial(pindex)
    end
-   fa_tutorial.run_tutorial_menu(pindex, (not players[pindex].tutorial.reading_the_header), players[pindex].tutorial.clicked) 
+   mod.run_tutorial_menu(pindex, (not players[pindex].tutorial.reading_the_header), players[pindex].tutorial.clicked) 
 end 
 
-function fa_tutorial.prev_step(pindex)
+function mod.prev_step(pindex)
 	local tutorial = players[pindex].tutorial
    if tutorial == nil then
-      fa_tutorial.load_tutorial(pindex)
-      fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
+      mod.load_tutorial(pindex)
+      mod.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
       return 
    end
 	tutorial.step_index = tutorial.step_index - 1
@@ -144,14 +144,14 @@ function fa_tutorial.prev_step(pindex)
    
    --Load menu 
    players[pindex].tutorial = tutorial
-   fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
+   mod.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
 end
 
-function fa_tutorial.prev_chapter(pindex)
+function mod.prev_chapter(pindex)
 	local tutorial = players[pindex].tutorial
    if tutorial == nil then
-      fa_tutorial.load_tutorial(pindex)
-      fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
+      mod.load_tutorial(pindex)
+      mod.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
       return 
    end
 	tutorial.step_index = 1
@@ -168,14 +168,14 @@ function fa_tutorial.prev_chapter(pindex)
    
    --Load menu 
    players[pindex].tutorial = tutorial
-   fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
+   mod.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
 end
 
-function fa_tutorial.next_step(pindex)
+function mod.next_step(pindex)
    local tutorial = players[pindex].tutorial
    if tutorial == nil then
-      fa_tutorial.load_tutorial(pindex)
-      fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
+      mod.load_tutorial(pindex)
+      mod.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
       return 
    end
 	local tutorial = players[pindex].tutorial
@@ -207,14 +207,14 @@ function fa_tutorial.next_step(pindex)
    
    --Load menu 
    players[pindex].tutorial = tutorial
-   fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
+   mod.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
 end
 
-function fa_tutorial.next_chapter(pindex)
+function mod.next_chapter(pindex)
 	local tutorial = players[pindex].tutorial
    if tutorial == nil then
-      fa_tutorial.load_tutorial(pindex)
-      fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
+      mod.load_tutorial(pindex)
+      mod.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
       return 
    end
 	tutorial.step_index = 1
@@ -231,10 +231,10 @@ function fa_tutorial.next_chapter(pindex)
    
    --Load menu 
    players[pindex].tutorial = tutorial
-   fa_tutorial.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
+   mod.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
 end
 
-function fa_tutorial.read_current_header(pindex)
+function mod.read_current_header(pindex)
 	local tutorial = players[pindex].tutorial
 	local i = tutorial.chapter_index
 	local j = tutorial.step_index
@@ -244,7 +244,7 @@ function fa_tutorial.read_current_header(pindex)
    game.get_player(pindex).print(str,{volume_modifier=0})--
 end
 
-function fa_tutorial.read_current_detail(pindex)
+function mod.read_current_detail(pindex)
 	local tutorial = players[pindex].tutorial
 	local i = tutorial.chapter_index
 	local j = tutorial.step_index
@@ -257,7 +257,7 @@ function fa_tutorial.read_current_detail(pindex)
 end
 
 --For most steps this reads the already-loaded strings
-function fa_tutorial.run_tutorial_menu(pindex, reading_the_header, clicked)
+function mod.run_tutorial_menu(pindex, reading_the_header, clicked)
 	local tutorial = players[pindex].tutorial
 	local chap = tutorial.chapter_index
 	local step = tutorial.step_index
@@ -281,7 +281,7 @@ function fa_tutorial.run_tutorial_menu(pindex, reading_the_header, clicked)
       
       --Reload tutorial
       game.get_player(pindex).play_sound{path = "Open-Inventory-Sound"}  
-      fa_tutorial.load_tutorial(pindex)
+      mod.load_tutorial(pindex)
       players[pindex].tutorial.starting_fuel_provided = true
       
    elseif chap == 0 and step > 1 then
@@ -301,9 +301,9 @@ function fa_tutorial.run_tutorial_menu(pindex, reading_the_header, clicked)
       if clicked == false then
          --Read this step's header/detail
          if reading_the_header == true then
-            fa_tutorial.read_current_header(pindex)--Check step header, e.g. "multiple furnaces check"
+            mod.read_current_header(pindex)--Check step header, e.g. "multiple furnaces check"
          else
-            fa_tutorial.read_current_detail(pindex)--Check step detail, e.g. "click here to run a check for this step" 
+            mod.read_current_detail(pindex)--Check step detail, e.g. "click here to run a check for this step" 
          end
       else --if clicked == true then
          --Run the check and print the appropriate tutorial check result string
@@ -319,13 +319,13 @@ function fa_tutorial.run_tutorial_menu(pindex, reading_the_header, clicked)
 	elseif chap > 0 and step > 0 then
 		--All other steps: Just read the header/detail
 		if reading_the_header == true then
-			fa_tutorial.read_current_header(pindex)
+			mod.read_current_header(pindex)
 		else
-			fa_tutorial.read_current_detail(pindex)
+			mod.read_current_detail(pindex)
 		end
 	else
 		printout({"tutorial.tutorial-error"},pindex)--**
 	end
 end
 
-return fa_tutorial
+return mod

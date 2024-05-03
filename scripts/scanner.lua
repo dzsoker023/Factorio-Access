@@ -1,18 +1,18 @@
 --Here: Functions relating to the scanner tool
 --Does not include event handlers directly, but can have functions called by them.
 local util = require('util')
-local fa_utils = require("fa-utils")
-local localising = require('localising')
+local fa_utils = require("scripts.fa-utils")
+local localising = require('scripts.localising')
 local dirs = defines.direction
-local fa_graphics = require("graphics-and-mouse").graphics
-local fa_building_tools = require("building-tools")
-local fa_trains = require("trains").trains
-local fa_zoom = require('zoom')
-local fa_bot_logistics = require("worker-robots")
+local fa_graphics = require("scripts.graphics")
+local fa_building_tools = require("scripts.building-tools")
+local fa_trains = require("scripts.trains")
+local fa_zoom = require('scripts.zoom')
+local fa_bot_logistics = require("scripts.worker-robots")
 
-local fa_scanner = {} 
+local mod = {} 
 --Find islands of resources or water or trees to create the aggregate entries in the scanner list. Does not run for every scan.
-function fa_scanner.find_islands(surf, area, pindex)
+function mod.find_islands(surf, area, pindex)
    local islands = {}
    local ents = surf.find_entities_filtered{area = area, type = "resource"}
    local waters = surf.find_tiles_filtered{area = area, name = "water"}
@@ -145,7 +145,7 @@ function fa_scanner.find_islands(surf, area, pindex)
 end
 
 --Run any sort of scan
-function fa_scanner.scan_area(x,y,w,h, pindex, filter_direction, start_with_existing_list, close_object_limit_in)
+function mod.scan_area(x,y,w,h, pindex, filter_direction, start_with_existing_list, close_object_limit_in)
    local first_player = game.get_player(pindex)
    local surf = first_player.surface
    local ents = surf.find_entities_filtered{area = {{x, y},{x+w, y+h}}, type = {"resource", "tree", "highlight-box", "flying-text"}, invert = true} --Get all ents in the area except for these types
@@ -181,7 +181,7 @@ function fa_scanner.scan_area(x,y,w,h, pindex, filter_direction, start_with_exis
             --If it is a forest, check density
             if name == "forest" then
                local forest_pos = nearest_edge
-               forest_density = fa_scanner.classify_forest(forest_pos,pindex,false)
+               forest_density = mod.classify_forest(forest_pos,pindex,false)
             else
                forest_density = nil
             end
@@ -199,7 +199,7 @@ function fa_scanner.scan_area(x,y,w,h, pindex, filter_direction, start_with_exis
 
    --Insert entities to the initial list
    for i=1, #ents, 1 do
-      local extra_entry_info = fa_scanner.ent_extra_list_info(ents[i],pindex,false)
+      local extra_entry_info = mod.ent_extra_list_info(ents[i],pindex,false)
       local scan_entry = ents[i].name .. extra_entry_info
       local index = fa_utils.index_of_entity(result, scan_entry)
       
@@ -274,7 +274,7 @@ function fa_scanner.scan_area(x,y,w,h, pindex, filter_direction, start_with_exis
 end
 
 --Scans an area but only for trees. Copies the "Insert entities to the initial list" part from scan_area(). Separate so that one can specify a smaller radius for this.
-function fa_scanner.scan_nearby_trees(pindex, filter_direction, radius_in)
+function mod.scan_nearby_trees(pindex, filter_direction, radius_in)
    local p = game.get_player(pindex)
    local pos = players[pindex].position
    local surf = first_player.surface
@@ -322,7 +322,7 @@ function fa_scanner.scan_nearby_trees(pindex, filter_direction, radius_in)
 end
 
 --Adds scanned ents to categories of the scan results list.
-function fa_scanner.populate_list_categories(pindex)
+function mod.populate_list_categories(pindex)
    players[pindex].nearby.resources = {}
    players[pindex].nearby.containers = {}
    players[pindex].nearby.buildings = {}
@@ -371,13 +371,13 @@ function fa_scanner.populate_list_categories(pindex)
 end
 
 --Run the entity scanner tool ("rescan")
-function fa_scanner.run_scan(pindex,filter_dir, mute)
+function mod.run_scan(pindex,filter_dir, mute)
    players[pindex].nearby.index = 1
    players[pindex].nearby.selection = 1
    first_player = game.get_player(pindex)
-   players[pindex].nearby.ents = fa_scanner.scan_nearby_trees(pindex, filter_dir, 25)
-   players[pindex].nearby.ents = fa_scanner.scan_area(math.floor(players[pindex].cursor_pos.x)-2500, math.floor(players[pindex].cursor_pos.y)-2500, 5000, 5000, pindex, filter_dir, true)
-   fa_scanner.populate_list_categories(pindex)
+   players[pindex].nearby.ents = mod.scan_nearby_trees(pindex, filter_dir, 25)
+   players[pindex].nearby.ents = mod.scan_area(math.floor(players[pindex].cursor_pos.x)-2500, math.floor(players[pindex].cursor_pos.y)-2500, 5000, 5000, pindex, filter_dir, true)
+   mod.populate_list_categories(pindex)
    players[pindex].nearby.index = 1
    players[pindex].nearby.selection = 1
    players[pindex].cursor_scanned = false
@@ -395,7 +395,7 @@ function fa_scanner.run_scan(pindex,filter_dir, mute)
 end
    
 --Sound and visual effects for the scanner
-function fa_scanner.run_scanner_effects(pindex)
+function mod.run_scanner_effects(pindex)
    --Scanner visual and sound effects
    game.get_player(pindex).play_sound{path = "scanner-pulse"}
    rendering.draw_circle{color = {1, 1, 1},radius = 1,width =  4,target = game.get_player(pindex).position, surface = game.get_player(pindex).surface, draw_on_ground = true, time_to_live = 60}
@@ -403,7 +403,7 @@ function fa_scanner.run_scanner_effects(pindex)
 end
 
 --Sort scanner list entries by distance from the reference position, or by total count
-function fa_scanner.list_sort(pindex)
+function mod.list_sort(pindex)
    for i, name in ipairs(players[pindex].nearby.ents   ) do
       local i1 = 1
       while i1 <= #name.ents do --this appears to be removing invalid ents within a set.
@@ -464,12 +464,12 @@ function fa_scanner.list_sort(pindex)
          return k1.count > k2.count
       end)
    end
-   fa_scanner.populate_list_categories(pindex)
+   mod.populate_list_categories(pindex)
 
 end
 
 --Reads the currently selected entity of the scanner list 
-function fa_scanner.list_index(pindex)
+function mod.list_index(pindex)
    if not check_for_player(pindex) then
       printout("Scan pindex error.", pindex)
       return
@@ -525,7 +525,7 @@ function fa_scanner.list_index(pindex)
          if #ents[players[pindex].nearby.index].ents == 0 then
             table.remove(ents,players[pindex].nearby.index)
             players[pindex].nearby.index = math.min(players[pindex].nearby.index, #ents)
-            fa_scanner.list_index(pindex)
+            mod.list_index(pindex)
             return
          end
          --Sort by distance to player pos while describing indexed entries
@@ -568,7 +568,7 @@ function fa_scanner.list_index(pindex)
             if table_size(entry) == 0 or name == "highlight-box" then
                table.remove(ents[players[pindex].nearby.index].ents, players[pindex].nearby.selection)
                players[pindex].nearby.selection = players[pindex].nearby.selection - 1
-               fa_scanner.list_index(pindex)
+               mod.list_index(pindex)
                return
             end
             --The scan target is an aggregate, select it now
@@ -600,7 +600,7 @@ function fa_scanner.list_index(pindex)
       if players[pindex].nearby.count == false then
          --Read the entity in terms of distance and direction
          local result={"access.thing-producing-listpos-dirdist",fa_utils.ent_name_locale(ent)}
-         table.insert(result,fa_scanner.ent_extra_list_info(ent,pindex,true))
+         table.insert(result,mod.ent_extra_list_info(ent,pindex,true))
          table.insert(result,{"description.of", players[pindex].nearby.selection , #ents[players[pindex].nearby.index].ents})--"X of Y"
          table.insert(result,dir_dist)
          local final_result = {""}
@@ -621,7 +621,7 @@ function fa_scanner.list_index(pindex)
 end 
 
 --Move up one entry in the scanner list
-function fa_scanner.list_up(pindex)
+function mod.list_up(pindex)
    if players[pindex].in_menu then
       --These keys may overlap a lot so might as well
       return
@@ -634,11 +634,11 @@ function fa_scanner.list_up(pindex)
       players[pindex].nearby.selection = 1
       game.get_player(pindex).play_sound{path = "inventory-edge"}
    end
-   fa_scanner.list_index(pindex)
+   mod.list_index(pindex)
  end
 
 --Move down one entry in the scanner list 
-function fa_scanner.list_down(pindex)
+function mod.list_down(pindex)
    if players[pindex].in_menu then
       --These keys may overlap a lot so might as well
       return
@@ -657,11 +657,11 @@ function fa_scanner.list_down(pindex)
       game.get_player(pindex).play_sound{path = "inventory-edge"}
       players[pindex].nearby.selection = 1
    end
-   fa_scanner.list_index(pindex)
+   mod.list_index(pindex)
 end
 
 --Repeat the current entry in the scanner list
-function fa_scanner.list_current(pindex)
+function mod.list_current(pindex)
    if players[pindex].in_menu then
       --These keys may overlap a lot so might as well
       return
@@ -692,15 +692,15 @@ function fa_scanner.list_current(pindex)
    end
 
    if not(pcall(function()
-      fa_scanner.list_index(pindex)
+      mod.list_index(pindex)
    end)) then
       table.remove(ents, players[pindex].nearby.index)
-      fa_scanner.list_current(pindex)
+      mod.list_current(pindex)
    end
  end
 
 --Returns an info string about the entities and tiles found within an area scan done by an enlarged cursor.
-function fa_scanner.area_scan_summary_info(scan_left_top, scan_right_bottom, pindex)      
+function mod.area_scan_summary_info(scan_left_top, scan_right_bottom, pindex)      
    local result = ""
    local explored_left_top = {x = math.floor((players[pindex].cursor_pos.x - 1 - players[pindex].cursor_size) / 32), y = math.floor((players[pindex].cursor_pos.y - 1 - players[pindex].cursor_size)/32)}
    local explored_right_bottom = {x = math.floor((players[pindex].cursor_pos.x + 1 + players[pindex].cursor_size)/32), y = math.floor((players[pindex].cursor_pos.y + 1 + players[pindex].cursor_size)/32)}
@@ -837,7 +837,7 @@ function fa_scanner.area_scan_summary_info(scan_left_top, scan_right_bottom, pin
 end
 
 --Brief extra entity info is given here, for mentioning in the scanner list. If the parameter "info_comes_after_indexing" is not true, then this info distinguishes the entity plus its description as a new line of the scanner list, such as how assembling machines with different recipes are listed separately.
-function fa_scanner.ent_extra_list_info(ent,pindex,info_comes_after_indexing)
+function mod.ent_extra_list_info(ent,pindex,info_comes_after_indexing)
    local result = ""
 
    if ent.name ~= "water" and ent.type == "mining-drill"  then
@@ -950,7 +950,7 @@ function fa_scanner.ent_extra_list_info(ent,pindex,info_comes_after_indexing)
       result = result .. " " .. ent.backer_name
    elseif ent.name == "forest" then
    --Forest type by density
-      result = result .. fa_scanner.classify_forest(ent.position,pindex,true)
+      result = result .. mod.classify_forest(ent.position,pindex,true)
    elseif ent.name == "roboport" then
    --Roboport network name 
       result = result .. " of network " .. fa_bot_logistics.get_network_name(ent)
@@ -986,7 +986,7 @@ function fa_scanner.ent_extra_list_info(ent,pindex,info_comes_after_indexing)
 end
 
 --Examines a forest position and classifies it by tree density. Used for the scanner list.
-function fa_scanner.classify_forest(position,pindex,drawing)
+function mod.classify_forest(position,pindex,drawing)
    local tree_count = 0
    local tree_group = game.get_player(pindex).surface.find_entities_filtered{type = "tree", position = position, radius = 16, limit = 15}
    if drawing then
@@ -1009,4 +1009,4 @@ function fa_scanner.classify_forest(position,pindex,drawing)
    end
 end
 
-return fa_scanner
+return mod

@@ -1,10 +1,10 @@
 --Here: functions about the warnings menu
-local fa_belts = require("transport-belts")
+local fa_belts = require("scripts.transport-belts")
 
-local fa_warnings = {}
+local mod = {}
 
 --Reads out a selected warning from the menu.
-function fa_warnings.read_warnings_slot(pindex)
+function mod.read_warnings_slot(pindex)
    local warnings = {}
    if players[pindex].warnings.sector == 1 then
       warnings = players[pindex].warnings.short.warnings
@@ -26,7 +26,7 @@ function fa_warnings.read_warnings_slot(pindex)
 end
 
 --Warnings menu: Creates a structured data network to track production systems.
-function fa_warnings.generate_production_network(pindex)
+function mod.generate_production_network(pindex)
    local surf = game.get_player(pindex).surface
    local connectors = surf.find_entities_filtered{type="inserter"}
    local sources = surf.find_entities_filtered{type = "mining-drill"}
@@ -290,8 +290,8 @@ function fa_warnings.generate_production_network(pindex)
 end
 
 --Warnings menu: scans for problems in the production network it defines and creates the warnings list.
-function fa_warnings.scan_for_warnings(L,H,pindex)
-   local prod =       fa_warnings.generate_production_network(pindex)
+function mod.scan_for_warnings(L,H,pindex)
+   local prod =       mod.generate_production_network(pindex)
    local surf = game.get_player(pindex).surface
    local pos = players[pindex].cursor_pos
    local area = {{pos.x - L, pos.y - H}, {pos.x + L, pos.y + H}}
@@ -348,4 +348,4 @@ function fa_warnings.scan_for_warnings(L,H,pindex)
    return {summary = str, warnings = result}
 end
 
-return fa_warnings
+return mod

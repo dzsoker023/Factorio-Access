@@ -1,32 +1,32 @@
 --Main file for mod runtime
 local util = require('util')
-local fa_utils = require('fa-utils')
-local fa_localising = require('localising')
-local fa_crafting = require("crafting")
-local fa_electrical = require("electrical")
-local fa_equipment = require("equipment-and-combat").equipment
-local fa_combat = require("equipment-and-combat").combat
-local fa_graphics = require("graphics-and-mouse").graphics
-local fa_mouse = require("graphics-and-mouse").mouse
-local fa_tutorial = require("tutorial-system")
-local fa_sectors = require("building-vehicle-sectors")
-local fa_menu_search = require("menu-search")
-local fa_building_tools = require("building-tools")
-local fa_mining_tools = require("mining-tools")
-local fa_rails = require("rails").rails
-local fa_rail_builder = require("rails").rail_builder
-local fa_trains = require("trains").trains
-local fa_train_stops = require("trains").train_stops
-local fa_driving = require("driving")
-local fa_scanner = require("scanner")
-local fa_spidertrons = require("spidertron")
-local fa_belts = require("transport-belts")
-local fa_zoom = require('zoom')
-local fa_bot_logistics = require("worker-robots")
-local fa_blueprints = require("blueprints")
-local fa_travel = require("travel-tools")
-local fa_teleport = require("teleport")
-local fa_warnings = require("warnings")
+local fa_utils = require('scripts.fa-utils')
+local fa_localising = require('scripts.localising')
+local fa_crafting = require("scripts.crafting")
+local fa_electrical = require("scripts.electrical")
+local fa_equipment = require("scripts.equipment")
+local fa_combat = require("scripts.combat")
+local fa_graphics = require("scripts.graphics")
+local fa_mouse = require("scripts.mouse")
+local fa_tutorial = require("scripts.tutorial-system")
+local fa_sectors = require("scripts.building-vehicle-sectors")
+local fa_menu_search = require("scripts.menu-search")
+local fa_building_tools = require("scripts.building-tools")
+local fa_mining_tools = require("scripts.mining-tools")
+local fa_rails = require("scripts.rails")
+local fa_rail_builder = require("scripts.rail-builder")
+local fa_trains = require("scripts.trains")
+local fa_train_stops = require("scripts.train-stops")
+local fa_driving = require("scripts.driving")
+local fa_scanner = require("scripts.scanner")
+local fa_spidertrons = require("scripts.spidertron")
+local fa_belts = require("scripts.transport-belts")
+local fa_zoom = require('scripts.zoom')
+local fa_bot_logistics = require("scripts.worker-robots")
+local fa_blueprints = require("scripts.blueprints")
+local fa_travel = require("scripts.travel-tools")
+local fa_teleport = require("scripts.teleport")
+local fa_warnings = require("scripts.warnings")
 
 local circuit_networks = require('circuit-networks')
 
@@ -58,6 +58,11 @@ end
 --This function gets scheduled.
 function call_to_restore_equipped_atomic_bombs(pindex)
    fa_equipment.restore_equipped_atomic_bombs(pindex)
+end
+
+--This function gets scheduled.
+function call_to_check_ghost_rails(pindex)
+   fa_rails.check_ghost_rail_planning_results(pindex)
 end
 
 --Returns the entity at this player's cursor selected tile
@@ -3028,7 +3033,7 @@ function move_characters(event)
                fa_graphics.sync_build_cursor_graphics(pindex)
             else
                --Force the pointer to the cursor location (if on screen)
-               if cursor_position_is_on_screen_with_player_centered(pindex) then
+               if fa_mouse.cursor_position_is_on_screen_with_player_centered(pindex) then
                   fa_mouse.move_mouse_pointer(players[pindex].cursor_pos,pindex)
                else
                   fa_mouse.move_mouse_pointer(players[pindex].position,pindex)
@@ -3211,6 +3216,11 @@ function move_key(direction,event, force_single_tile)
       game.get_player(pindex).play_sound{path = "utility/upgrade_selection_started"}
    end
 
+   --Play a sound to indicate ongoing ghost rail planner
+   if pex.ghost_rail_planning then
+      game.get_player(pindex).play_sound{path = "utility/upgrade_selection_started"}
+   end
+
    --Stop kruise kontrol related permissions
    players[pindex].kruise_kontrolling = false
 end
@@ -3380,6 +3390,7 @@ script.on_event("pause-game-fa", function(event)
    for i, elem in ipairs(fa_utils.get_iterable_array(game.get_player(pindex).gui.children)) do
       if elem.get_mod() == "FactorioAccess" or elem.get_mod() == nil then
          elem.clear()
+         close_menu_resets(pindex)
       end
    end
 end)
@@ -3500,6 +3511,9 @@ script.on_event("cursor-bookmark-load", function(event)
       return
    end
    local pos = players[pindex].cursor_bookmark
+   if pos == nil or pos.x == nil or pos.y == nil then
+      return
+   end
    players[pindex].cursor_pos = pos
    fa_graphics.draw_cursor_highlight(pindex, nil, nil)
    fa_graphics.sync_build_cursor_graphics(pindex)
@@ -4402,11 +4416,9 @@ end)
 function close_menu_resets(pindex)
    local p = game.get_player(pindex)
    if players[pindex].menu == "travel" then
-      game.get_player(pindex).gui.screen["travel"].destroy()
-      players[pindex].cursor_pos = fa_utils.center_of_tile(players[pindex].position)
-      fa_graphics.draw_cursor_highlight(pindex, nil, "train-visualization")
+      fa_travel.fast_travel_menu_close(pindex)
    elseif players[pindex].menu == "structure-travel" then
-      game.get_player(pindex).gui.screen["structure-travel"].destroy()
+      fa_travel.structure_travel_menu_close(pindex)
    elseif players[pindex].menu == "rail_builer" then
       fa_rail_builder.close_menu(pindex, false)
    elseif players[pindex].menu == "train_menu" then
@@ -5575,7 +5587,7 @@ script.on_event("click-menu", function(event)
                players[pindex].cursor_pos = fa_utils.center_of_tile(ent.position)
                fa_graphics.draw_cursor_highlight(pindex, ent, nil)
                fa_graphics.sync_build_cursor_graphics(pindex)
-               printout({"access.teleported-the-cursor-to", "".. math.floor(players[pindex].cursor_pos.x) .. " " .. math.floor(players[pindex].cursor_pos.y)}, pindex)
+               printout({"access.teleported-cursor-to", "".. math.floor(players[pindex].cursor_pos.x) .. " " .. math.floor(players[pindex].cursor_pos.y)}, pindex)
 --               players[pindex].menu = ""
 --               players[pindex].in_menu = false
             else
@@ -5717,7 +5729,7 @@ script.on_event("click-hand", function(event)
          fa_spidertrons.run_spider_menu(3, pindex, stack.connected_entity, true, nil)
       elseif stack.is_repair_tool then
          --If holding a repair pack, try to use it (will not work on enemies)
-         fa_equipment.repair_pack_used(ent,pindex)
+         fa_combat.repair_pack_used(ent,pindex)
       elseif stack.is_blueprint and stack.is_blueprint_setup() and players[pindex].blueprint_reselecting ~= true then
          --Paste a ready blueprint 
          players[pindex].last_held_blueprint = stack
@@ -6096,7 +6108,7 @@ script.on_event("repair-area", function(event)
       --If something is in hand...     
       if stack.is_repair_tool then
          --If holding a repair pack
-         fa_equipment.repair_area(math.ceil(game.get_player(pindex).reach_distance),pindex)
+         fa_combat.repair_area(math.ceil(game.get_player(pindex).reach_distance),pindex)
       end
    end
 end)
@@ -6237,20 +6249,37 @@ script.on_event("equip-item", function(event)
    end
 end)
 
+--Has the same input as the ghost placement function and so it uses that
 script.on_event("open-rail-builder", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then
       return
    end
    if players[pindex].in_menu then
+      if players[pindex].ghost_rail_planning == true then
+         game.get_player(pindex).clear_cursor()
+      end
       return
+   elseif players[pindex].ghost_rail_planning == true then
+      fa_rails.end_ghost_rail_planning(pindex)
    else
       --Not in a menu
       local ent =  get_selected_ent(pindex)
+      local stack = game.get_player(pindex).cursor_stack
       if ent then
          if ent.name == "straight-rail" then
-            --Open rail builder
-            fa_rail_builder.open_menu(pindex, ent)
+            --If holding a rail item and selecting the tip of the end rail, notify about the ghost rail planner activation
+            local ghost_rail_case = false
+            if stack and stack.valid_for_read and stack.name == "rail" then
+               ghost_rail_case = fa_rails.cursor_is_at_straight_end_rail_tip(pindex)
+            end
+            if ghost_rail_case then
+               fa_rails.start_ghost_rail_planning(pindex)
+            else
+               --Open rail builder
+               game.get_player(pindex).clear_cursor()
+               fa_rail_builder.open_menu(pindex, ent)
+            end
          elseif ent.name == "curved-rail" then
             printout("Rail builder menu cannot use curved rails.", pindex)
          end
@@ -8995,13 +9024,6 @@ function set_inserter_filter_by_hand(pindex, ent)
 
 end
 
---Checks if the map position of the mod cursor falls on screen when the camera is locked on the player character.
-function cursor_position_is_on_screen_with_player_centered(pindex)
-   local range_y = math.floor(16/players[pindex].zoom)--found experimentally by counting tile ranges at different zoom levels
-   local range_x = range_y * game.get_player(pindex).display_scale * 1.5--found experimentally by checking scales
-   return (math.abs(players[pindex].cursor_pos.y - players[pindex].position.y) <= range_y and math.abs(players[pindex].cursor_pos.x - players[pindex].position.x) <= range_x)
-end
-
 --Feature for typing in coordinates for moving the mod cursor.
 function type_cursor_position(pindex)
    printout("Enter new co-ordinates for the cursor, separated by a space", pindex)
@@ -9561,7 +9583,7 @@ function cursor_visibility_info(pindex)
    elseif p.force.is_chunk_visible(p.surface,chunk_pos) == false then
       result = result .. " blurred "
    end
-   if cursor_position_is_on_screen_with_player_centered(pindex) == false then
+   if fa_mouse.cursor_position_is_on_screen_with_player_centered(pindex) == false then
       result = result .. " distant "
    end
    return result

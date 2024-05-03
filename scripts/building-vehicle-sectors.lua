@@ -1,18 +1,18 @@
 --Here: functions specific to building menus
 local util = require('util')
-local fa_utils = require('fa-utils')
-local fa_crafting = require("crafting")
-local localising = require('localising')
-local fa_belts = require("transport-belts")
-local fa_blueprints = require("blueprints")
+local fa_utils = require('scripts.fa-utils')
+local fa_crafting = require("scripts.crafting")
+local localising = require('scripts.localising')
+local fa_belts = require("scripts.transport-belts")
+local fa_blueprints = require("scripts.blueprints")
 
-local fa_sectors = {}
+local mod = {}
 
 --[[Function to increase/decrease the bar (restricted slots) of a given chest/container by a given amount, while protecting its lower and upper bounds. 
 * Returns the verbal explanation to print out. 
 * amount = number of slots to change, set negative value for a decrease.
 ]]
-function fa_sectors.add_to_inventory_bar(ent, amount)
+function mod.add_to_inventory_bar(ent, amount)
    local inventory = ent.get_inventory(defines.inventory.chest)
 
    --Checks
@@ -51,7 +51,7 @@ function fa_sectors.add_to_inventory_bar(ent, amount)
 end
 
 --Loads and opens the building menu
-function fa_sectors.open_operable_building(ent,pindex)
+function mod.open_operable_building(ent,pindex)
    if ent.operable and ent.prototype.is_building then
       --Check if within reach
       if util.distance(game.get_player(pindex).position, players[pindex].cursor_pos) > game.get_player(pindex).reach_distance then
@@ -197,10 +197,10 @@ function fa_sectors.open_operable_building(ent,pindex)
                group = 0,
                subgroup = 0
             }
-            fa_sectors.read_building_recipe(pindex, "Select a Recipe, ")
+            mod.read_building_recipe(pindex, "Select a Recipe, ")
             return
          end
-         fa_sectors.read_sector_slot(pindex, true)
+         mod.read_sector_slot(pindex, true)
       else
          --No building sectors
          if game.get_player(pindex).opened ~= nil then
@@ -222,7 +222,7 @@ function fa_sectors.open_operable_building(ent,pindex)
 end
 
 --Loads and opens the vehicle menu
-function fa_sectors.open_operable_vehicle(ent,pindex)
+function mod.open_operable_vehicle(ent,pindex)
    if ent.valid and ent.operable then
       --Check if within reach
       if util.distance(game.get_player(pindex).position, players[pindex].cursor_pos) > game.get_player(pindex).reach_distance then
@@ -316,7 +316,7 @@ function fa_sectors.open_operable_vehicle(ent,pindex)
          players[pindex].inventory.index = 1
          players[pindex].building.index = 1
 
-         fa_sectors.read_sector_slot(pindex, true)
+         mod.read_sector_slot(pindex, true)
       else
          if game.get_player(pindex).opened ~= nil then
             players[pindex].building.ent = ent
@@ -333,7 +333,7 @@ function fa_sectors.open_operable_vehicle(ent,pindex)
 end
 
 --Building recipe selection sector: Read the selected recipe 
-function fa_sectors.read_building_recipe(pindex, start_phrase)
+function mod.read_building_recipe(pindex, start_phrase)
    start_phrase = start_phrase or ""
    if players[pindex].building.recipe_selection then --inside the selector
       local recipe = players[pindex].building.recipe_list[players[pindex].building.category][players[pindex].building.index]
@@ -353,7 +353,7 @@ function fa_sectors.read_building_recipe(pindex, start_phrase)
 end
 
 --Building sectors: Read the item or fluid at the selected slot.
-function fa_sectors.read_sector_slot(pindex, prefix_inventory_size_and_name)
+function mod.read_sector_slot(pindex, prefix_inventory_size_and_name)
    local building_sector = players[pindex].building.sectors[players[pindex].building.sector]
    if building_sector.name == "Filters" then
       local inventory = building_sector.inventory
@@ -516,7 +516,7 @@ function fa_sectors.read_sector_slot(pindex, prefix_inventory_size_and_name)
                end
                --result = result .. "nothing"
             end
-         elseif players[pindex].building.ent ~= nil and players[pindex].building.ent.valid and players[pindex].building.ent.type == "lab" then
+         elseif players[pindex].building.ent ~= nil and players[pindex].building.ent.valid and players[pindex].building.ent.type == "lab" and building_sector.name == "Input" then
             --laterdo switch to {"item-name.".. ent.prototype.lab_inputs[players[pindex].building.index] }
             result = result .. " reserved for science pack type " .. players[pindex].building.index
          elseif players[pindex].building.ent ~= nil and players[pindex].building.ent.valid and players[pindex].building.ent.type == "roboport" then
@@ -531,4 +531,4 @@ function fa_sectors.read_sector_slot(pindex, prefix_inventory_size_and_name)
    end
 end
 
-return fa_sectors
+return mod

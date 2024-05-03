@@ -1,32 +1,32 @@
 --Here: Functions relating to mod settings menus. This module is WIP.
 --Does not include event handlers directly, but can have functions called by them.
 
-local fa_settings = {}
+local mod = {}
 
-function fa_settings.top_menu_open(pindex)
+function mod.top_menu_open(pindex)
    --Load menu data
-   local settings_menu = players[pindex].fa_settings_menu
+   local settings_menu = players[pindex].mod_menu
    if settings_menu == nil then
       settings_menu = {
          submenu = "",
          index = 0
       }
-      players[pindex].fa_settings_menu = settings_menu
+      players[pindex].mod_menu = settings_menu
    end
 
    --Set the player menu tracker to this menu
-   players[pindex].menu = "fa_settings_menu"
+   players[pindex].menu = "mod_menu"
    players[pindex].in_menu = true
    players[pindex].move_queue = {}
    
    --Reset the menu line index to 0
-   players[pindex].fa_settings_menu.index = 0
+   players[pindex].mod_menu.index = 0
    
    --Play sound
    game.get_player(pindex).play_sound{path = "Open-Inventory-Sound"}
    
    --Load menu 
-   fa_settings.run_top_menu(pindex, players[pindex].fa_settings_menu.index, false)
+   mod.run_top_menu(pindex, players[pindex].mod_menu.index, false)
 end
 
 --[[
@@ -37,7 +37,7 @@ end
    3. Advanced mod settings [Settings that can significantly impact gameplay]
    4. Vanilla preferences [API-accessible preferences that match those found in the vanilla menus, if any ]
 ]]
-function fa_settings.run_top_menu(pindex, menu_index, clicked)
+function mod.run_top_menu(pindex, menu_index, clicked)
    local index = menu_index
    
    if index == 0 then
@@ -69,13 +69,13 @@ function fa_settings.run_top_menu(pindex, menu_index, clicked)
 end
 SETTINGS_TOP_MENU_LENGTH = 3
 
-function fa_settings.controls_menu_open(pindex)
+function mod.controls_menu_open(pindex)
    --Load menu data
    local menu_data = players[pindex].fa_mod_controls_menu
    if menu_data == nil then
       menu_data = {
       index = 0,
-      fa_settings.load_mod_controls_list(pindex)
+      mod.load_mod_controls_list(pindex)
       }
       players[pindex].fa_mod_controls_menu = menu_data
    end
@@ -91,10 +91,10 @@ function fa_settings.controls_menu_open(pindex)
    game.get_player(pindex).play_sound{path = "Open-Inventory-Sound"}
    
    --Load menu 
-   fa_settings.run_controls_menu(pindex, players[pindex].fa_mod_controls_menu.index, false)
+   mod.run_controls_menu(pindex, players[pindex].fa_mod_controls_menu.index, false)
 end
 
-function fa_settings.load_mod_controls_list(pindex)--****todo, like loading tutorial strings for the help system
+function mod.load_mod_controls_list(pindex)--****todo, like loading tutorial strings for the help system
 
 end
 
@@ -103,7 +103,7 @@ end
    0. About this menu and instructions
    X. Controls, grouped by chapters, same concept as tutorial steps!
 ]]
-function fa_settings.run_controls_menu(pindex, menu_index, clicked, pg_up, pg_down)
+function mod.run_controls_menu(pindex, menu_index, clicked, pg_up, pg_down)
    local index = menu_index
    
    if index == 0 then
@@ -116,7 +116,7 @@ function fa_settings.run_controls_menu(pindex, menu_index, clicked, pg_up, pg_do
 end
 MOD_CONTROLS_MENU_LENGTH = 2
 
-function fa_settings.preferences_menu_open(pindex)
+function mod.preferences_menu_open(pindex)
    --Load menu data
    local menu_data = players[pindex].fa_mod_preferences_menu
    if menu_data == nil then
@@ -137,7 +137,7 @@ function fa_settings.preferences_menu_open(pindex)
    game.get_player(pindex).play_sound{path = "Open-Inventory-Sound"}
    
    --Load menu 
-   fa_settings.run_preferences_menu(pindex, players[pindex].fa_mod_preferences_menu.index, false)
+   mod.run_preferences_menu(pindex, players[pindex].fa_mod_preferences_menu.index, false)
 end
 
 --[[
@@ -147,7 +147,7 @@ end
    2. Pref 2
    3. Etc.
 ]]
-function fa_settings.run_preferences_menu(pindex, menu_index, clicked, pg_up, pg_down)
+function mod.run_preferences_menu(pindex, menu_index, clicked, pg_up, pg_down)
    local index = menu_index
    
    if index == 0 then
@@ -194,7 +194,7 @@ MOD_PREFERENCES_MENU_LENGTH = 4
    2. Pref 2
    3. Etc.
 ]]
-function fa_settings.run_advanced_settings_menu(pindex, menu_index, clicked, pg_up, pg_down)
+function mod.run_advanced_settings_menu(pindex, menu_index, clicked, pg_up, pg_down)
    local index = menu_index
    
    if index == 0 then
@@ -226,4 +226,4 @@ function fa_settings.run_advanced_settings_menu(pindex, menu_index, clicked, pg_
 end
 MOD_ADVANCED_SETTINGS_MENU_LENGTH = 2
 
-return fa_settings
+return mod
