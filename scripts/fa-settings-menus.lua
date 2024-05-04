@@ -30,7 +30,7 @@ function mod.top_menu_open(pindex)
 end
 
 --[[
-   Settings top menu--****WIP
+   Settings top menu--*** WIP
    0. About this menu and instructions
    1. Mod controls list (read only) [All controls are listed directly in game]
    2. Mod preferences [Mod settings that affect presentation but have minimal gameplay changes, e.g. chest row length]
@@ -94,7 +94,7 @@ function mod.controls_menu_open(pindex)
    mod.run_controls_menu(pindex, players[pindex].fa_mod_controls_menu.index, false)
 end
 
-function mod.load_mod_controls_list(pindex)--****todo, like loading tutorial strings for the help system
+function mod.load_mod_controls_list(pindex)
 
 end
 
@@ -159,28 +159,28 @@ function mod.run_preferences_menu(pindex, menu_index, clicked, pg_up, pg_down)
       if not clicked then
          printout("Mute enemy proximity alerts", pindex)
       else
-         --****
+         --*** 
       end
    elseif index == 2 then
       --...
       if not clicked then
          printout("Player inventory wrap around", pindex)
       else
-         --****
+         --*** 
       end
    elseif index == 3 then
       --...
       if not clicked then
          printout("Building inventory wrap around", pindex)
       else
-         --****
+         --*** 
       end
    elseif index == 4 then
       --...
       if not clicked then
          printout("Building row length", pindex)
       else
-         --****
+         --*** 
       end
    end
 end
@@ -206,21 +206,21 @@ function mod.run_advanced_settings_menu(pindex, menu_index, clicked, pg_up, pg_d
       if not clicked then
          printout("Triple player reach", pindex)
       else
-         --****
+         --*** 
       end
    elseif index == 2 then
       --...
       if not clicked then
          printout("Peaceful mode", pindex)
       else
-         --****
+         --*** 
       end
    elseif index == 3 then
       --...
       if not clicked then
          printout("  ", pindex)
       else
-         --****
+         --*** 
       end
    end
 end
