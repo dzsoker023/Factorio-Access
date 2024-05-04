@@ -115,11 +115,10 @@ local function logistics_request_toggle_spidertron_logistics(spidertron,pindex)
    end   
 end
 
---Checks if the request for the given item is fulfilled. You can pass the personal logistics request slot index if you have it already
+--WIP: Checks if the request for the given item is fulfilled. You can pass the personal logistics request slot index if you have it already
 function mod.is_this_player_logistic_request_fulfilled(item_stack,pindex,slot_index_in)
    local result = false
    local slot_index = slot_index_in or nil
-   --todo**
    return result
 end
 
@@ -1073,13 +1072,12 @@ end
 
 --Returns summary info string
 function mod.player_logistic_requests_summary_info(pindex)
-   --***todo improve: "y of z personal logistic requests fulfilled, x items in trash, missing items include [3], take an item in hand and press L to check its request status." maybe use logistics_networks_info(ent,pos_in)
    local p = game.get_player(pindex)
    local current_slot = nil
    local correct_slot_id = nil
    local result = ""
    
-   --Check if logistics have been researched
+   --1. Check if logistics have been researched
    for i, tech in pairs(game.get_player(pindex).force.technologies) do
       if tech.name == "logistic-robotics" and not tech.researched == true then
          printout("Logistic requests not available, research required.",pindex)
@@ -1087,7 +1085,7 @@ function mod.player_logistic_requests_summary_info(pindex)
       end
    end
    
-   --Check if inside any logistic network or not (simpler than logistics network info)
+   --2. Check if inside any logistic network or not (simpler than logistics network info)
    local network = p.surface.find_logistic_network_by_position(p.position, p.force)
    if network == nil or not network.valid then
       --Check whether in construction range
@@ -1100,15 +1098,15 @@ function mod.player_logistic_requests_summary_info(pindex)
    else
       --Definitely within range
       local nearest, min_dist = fa_utils.find_nearest_roboport(p.surface,p.position,30)
-      result = result .. "In logistic range of network " .. nearest.backer_name .. ", " 
+      result = result .. "In network " .. nearest.backer_name .. ", " 
    end
    
-   --Check if personal logistics are enabled
+   --3. Check if personal logistics are enabled
    if not p.character_personal_logistic_requests_enabled then
       result = result .. "Requests paused, "
    end
    
-   --Count logistics requests
+   --4. Count logistics requests
    result = result .. count_active_personal_logistic_slots(pindex) .. " personal logistic requests set, "
    return result
 end
@@ -1260,13 +1258,12 @@ function mod.send_selected_stack_to_logistic_trash(pindex)
 end
 
 function mod.spidertron_logistic_requests_summary_info(spidertron,pindex)
-   --***todo improve: "y of z personal logistic requests fulfilled, x items in trash, missing items include [3], take an item in hand and press L to check its request status." maybe use logistics_networks_info(ent,pos_in)
    local p = game.get_player(pindex)
    local current_slot = nil
    local correct_slot_id = nil
    local result = "Spidertron "
    
-   --Check if logistics have been researched
+   --1. Check if logistics have been researched
    for i, tech in pairs(game.get_player(pindex).force.technologies) do
       if tech.name == "logistic-robotics" and not tech.researched == true then
          printout("Logistic requests not available, research required.",pindex)
@@ -1274,7 +1271,7 @@ function mod.spidertron_logistic_requests_summary_info(spidertron,pindex)
       end
    end
    
-   --Check if inside any logistic network or not (simpler than logistics network info)
+   --2. Check if inside any logistic network or not (simpler than logistics network info)
    local network = p.surface.find_logistic_network_by_position(spidertron.position, p.force)
    if network == nil or not network.valid then
       --Check whether in construction range
@@ -1290,12 +1287,12 @@ function mod.spidertron_logistic_requests_summary_info(spidertron,pindex)
       result = result .. "In logistic range of network " .. nearest.backer_name .. ", " 
    end
    
-   --Check if personal logistics are enabled
+   --3. Check if spidertron logistics are enabled
    if not spidertron.vehicle_logistic_requests_enabled then
       result = result .. "Requests paused, "
    end
    
-   --Count logistics requests
+   --4. Count logistics requests
    result = result .. count_active_spidertron_logistic_slots(pindex) .. " spidertron logistic requests set, "
    return result
 end
