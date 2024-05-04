@@ -503,7 +503,7 @@ function mod.start_ghost_rail_planning(pindex)
    printout("Started ghost rail planner", pindex)
 end
 
---WIP todo: Checks the selected end location and cancels if too close by (to prevent big unplanned curves)
+--WIP todo #90: Checks the selected end location and cancels if too close by (to prevent big unplanned curves)
 --Note: The rail planner itself does nothing if an invalid location is chosen
 function mod.end_ghost_rail_planning(pindex)
    local p = game.get_player(pindex)
@@ -529,12 +529,13 @@ function mod.end_ghost_rail_planning(pindex)
    p.clear_cursor()
 
    --Check whether there is a ghost rail at the cursor location (from before processing this action) 
-   --todo****
+   --...
+
    --Schedule to check whether successful (which can be verified by there being a rail ghost near the cursor 2 ticks later)
    schedule(2,"call_to_check_ghost_rails",pindex)
 end
 
---WIP todo: Reports on whether the rail planning was successful based on whether there is a ghost rail near the cursor
+--WIP todo #90: Reports on whether the rail planning was successful based on whether there is a ghost rail near the cursor
 function mod.check_ghost_rail_planning_results(pindex)
    --Look for a ghost rail near the cursor
 
@@ -948,14 +949,10 @@ function mod.rail_read_next_rail_entity_ahead(pindex, rail, is_forward)
    rendering.draw_circle{color = {0, 1, 0},radius = 1,width = 10,target = next_entity,surface = next_entity.surface,time_to_live = 100}
 end
 
---WIP. laterdo here: Rail analyzer menu where you will use arrow keys to go forward/back and left/right along a rail.
+--WIP #92. laterdo here: Rail analyzer menu where you will use arrow keys to go forward/back and left/right along a rail. A little like the structure travel feature.
 function mod.run_rail_analyzer_menu(pindex, origin_rail,is_called_from_train)
    return
 end
-
---laterdo maybe revise build-item-in-hand for single placed rails so that you can have more control on it. Create a new place single rail function
---function place_single_rail(pindex)
---end
 
 --Counts rails within range of a selected rail.
 function mod.count_rails_within_range(rail, range, pindex)

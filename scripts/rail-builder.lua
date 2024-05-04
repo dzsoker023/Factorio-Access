@@ -1233,7 +1233,7 @@ function mod.build_fork_at_end_rail(anchor_rail, pindex, include_forward, includ
    return
 end
 
---Builds a starter for a rail bypass junction with 2 rails
+--Builds a rail bypass junction with 2 rails
 function mod.build_rail_bypass_junction(anchor_rail, pindex)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
@@ -1468,7 +1468,7 @@ function mod.build_rail_bypass_junction(anchor_rail, pindex)
    
 end
 
---WIP: Builds a starter for a rail bypass junction with 3 rails ***todo complete and test
+--WIP #91: Builds a rail bypass junction with 3 rails
 function mod.build_rail_bypass_junction_triple(anchor_rail, pindex)
    local build_comment = ""
    local surf = game.get_player(pindex).surface
@@ -1576,7 +1576,7 @@ function mod.build_rail_bypass_junction_triple(anchor_rail, pindex)
       can_place_all = can_place_all and surf.can_place_entity{name = "straight-rail", position = {pos.x-18, pos.y-08}, direction = dirs.west, force = game.forces.player}
    end
    
-   --4C. Check if every object can be placed (MIDDLE) todo*** also be okay with there already being straight rails here 
+   --4C. Check if every object can be placed (MIDDLE) WIP *** also needs to be okay with there already being straight rails here 
    if dir == dirs.north then 
       can_place_all = can_place_all and (surf.can_place_entity{name = "straight-rail", position = {pos.x+08, pos.y-18}, direction = dirs.north, force = game.forces.player} or true)
    elseif dir == dirs.east then
@@ -1587,7 +1587,7 @@ function mod.build_rail_bypass_junction_triple(anchor_rail, pindex)
       can_place_all = can_place_all and (surf.can_place_entity{name = "straight-rail", position = {pos.x-18, pos.y-08}, direction = dirs.west, force = game.forces.player} or true)
    end
    
-   --4D. Check if every object can be placed (SIGNALS) todo ***
+   --4D. Check if every object can be placed (SIGNALS) WIP ***
    if dir == dirs.north then 
       can_place_all = can_place_all and surf.can_place_entity{name = "rail-chain-signal", position = {pos.x+01, pos.y-00}, direction = dirs.south, force = game.forces.player}
       can_place_all = can_place_all and surf.can_place_entity{name = "rail-chain-signal", position = {pos.x-02, pos.y-00}, direction = dirs.north, force = game.forces.player}
@@ -1675,7 +1675,7 @@ function mod.build_rail_bypass_junction_triple(anchor_rail, pindex)
       surf.create_entity{name = "straight-rail", position = {pos.x-18, pos.y-08}, direction = dirs.west, force = game.forces.player}
    end
    
-   --5C. Build the rail entities to create the exit (MIDDLE) todo ***
+   --5C. Build the rail entities to create the exit (MIDDLE) WIP ***
    if dir == dirs.north then 
       surf.create_entity{name = "straight-rail", position = {pos.x+08, pos.y-18}, direction = dirs.north, force = game.forces.player}
    elseif dir == dirs.east then
@@ -1686,7 +1686,7 @@ function mod.build_rail_bypass_junction_triple(anchor_rail, pindex)
       surf.create_entity{name = "straight-rail", position = {pos.x-18, pos.y-08}, direction = dirs.west,  force = game.forces.player}
    end
    
-   --5D. Place rail signals (6) todo ***
+   --5D. Place rail signals (6) WIP ***
    if dir == dirs.north then 
       surf.create_entity{name = "rail-chain-signal", position = {pos.x+01, pos.y-00}, direction = dirs.south, force = game.forces.player}
       surf.create_entity{name = "rail-chain-signal", position = {pos.x-02, pos.y-00}, direction = dirs.north, force = game.forces.player}

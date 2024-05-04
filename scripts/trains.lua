@@ -8,7 +8,7 @@ local dirs = defines.direction
 
 local mod = {}
 
---Look up and translate the train state. -laterdo better state explanations**
+--Look up and translate the train state.
 function mod.get_train_state_info(train)
    local train_state_id = train.state
    local train_state_text = ""
@@ -656,7 +656,7 @@ function mod.menu_right(pindex)
    mod.run_train_menu(players[pindex].train_menu.index, pindex, false)
 end
 
---Returns most common items in a cargo wagon. laterdo a full inventory screen maybe.
+--Returns most common items in a cargo wagon. 
 function mod.cargo_wagon_top_contents_info(wagon)
    local result = ""
    local itemset = wagon.get_inventory(defines.inventory.cargo_wagon).get_contents()
