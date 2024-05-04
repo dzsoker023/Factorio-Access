@@ -4,6 +4,7 @@
 local util = require('util')
 local fa_graphics = require("scripts.graphics")
 local fa_mouse = require("scripts.mouse")
+local fa_equipment = require("scripts.equipment")
 
 local mod = {}
 
@@ -218,6 +219,72 @@ function mod.aim_gun_at_nearest_enemy(pindex,enemy_in)
       fa_graphics.draw_cursor_highlight(pindex,nil,nil,true)
    end
    return true
+end
+
+--Checks if the conditions are valid for shooting an atomic bomb
+--laterdo review
+function mod.run_atomic_bomb_checks(pindex)
+   local p = game.get_player(pindex)
+   if p.character == nil then
+      return
+   end
+   --local main_inv = p.get_inventory(defines.inventory.character_main)
+   --local ammos_count = #ammo_inv - ammo_inv.count_empty_stacks()
+   local ammo_inv = p.get_inventory(defines.inventory.character_ammo)
+   local selected_ammo = ammo_inv[p.character.selected_gun_index]
+   local target_pos = p.shooting_state.position
+   local abort_missle = false
+   local abort_message = ""
+
+   if selected_ammo == nil or selected_ammo.valid_for_read == false then
+      return
+   end
+
+   --Stop checking if atomic bombs are not equipped
+   if selected_ammo.name ~= "atomic-bomb" then
+      return
+   end
+
+   --If the target position is shown as the center of the screen where the player stands, it means the cursor is not on screen
+   if target_pos == nil or util.distance(p.position, target_pos) < 1.5 then
+      target_pos = players[pindex].cursor_pos
+      p.shooting_state.position = players[pindex].cursor_pos
+      if selected_ammo.name == "atomic-bomb" then
+         abort_missle = true
+         abort_message = "Aiming alert, scroll mouse wheel to zoom out."
+      end
+   end
+
+   --If the target position is shown as the center of the screen where the player stands, it means the cursor is not on screen
+   local aim_dist_1 = util.distance(p.position, target_pos)
+   local aim_dist_2 = util.distance(p.position, players[pindex].cursor_pos)
+   if aim_dist_1 < 1.5 then
+      abort_missle = true
+      abort_message = "Aiming alert, scroll mouse wheel to zoom out."
+   elseif util.distance(target_pos, players[pindex].cursor_pos) > 2 then
+      abort_missle = true
+      abort_message = "Aiming alert, move cursor to sync mouse."
+   end
+   if (aim_dist_1 < 35 or aim_dist_2 < 35) then
+      abort_missle = true
+      abort_message = "Range alert, target too close, hold to fire anyway."
+   end
+   --p.print("abort check")
+
+   --Take actions to abort the firing
+   if abort_missle then
+      --Remove all atomic bombs
+      fa_equipment.delete_equipped_atomic_bombs(pindex)
+
+      --Warn the player
+      p.play_sound{path = "utility/cannot_build"}
+      printout(abort_message, pindex)
+
+      --Schedule to restore the items on a later tick
+      schedule(310, "call_to_restore_equipped_atomic_bombs", pindex)
+   else
+      --Suppress alerts for 10 seconds?
+   end
 end
 
 return mod
