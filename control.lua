@@ -944,7 +944,8 @@ function read_item_selector_slot(pindex, start_phrase)
    printout(start_phrase .. players[pindex].item_cache[players[pindex].item_selector.index].name, pindex)
 end
 
---Ent info: Gives the distance and direction of a fluidbox connection target? Todo: update to clarify and include localization
+--Ent info: Gives the distance and direction of a fluidbox connection target? 
+--Todo: update to clarify and include localization
 function get_adjacent_source(box, pos, dir)
    local result = {position = pos, direction = ""}
    ebox = table.deepcopy(box)
@@ -1496,7 +1497,8 @@ function read_tile(pindex, start_text)
    --game.get_player(pindex).print(result)--**
 end
 
---Read the current co-ordinates of the cursor on the map or in a menu. For crafting recipe and technology menus, it reads the ingredients / requirements instead. Todo: split this function by menu.
+--Read the current co-ordinates of the cursor on the map or in a menu. For crafting recipe and technology menus, it reads the ingredients / requirements instead.
+--Todo: split this function by menu.
 function read_coords(pindex, start_phrase)
    start_phrase = start_phrase or ""
    local result = start_phrase
@@ -3018,7 +3020,8 @@ end
 
 script.on_event(defines.events.on_tick,on_initial_joining_tick)
 
---Called for every player on every tick, to manage automatic walking and enforcing mouse pointer position syncs. Todo: move the mouse pointer stuff to its own function.
+--Called for every player on every tick, to manage automatic walking and enforcing mouse pointer position syncs.
+--Todo: create a new function for all mouse pointer related updates within this function
 function move_characters(event)
    for pindex, player in pairs(players) do
       if player.vanilla_mode == true then
@@ -3101,7 +3104,7 @@ function move(direction,pindex)
          end
          players[pindex].position = new_pos
          players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].position, direction,1)
-         --Telestep walking sounds: todo fix bug here (?) about walking sounds from inside menus
+         --Telestep walking sounds 
          if players[pindex].tile.previous ~= nil and players[pindex].tile.previous.valid and players[pindex].tile.previous.type == "transport-belt" then
             game.get_player(pindex).play_sound{path = "utility/metal_walking_sound", volume_modifier = 1}
          else
@@ -4922,9 +4925,12 @@ end)
 function swap_weapon_forward(pindex, write_to_character)
    local p = game.get_player(pindex)
    if p.character == nil then
-      return 0 --TODO: check if this causes problems
+      return 0 --This is an intentionally selected error code
    end
    local gun_index = p.character.selected_gun_index
+   if gun_index == nil then
+      return 0 --This is an intentionally selected error code
+   end
    local guns_inv = p.get_inventory(defines.inventory.character_guns)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
 
@@ -4964,11 +4970,11 @@ end
 function swap_weapon_backward(pindex, write_to_character)
    local p = game.get_player(pindex)
    if p.character == nil then
-      return 0 --TODO: does this cause problems???
+      return 0 --This is an intentionally selected error code
    end
    local gun_index = p.character.selected_gun_index
-   if gun_index==nil then
-      return 0
+   if gun_index == nil then
+      return 0 --This is an intentionally selected error code
    end
    local guns_inv = p.get_inventory(defines.inventory.character_guns)
    local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
@@ -5662,7 +5668,7 @@ script.on_event("click-menu", function(event)
    end
 end)
 
---Different behavior when you click on an inventory slot depending on the item in hand and the item in the slot (WIP)
+--WIP: Different behavior when you click on an inventory slot depending on the item in hand and the item in the slot (WIP)
 function player_inventory_click(pindex, left_click)
    --****todo finish this to include all interaction cases, then generalize it to building inventories . 
    --Use code from above and then replace above clutter with calls to this.
@@ -6474,7 +6480,7 @@ end
 * item name / empty string to indicate transfering everything
 * ratio (between 0 and 1), the ratio of the total count to transder for each item.
 * Has no checks or printouts!
-* persistent bug: only 1 inv transfer from player inv to chest can work, after that for some reason it always both inserts and takes back todo ***
+* persistent bug ***: only 1 inv transfer from player inv to chest can work, after that for some reason it always both inserts and takes back
 ]]
 function transfer_inventory(args)
    args.name = args.name or ""
