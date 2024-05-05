@@ -11,12 +11,24 @@ function mod.read_warnings_slot(pindex)
    elseif players[pindex].warnings.sector == 2 then
       warnings = players[pindex].warnings.medium.warnings
    elseif players[pindex].warnings.sector == 3 then
-      warnings= players[pindex].warnings.long.warnings
+      warnings = players[pindex].warnings.long.warnings
    end
-   if players[pindex].warnings.category <= #warnings and players[pindex].warnings.index <= #warnings[players[pindex].warnings.category].ents then
+   if
+      players[pindex].warnings.category <= #warnings
+      and players[pindex].warnings.index <= #warnings[players[pindex].warnings.category].ents
+   then
       local ent = warnings[players[pindex].warnings.category].ents[players[pindex].warnings.index]
       if ent ~= nil and ent.valid then
-         printout(ent.name .. " has " .. warnings[players[pindex].warnings.category].name .. " at " .. math.floor(ent.position.x) .. ", " .. math.floor(ent.position.y), pindex)
+         printout(
+            ent.name
+               .. " has "
+               .. warnings[players[pindex].warnings.category].name
+               .. " at "
+               .. math.floor(ent.position.x)
+               .. ", "
+               .. math.floor(ent.position.y),
+            pindex
+         )
       else
          printout("Blank", pindex)
       end
@@ -28,8 +40,8 @@ end
 --Warnings menu: Creates a structured data network to track production systems.
 function mod.generate_production_network(pindex)
    local surf = game.get_player(pindex).surface
-   local connectors = surf.find_entities_filtered{type="inserter"}
-   local sources = surf.find_entities_filtered{type = "mining-drill"}
+   local connectors = surf.find_entities_filtered({ type = "inserter" })
+   local sources = surf.find_entities_filtered({ type = "mining-drill" })
    local hash = {}
    local lines = {}
    local function explore_source(source)
@@ -38,9 +50,9 @@ function mod.generate_production_network(pindex)
             production_line = math.huge,
             inputs = {},
             outputs = {},
-            ent = source
+            ent = source,
          }
-         local target = surf.find_entities_filtered{position = source.drop_position, type = production_types}[1]
+         local target = surf.find_entities_filtered({ position = source.drop_position, type = production_types })[1]
          if target ~= nil then
             if target.type == "mining-drill" then
                table.insert(hash[source.unit_number].outputs, target.unit_number)
@@ -52,22 +64,21 @@ function mod.generate_production_network(pindex)
                table.insert(lines[new_line], source.unit_number)
             elseif target.type == "transport-belt" then
                if hash[target.unit_number] == nil then
-
                   local belts = fa_belts.get_connected_belts(target)
                   for i, belt in pairs(belts.hash) do
-                     hash[i] = {link = target.unit_number}
+                     hash[i] = { link = target.unit_number }
                   end
 
-                  local new_line = table.maxn(lines)+1
+                  local new_line = table.maxn(lines) + 1
                   hash[target.unit_number] = {
                      production_line = new_line,
-                     inputs = {source.unit_number},
+                     inputs = { source.unit_number },
                      outputs = {},
-                     ent = target
+                     ent = target,
                   }
 
                   hash[source.unit_number].production_line = new_line
-                  lines[new_line] = {source.unit_number, target.unit_number}
+                  lines[new_line] = { source.unit_number, target.unit_number }
                else
                   if hash[target.unit_number].link ~= nil then
                      hash[target.unit_number].ent = target
@@ -82,15 +93,15 @@ function mod.generate_production_network(pindex)
                end
             else
                if hash[target.unit_number] == nil then
-                  local new_line = table.maxn(lines)+1
+                  local new_line = table.maxn(lines) + 1
                   hash[target.unit_number] = {
                      production_line = new_line,
-                     inputs = {source.unit_number},
+                     inputs = { source.unit_number },
                      outputs = {},
-                     ent = target
+                     ent = target,
                   }
                   hash[source.unit_number].production_line = new_line
-                  lines[new_line] = {source.unit_number, target.unit_number}
+                  lines[new_line] = { source.unit_number, target.unit_number }
                else
                   table.insert(hash[target.unit_number].inputs, source.unit_number)
                   table.insert(hash[source.unit_number].outputs, target.unit_number)
@@ -101,10 +112,10 @@ function mod.generate_production_network(pindex)
          else
             local new_line = table.maxn(lines) + 1
             hash[source.unit_number].production_line = new_line
-            lines[new_line] = {source.unit_number}
+            lines[new_line] = { source.unit_number }
          end
       end
-      end
+   end
    for i, source in pairs(sources) do
       explore_source(source)
    end
@@ -115,44 +126,38 @@ function mod.generate_production_network(pindex)
             production_line = math.huge,
             inputs = {},
             outputs = {},
-            ent = connector
+            ent = connector,
          }
-         local drop_target = surf.find_entities_filtered{position = connector.drop_position, type = production_types}[1]
-         local pickup_target = surf.find_entities_filtered{position = connector.pickup_position, type = production_types}[1]
+         local drop_target =
+            surf.find_entities_filtered({ position = connector.drop_position, type = production_types })[1]
+         local pickup_target =
+            surf.find_entities_filtered({ position = connector.pickup_position, type = production_types })[1]
          if drop_target ~= nil then
             if drop_target.type == "inserter" then
                explore_connector(drop_target)
                local check = true
                for i, v in pairs(hash[drop_target.unit_number].inputs) do
-                  if v == connector.unit_number then
-                     check = false
-                  end
+                  if v == connector.unit_number then check = false end
                end
-               if check then
-                  table.insert(hash[drop_target.unit_number].inputs, connector.unit_number)
-               end
+               if check then table.insert(hash[drop_target.unit_number].inputs, connector.unit_number) end
 
                local check = true
                for i, v in pairs(hash[connector.unit_number].outputs) do
-                  if v == drop_target.unit_number then
-                     check = false
-                  end
+                  if v == drop_target.unit_number then check = false end
                end
-               if check then
-                  table.insert(hash[connector.unit_number].outputs, drop_target.unit_number)
-               end
+               if check then table.insert(hash[connector.unit_number].outputs, drop_target.unit_number) end
             elseif drop_target.type == "transport-belt" then
                if hash[drop_target.unit_number] == nil then
                   local belts = fa_belts.get_connected_belts(drop_target)
                   for i, belt in pairs(belts.hash) do
-                     hash[i] = {link = drop_target.unit_number}
+                     hash[i] = { link = drop_target.unit_number }
                   end
 
                   hash[drop_target.unit_number] = {
                      production_line = math.huge,
-                     inputs = {connector.unit_number},
+                     inputs = { connector.unit_number },
                      outputs = {},
-                     ent = drop_target
+                     ent = drop_target,
                   }
                   table.insert(hash[connector.unit_number].outputs, drop_target.unit_number)
                else
@@ -169,7 +174,7 @@ function mod.generate_production_network(pindex)
                      production_line = math.huge,
                      inputs = {},
                      outputs = {},
-                     ent = drop_target
+                     ent = drop_target,
                   }
                end
                table.insert(hash[drop_target.unit_number].inputs, connector.unit_number)
@@ -182,38 +187,28 @@ function mod.generate_production_network(pindex)
                explore_connector(pickup_target)
                local check = true
                for i, v in pairs(hash[pickup_target.unit_number].outputs) do
-                  if v == connector.unit_number then
-                     check = false
-                  end
+                  if v == connector.unit_number then check = false end
                end
-               if check then
-                  table.insert(hash[pickup_target.unit_number].outputs, connector.unit_number)
-               end
+               if check then table.insert(hash[pickup_target.unit_number].outputs, connector.unit_number) end
 
                local check = true
                for i, v in pairs(hash[connector.unit_number].inputs) do
-                  if v == pickup_target.unit_number then
-                     check = false
-                  end
+                  if v == pickup_target.unit_number then check = false end
                end
-               if check then
-                  table.insert(hash[connector.unit_number].inputs, pickup_target.unit_number)
-               end
-
+               if check then table.insert(hash[connector.unit_number].inputs, pickup_target.unit_number) end
             elseif pickup_target.type == "transport-belt" then
                if hash[pickup_target.unit_number] == nil then
                   local belts = fa_belts.get_connected_belts(pickup_target)
                   for i, belt in pairs(belts.hash) do
-                     hash[i] = {link = pickup_target.unit_number}
+                     hash[i] = { link = pickup_target.unit_number }
                   end
                   hash[pickup_target.unit_number] = {
                      production_line = math.huge,
                      inputs = {},
-                     outputs = {connector.unit_number},
-                     ent = pickup_target
+                     outputs = { connector.unit_number },
+                     ent = pickup_target,
                   }
                   table.insert(hash[connector.unit_number].outputs, pickup_target.unit_number)
-
                else
                   if hash[pickup_target.unit_number].link ~= nil then
                      hash[pickup_target.unit_number].ent = pickup_target
@@ -228,27 +223,22 @@ function mod.generate_production_network(pindex)
                      production_line = math.huge,
                      inputs = {},
                      outputs = {},
-                     ent = pickup_target
+                     ent = pickup_target,
                   }
                end
                table.insert(hash[pickup_target.unit_number].outputs, connector.unit_number)
                table.insert(hash[connector.unit_number].inputs, pickup_target.unit_number)
-
             end
          end
 
-         local choices = {hash[connector.unit_number]}
-         if drop_target ~= nil then
-            table.insert(choices, hash[drop_target.unit_number])
-         end
-         if pickup_target ~= nil then
-            table.insert(choices, hash[pickup_target.unit_number])
-         end
+         local choices = { hash[connector.unit_number] }
+         if drop_target ~= nil then table.insert(choices, hash[drop_target.unit_number]) end
+         if pickup_target ~= nil then table.insert(choices, hash[pickup_target.unit_number]) end
          local line_choices = {}
          for i, choice in pairs(choices) do
             table.insert(line_choices, choice.production_line)
          end
-         table.insert(line_choices, table.maxn(lines)+1)
+         table.insert(line_choices, table.maxn(lines) + 1)
          local new_line = math.min(unpack(line_choices))
          for i, choice in pairs(choices) do
             if choice.production_line ~= new_line then
@@ -262,9 +252,7 @@ function mod.generate_production_network(pindex)
                   lines[old_line] = nil
                else
                   choice.production_line = new_line
-                  if lines[new_line] == nil then
-                     lines[new_line] = {}
-                  end
+                  if lines[new_line] == nil then lines[new_line] = {} end
                   table.insert(lines[new_line], choice.ent.unit_number)
                end
             end
@@ -276,32 +264,32 @@ function mod.generate_production_network(pindex)
       explore_connector(connector)
    end
 
---   print(table_size(lines))
---   print(table_size(hash))
+   --   print(table_size(lines))
+   --   print(table_size(hash))
 
---   local count = 0
---   for i, entry in pairs(hash) do
---      if entry.ent ~= nil then
---         count = count + 1
---   end
---   end
---   print(count)
-   return {hash = hash, lines = lines}
+   --   local count = 0
+   --   for i, entry in pairs(hash) do
+   --      if entry.ent ~= nil then
+   --         count = count + 1
+   --   end
+   --   end
+   --   print(count)
+   return { hash = hash, lines = lines }
 end
 
 --Warnings menu: scans for problems in the production network it defines and creates the warnings list.
-function mod.scan_for_warnings(L,H,pindex)
-   local prod =       mod.generate_production_network(pindex)
+function mod.scan_for_warnings(L, H, pindex)
+   local prod = mod.generate_production_network(pindex)
    local surf = game.get_player(pindex).surface
    local pos = players[pindex].cursor_pos
-   local area = {{pos.x - L, pos.y - H}, {pos.x + L, pos.y + H}}
-   local ents = surf.find_entities_filtered{area = area, type = entity_types}
+   local area = { { pos.x - L, pos.y - H }, { pos.x + L, pos.y + H } }
+   local ents = surf.find_entities_filtered({ area = area, type = entity_types })
    local warnings = {}
    warnings["noFuel"] = {}
    warnings["noRecipe"] = {}
    warnings["noInserters"] = {}
    warnings["noPower"] = {}
-   warnings ["notConnected"] = {}
+   warnings["notConnected"] = {}
    for i, ent in pairs(ents) do
       if ent.prototype.burner_prototype ~= nil then
          local fuel_inv = ent.get_fuel_inventory()
@@ -318,34 +306,26 @@ function mod.scan_for_warnings(L,H,pindex)
       local recipe = nil
       if pcall(function()
          recipe = ent.get_recipe()
-     end) then
-         if recipe == nil and ent.type ~= "furnace" then
-            table.insert(warnings["noRecipe"], ent)
-         end
+      end) then
+         if recipe == nil and ent.type ~= "furnace" then table.insert(warnings["noRecipe"], ent) end
       end
       local check = false
       for i1, type in pairs(production_types) do
-         if ent.type == type then
-            check = true
-         end
+         if ent.type == type then check = true end
       end
-      if check and prod.hash[ent.unit_number] == nil then
-         table.insert(warnings["noInserters"], ent)
-      end
+      if check and prod.hash[ent.unit_number] == nil then table.insert(warnings["noInserters"], ent) end
    end
    local str = ""
    local result = {}
    for i, warning in pairs(warnings) do
       if #warning > 0 then
          str = str .. i .. " " .. #warning .. ", "
-         table.insert(result, {name = i, ents = warning})
+         table.insert(result, { name = i, ents = warning })
       end
    end
-   if str == "" then
-      str = "No warnings displayed    "
-   end
+   if str == "" then str = "No warnings displayed    " end
    str = string.sub(str, 1, -3)
-   return {summary = str, warnings = result}
+   return { summary = str, warnings = result }
 end
 
 return mod

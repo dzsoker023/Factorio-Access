@@ -1,12 +1,11 @@
 --Here: Functions relating to circuit networks, virtual signals, wiring and unwiring buildings, and the such.
 --Does not include event handlers directly, but can have functions called by them.
-local circular = require('scripts.ds.circular-options-list')
-local localising = require('scripts.localising')
-local util = require('util')
-local fa_utils = require('scripts.fa-utils')
-local descriptors = require('scripts.descriptors')
-local multistate_switch = require('scripts.ui.low-level.multistate-switch')
-
+local circular = require("scripts.ds.circular-options-list")
+local localising = require("scripts.localising")
+local util = require("util")
+local fa_utils = require("scripts.fa-utils")
+local descriptors = require("scripts.descriptors")
+local multistate_switch = require("scripts.ui.low-level.multistate-switch")
 
 local dcb = defines.control_behavior
 
@@ -26,9 +25,7 @@ local function make_read_switch_for_entity_uncached(entity)
    local desc = descriptors.PROTOTYPES[type]
    -- We may not understand this object at all or (for the time being) be
    -- handling it on older code paths.
-   if not desc then
-      return nil
-   end
+   if not desc then return nil end
 
    local cn = desc.circuit_network
    if not cn then
@@ -45,7 +42,7 @@ local function make_read_switch_for_entity_uncached(entity)
 
    return multistate_switch.create({
       on_off_field = reading.toggle_field,
-      state_field= reading.mode_field,
+      state_field = reading.mode_field,
       off_label = reading.disabled_label,
       choices = reading.choices,
    })
@@ -54,9 +51,7 @@ end
 -- @param entity LuaEntity
 -- @returns MultistateSwitch?
 local function make_read_switch_for_entity(entity)
-   if read_mode_switch_cache[entity.prototype.type] then
-      return read_mode_switch_cache[entity.prototype.type]
-   end
+   if read_mode_switch_cache[entity.prototype.type] then return read_mode_switch_cache[entity.prototype.type] end
 
    local uncached = make_read_switch_for_entity_uncached(entity)
    if uncached then
@@ -71,10 +66,10 @@ end
 function drag_wire_and_read(pindex)
    --Start/end dragging wire
    local p = game.get_player(pindex)
-   local something_happened = p.drag_wire { position = players[pindex].cursor_pos }
+   local something_happened = p.drag_wire({ position = players[pindex].cursor_pos })
    --Comment on it
    if not something_happened then
-      p.play_sound { path = "utility/cannot_build" }
+      p.play_sound({ path = "utility/cannot_build" })
       return
    end
    local result = ""
@@ -91,13 +86,35 @@ function drag_wire_and_read(pindex)
    end
 
    local drag_target = p.drag_target
-   local ents_at_position = p.surface.find_entities_filtered { position = players[pindex].cursor_pos, radius = 0.2, type = { "transport-belt", "inserter", "container", "logistic-container", "storage-tank", "gate", "rail-signal", "rail-chain-signal", "train-stop", "accumulator", "roboport", "mining-drill", "pumpjack", "power-switch", "programmable-speaker", "lamp", "offshore-pump", "pump", "electric-pole" } }
+   local ents_at_position = p.surface.find_entities_filtered({
+      position = players[pindex].cursor_pos,
+      radius = 0.2,
+      type = {
+         "transport-belt",
+         "inserter",
+         "container",
+         "logistic-container",
+         "storage-tank",
+         "gate",
+         "rail-signal",
+         "rail-chain-signal",
+         "train-stop",
+         "accumulator",
+         "roboport",
+         "mining-drill",
+         "pumpjack",
+         "power-switch",
+         "programmable-speaker",
+         "lamp",
+         "offshore-pump",
+         "pump",
+         "electric-pole",
+      },
+   })
    local c_ent = ents_at_position[1]
    local last_c_ent = players[pindex].last_wire_ent
    local network_found = nil
-   if c_ent == nil or c_ent.valid == false then
-      c_ent = p.selected
-   end
+   if c_ent == nil or c_ent.valid == false then c_ent = p.selected end
    if c_ent == nil or c_ent.valid == false then
       result = wire_name .. " , " .. " no ent "
    elseif wire_type == "red-wire" then
@@ -124,7 +141,10 @@ function drag_wire_and_read(pindex)
          else
             network_found = network_found.network_id
          end
-         result = " Connected " .. localising.get(target_ent, pindex) .. " to green circuit network ID " .. network_found
+         result = " Connected "
+            .. localising.get(target_ent, pindex)
+            .. " to green circuit network ID "
+            .. network_found
       else
          result = " Disconnected " .. wire_name
       end
@@ -133,15 +153,14 @@ function drag_wire_and_read(pindex)
          local target_ent = drag_target.target_entity
          local target_network = drag_target.target_wire_id
          network_found = c_ent.electric_network_id
-         if network_found == nil then
-            network_found = "nil"
-         end
+         if network_found == nil then network_found = "nil" end
          result = " Connected " .. localising.get(target_ent, pindex) .. " to electric network ID " .. network_found
-      elseif (c_ent ~= nil and c_ent.name == "power-switch") or (last_c_ent ~= nil and last_c_ent.valid and last_c_ent.name == "power-switch") then
+      elseif
+         (c_ent ~= nil and c_ent.name == "power-switch")
+         or (last_c_ent ~= nil and last_c_ent.valid and last_c_ent.name == "power-switch")
+      then
          network_found = c_ent.electric_network_id
-         if network_found == nil then
-            network_found = "nil"
-         end
+         if network_found == nil then network_found = "nil" end
          result = " Wiring power switch"
          --result = " Connected " .. localising.get(c_ent,pindex) .. " to electric network ID " .. network_found
       else
@@ -166,26 +185,18 @@ function wire_neighbours_info(ent, read_network_ids)
       for i, pole in ipairs(ent.neighbours.copper) do
          local dir = fa_utils.get_direction_biased(pole.position, ent.position)
          local dist = util.distance(pole.position, ent.position)
-         if neighbour_count > 0 then
-            result = result .. " and "
-         end
+         if neighbour_count > 0 then result = result .. " and " end
          local id = pole.electric_network_id
-         if id == nil then
-            id = "nil"
-         end
+         if id == nil then id = "nil" end
          result = result .. math.ceil(dist) .. " tiles " .. fa_utils.direction_lookup(dir)
-         if read_network_ids == true then
-            result = result .. " to electric network number " .. id
-         end
+         if read_network_ids == true then result = result .. " to electric network number " .. id end
          result = result .. ", "
          neighbour_count = neighbour_count + 1
       end
       for i, nbr in ipairs(ent.neighbours.red) do
          local dir = fa_utils.get_direction_biased(nbr.position, ent.position)
          local dist = util.distance(nbr.position, ent.position)
-         if neighbour_count > 0 then
-            result = result .. " and "
-         end
+         if neighbour_count > 0 then result = result .. " and " end
          result = result .. " red wire " .. math.ceil(dist) .. " tiles " .. fa_utils.direction_lookup(dir)
          if nbr.type == "electric-pole" then
             local id = nbr.get_circuit_network(defines.wire_type.red, defines.circuit_connector_id.electric_pole)
@@ -194,9 +205,7 @@ function wire_neighbours_info(ent, read_network_ids)
             else
                id = id.network_id
             end
-            if read_network_ids == true then
-               result = result .. " network number " .. id
-            end
+            if read_network_ids == true then result = result .. " network number " .. id end
          end
          result = result .. ", "
          neighbour_count = neighbour_count + 1
@@ -204,9 +213,7 @@ function wire_neighbours_info(ent, read_network_ids)
       for i, nbr in ipairs(ent.neighbours.green) do
          local dir = fa_utils.get_direction_biased(nbr.position, ent.position)
          local dist = util.distance(nbr.position, ent.position)
-         if neighbour_count > 0 then
-            result = result .. " and "
-         end
+         if neighbour_count > 0 then result = result .. " and " end
          result = result .. " green wire " .. math.ceil(dist) .. " tiles " .. fa_utils.direction_lookup(dir)
          if nbr.type == "electric-pole" then
             local id = nbr.get_circuit_network(defines.wire_type.green, defines.circuit_connector_id.electric_pole)
@@ -215,9 +222,7 @@ function wire_neighbours_info(ent, read_network_ids)
             else
                id = id.network_id
             end
-            if read_network_ids == true then
-               result = result .. " network number " .. id
-            end
+            if read_network_ids == true then result = result .. " network number " .. id end
          end
          result = result .. ", "
          neighbour_count = neighbour_count + 1
@@ -227,9 +232,7 @@ function wire_neighbours_info(ent, read_network_ids)
 end
 
 function localise_signal_name(signal, pindex)
-   if signal == nil then
-      return "nil"
-   end
+   if signal == nil then return "nil" end
    local sig_name = signal.name
    local sig_type = signal.type
    if sig_name == nil then
@@ -241,21 +244,15 @@ function localise_signal_name(signal, pindex)
       sig_type = "nil"
    elseif sig_type == "item" then
       sig_name = localising.get(game.item_prototypes[signal.name], pindex)
-      if sig_name == nil then
-         sig_name = signal.name
-      end
+      if sig_name == nil then sig_name = signal.name end
    elseif sig_type == "fluid" then
       sig_name = localising.get(game.fluid_prototypes[signal.name], pindex)
-      if sig_name == nil then
-         sig_name = signal.name
-      end
+      if sig_name == nil then sig_name = signal.name end
    elseif sig_type == "virtual" then
       sig_name = localising.get(game.virtual_signal_prototypes[signal.name], pindex)
-      if sig_name == nil then
-         sig_name = signal.name
-      end
+      if sig_name == nil then sig_name = signal.name end
    end
-   local result = (sig_name)
+   local result = sig_name
    return result
 end
 
@@ -264,9 +261,7 @@ function constant_combinator_count_valid_signals(ent)
    local combinator = ent.get_control_behavior()
    local max_signals_count = combinator.signals_count
    for i = 1, max_signals_count, 1 do
-      if combinator.get_signal(i).signal ~= nil then
-         count = count + 1
-      end
+      if combinator.get_signal(i).signal ~= nil then count = count + 1 end
    end
    return count
 end
@@ -275,9 +270,7 @@ function constant_combinator_get_first_empty_slot_id(ent)
    local combinator = ent.get_control_behavior()
    local max_signals_count = combinator.signals_count
    for i = 1, max_signals_count, 1 do
-      if combinator.get_signal(i).signal == nil then
-         return i
-      end
+      if combinator.get_signal(i).signal == nil then return i end
    end
    return max_signals_count
 end
@@ -300,9 +293,7 @@ function constant_combinator_signals_info(ent, pindex)
          local signal = combinator.get_signal(i)
          if signal.signal ~= nil then
             local signal_name = localise_signal_name(signal.signal, pindex)
-            if i > 1 then
-               result = result .. " and "
-            end
+            if i > 1 then result = result .. " and " end
             result = result .. signal_name .. " times " .. signal.count .. ", "
          end
       end
@@ -312,19 +303,19 @@ function constant_combinator_signals_info(ent, pindex)
 end
 
 function constant_combinator_add_stack_signal(ent, stack, pindex)
-   local combinator       = ent.get_control_behavior()
+   local combinator = ent.get_control_behavior()
    local first_empty_slot = constant_combinator_get_first_empty_slot_id(ent)
-   local new_signal_id    = { type = "item", name = stack.name }
-   local new_signal       = { signal = new_signal_id, count = 1 }
+   local new_signal_id = { type = "item", name = stack.name }
+   local new_signal = { signal = new_signal_id, count = 1 }
    combinator.set_signal(first_empty_slot, new_signal)
    printout("Added signal for " .. localising.get(stack, pindex), pindex)
 end
 
 function constant_combinator_add_selector_signal(prototype, signal_type, ent, pindex)
-   local combinator       = ent.get_control_behavior()
+   local combinator = ent.get_control_behavior()
    local first_empty_slot = constant_combinator_get_first_empty_slot_id(ent)
-   local new_signal_id    = { type = signal_type, name = prototype.name }
-   local new_signal       = { signal = new_signal_id, count = 1 }
+   local new_signal_id = { type = signal_type, name = prototype.name }
+   local new_signal = { signal = new_signal_id, count = 1 }
    combinator.set_signal(first_empty_slot, new_signal)
    printout("Added signal for " .. localising.get(prototype, pindex), pindex)
 end
@@ -347,11 +338,11 @@ end
 function constant_combinator_type_last_signal_count(pindex, ent)
    players[pindex].signal_selector = {}
    players[pindex].signal_selector.ent = ent
-   local frame = game.get_player(pindex).gui.screen.add { type = "frame", name = "circuit-condition-constant" }
+   local frame = game.get_player(pindex).gui.screen.add({ type = "frame", name = "circuit-condition-constant" })
    frame.bring_to_front()
    frame.force_auto_center()
    frame.focus()
-   local input = frame.add { type = "textfield", name = "input" }
+   local input = frame.add({ type = "textfield", name = "input" })
    input.focus()
    return "Type in a number press 'ENTER' to confirm, or press 'ESC' to exit"
 end
@@ -430,9 +421,7 @@ function get_circuit_read_mode_name(ent)
    else
       -- Try to go through the new code path.
       local possible_new = read_mode_multistate_call(ent, "current")
-      if possible_new then
-         result = possible_new
-      end
+      if possible_new then result = possible_new end
    end
 
    return result
@@ -530,13 +519,13 @@ function get_circuit_operation_mode_name(ent)
          result = "Nil"
       end
    elseif ent.type == "rail-signal" then
-      result = "None"                         --"Undefined"--**laterdo
+      result = "None" --"Undefined"--**laterdo
    elseif ent.type == "train-stop" then
       result = "Send signals to parked train" --"Undefined"--**laterdo
    elseif ent.type == "mining-drill" then
-      result = "None"                         --"Undefined"--**laterdo
+      result = "None" --"Undefined"--**laterdo
    elseif ent.type == "pumpjack" then
-      result = "None"                         --"Undefined"--**laterdo
+      result = "None" --"Undefined"--**laterdo
    elseif ent.type == "power-switch" then
       if control.circuit_condition ~= nil or control.disabled == true then
          result = "Enable with condition"
@@ -667,9 +656,7 @@ function read_circuit_condition(ent, comparator_in_words)
    local result = ""
    if cond.second_signal == nil then
       second_signal_name = cond.constant
-      if cond.constant == nil then
-         second_signal_name = 0
-      end
+      if cond.constant == nil then second_signal_name = 0 end
    end
    if comparator_in_words == true then
       if comparator == "=" then
@@ -766,9 +753,9 @@ function play_selected_speaker_note(ent, mute)
    end
    local note_id = control.circuit_parameters.note_id
    if note_id < 1 then
-      note_id                    = 1
-      local params               = control.circuit_parameters
-      params.note_id             = 1
+      note_id = 1
+      local params = control.circuit_parameters
+      params.note_id = 1
       control.circuit_parameters = params
    end
    if mute ~= true then
@@ -835,8 +822,11 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
    --First 3 lines of the menus are in common
    if index == 0 then
       --Menu info
-      local result = " Circuit network " .. nw_name .. ", menu for " .. localising.get(ent, pindex)
-          .. ", Navigate up and down with 'W' and 'S' and select an option with 'LEFT BRACKET', or exit with 'ESC'"
+      local result = " Circuit network "
+         .. nw_name
+         .. ", menu for "
+         .. localising.get(ent, pindex)
+         .. ", Navigate up and down with 'W' and 'S' and select an option with 'LEFT BRACKET', or exit with 'ESC'"
       printout(result, pindex)
    elseif index == 1 then
       --List all active signals of this network
@@ -849,20 +839,14 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
          end
          local result = ""
          if nwr ~= nil then
-            if nwg ~= nil then
-               result = result .. "Red network: "
-            end
+            if nwg ~= nil then result = result .. "Red network: " end
             result = result .. circuit_network_signals_info(pindex, nwr)
          end
          if nwg ~= nil then
-            if nwr ~= nil then
-               result = result .. "Green network: "
-            end
+            if nwr ~= nil then result = result .. "Green network: " end
             result = result .. circuit_network_signals_info(pindex, nwg)
          end
-         if result == "" then
-            result = "No signals at the moment"
-         end
+         if result == "" then result = "No signals at the moment" end
          printout(result, pindex)
       end
    elseif index == 2 then
@@ -876,20 +860,14 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
          end
          local result = ""
          if nwr ~= nil then
-            if nwg ~= nil then
-               result = result .. "Red network: "
-            end
+            if nwg ~= nil then result = result .. "Red network: " end
             result = result .. circuit_network_members_info(pindex, ent, defines.wire_type.red)
          end
          if nwg ~= nil then
-            if nwr ~= nil then
-               result = result .. "Green network: "
-            end
+            if nwr ~= nil then result = result .. "Green network: " end
             result = result .. circuit_network_members_info(pindex, ent, defines.wire_type.green)
          end
-         if result == "" then
-            result = "Error: No network"
-         end
+         if result == "" then result = "Error: No network" end
          printout(result, pindex)
       end
    elseif index == 3 then
@@ -903,20 +881,14 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
          end
          local result = ""
          if nwr ~= nil then
-            if nwg ~= nil then
-               result = result .. "Red network: "
-            end
+            if nwg ~= nil then result = result .. "Red network: " end
             result = result .. circuit_network_neighbors_info(pindex, ent, defines.wire_type.red)
          end
          if nwg ~= nil then
-            if nwr ~= nil then
-               result = result .. "Green network: "
-            end
+            if nwr ~= nil then result = result .. "Green network: " end
             result = result .. circuit_network_neighbors_info(pindex, ent, defines.wire_type.green)
          end
-         if result == "" then
-            result = "Error: No network"
-         end
+         if result == "" then result = "Error: No network" end
          printout(result, pindex)
       end
    end
@@ -925,7 +897,7 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
       --Menu for electric poles
       if index > 3 then
          --(inventory edge: play sound and set index and call this menu again)
-         p.play_sound { path = "inventory-edge" }
+         p.play_sound({ path = "inventory-edge" })
          players[pindex].circuit_network_menu.index = 3
          circuit_network_menu(pindex, ent, players[pindex].circuit_network_menu.index, false, false)
       end
@@ -954,7 +926,7 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
          else
             result = constant_combinator_type_last_signal_count(pindex, ent)
             printout(result, pindex)
-            p.play_sound { path = "Inventory-Move" }
+            p.play_sound({ path = "Inventory-Move" })
          end
       elseif index == 7 then
          --Delete the last signal
@@ -968,7 +940,7 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
          if not clicked then
             printout("Toggle switch", pindex)
          else
-            ent.get_control_behavior().enabled = not (ent.get_control_behavior().enabled)
+            ent.get_control_behavior().enabled = not ent.get_control_behavior().enabled
             local enabled = ent.get_control_behavior().enabled
             if enabled == true then
                printout("Switched on", pindex)
@@ -978,7 +950,7 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
          end
       elseif index > 8 then
          --(inventory edge: play sound and set index and call this menu again)
-         p.play_sound { path = "inventory-edge" }
+         p.play_sound({ path = "inventory-edge" })
          players[pindex].circuit_network_menu.index = 8
          circuit_network_menu(pindex, ent, players[pindex].circuit_network_menu.index, false, false)
       end
@@ -994,15 +966,17 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
          printout("No circuit network connected", pindex)
          return
       end
-      local control_has_no_circuit_conditions = ent.type == "container" or ent.type == "logistic-container" or
-      ent.type == "storage-tank" or ent.type == "rail-chain-signal" or ent.type == "accumulator" or
-      ent.type == "roboport" or ent.type == "constant-combinator"
+      local control_has_no_circuit_conditions = ent.type == "container"
+         or ent.type == "logistic-container"
+         or ent.type == "storage-tank"
+         or ent.type == "rail-chain-signal"
+         or ent.type == "accumulator"
+         or ent.type == "roboport"
+         or ent.type == "constant-combinator"
       local circuit_cond = nil
       local read_mode = get_circuit_read_mode_name(ent)
       local op_mode, uses_condition = get_circuit_operation_mode_name(ent)
-      if control_has_no_circuit_conditions == false then
-         circuit_cond = control.circuit_condition
-      end
+      if control_has_no_circuit_conditions == false then circuit_cond = control.circuit_condition end
       if index == 4 then
          --Read machine behavior summary
          if not clicked then
@@ -1011,9 +985,7 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
             local result = ""
             result = result .. "Reading mode: " .. read_mode .. ", "
             result = result .. "Operation mode: " .. op_mode .. ", "
-            if uses_condition == true then
-               result = result .. read_circuit_condition(ent, true)
-            end
+            if uses_condition == true then result = result .. read_circuit_condition(ent, true) end
             printout(result, pindex)
          end
       elseif index == 5 then
@@ -1023,10 +995,8 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
          else
             local result, changed = toggle_circuit_read_mode(ent)
             printout(result, pindex)
-            p.play_sound { path = "Inventory-Move" }
-            if changed == false then
-               p.play_sound { path = "inventory-edge" }
-            end
+            p.play_sound({ path = "Inventory-Move" })
+            if changed == false then p.play_sound({ path = "inventory-edge" }) end
          end
       elseif index == 6 then
          --Toggle machine control mode
@@ -1035,10 +1005,8 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
          else
             local result, changed = toggle_circuit_operation_mode(ent)
             printout(result, pindex)
-            p.play_sound { path = "Inventory-Move" }
-            if changed == false then
-               p.play_sound { path = "inventory-edge" }
-            end
+            p.play_sound({ path = "Inventory-Move" })
+            if changed == false then p.play_sound({ path = "inventory-edge" }) end
          end
       elseif index == 7 then
          --Toggle enabled condition comparing rule
@@ -1046,11 +1014,9 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
             printout("Toggle enabled condition comparing rule ", pindex)
          else
             local result = "Not using a condition"
-            if uses_condition == true then
-               result = toggle_condition_comparator(ent, pindex, true)
-            end
+            if uses_condition == true then result = toggle_condition_comparator(ent, pindex, true) end
             printout(result, pindex)
-            p.play_sound { path = "Inventory-Move" }
+            p.play_sound({ path = "Inventory-Move" })
          end
       elseif index == 8 then
          --Set enabled condition first signal
@@ -1063,7 +1029,7 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
                open_signal_selector(pindex, ent, true)
             end
             printout(result, pindex)
-            p.play_sound { path = "Inventory-Move" }
+            p.play_sound({ path = "Inventory-Move" })
          end
       elseif index == 9 then
          --Set enabled condition second signal
@@ -1076,7 +1042,7 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
                open_signal_selector(pindex, ent, false)
             end
             printout(result, pindex)
-            p.play_sound { path = "Inventory-Move" }
+            p.play_sound({ path = "Inventory-Move" })
          end
       elseif index == 10 then
          --Set enabled condition second signal as a constant number
@@ -1084,11 +1050,9 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
             printout("Set a constant number for enabled condition second signal", pindex)
          else
             local result = "Not using a condition"
-            if uses_condition == true then
-               result = type_circuit_condition_constant(pindex, ent)
-            end
+            if uses_condition == true then result = type_circuit_condition_constant(pindex, ent) end
             printout(result, pindex)
-            p.play_sound { path = "Inventory-Move" }
+            p.play_sound({ path = "Inventory-Move" })
          end
       else
          if ent.type ~= "programmable-speaker" or (ent.type == "programmable-speaker" and control == nil) then
@@ -1096,7 +1060,7 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
                printout("The rest of this menu is for network connected programmable speakers only", pindex)
             elseif index == 12 then
                --(inventory edge: play sound and set index and call this menu again)
-               p.play_sound { path = "inventory-edge" }
+               p.play_sound({ path = "inventory-edge" })
                players[pindex].circuit_network_menu.index = 11
                circuit_network_menu(pindex, ent, players[pindex].circuit_network_menu.index, false, false)
             end
@@ -1128,9 +1092,7 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
                else
                   local params = ent.parameters
                   params.playback_volume = params.playback_volume + 0.1
-                  if params.playback_volume > 1 then
-                     params.playback_volume = 1
-                  end
+                  if params.playback_volume > 1 then params.playback_volume = 1 end
                   ent.parameters = params
                   printout(ent.parameters.playback_volume, pindex)
                   play_selected_speaker_note(ent)
@@ -1142,9 +1104,7 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
                else
                   local params = ent.parameters
                   params.playback_volume = params.playback_volume - 0.1
-                  if params.playback_volume < 0 then
-                     params.playback_volume = 0
-                  end
+                  if params.playback_volume < 0 then params.playback_volume = 0 end
                   ent.parameters = params
                   printout(ent.parameters.playback_volume, pindex)
                   play_selected_speaker_note(ent)
@@ -1265,7 +1225,7 @@ function circuit_network_menu(pindex, ent_in, menu_index, clicked, other_input)
                end
             elseif index == 20 then
                --(inventory edge: play sound and set index and call this menu again)
-               p.play_sound { path = "inventory-edge" }
+               p.play_sound({ path = "inventory-edge" })
                players[pindex].circuit_network_menu.index = 19
                circuit_network_menu(pindex, ent, players[pindex].circuit_network_menu.index, false, false)
             end
@@ -1278,9 +1238,7 @@ end
 CIRCUIT_NETWORK_MENU_LENGTH = 20
 
 function circuit_network_menu_open(pindex, ent)
-   if players[pindex].vanilla_mode then
-      return
-   end
+   if players[pindex].vanilla_mode then return end
    --Set the player menu tracker to this menu
    players[pindex].menu = "circuit_network_menu"
    players[pindex].in_menu = true
@@ -1288,11 +1246,11 @@ function circuit_network_menu_open(pindex, ent)
 
    --Set the menu line counter to 0
    players[pindex].circuit_network_menu = {
-      index = 0
+      index = 0,
    }
 
    --Play sound
-   game.get_player(pindex).play_sound { path = "Open-Inventory-Sound" }
+   game.get_player(pindex).play_sound({ path = "Open-Inventory-Sound" })
 
    --Load menu
    local cn_menu = players[pindex].circuit_network_menu
@@ -1309,17 +1267,13 @@ function circuit_network_menu_close(pindex, mute_in)
    players[pindex].circuit_network_menu.index = 0
 
    --play sound
-   if not mute then
-      game.get_player(pindex).play_sound { path = "Close-Inventory-Sound" }
-   end
+   if not mute then game.get_player(pindex).play_sound({ path = "Close-Inventory-Sound" }) end
 
    --Close GUIs
    if game.get_player(pindex).gui.screen["signal-name-enter"] ~= nil then
       game.get_player(pindex).gui.screen["signal-name-enter"].destroy()
    end
-   if game.get_player(pindex).opened ~= nil then
-      game.get_player(pindex).opened = nil
-   end
+   if game.get_player(pindex).opened ~= nil then game.get_player(pindex).opened = nil end
 end
 
 --Reads the total list of the circuit network neighbors of this entity. Gives details.
@@ -1334,17 +1288,17 @@ function circuit_network_neighbors_info(pindex, ent, wire_type)
    end
    local connected_circuit_count = ent.get_circuit_network(wire_type).connected_circuit_count
    local members_list = add_neighbors_to_circuit_network_member_list({}, ent, color, 1, 2)
-   if members_list == nil or #members_list == 0 then
-      return "Error: No members"
-   end
+   if members_list == nil or #members_list == 0 then return "Error: No members" end
    local result = "Connected to "
    for i, member in ipairs(members_list) do
       if member.unit_number ~= ent.unit_number then
-         result = result ..
-         localising.get(member, pindex) ..
-         " at " ..
-         math.ceil(util.distance(member.position, ent.position)) ..
-         " " .. fa_utils.direction_lookup(fa_utils.get_direction_biased(member.position, ent.position)) .. ", "
+         result = result
+            .. localising.get(member, pindex)
+            .. " at "
+            .. math.ceil(util.distance(member.position, ent.position))
+            .. " "
+            .. fa_utils.direction_lookup(fa_utils.get_direction_biased(member.position, ent.position))
+            .. ", "
       end
    end
    return result
@@ -1362,9 +1316,7 @@ function circuit_network_members_info(pindex, ent, wire_type)
    end
    local connected_circuit_count = ent.get_circuit_network(wire_type).connected_circuit_count
    local members_list = add_neighbors_to_circuit_network_member_list({}, ent, color, 1, 10)
-   if members_list == nil or #members_list == 0 then
-      return "Error: No members"
-   end
+   if members_list == nil or #members_list == 0 then return "Error: No members" end
    local pole_counter = 0
    local ent_counter = 0
    local result = "Total of " .. connected_circuit_count .. " members, including "
@@ -1376,9 +1328,7 @@ function circuit_network_members_info(pindex, ent, wire_type)
          result = result .. localising.get(member, pindex) .. ", "
       end
    end
-   if ent_counter > 0 then
-      result = result .. " and "
-   end
+   if ent_counter > 0 then result = result .. " and " end
    result = result .. pole_counter .. " electric poles, "
    return result
 end
@@ -1391,14 +1341,10 @@ function add_neighbors_to_circuit_network_member_list(list_in, ent_in, color_in,
    local iteration = iteration_in or 1
 
    --Stop after iteration_limit to prevent UPS drain
-   if iteration > iteration_limit then
-      return list
-   end
+   if iteration > iteration_limit then return list end
 
    --Add this ent to the list if not already
-   if ent == nil or ent.valid == false then
-      return list
-   end
+   if ent == nil or ent.valid == false then return list end
    local num = ent.unit_number
    local exists = false
    for i, list_ent in ipairs(list) do
@@ -1408,16 +1354,12 @@ function add_neighbors_to_circuit_network_member_list(list_in, ent_in, color_in,
          return list
       end
    end
-   if exists == false then
-      table.insert(list, ent)
-   end
+   if exists == false then table.insert(list, ent) end
 
    --Get all circuit neighbors and run again
    iteration = iteration + 1
    local neighbors = ent.circuit_connected_entities[color]
-   if neighbors == nil or #neighbors == 0 then
-      return list
-   end
+   if neighbors == nil or #neighbors == 0 then return list end
    for i, neighbor_ent in ipairs(neighbors) do
       add_neighbors_to_circuit_network_member_list(list, neighbor_ent, color, iteration, iteration_limit)
    end
@@ -1481,9 +1423,7 @@ function build_signal_selector(pindex)
          players[pindex].signal_selector.signals[group] = fa_utils.get_iterable_array(game.virtual_signal_prototypes)
       else
          for j, item in ipairs(items) do
-            if item.group.name == group then
-               table.insert(players[pindex].signal_selector.signals[group], item)
-            end
+            if item.group.name == group then table.insert(players[pindex].signal_selector.signals[group], item) end
          end
       end
       --game.print("Created group " .. group .. " with " .. #players[pindex].signal_selector.signals[group] .. " items ")
@@ -1499,9 +1439,7 @@ end
 
 --Returns the currently selected item/fluid/virtual signal prototype and the signal type
 function get_selected_signal_slot_with_type(pindex)
-   if players[pindex].signal_selector == nil then
-      build_signal_selector(pindex)
-   end
+   if players[pindex].signal_selector == nil then build_signal_selector(pindex) end
    local group_index = players[pindex].signal_selector.group_index
    local signal_index = players[pindex].signal_selector.signal_index
    local group_name = players[pindex].signal_selector.group_names[group_index]
@@ -1547,7 +1485,7 @@ function apply_selected_signal_to_enabled_condition(pindex, ent, first)
    local start_phrase = ""
    local prototype, signal_type = get_selected_signal_slot_with_type(pindex)
    if prototype == nil or prototype.valid == false then
-      game.get_player(pindex).play_sound { path = "utility/cannot_build" }
+      game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
       return
    end
    if ent.type == "constant-combinator" then
@@ -1570,27 +1508,29 @@ function apply_selected_signal_to_enabled_condition(pindex, ent, first)
    players[pindex].menu = "circuit_network_menu"
    players[pindex].signal_selector = nil
    printout(
-   set_message .. localising.get(prototype, pindex) .. ", condition now checks if " .. read_circuit_condition(ent, true),
-      pindex)
+      set_message
+         .. localising.get(prototype, pindex)
+         .. ", condition now checks if "
+         .. read_circuit_condition(ent, true),
+      pindex
+   )
 end
 
 function type_circuit_condition_constant(pindex, ent)
    players[pindex].signal_selector = {}
    players[pindex].signal_selector.ent = ent
-   local frame = game.get_player(pindex).gui.screen.add { type = "frame", name = "circuit-condition-constant" }
+   local frame = game.get_player(pindex).gui.screen.add({ type = "frame", name = "circuit-condition-constant" })
    frame.bring_to_front()
    frame.force_auto_center()
    frame.focus()
-   local input = frame.add { type = "textfield", name = "input" }
+   local input = frame.add({ type = "textfield", name = "input" })
    input.focus()
    return "Type in a number for comparing and press 'ENTER' to confirm, or press 'ESC' to exit"
 end
 
 function signal_selector_group_up(pindex)
-   if players[pindex].signal_selector == nil then
-      build_signal_selector(pindex)
-   end
-   game.get_player(pindex).play_sound { path = "Inventory-Move" }
+   if players[pindex].signal_selector == nil then build_signal_selector(pindex) end
+   game.get_player(pindex).play_sound({ path = "Inventory-Move" })
    local jumps = 1
    if players[pindex].signal_selector.group_index <= 1 then
       players[pindex].signal_selector.group_index = #players[pindex].signal_selector.group_names
@@ -1620,10 +1560,8 @@ function signal_selector_group_up(pindex)
 end
 
 function signal_selector_group_down(pindex)
-   if players[pindex].signal_selector == nil then
-      build_signal_selector(pindex)
-   end
-   game.get_player(pindex).play_sound { path = "Inventory-Move" }
+   if players[pindex].signal_selector == nil then build_signal_selector(pindex) end
+   game.get_player(pindex).play_sound({ path = "Inventory-Move" })
    local jumps = 1
    if players[pindex].signal_selector.group_index < #players[pindex].signal_selector.group_names then
       players[pindex].signal_selector.group_index = players[pindex].signal_selector.group_index + 1
@@ -1660,7 +1598,7 @@ function signal_selector_signal_next(pindex)
    if players[pindex].signal_selector.signal_index < #group then
       players[pindex].signal_selector.signal_index = players[pindex].signal_selector.signal_index + 1
    else
-      game.get_player(pindex).play_sound { path = "inventory-wrap-around" }
+      game.get_player(pindex).play_sound({ path = "inventory-wrap-around" })
       players[pindex].signal_selector.signal_index = 1
    end
 end
@@ -1673,7 +1611,7 @@ function signal_selector_signal_prev(pindex)
    if players[pindex].signal_selector.signal_index > 1 then
       players[pindex].signal_selector.signal_index = players[pindex].signal_selector.signal_index - 1
    else
-      game.get_player(pindex).play_sound { path = "inventory-wrap-around" }
+      game.get_player(pindex).play_sound({ path = "inventory-wrap-around" })
       players[pindex].signal_selector.signal_index = #group
    end
 end

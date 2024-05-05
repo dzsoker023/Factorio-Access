@@ -9,7 +9,7 @@ local ln_zoom = math.log(ZOOM_PER_TICK)
 local mod = {}
 
 function mod.get_zoom_tick(pindex)
-   return math.floor(math.log(global.players[pindex].zoom)/ln_zoom + 0.5)
+   return math.floor(math.log(global.players[pindex].zoom) / ln_zoom + 0.5)
 end
 
 function mod.tick_to_zoom(zoom_tick)
@@ -20,10 +20,10 @@ function mod.fix_zoom(pindex)
    game.players[pindex].zoom = global.players[pindex].zoom
 end
 
-local function zoom_change(pindex,etick,change_by_tick)
+local function zoom_change(pindex, etick, change_by_tick)
    -- if global.players[pindex].last_zoom_event_tick == etick then
-      -- print("maybe duplicate")
-      -- return
+   -- print("maybe duplicate")
+   -- return
    -- end
    -- global.players[pindex].last_zoom_event_tick = etick
    if game.players[pindex].render_mode == defines.render_mode.game then
@@ -33,7 +33,7 @@ local function zoom_change(pindex,etick,change_by_tick)
       if zoom < MAX_ZOOM and zoom > MIN_ZOOM then
          global.players[pindex].zoom = zoom
          local stack = game.get_player(pindex).cursor_stack
-         if stack and stack.valid_for_read and stack.valid and stack.prototype.place_result ~= nil then 
+         if stack and stack.valid_for_read and stack.valid and stack.prototype.place_result ~= nil then
             fa_graphics.sync_build_cursor_graphics(pindex)
          else
             fa_graphics.draw_cursor_highlight(pindex, nil, nil)
@@ -50,17 +50,15 @@ function mod.zoom_out(event)
    zoom_change(event.player_index, event.tick, -1)
 end
 
-script.on_event("fa-zoom-in" , mod.zoom_in )
+script.on_event("fa-zoom-in", mod.zoom_in)
 script.on_event("fa-zoom-out", mod.zoom_out)
-script.on_event(defines.events.on_cutscene_waypoint_reached,function(event)
-   if game.players[event.player_index].render_mode == defines.render_mode.game then
-      mod.fix_zoom(event.player_index)
-   end
+script.on_event(defines.events.on_cutscene_waypoint_reached, function(event)
+   if game.players[event.player_index].render_mode == defines.render_mode.game then mod.fix_zoom(event.player_index) end
 end)
-script.on_event("fa-debug-reset-zoom",function(event)
+script.on_event("fa-debug-reset-zoom", function(event)
    global.players[event.player_index].zoom = 1
 end)
-script.on_event("fa-debug-reset-zoom-2x",function(event)
+script.on_event("fa-debug-reset-zoom-2x", function(event)
    global.players[event.player_index].zoom = 2
 end)
 

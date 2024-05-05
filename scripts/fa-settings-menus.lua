@@ -9,7 +9,7 @@ function mod.top_menu_open(pindex)
    if settings_menu == nil then
       settings_menu = {
          submenu = "",
-         index = 0
+         index = 0,
       }
       players[pindex].mod_menu = settings_menu
    end
@@ -18,14 +18,14 @@ function mod.top_menu_open(pindex)
    players[pindex].menu = "mod_menu"
    players[pindex].in_menu = true
    players[pindex].move_queue = {}
-   
+
    --Reset the menu line index to 0
    players[pindex].mod_menu.index = 0
-   
+
    --Play sound
-   game.get_player(pindex).play_sound{path = "Open-Inventory-Sound"}
-   
-   --Load menu 
+   game.get_player(pindex).play_sound({ path = "Open-Inventory-Sound" })
+
+   --Load menu
    mod.run_top_menu(pindex, players[pindex].mod_menu.index, false)
 end
 
@@ -39,11 +39,14 @@ end
 ]]
 function mod.run_top_menu(pindex, menu_index, clicked)
    local index = menu_index
-   
+
    if index == 0 then
       --About this menu and instructions
-      printout("Mod settings menu "
-      .. ", Press 'W' and 'S' to navigate options, press 'LEFT BRACKET' to select an option or press 'E' to exit this menu.", pindex)
+      printout(
+         "Mod settings menu "
+            .. ", Press 'W' and 'S' to navigate options, press 'LEFT BRACKET' to select an option or press 'E' to exit this menu.",
+         pindex
+      )
    elseif index == 1 then
       --Mod controls list (read only) [All controls are listed directly in game]
       if not clicked then
@@ -74,8 +77,8 @@ function mod.controls_menu_open(pindex)
    local menu_data = players[pindex].fa_mod_controls_menu
    if menu_data == nil then
       menu_data = {
-      index = 0,
-      mod.load_mod_controls_list(pindex)
+         index = 0,
+         mod.load_mod_controls_list(pindex),
       }
       players[pindex].fa_mod_controls_menu = menu_data
    end
@@ -83,19 +86,18 @@ function mod.controls_menu_open(pindex)
    --Set the player menu tracker to this menu
    players[pindex].menu = "fa_mod_controls_menu"
    players[pindex].in_menu = true
-   
+
    --Reset the menu line index to 0
    players[pindex].fa_mod_controls_menu.index = 0
-   
+
    --Play sound
-   game.get_player(pindex).play_sound{path = "Open-Inventory-Sound"}
-   
-   --Load menu 
+   game.get_player(pindex).play_sound({ path = "Open-Inventory-Sound" })
+
+   --Load menu
    mod.run_controls_menu(pindex, players[pindex].fa_mod_controls_menu.index, false)
 end
 
-function mod.load_mod_controls_list(pindex)--****todo, like loading tutorial strings for the help system
-
+function mod.load_mod_controls_list(pindex) --****todo, like loading tutorial strings for the help system
 end
 
 --[[
@@ -105,13 +107,16 @@ end
 ]]
 function mod.run_controls_menu(pindex, menu_index, clicked, pg_up, pg_down)
    local index = menu_index
-   
+
    if index == 0 then
       --About this menu and instructions
-      printout("Mod controls menu, with a read-only list of mod controls " 
-      .. ", Press 'W' and 'S' to navigate options, press 'LEFT BRACKET' to select an option or press 'E' to exit this menu.", pindex)
+      printout(
+         "Mod controls menu, with a read-only list of mod controls "
+            .. ", Press 'W' and 'S' to navigate options, press 'LEFT BRACKET' to select an option or press 'E' to exit this menu.",
+         pindex
+      )
    else
-      --...read the appropriate localized string 
+      --...read the appropriate localized string
    end
 end
 MOD_CONTROLS_MENU_LENGTH = 2
@@ -121,7 +126,7 @@ function mod.preferences_menu_open(pindex)
    local menu_data = players[pindex].fa_mod_preferences_menu
    if menu_data == nil then
       menu_data = {
-      index = 0
+         index = 0,
       }
       players[pindex].fa_mod_preferences_menu = menu_data
    end
@@ -129,14 +134,14 @@ function mod.preferences_menu_open(pindex)
    --Set the player menu tracker to this menu
    players[pindex].menu = "fa_mod_preferences_menu"
    players[pindex].in_menu = true
-   
+
    --Reset the menu line index to 0
    players[pindex].fa_mod_preferences_menu.index = 0
-   
+
    --Play sound
-   game.get_player(pindex).play_sound{path = "Open-Inventory-Sound"}
-   
-   --Load menu 
+   game.get_player(pindex).play_sound({ path = "Open-Inventory-Sound" })
+
+   --Load menu
    mod.run_preferences_menu(pindex, players[pindex].fa_mod_preferences_menu.index, false)
 end
 
@@ -149,11 +154,14 @@ end
 ]]
 function mod.run_preferences_menu(pindex, menu_index, clicked, pg_up, pg_down)
    local index = menu_index
-   
+
    if index == 0 then
       --About this menu and instructions
-      printout("Mod preferences menu, with settings that affect interface but have minimal gameplay changes "
-      .. ", Press 'W' and 'S' to navigate options, press 'LEFT BRACKET' to select an option or press 'E' to exit this menu.", pindex)
+      printout(
+         "Mod preferences menu, with settings that affect interface but have minimal gameplay changes "
+            .. ", Press 'W' and 'S' to navigate options, press 'LEFT BRACKET' to select an option or press 'E' to exit this menu.",
+         pindex
+      )
    elseif index == 1 then
       --...
       if not clicked then
@@ -186,7 +194,6 @@ function mod.run_preferences_menu(pindex, menu_index, clicked, pg_up, pg_down)
 end
 MOD_PREFERENCES_MENU_LENGTH = 4
 
-
 --[[
    Mod advanced settings menu
    0. About this menu and instructions
@@ -196,11 +203,14 @@ MOD_PREFERENCES_MENU_LENGTH = 4
 ]]
 function mod.run_advanced_settings_menu(pindex, menu_index, clicked, pg_up, pg_down)
    local index = menu_index
-   
+
    if index == 0 then
       --About this menu and instructions
-      printout("Mod advanced settings menu, with settings that strongly affect gameplay "
-      .. ", Press 'W' and 'S' to navigate options, press 'LEFT BRACKET' to select an option or press 'E' to exit this menu.", pindex)
+      printout(
+         "Mod advanced settings menu, with settings that strongly affect gameplay "
+            .. ", Press 'W' and 'S' to navigate options, press 'LEFT BRACKET' to select an option or press 'E' to exit this menu.",
+         pindex
+      )
    elseif index == 1 then
       --...
       if not clicked then

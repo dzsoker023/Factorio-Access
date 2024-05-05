@@ -65,7 +65,7 @@ local mod = {}
 -- on ephemeron tables, in section 2.5.2.
 local bound_cache = {}
 setmetatable(bound_cache, {
-   __mode = 'k',
+   __mode = "k",
 })
 
 local seenh_unique_names = {}
@@ -75,24 +75,18 @@ local seenh_unique_names = {}
 -- This is useful because we have self-tests near the end of this file, and
 -- those can be run from a shell.
 local function maybe_register(name, metatable)
-   if script ~= nil and script.register_metatable ~= nil then
-      script.register_metatable(name, metatable)
-   end
+   if script ~= nil and script.register_metatable ~= nil then script.register_metatable(name, metatable) end
 end
 
 function mod.link(unique_name, methods_table)
-   if seenh_unique_names[unique_name] then
-      error("Attempt to double-register " .. unique_name)
-   end
+   if seenh_unique_names[unique_name] then error("Attempt to double-register " .. unique_name) end
    seenh_unique_names[unique_name] = true
 
    local meta_name = unique_name .. "-methods"
 
    local meta = {
       __index = function(table, key)
-         if not methods_table[key] then
-            return nil
-         end
+         if not methods_table[key] then return nil end
 
          local cached = bound_cache[table]
          if not cached then
@@ -134,7 +128,7 @@ if script == nil then
       self.count = self.count - by
    end
 
-   local linker   = mod.link('methods_self_test', counter_methods)
+   local linker = mod.link("methods_self_test", counter_methods)
    local instance = { count = 0 }
    linker(instance)
 

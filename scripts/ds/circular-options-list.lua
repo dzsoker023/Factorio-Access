@@ -58,7 +58,7 @@ fact that it doesn't handle missing values, it doesn't handle empty lists either
 
 Operations are all O(N).
 ]]
-local math_helpers = require('math-helpers')
+local math_helpers = require("math-helpers")
 
 local mod = {}
 
@@ -106,7 +106,7 @@ function mod.kv_list(list, comparer)
    end
    return {
       values = vals,
-      options = { comparer = comparer }
+      options = { comparer = comparer },
    }
 end
 

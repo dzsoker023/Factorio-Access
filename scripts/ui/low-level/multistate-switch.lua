@@ -48,9 +48,9 @@ local cur_label = switch.current(e)
 Note that this abstraction does not care whether the entity is really a factorio
 entity.  Tables work, for example.
 ]]
-local circular_list = require('scripts.ds.circular-options-list')
-local F = require('scripts.field-ref') -- for self-tests
-local methods = require('scripts.methods')
+local circular_list = require("scripts.ds.circular-options-list")
+local F = require("scripts.field-ref") -- for self-tests
+local methods = require("scripts.methods")
 
 local mod = {}
 
@@ -105,7 +105,7 @@ function multistate_methods:current(entity)
    return generic_movement(self, entity, circular_list.current, false)
 end
 
-local linker = methods.link('multistate-switch', multistate_methods)
+local linker = methods.link("multistate-switch", multistate_methods)
 
 --- @param opts MultistateSwitchOptions
 --- @returns MultistateSwitch
@@ -125,11 +125,8 @@ function mod.create(opts)
       { { false, circular_list.ANY }, { label = opts.off_label } },
    }
 
-   for i  = 1, #opts.choices do
-      table.insert(
-         choices,
-         { { true, opts.choices[i][1], }, { label = opts.choices[i][2] } }
-      )
+   for i = 1, #opts.choices do
+      table.insert(choices, { { true, opts.choices[i][1] }, { label = opts.choices[i][2] } })
    end
    local choice_list = circular_list.kv_list(choices, circular_list.tuples)
 
@@ -147,7 +144,7 @@ local test_switch = mod.create({
    choices = {
       { 0, "is 0" },
       { 1, "is 1" },
-      { 2, "is 2" }
+      { 2, "is 2" },
    },
 })
 

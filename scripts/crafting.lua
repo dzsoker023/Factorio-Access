@@ -1,20 +1,18 @@
 --Here: Crafting menu, crafting queue menu, technology menu, related functions
 
-local util = require('util')
-local fa_utils = require('scripts.fa-utils')
-local localising = require('scripts.localising')
+local util = require("util")
+local fa_utils = require("scripts.fa-utils")
+local localising = require("scripts.localising")
 
 local mod = {}
 
 --Returns a navigable list of all unlocked recipes, for the recipe categories supported by the selected entity. Optionally can return all unlocked recipes for all categories.
 function mod.get_recipes(pindex, ent, load_all_categories)
-   if not ent then
-      return {}
-   end
-   local category_filters={}
+   if not ent then return {} end
+   local category_filters = {}
    --Load the supported recipe categories for this entity
    for category_name, _ in pairs(ent.prototype.crafting_categories) do
-      table.insert(category_filters, {filter="category", category=category_name})
+      table.insert(category_filters, { filter = "category", category = category_name })
    end
    local all_machine_recipes = game.get_filtered_recipe_prototypes(category_filters)
    local unlocked_machine_recipes = {}
@@ -29,15 +27,13 @@ function mod.get_recipes(pindex, ent, load_all_categories)
    --Load only the unlocked recipes
    for recipe_name, recipe in pairs(all_machine_recipes) do
       if force_recipes[recipe_name] ~= nil and force_recipes[recipe_name].enabled then
-         if unlocked_machine_recipes[recipe.group.name] == nil then
-            unlocked_machine_recipes[recipe.group.name]={}
-         end
-         table.insert(unlocked_machine_recipes[recipe.group.name],force_recipes[recipe.name])
+         if unlocked_machine_recipes[recipe.group.name] == nil then unlocked_machine_recipes[recipe.group.name] = {} end
+         table.insert(unlocked_machine_recipes[recipe.group.name], force_recipes[recipe.name])
       end
    end
-   local result={}
+   local result = {}
    for group, recipes in pairs(unlocked_machine_recipes) do
-      table.insert(result,recipes)
+      table.insert(result, recipes)
    end
    return result
 end
@@ -48,22 +44,23 @@ function mod.read_crafting_queue(pindex, start_phrase)
    if players[pindex].crafting_queue.max ~= 0 then
       local item = players[pindex].crafting_queue.lua_queue[players[pindex].crafting_queue.index]
       local recipe_name_only = item.recipe
-      printout(start_phrase .. localising.get(game.recipe_prototypes[recipe_name_only],pindex) .. " x " .. item.count, pindex)
+      printout(
+         start_phrase .. localising.get(game.recipe_prototypes[recipe_name_only], pindex) .. " x " .. item.count,
+         pindex
+      )
    else
       printout(start_phrase .. "Blank", pindex)
    end
 end
 
---Returns a count of how many batches of this recipe are listed in the (entire) crafting queue. 
+--Returns a count of how many batches of this recipe are listed in the (entire) crafting queue.
 function mod.count_in_crafting_queue(recipe_name, pindex)
    local count = 0
    if game.get_player(pindex).crafting_queue == nil or #game.get_player(pindex).crafting_queue == 0 then
       return count
    end
    for i, item in ipairs(game.get_player(pindex).crafting_queue) do
-      if item.recipe == recipe_name then
-         count = count + item.count
-      end
+      if item.recipe == recipe_name then count = count + item.count end
       --game.print(item.recipe .. " vs " .. recipe_name)
    end
    return count
@@ -78,28 +75,26 @@ function mod.load_crafting_queue(pindex)
          players[pindex].crafting_queue.index = math.max(1, players[pindex].crafting_queue.index - delta)
          players[pindex].crafting_queue.max = #players[pindex].crafting_queue.lua_queue
       else
-      players[pindex].crafting_queue.index = 1
-      players[pindex].crafting_queue.max = 0
+         players[pindex].crafting_queue.index = 1
+         players[pindex].crafting_queue.max = 0
       end
    else
       players[pindex].crafting_queue.lua_queue = game.get_player(pindex).crafting_queue
-   players[pindex].crafting_queue.index = 1
+      players[pindex].crafting_queue.index = 1
       if players[pindex].crafting_queue.lua_queue ~= nil then
-      players[pindex].crafting_queue.max = # players[pindex].crafting_queue.lua_queue
+         players[pindex].crafting_queue.max = #players[pindex].crafting_queue.lua_queue
       else
          players[pindex].crafting_queue.max = 0
       end
    end
 end
 
---Returns a count of total recipe batches left in the player crafting queue. 
+--Returns a count of total recipe batches left in the player crafting queue.
 function mod.get_crafting_que_total(pindex)
    local p = game.get_player(pindex)
    local total_items = 0
-   if p.crafting_queue == nil or p.crafting_queue == {} then
-      return 0
-   end
-   for i,q_item in ipairs(p.crafting_queue) do
+   if p.crafting_queue == nil or p.crafting_queue == {} then return 0 end
+   for i, q_item in ipairs(p.crafting_queue) do
       total_items = total_items + q_item.count
    end
    return total_items
@@ -108,20 +103,26 @@ end
 --Reads the currently selected recipe in the player crafting menu.
 function mod.read_crafting_slot(pindex, start_phrase, new_category)
    start_phrase = start_phrase or ""
-   local recipe = players[pindex].crafting.lua_recipes[players[pindex].crafting.category][players[pindex].crafting.index]
+   local recipe =
+      players[pindex].crafting.lua_recipes[players[pindex].crafting.category][players[pindex].crafting.index]
    if recipe.valid == true then
-      if new_category == true then
-         start_phrase = start_phrase .. localising.get_alt(recipe.group,pindex) .. ", "
-      end
-      printout(start_phrase .. localising.get_recipe_from_name(recipe.name,pindex) .. ", can craft " .. game.get_player(pindex).get_craftable_count(recipe.name), pindex)
+      if new_category == true then start_phrase = start_phrase .. localising.get_alt(recipe.group, pindex) .. ", " end
+      printout(
+         start_phrase
+            .. localising.get_recipe_from_name(recipe.name, pindex)
+            .. ", can craft "
+            .. game.get_player(pindex).get_craftable_count(recipe.name),
+         pindex
+      )
    else
-      printout("Blank",pindex)
+      printout("Blank", pindex)
    end
 end
 
 --Returns an info string about how many units of which ingredients are missing in order to craft one batch of this recipe.
 function mod.recipe_missing_ingredients_info(pindex, recipe_in)
-   local recipe = recipe_in or players[pindex].crafting.lua_recipes[players[pindex].crafting.category][players[pindex].crafting.index]
+   local recipe = recipe_in
+      or players[pindex].crafting.lua_recipes[players[pindex].crafting.category][players[pindex].crafting.index]
    local p = game.get_player(pindex)
    local inv = p.get_main_inventory()
    local result = "Missing "
@@ -131,15 +132,11 @@ function mod.recipe_missing_ingredients_info(pindex, recipe_in)
       local needed = ing.amount - on_hand
       if needed > 0 then
          missing = missing + 1
-         if missing > 1 then
-            result = result .. " and "
-         end
-         result = result .. needed .. " " .. localising.get_item_from_name(ing.name,pindex)
+         if missing > 1 then result = result .. " and " end
+         result = result .. needed .. " " .. localising.get_item_from_name(ing.name, pindex)
       end
    end
-   if missing == 0 then
-      result = ""
-   end
+   if missing == 0 then result = "" end
    return result
 end
 
@@ -158,7 +155,7 @@ function mod.recipe_raw_ingredients_info(recipe, pindex)
          end
       end
       if is_in_table == false then
-         --Add a new table entry 
+         --Add a new table entry
          table.insert(merged_table, ing)
       end
    end
@@ -195,17 +192,22 @@ function mod.get_raw_ingredients_table(recipe, pindex, count_in)
       local sub_recipe = game.recipe_prototypes[ing.name]
       if sub_recipe ~= nil and sub_recipe.valid then
          --If the sub-recipe cannot be crafted by hand, add this ingredient to the main table
-         if sub_recipe.category ~= "basic-crafting" and sub_recipe.category ~= "crafting"  and sub_recipe.category ~= ""  and sub_recipe.category ~= nil then
-            for i = 1,count,1 do
+         if
+            sub_recipe.category ~= "basic-crafting"
+            and sub_recipe.category ~= "crafting"
+            and sub_recipe.category ~= ""
+            and sub_recipe.category ~= nil
+         then
+            for i = 1, count, 1 do
                table.insert(raw_ingredients_table, ing)
             end
          else
             --Check the sub-recipe recursively
-            local sub_table = mod.get_raw_ingredients_table(sub_recipe, pindex)--, ing.amount)
+            local sub_table = mod.get_raw_ingredients_table(sub_recipe, pindex) --, ing.amount)
             if sub_table ~= nil then
                --Copy the sub_table to the main table
                for j, ing2 in ipairs(sub_table) do
-                  for i = 1,count,1 do
+                  for i = 1, count, 1 do
                      table.insert(raw_ingredients_table, ing2)
                   end
                end
@@ -213,7 +215,7 @@ function mod.get_raw_ingredients_table(recipe, pindex, count_in)
          end
       else
          --If a sub-recipe does not exist, add this ingredient to the main table
-         for i = 1,count,1 do
+         for i = 1, count, 1 do
             table.insert(raw_ingredients_table, ing)
          end
       end

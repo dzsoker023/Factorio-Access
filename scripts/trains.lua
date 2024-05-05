@@ -1,8 +1,8 @@
 --Here: Functions relating to train topics such as train info, train stops, train scheduling
 --Does not include event handlers
 
-local util = require('util')
-local fa_utils = require('scripts.fa-utils')
+local util = require("util")
+local fa_utils = require("scripts.fa-utils")
 local fa_rails = require("scripts.rails")
 local dirs = defines.direction
 
@@ -18,7 +18,7 @@ function mod.get_train_state_info(train)
    else
       train_state_text = "None"
    end
-   
+
    --Explanations
    if train_state_text == "wait_station" then
       train_state_text = "waiting at a station"
@@ -35,29 +35,23 @@ function mod.get_train_name(train)
    local locos = train.locomotives
    local train_name = ""
    local multiple_names = false
-   
-   if locos == nil then
-      return "without locomotives"
-   end
-   
-   for i,loco in ipairs(locos["front_movers"]) do
-      if train_name ~= "" and train_name ~= loco.backer_name then
-         multiple_names = true
-      end
+
+   if locos == nil then return "without locomotives" end
+
+   for i, loco in ipairs(locos["front_movers"]) do
+      if train_name ~= "" and train_name ~= loco.backer_name then multiple_names = true end
       train_name = loco.backer_name
    end
-   for i,loco in ipairs(locos["back_movers"]) do
-      if train_name ~= "" and train_name ~= loco.backer_name then
-         multiple_names = true
-      end
+   for i, loco in ipairs(locos["back_movers"]) do
+      if train_name ~= "" and train_name ~= loco.backer_name then multiple_names = true end
       train_name = loco.backer_name
    end
-   
+
    if train_name == "" then
       return "without a name"
    elseif multiple_names then
       local oldest_name = mod.resolve_train_name(train)
-      mod.set_train_name(train,oldest_name)
+      mod.set_train_name(train, oldest_name)
       return oldest_name
    else
       return train_name
@@ -65,18 +59,14 @@ function mod.get_train_name(train)
 end
 
 --Sets a train's name. The idea is that every locomotive on a train has the same backer name and this is the train's name.
-function mod.set_train_name(train,new_name)
-   if new_name == nil or new_name == "" then
-      return false
-   end
+function mod.set_train_name(train, new_name)
+   if new_name == nil or new_name == "" then return false end
    local locos = train.locomotives
-   if locos == nil then
-      return false
-   end
-   for i,loco in ipairs(locos["front_movers"]) do
+   if locos == nil then return false end
+   for i, loco in ipairs(locos["front_movers"]) do
       loco.backer_name = new_name
    end
-   for i,loco in ipairs(locos["back_movers"]) do
+   for i, loco in ipairs(locos["back_movers"]) do
       loco.backer_name = new_name
    end
    return true
@@ -86,26 +76,24 @@ end
 function mod.resolve_train_name(train)
    local locos = train.locomotives
    local oldest_loco = nil
-   
-   if locos == nil then
-      return "without locomotives"
-   end
-   
-   for i,loco in ipairs(locos["front_movers"]) do
+
+   if locos == nil then return "without locomotives" end
+
+   for i, loco in ipairs(locos["front_movers"]) do
       if oldest_loco == nil then
          oldest_loco = loco
       elseif oldest_loco.unit_number > loco.unit_number then
          oldest_loco = loco
       end
    end
-   for i,loco in ipairs(locos["back_movers"]) do
+   for i, loco in ipairs(locos["back_movers"]) do
       if oldest_loco == nil then
          oldest_loco = loco
       elseif oldest_loco.unit_number > loco.unit_number then
          oldest_loco = loco
       end
    end
-   
+
    if oldest_loco ~= nil then
       return oldest_loco.backer_name
    else
@@ -115,7 +103,7 @@ end
 
 --Checks if the train is all in one segment, which means the front and back rails are in the same segment.
 function mod.train_is_all_in_one_segment(train)
-	return train.front_rail.is_rail_in_same_rail_segment_as(train.back_rail)
+   return train.front_rail.is_rail_in_same_rail_segment_as(train.back_rail)
 end
 
 --[[ 
@@ -135,31 +123,27 @@ function mod.get_relative_leading_rail_and_train_dir(pindex, train)
 
    local vehicle = game.get_player(pindex).vehicle
    local front_rail = train.front_rail
-   local back_rail  = train.back_rail
+   local back_rail = train.back_rail
    local locos = train.locomotives
    local vehicle_is_a_front_loco = nil
-   
-   --Find the leading rail. If any "front" locomotive velocity is positive, the front stock is the one going ahead and its rail is the leading rail. 
+
+   --Find the leading rail. If any "front" locomotive velocity is positive, the front stock is the one going ahead and its rail is the leading rail.
    if vehicle.name == "locomotive" then
       --Leading direction is the one this loconotive faces
-      for i,loco in ipairs(locos["front_movers"]) do
-         if vehicle.unit_number == loco.unit_number then
-            vehicle_is_a_front_loco = true
-         end
+      for i, loco in ipairs(locos["front_movers"]) do
+         if vehicle.unit_number == loco.unit_number then vehicle_is_a_front_loco = true end
       end
       if vehicle_is_a_front_loco == true then
          leading_rail = front_rail
-		 trailing_rail = back_rail
-         leading_stock = train.front_stock 
+         trailing_rail = back_rail
+         leading_stock = train.front_stock
       else
-         for i,loco in ipairs(locos["back_movers"]) do
-            if vehicle.unit_number == loco.unit_number then
-               vehicle_is_a_front_loco = false
-            end
+         for i, loco in ipairs(locos["back_movers"]) do
+            if vehicle.unit_number == loco.unit_number then vehicle_is_a_front_loco = false end
          end
          if vehicle_is_a_front_loco == false then
             leading_rail = back_rail
-			trailing_rail = front_rail
+            trailing_rail = front_rail
             leading_stock = train.back_stock
          else
             --Unexpected place
@@ -169,43 +153,59 @@ function mod.get_relative_leading_rail_and_train_dir(pindex, train)
    else
       --Just assume the front stock is leading
       leading_rail = front_rail
-	  trailing_rail = back_rail
+      trailing_rail = back_rail
       leading_stock = train.front_stock
    end
-   
+
    --Error check
-   if leading_rail == nil then
-      return nil, -2, nil
-   end
-   
-   --Find the ahead direction. For the leading rail, the connected rail that is farthest from the leading stock is in the "ahead" direction. 
+   if leading_rail == nil then return nil, -2, nil end
+
+   --Find the ahead direction. For the leading rail, the connected rail that is farthest from the leading stock is in the "ahead" direction.
    --Repurpose the variables named front_rail and back_rail
-   front_rail = leading_rail.get_connected_rail{ rail_direction = defines.rail_direction.front, rail_connection_direction = defines.rail_connection_direction.straight}
+   front_rail = leading_rail.get_connected_rail({
+      rail_direction = defines.rail_direction.front,
+      rail_connection_direction = defines.rail_connection_direction.straight,
+   })
    if front_rail == nil then
-      front_rail = leading_rail.get_connected_rail{ rail_direction = defines.rail_direction.front, rail_connection_direction = defines.rail_connection_direction.left}
+      front_rail = leading_rail.get_connected_rail({
+         rail_direction = defines.rail_direction.front,
+         rail_connection_direction = defines.rail_connection_direction.left,
+      })
    end
    if front_rail == nil then
-      front_rail = leading_rail.get_connected_rail{ rail_direction = defines.rail_direction.front, rail_connection_direction = defines.rail_connection_direction.right}
+      front_rail = leading_rail.get_connected_rail({
+         rail_direction = defines.rail_direction.front,
+         rail_connection_direction = defines.rail_connection_direction.right,
+      })
    end
    if front_rail == nil then
       --The leading rail is an end rail at the front direction
       return leading_rail, defines.rail_direction.front, leading_stock
    end
-   
-   back_rail = leading_rail.get_connected_rail{ rail_direction = defines.rail_direction.back, rail_connection_direction = defines.rail_connection_direction.straight}
+
+   back_rail = leading_rail.get_connected_rail({
+      rail_direction = defines.rail_direction.back,
+      rail_connection_direction = defines.rail_connection_direction.straight,
+   })
    if back_rail == nil then
-      back_rail = leading_rail.get_connected_rail{ rail_direction = defines.rail_direction.back, rail_connection_direction = defines.rail_connection_direction.left}
+      back_rail = leading_rail.get_connected_rail({
+         rail_direction = defines.rail_direction.back,
+         rail_connection_direction = defines.rail_connection_direction.left,
+      })
    end
    if back_rail == nil then
-      back_rail = leading_rail.get_connected_rail{ rail_direction = defines.rail_direction.back, rail_connection_direction = defines.rail_connection_direction.right}
+      back_rail = leading_rail.get_connected_rail({
+         rail_direction = defines.rail_direction.back,
+         rail_connection_direction = defines.rail_connection_direction.right,
+      })
    end
    if back_rail == nil then
       --The leading rail is an end rail at the back direction
       return leading_rail, defines.rail_direction.back, leading_stock
    end
-   
-   local front_dist = math.abs(util.distance(leading_stock.position, front_rail.position)) 
-   local back_dist = math.abs(util.distance(leading_stock.position, back_rail.position)) 
+
+   local front_dist = math.abs(util.distance(leading_stock.position, front_rail.position))
+   local back_dist = math.abs(util.distance(leading_stock.position, back_rail.position))
    --The connected rail that is farther from the leading stock is in the ahead direction.
    if front_dist > back_dist then
       return leading_rail, defines.rail_direction.front, leading_stock
@@ -229,80 +229,75 @@ function mod.train_read_next_rail_entity_ahead(pindex, invert, mute_in)
    local message = "Ahead, "
    local honk_score = 0
    local train = game.get_player(pindex).vehicle.train
-   local leading_rail, dir_ahead, leading_stock = mod.get_relative_leading_rail_and_train_dir(pindex,train)
+   local leading_rail, dir_ahead, leading_stock = mod.get_relative_leading_rail_and_train_dir(pindex, train)
    if invert then
       dir_ahead = fa_rails.get_opposite_rail_direction(dir_ahead)
-	  message = "Behind, "
+      message = "Behind, "
    end
    --Correction for trains: Flip the correct direction ahead for mismatching diagonal rails
-   if leading_rail.name == "straight-rail" and (leading_rail.direction == dirs.southwest or leading_rail.direction == dirs.northwest) then
+   if
+      leading_rail.name == "straight-rail"
+      and (leading_rail.direction == dirs.southwest or leading_rail.direction == dirs.northwest)
+   then
       dir_ahead = fa_rails.get_opposite_rail_direction(dir_ahead)
    end
    --Correction for trains: Curved rails report different directions based on where the train sits and so are unreliable.
    if leading_rail.name == "curved-rail" then
-      if mute_in == true then
-         return -1
-      end
-      printout("Curved rail analysis error, check from another rail.",pindex)
+      if mute_in == true then return -1 end
+      printout("Curved rail analysis error, check from another rail.", pindex)
       return -1
    end
-   local next_entity, next_entity_label, result_extra, next_is_forward, iteration_count = fa_rails.get_next_rail_entity_ahead(leading_rail, dir_ahead, false)
+   local next_entity, next_entity_label, result_extra, next_is_forward, iteration_count =
+      fa_rails.get_next_rail_entity_ahead(leading_rail, dir_ahead, false)
    if next_entity == nil then
-      if mute_in == true then
-         return -1
-      end
-      printout("Analysis error, this rail might be looping.",pindex)
+      if mute_in == true then return -1 end
+      printout("Analysis error, this rail might be looping.", pindex)
       return -1
    end
    local distance = math.floor(util.distance(leading_stock.position, next_entity.position))
-   if distance < 10 then
-      honk_score = honk_score + 1
-   end
-      
+   if distance < 10 then honk_score = honk_score + 1 end
+
    --Test message
    --message = message .. iteration_count .. " iterations, "
-   
+
    --Maybe check for trains here, but there is no point because the checks use signal blocks...
    --local trains_in_origin_block = origin_rail.trains_in_block
    --local trains_in_current_block = current_rail.trains_in_block
-   
+
    --Report opposite direction entities.
-   if next_is_forward == false and (next_entity_label == "train stop" or next_entity_label == "rail signal" or next_entity_label == "chain signal") then
+   if
+      next_is_forward == false
+      and (
+         next_entity_label == "train stop"
+         or next_entity_label == "rail signal"
+         or next_entity_label == "chain signal"
+      )
+   then
       message = message .. " Opposite direction's "
       honk_score = -100
    end
-   
+
    --Add more info depending on entity label
    if next_entity_label == "end rail" then
       message = message .. next_entity_label
-      
    elseif next_entity_label == "fork split" then
-      local entering_segment_rail = result_extra  
+      local entering_segment_rail = result_extra
       message = message .. "rail fork splitting "
       message = message .. fa_rails.list_rail_fork_directions(next_entity)
-   
    elseif next_entity_label == "fork merge" then
-      local entering_segment_rail = result_extra  
+      local entering_segment_rail = result_extra
       message = message .. "rail fork merging "
-	  
    elseif next_entity_label == "neighbor end" then
-      local entering_segment_rail = result_extra  
+      local entering_segment_rail = result_extra
       message = message .. "end rail "
-      
    elseif next_entity_label == "rail signal" then
       local signal_state = fa_rails.get_signal_state_info(next_entity)
       message = message .. "rail signal with state " .. signal_state .. " "
-      if signal_state == "closed" then
-         honk_score = honk_score + 1
-      end
-      
+      if signal_state == "closed" then honk_score = honk_score + 1 end
    elseif next_entity_label == "chain signal" then
       local signal_state = fa_rails.get_signal_state_info(next_entity)
       message = message .. "chain signal with state " .. signal_state .. " "
-      if signal_state == "closed" then
-         honk_score = honk_score + 1
-      end
-      
+      if signal_state == "closed" then honk_score = honk_score + 1 end
    elseif next_entity_label == "train stop" then
       local stop_name = next_entity.backer_name
       --Add more specific distance info
@@ -313,19 +308,23 @@ function mod.train_read_next_rail_entity_ahead(pindex, invert, mute_in)
          if math.abs(distance) <= 0.2 then
             message = " Aligned with train stop " .. stop_name
          elseif distance > 0.2 then
-            message = math.floor(distance * 10) / 10 .. " meters away from train stop " .. stop_name .. ", for the frontmost vehicle. " 
+            message = math.floor(distance * 10) / 10
+               .. " meters away from train stop "
+               .. stop_name
+               .. ", for the frontmost vehicle. "
          elseif distance < 0.2 then
-            message = math.floor((-distance) * 10) / 10 .. " meters past train stop " .. stop_name .. ", for the frontmost vehicle. " 
+            message = math.floor(-distance * 10) / 10
+               .. " meters past train stop "
+               .. stop_name
+               .. ", for the frontmost vehicle. "
          end
       end
-   
    elseif next_entity_label == "other rail" then
       message = message .. "unspecified entity"
-      
    elseif next_entity_label == "other entity" then
       message = message .. next_entity.name
    end
-   
+
    --Add general distance info
    if next_entity_label ~= "train stop" then
       message = message .. " in " .. distance .. " meters. "
@@ -342,41 +341,60 @@ function mod.train_read_next_rail_entity_ahead(pindex, invert, mute_in)
       local first_reset = false
       --Scan behind the leading stock for 15m for passed train stops
       if heading == "North" then --scan the south
-         scan_area = {{pos.x-4,pos.y-4},{pos.x+4,pos.y+15}}
+         scan_area = { { pos.x - 4, pos.y - 4 }, { pos.x + 4, pos.y + 15 } }
       elseif heading == "South" then
-         scan_area = {{pos.x-4,pos.y-15},{pos.x+4,pos.y+4}}
+         scan_area = { { pos.x - 4, pos.y - 15 }, { pos.x + 4, pos.y + 4 } }
       elseif heading == "East" then --scan the west
-         scan_area = {{pos.x-15,pos.y-4},{pos.x+4,pos.y+4}}
+         scan_area = { { pos.x - 15, pos.y - 4 }, { pos.x + 4, pos.y + 4 } }
       elseif heading == "West" then
-         scan_area = {{pos.x-4,pos.y-4},{pos.x+15,pos.y+4}}
+         scan_area = { { pos.x - 4, pos.y - 4 }, { pos.x + 15, pos.y + 4 } }
       else
          --message = " Rail object scan error " .. heading .. " "
-         scan_area = {{pos.x+4,pos.y+4},{pos.x+4,pos.y+4}}
+         scan_area = { { pos.x + 4, pos.y + 4 }, { pos.x + 4, pos.y + 4 } }
       end
-      local ents = game.get_player(pindex).surface.find_entities_filtered{area = scan_area, name = "train-stop"}
-      for i,passed_stop in ipairs(ents) do
-         distance = util.distance(leading_stock.position, passed_stop.position) - 0 
-         --message = message .. " found stop " 
-         if distance < 12.5 and fa_utils.direction_lookup(passed_stop.direction) == fa_utils.get_heading_info(leading_stock) then
+      local ents = game.get_player(pindex).surface.find_entities_filtered({ area = scan_area, name = "train-stop" })
+      for i, passed_stop in ipairs(ents) do
+         distance = util.distance(leading_stock.position, passed_stop.position) - 0
+         --message = message .. " found stop "
+         if
+            distance < 12.5
+            and fa_utils.direction_lookup(passed_stop.direction) == fa_utils.get_heading_info(leading_stock)
+         then
             if not first_reset then
                message = ""
                first_reset = true
             end
-            message = message .. math.floor(distance+0.5) .. " meters past train stop " .. passed_stop.backer_name .. ", "
+            message = message
+               .. math.floor(distance + 0.5)
+               .. " meters past train stop "
+               .. passed_stop.backer_name
+               .. ", "
          end
       end
-      if first_reset then
-         message = message .. " for the front vehicle. "
-      end
+      if first_reset then message = message .. " for the front vehicle. " end
    end
    if not mute_in == true then
-      printout(message,pindex)
+      printout(message, pindex)
       --Draw circles for visual debugging
-      rendering.draw_circle{color = {0, 0.5, 1},radius = 1,width = 8,target = next_entity,surface = next_entity.surface,time_to_live = 100}
+      rendering.draw_circle({
+         color = { 0, 0.5, 1 },
+         radius = 1,
+         width = 8,
+         target = next_entity,
+         surface = next_entity.surface,
+         time_to_live = 100,
+      })
    end
-   
+
    if honk_score > 1 then
-      rendering.draw_circle{color = {1, 0, 0},radius = 1,width = 4,target = next_entity,surface = next_entity.surface,time_to_live = 60}
+      rendering.draw_circle({
+         color = { 1, 0, 0 },
+         radius = 1,
+         width = 4,
+         target = next_entity,
+         surface = next_entity.surface,
+         time_to_live = 60,
+      })
    end
    return honk_score
 end
@@ -411,11 +429,17 @@ function mod.run_train_menu(menu_index, pindex, clicked, other_input)
       return
    end
    local train = locomotive.train
-   
+
    if index == 0 then
       --Give basic info about this train, such as its name and ID. Instructions.
-      printout("Train ".. mod.get_train_name(train) .. ", with ID " .. train.id 
-      .. ", Press UP ARROW and DOWN ARROW to navigate options, press LEFT BRACKET to select an option or press E to exit this menu.", pindex)
+      printout(
+         "Train "
+            .. mod.get_train_name(train)
+            .. ", with ID "
+            .. train.id
+            .. ", Press UP ARROW and DOWN ARROW to navigate options, press LEFT BRACKET to select an option or press E to exit this menu.",
+         pindex
+      )
    elseif index == 1 then
       --Get train state and toggle manual control
       if not clicked then
@@ -444,48 +468,55 @@ function mod.run_train_menu(menu_index, pindex, clicked, other_input)
          end
          printout("Enter a new name for this train, then press 'ENTER' to confirm, or press 'ESC' to cancel.", pindex)
          players[pindex].train_menu.renaming = true
-         local frame = game.get_player(pindex).gui.screen.add{type = "frame", name = "train-rename"}
+         local frame = game.get_player(pindex).gui.screen.add({ type = "frame", name = "train-rename" })
          frame.bring_to_front()
          frame.force_auto_center()
          frame.focus()
          game.get_player(pindex).opened = frame
-         local input = frame.add{type="textfield", name = "input"}
+         local input = frame.add({ type = "textfield", name = "input" })
          input.focus()
       end
    elseif index == 3 then
       --Train vehicles info
       local locos = train.locomotives
-      printout("Vehicle counts, " .. #locos["front_movers"] .. " locomotives facing front, " 
-      .. #locos["back_movers"] .. " locomotives facing back, " .. #train.cargo_wagons .. " cargo wagons, "
-      .. #train.fluid_wagons .. " fluid wagons, ", pindex) 
-   elseif index == 4 then 
-	  --Train cargo info
+      printout(
+         "Vehicle counts, "
+            .. #locos["front_movers"]
+            .. " locomotives facing front, "
+            .. #locos["back_movers"]
+            .. " locomotives facing back, "
+            .. #train.cargo_wagons
+            .. " cargo wagons, "
+            .. #train.fluid_wagons
+            .. " fluid wagons, ",
+         pindex
+      )
+   elseif index == 4 then
+      --Train cargo info
       printout("Cargo, " .. mod.train_top_contents_info(train) .. " ", pindex)
-   elseif index == 5 then 
+   elseif index == 5 then
       --Train schedule info
       local result = ""
       local namelist = ""
       local schedule = train.schedule
       local records = {}
-      if schedule ~= nil then
-         records = schedule.records 
-      end
+      if schedule ~= nil then records = schedule.records end
       if schedule == nil or records == nil or #records == 0 then
          result = " No schedule, "
       else
-         for i,record in ipairs(records) do
+         for i, record in ipairs(records) do
             if record.station ~= nil then
                if record.temporary == false or record.temporary == nil then
-                  namelist = namelist .. ", station " .. record.station 
+                  namelist = namelist .. ", station " .. record.station
                else
-                  namelist = namelist .. ", temporary station " .. record.station 
+                  namelist = namelist .. ", temporary station " .. record.station
                end
                local wait_cond_1 = record.wait_conditions[1]
                if wait_cond_1 ~= nil then
                   local cond = wait_cond_1.type
                   namelist = namelist .. ", waiting for " .. cond
                   if cond == "time" or cond == "inactivity" then
-                     namelist = namelist .. " " .. math.ceil(wait_cond_1.ticks/60) .. " seconds "
+                     namelist = namelist .. " " .. math.ceil(wait_cond_1.ticks / 60) .. " seconds "
                   end
                end
                local wait_cond_2 = record.wait_conditions[2]
@@ -493,48 +524,50 @@ function mod.run_train_menu(menu_index, pindex, clicked, other_input)
                   local cond = wait_cond_2.type
                   namelist = namelist .. ", and waiting for " .. cond
                   if cond == "time" or cond == "inactivity" then
-                     namelist = namelist .. " " .. math.ceil(wait_cond_2.ticks/60) .. " seconds "
-                  end 
+                     namelist = namelist .. " " .. math.ceil(wait_cond_2.ticks / 60) .. " seconds "
+                  end
                end
                namelist = namelist .. ", "
             end
          end
-         if namelist == "" then
-            namelist = " is empty"
-         end
+         if namelist == "" then namelist = " is empty" end
          result = " Train schedule" .. namelist
       end
-      printout(result,pindex)
-   elseif index == 6 then 
-	  --Set instant schedule
-     if players[pindex].train_menu.wait_time == nil then
-         players[pindex].train_menu.wait_time = 300
-      end
-	  if not clicked then
-         printout(" Set a new instant schedule for the train here by pressing LEFT BRACKET, where the train waits for a set amount of time at immediately reachable station, modify this time with PAGE UP or PAGE DOWN before settting the schedule and hold CONTROL to increase the step size", pindex)
+      printout(result, pindex)
+   elseif index == 6 then
+      --Set instant schedule
+      if players[pindex].train_menu.wait_time == nil then players[pindex].train_menu.wait_time = 300 end
+      if not clicked then
+         printout(
+            " Set a new instant schedule for the train here by pressing LEFT BRACKET, where the train waits for a set amount of time at immediately reachable station, modify this time with PAGE UP or PAGE DOWN before settting the schedule and hold CONTROL to increase the step size",
+            pindex
+         )
       else
-         local comment = mod.instant_schedule(train,players[pindex].train_menu.wait_time)
-         printout(comment,pindex)
+         local comment = mod.instant_schedule(train, players[pindex].train_menu.wait_time)
+         printout(comment, pindex)
       end
-   elseif index == 7 then 
-	  --Clear schedule
+   elseif index == 7 then
+      --Clear schedule
       if not clicked then
          printout("Clear the schedule here by pressing LEFT BRACKET ", pindex)
       else
          train.schedule = nil
          train.manual_mode = true
-         printout("Train schedule cleared.",pindex)
+         printout("Train schedule cleared.", pindex)
       end
-   elseif index == 8 then 
+   elseif index == 8 then
       if not players[pindex].train_menu.selecting_station then
          --Subautomatic travel to a selected train stop
          if not clicked then
-            printout("Single-time travel to a reachable train stop, press LEFT BRACKET to select one, the train waits there until all passengers get off, then it resumes its original schedule.", pindex)
+            printout(
+               "Single-time travel to a reachable train stop, press LEFT BRACKET to select one, the train waits there until all passengers get off, then it resumes its original schedule.",
+               pindex
+            )
          else
             local comment = "Select a station with LEFT and RIGHT arrow keys and confirm with LEFT BRACKET."
-            printout(comment,pindex)
+            printout(comment, pindex)
             players[pindex].train_menu.selecting_station = true
-            mod.refresh_valid_train_stop_list(train,pindex)
+            mod.refresh_valid_train_stop_list(train, pindex)
             train.manual_mode = true
          end
       else
@@ -544,7 +577,7 @@ function mod.run_train_menu(menu_index, pindex, clicked, other_input)
             mod.read_valid_train_stop_from_list(pindex)
          else
             --Go to the list item
-            mod.go_to_valid_train_stop_from_list(pindex,train)
+            mod.go_to_valid_train_stop_from_list(pindex, train)
             players[pindex].train_menu.selecting_station = false
          end
       end
@@ -554,21 +587,19 @@ TRAIN_MENU_LENGTH = 8
 
 --Loads and opens the train menu
 function mod.menu_open(pindex)
-   if players[pindex].vanilla_mode then
-      return 
-   end
+   if players[pindex].vanilla_mode then return end
    --Set the player menu tracker to this menu
    players[pindex].menu = "train_menu"
    players[pindex].in_menu = true
    players[pindex].move_queue = {}
-   
+
    --Set the menu line counter to 0
    players[pindex].train_menu.index = 0
-   
+
    --Play sound
-   game.get_player(pindex).play_sound{path = "Open-Inventory-Sound"}
-   
-   --Load menu 
+   game.get_player(pindex).play_sound({ path = "Open-Inventory-Sound" })
+
+   --Load menu
    mod.run_train_menu(players[pindex].train_menu.index, pindex, false)
 end
 
@@ -583,29 +614,25 @@ function mod.menu_close(pindex, mute_in)
    players[pindex].train_menu.index = 0
    players[pindex].train_menu.index_2 = 0
    players[pindex].train_menu.selecting_station = false
-   
+
    --play sound
-   if not mute then
-      game.get_player(pindex).play_sound{path="Close-Inventory-Sound"}
-   end
-   
+   if not mute then game.get_player(pindex).play_sound({ path = "Close-Inventory-Sound" }) end
+
    --Destroy GUI
    if game.get_player(pindex).gui.screen["train-rename"] ~= nil then
       game.get_player(pindex).gui.screen["train-rename"].destroy()
    end
-   if game.get_player(pindex).opened ~= nil then
-      game.get_player(pindex).opened = nil
-   end
+   if game.get_player(pindex).opened ~= nil then game.get_player(pindex).opened = nil end
 end
 
 function mod.menu_up(pindex)
    players[pindex].train_menu.index = players[pindex].train_menu.index - 1
    if players[pindex].train_menu.index < 0 then
       players[pindex].train_menu.index = 0
-      game.get_player(pindex).play_sound{path = "inventory-edge"}
+      game.get_player(pindex).play_sound({ path = "inventory-edge" })
    else
       --Play sound
-      game.get_player(pindex).play_sound{path = "Inventory-Move"}
+      game.get_player(pindex).play_sound({ path = "Inventory-Move" })
    end
    --Load menu
    mod.run_train_menu(players[pindex].train_menu.index, pindex, false)
@@ -615,10 +642,10 @@ function mod.menu_down(pindex)
    players[pindex].train_menu.index = players[pindex].train_menu.index + 1
    if players[pindex].train_menu.index > TRAIN_MENU_LENGTH then
       players[pindex].train_menu.index = TRAIN_MENU_LENGTH
-      game.get_player(pindex).play_sound{path = "inventory-edge"}
+      game.get_player(pindex).play_sound({ path = "inventory-edge" })
    else
       --Play sound
-      game.get_player(pindex).play_sound{path = "Inventory-Move"}
+      game.get_player(pindex).play_sound({ path = "Inventory-Move" })
    end
    --Load menu
    mod.run_train_menu(players[pindex].train_menu.index, pindex, false)
@@ -628,12 +655,12 @@ function mod.menu_left(pindex)
    local index = players[pindex].train_menu.index_2
    if index == nil then
       index = 1
-   else 
+   else
       index = index - 1
    end
    if index == 0 then
       index = 1
-      game.get_player(pindex).play_sound{path = "Inventory-Move"}
+      game.get_player(pindex).play_sound({ path = "Inventory-Move" })
    end
    players[pindex].train_menu.index_2 = index
    --Load menu
@@ -644,12 +671,12 @@ function mod.menu_right(pindex)
    local index = players[pindex].train_menu.index_2
    if index == nil then
       index = 1
-   else 
+   else
       index = index + 1
    end
    if index > #players[pindex].valid_train_stop_list then
       index = #players[pindex].valid_train_stop_list
-      game.get_player(pindex).play_sound{path = "Inventory-Move"}
+      game.get_player(pindex).play_sound({ path = "Inventory-Move" })
    end
    players[pindex].train_menu.index_2 = index
    --Load menu
@@ -662,7 +689,7 @@ function mod.cargo_wagon_top_contents_info(wagon)
    local itemset = wagon.get_inventory(defines.inventory.cargo_wagon).get_contents()
    local itemtable = {}
    for name, count in pairs(itemset) do
-      table.insert(itemtable, {name = name, count = count})
+      table.insert(itemtable, { name = name, count = count })
    end
    table.sort(itemtable, function(k1, k2)
       return k1.count > k2.count
@@ -683,9 +710,7 @@ function mod.cargo_wagon_top_contents_info(wagon)
       if #itemtable > 4 then
          result = result .. " and " .. itemtable[5].name .. " times " .. itemtable[5].count .. ", "
       end
-      if #itemtable > 5 then
-         result = result .. " and other items "
-      end
+      if #itemtable > 5 then result = result .. " and other items " end
    end
    result = result .. ", Use inserters or cursor shortcuts to fill and empty this wagon. "
    return result
@@ -697,7 +722,7 @@ function mod.fluid_contents_info(wagon)
    local itemset = wagon.get_fluid_contents()
    local itemtable = {}
    for name, amount in pairs(itemset) do
-      table.insert(itemtable, {name = name, amount = amount})
+      table.insert(itemtable, { name = name, amount = amount })
    end
    table.sort(itemtable, function(k1, k2)
       return k1.amount > k2.amount
@@ -705,16 +730,29 @@ function mod.fluid_contents_info(wagon)
    if #itemtable == 0 then
       result = result .. " Contains no fluids. "
    else
-      result = result .. " Contains " .. itemtable[1].name .. " times " .. string.format(" %.0f ", itemtable[1].amount) .. ", "
-	  if #itemtable > 1 then
-         result = result .. " and " .. itemtable[2].name .. " times " .. string.format(" %.0f ", itemtable[2].amount) .. ", "
+      result = result
+         .. " Contains "
+         .. itemtable[1].name
+         .. " times "
+         .. string.format(" %.0f ", itemtable[1].amount)
+         .. ", "
+      if #itemtable > 1 then
+         result = result
+            .. " and "
+            .. itemtable[2].name
+            .. " times "
+            .. string.format(" %.0f ", itemtable[2].amount)
+            .. ", "
       end
-	  if #itemtable > 2 then
-         result = result .. " and " .. itemtable[3].name .. " times " .. string.format(" %.0f ", itemtable[3].amount) .. ", "
+      if #itemtable > 2 then
+         result = result
+            .. " and "
+            .. itemtable[3].name
+            .. " times "
+            .. string.format(" %.0f ", itemtable[3].amount)
+            .. ", "
       end
-      if #itemtable > 3 then
-         result = result .. " and other fluids "
-      end
+      if #itemtable > 3 then result = result .. " and other fluids " end
    end
    if wagon.object_name ~= "LuaTrain" and wagon.name == "fluid-wagon" then
       result = result .. ", Use pumps to fill and empty this wagon. "
@@ -728,7 +766,7 @@ function mod.train_top_contents_info(train)
    local itemset = train.get_contents()
    local itemtable = {}
    for name, count in pairs(itemset) do
-      table.insert(itemtable, {name = name, count = count})
+      table.insert(itemtable, { name = name, count = count })
    end
    table.sort(itemtable, function(k1, k2)
       return k1.count > k2.count
@@ -743,98 +781,96 @@ function mod.train_top_contents_info(train)
       if #itemtable > 2 then
          result = result .. " and " .. itemtable[3].name .. " times " .. itemtable[3].count .. ", "
       end
-      if #itemtable > 3 then
-         result = result .. " and other items, "
-      end
+      if #itemtable > 3 then result = result .. " and other items, " end
    end
    result = result .. mod.fluid_contents_info(train)
    return result
 end
 
 --For the selected train, adds every reachable train stop to its schedule with the waiting condition of 5 minutes.
-function mod.instant_schedule(train,seconds_in)
+function mod.instant_schedule(train, seconds_in)
    local seconds = seconds_in or 300
    local surf = train.front_stock.surface
    local train_stops = surf.get_train_stops()
    local valid_stops = 0
    train.schedule = nil
-   for i,stop in ipairs(train_stops) do
+   for i, stop in ipairs(train_stops) do
       --Add the stop to the schedule's first row
-	  local wait_condition_1 = {type = "time" , ticks = seconds * 60 , compare_type = "and"}
-	  local new_record = {wait_conditions = {wait_condition_1}, station = stop.backer_name, temporary = false}
-	  
-	  local schedule = train.schedule
-	  if schedule == nil then
-	     schedule = {current = 1, records = {new_record}}
-		 --game.get_player(pindex).print("made new schedule")
-	  else
-		 local records = schedule.records
-		 table.insert(records,1, new_record)
-		 --game.get_player(pindex).print("added to schedule row 1, schedule length now " .. #records)
-	  end
-	  train.schedule = schedule
-	  
-	  --Make the train aim for the stop
-	  train.go_to_station(1)
-	  train.recalculate_path()
-	  
-	  --React according to valid path
-	  if not train.has_path then
-		 --Clear the invalid schedule record
-		 --game.get_player(pindex).print("invalid " .. stop.backer_name)
-		 local schedule = train.schedule
-		 if schedule ~= nil then
-			--game.get_player(pindex).print("Removing " .. stop.backer_name)
-			local records = schedule.records
-			table.remove(records, 1)
-			if records == nil or #records == 0 then
-			   train.schedule = nil
-			   train.manual_mode = true
-			else
-			   train.schedule = schedule
-			end
-			--game.get_player(pindex).print("schedule length now " .. #records)
-		 end
-	  else
-	     --Valid station and path selected.
-		 valid_stops = valid_stops + 1
-		 --game.get_player(pindex).print("valid " .. stop.backer_name .. ", path size " .. train.path.size)
-	  end
+      local wait_condition_1 = { type = "time", ticks = seconds * 60, compare_type = "and" }
+      local new_record = { wait_conditions = { wait_condition_1 }, station = stop.backer_name, temporary = false }
+
+      local schedule = train.schedule
+      if schedule == nil then
+         schedule = { current = 1, records = { new_record } }
+      --game.get_player(pindex).print("made new schedule")
+      else
+         local records = schedule.records
+         table.insert(records, 1, new_record)
+         --game.get_player(pindex).print("added to schedule row 1, schedule length now " .. #records)
+      end
+      train.schedule = schedule
+
+      --Make the train aim for the stop
+      train.go_to_station(1)
+      train.recalculate_path()
+
+      --React according to valid path
+      if not train.has_path then
+         --Clear the invalid schedule record
+         --game.get_player(pindex).print("invalid " .. stop.backer_name)
+         local schedule = train.schedule
+         if schedule ~= nil then
+            --game.get_player(pindex).print("Removing " .. stop.backer_name)
+            local records = schedule.records
+            table.remove(records, 1)
+            if records == nil or #records == 0 then
+               train.schedule = nil
+               train.manual_mode = true
+            else
+               train.schedule = schedule
+            end
+            --game.get_player(pindex).print("schedule length now " .. #records)
+         end
+      else
+         --Valid station and path selected.
+         valid_stops = valid_stops + 1
+         --game.get_player(pindex).print("valid " .. stop.backer_name .. ", path size " .. train.path.size)
+      end
    end
    if valid_stops == 0 then
       --Announce error to all passengers
-	  str = " Error: No reachable trainstops detected. Check whether you have locomotives facing both directions as required."
-	  for i,player in ipairs(train.passengers) do
+      str =
+         " Error: No reachable trainstops detected. Check whether you have locomotives facing both directions as required."
+      for i, player in ipairs(train.passengers) do
          players[player.index].last = str
-         localised_print{"","out ",str}
-	  end
+         localised_print({ "", "out ", str })
+      end
    elseif valid_stops == 1 then
       --Announce error to all passengers
-	  str = " Error: Only one reachable trainstop detected. Check whether you have locomotives facing both directions as required."
-	  for i,player in ipairs(train.passengers) do
+      str =
+         " Error: Only one reachable trainstop detected. Check whether you have locomotives facing both directions as required."
+      for i, player in ipairs(train.passengers) do
          players[player.index].last = str
-         localised_print{"","out ",str}
-	  end
-     train.schedule = nil
+         localised_print({ "", "out ", str })
+      end
+      train.schedule = nil
    else
       if seconds_in == nil then
          str = "Train schedule created with " .. valid_stops .. " stops, waiting " .. seconds .. " seconds at each. "
       else
          str = seconds .. " seconds waited at each of " .. valid_stops .. " stops. "
       end
-      for i,player in ipairs(train.passengers) do
+      for i, player in ipairs(train.passengers) do
          players[player.index].last = str
-         localised_print{"","out ",str}
+         localised_print({ "", "out ", str })
       end
    end
    return str
 end
 
-function mod.change_instant_schedule_wait_time(increment,pindex)
+function mod.change_instant_schedule_wait_time(increment, pindex)
    local seconds = players[pindex].train_menu.wait_time
-   if seconds == nil then 
-      seconds = 300 
-   end
+   if seconds == nil then seconds = 300 end
    seconds = seconds + increment
    if seconds < 5 then
       seconds = 5
@@ -842,7 +878,11 @@ function mod.change_instant_schedule_wait_time(increment,pindex)
       seconds = 10000
    end
    players[pindex].train_menu.wait_time = seconds
-   printout(players[pindex].train_menu.wait_time .. " seconds waited at each station. Use arrow keys to navigate the train menu and apply the new wait time by re-creating the schedule.",pindex)
+   printout(
+      players[pindex].train_menu.wait_time
+         .. " seconds waited at each station. Use arrow keys to navigate the train menu and apply the new wait time by re-creating the schedule.",
+      pindex
+   )
 end
 
 --Subautomatic one-time travel to a reachable train stop that is at least 3 rails away. Does not delete the train schedule. Note: Now obsolete?
@@ -850,88 +890,89 @@ function mod.sub_automatic_travel_to_other_stop(train)
    local surf = train.front_stock.surface
    local train_stops = surf.get_train_stops()
    local str = ""
-   for i,stop in ipairs(train_stops) do
+   for i, stop in ipairs(train_stops) do
       --Set a stop
-	  local wait_condition_1 = {type = "passenger_not_present", compare_type = "and"}
-     local wait_condition_2 = {type = "time", ticks = 60, compare_type = "and"}
-	  local new_record = {wait_conditions = {wait_condition_1,wait_condition_2}, station = stop.backer_name, temporary = true}
-	  
-	  --train.schedule = {current = 1, records = {new_record}}
-	  local schedule = train.schedule
-	  if schedule == nil then
-	     schedule = {current = 1, records = {new_record}}
-		 --game.get_player(pindex).print("made new schedule")
-	  else
-		 local records = schedule.records
-		 table.insert(records,1, new_record)
-	  end
-	  train.schedule = schedule
-	  
-	  --Make the train aim for the stop
-	  train.go_to_station(1)
-	  if not train.has_path or train.path.size < 3 then
-	     --Invalid path or path to an station nearby
-		    local records = schedule.records
-			table.remove(records, 1)
-			if records == nil or #records == 0 then
-			   train.schedule = nil
-			   train.manual_mode = true
-			else
-			   train.schedule = schedule
-			end
-	  else
-	     --Valid station and path selected.
-		 --(do nothing)
-	  end
-	  
+      local wait_condition_1 = { type = "passenger_not_present", compare_type = "and" }
+      local wait_condition_2 = { type = "time", ticks = 60, compare_type = "and" }
+      local new_record =
+         { wait_conditions = { wait_condition_1, wait_condition_2 }, station = stop.backer_name, temporary = true }
+
+      --train.schedule = {current = 1, records = {new_record}}
+      local schedule = train.schedule
+      if schedule == nil then
+         schedule = { current = 1, records = { new_record } }
+      --game.get_player(pindex).print("made new schedule")
+      else
+         local records = schedule.records
+         table.insert(records, 1, new_record)
+      end
+      train.schedule = schedule
+
+      --Make the train aim for the stop
+      train.go_to_station(1)
+      if not train.has_path or train.path.size < 3 then
+         --Invalid path or path to an station nearby
+         local records = schedule.records
+         table.remove(records, 1)
+         if records == nil or #records == 0 then
+            train.schedule = nil
+            train.manual_mode = true
+         else
+            train.schedule = schedule
+         end
+      else
+         --Valid station and path selected.
+         --(do nothing)
+      end
    end
-   
+
    if train.path_end_stop == nil then
       --Announce error to all passengers
-	  str = " No reachable trainstops detected. Check whether you have locomotives facing both directions as required."
-	  for i,player in ipairs(train.passengers) do
-		 players[player.index].last = str
-	     localised_print{"","out ",str}
-	  end
+      str = " No reachable trainstops detected. Check whether you have locomotives facing both directions as required."
+      for i, player in ipairs(train.passengers) do
+         players[player.index].last = str
+         localised_print({ "", "out ", str })
+      end
    else
       str = "Path set."
    end
    return str
 end
 
-function mod.refresh_valid_train_stop_list(train,pindex)--table.insert
+function mod.refresh_valid_train_stop_list(train, pindex) --table.insert
    players[pindex].valid_train_stop_list = {}
    train.manual_mode = true
    local surf = train.front_stock.surface
    local train_stops = surf.get_train_stops()
    local str = ""
-   for i,stop in ipairs(train_stops) do
+   for i, stop in ipairs(train_stops) do
       --Set a stop
-	  local wait_condition_1 = {type = "passenger_not_present", compare_type = "and"}
-	  local wait_condition_2 = {type = "time", ticks = 60, compare_type = "and"}
-	  local new_record = {wait_conditions = {wait_condition_1,wait_condition_2}, station = stop.backer_name, temporary = true}
-	  
-	  local schedule = train.schedule
-	  if schedule == nil then
-	     schedule = {current = 1, records = {new_record}}
-		 --game.get_player(pindex).print("made new schedule")
-	  else
-		 local records = schedule.records
-		 table.insert(records,1, new_record)
-	  end
-	  train.schedule = schedule
-	  
-	  --Make the train aim for the stop
-	  train.go_to_station(1)
-	  if not train.has_path then
-	     --Invalid path: Do not add to list
-	  else
-	     --Valid station and path selected.
-		 table.insert(players[pindex].valid_train_stop_list, stop.backer_name)
-	  end
-     
-     --Clear the record
-     local records = schedule.records
+      local wait_condition_1 = { type = "passenger_not_present", compare_type = "and" }
+      local wait_condition_2 = { type = "time", ticks = 60, compare_type = "and" }
+      local new_record =
+         { wait_conditions = { wait_condition_1, wait_condition_2 }, station = stop.backer_name, temporary = true }
+
+      local schedule = train.schedule
+      if schedule == nil then
+         schedule = { current = 1, records = { new_record } }
+      --game.get_player(pindex).print("made new schedule")
+      else
+         local records = schedule.records
+         table.insert(records, 1, new_record)
+      end
+      train.schedule = schedule
+
+      --Make the train aim for the stop
+      train.go_to_station(1)
+      if not train.has_path then
+      --Invalid path: Do not add to list
+      else
+         --Valid station and path selected.
+         table.insert(players[pindex].valid_train_stop_list, stop.backer_name)
+      end
+
+      --Clear the record
+      local records = schedule.records
       table.remove(records, 1)
       if records == nil or #records == 0 then
          train.schedule = nil
@@ -948,52 +989,48 @@ function mod.read_valid_train_stop_from_list(pindex)
    local index = players[pindex].train_menu.index_2
    local name = ""
    if players[pindex].valid_train_stop_list == nil or #players[pindex].valid_train_stop_list == 0 then
-      printout("Error: No reachable train stops found",pindex)
+      printout("Error: No reachable train stops found", pindex)
       return
    end
-   if index == nil then
-      index = 1
-   end
+   if index == nil then index = 1 end
    players[pindex].train_menu.index_2 = index
-   
+
    name = players[pindex].valid_train_stop_list[index]
    --Return the name
-   printout(name,pindex)
+   printout(name, pindex)
 end
 
-function mod.go_to_valid_train_stop_from_list(pindex,train)
+function mod.go_to_valid_train_stop_from_list(pindex, train)
    local index = players[pindex].train_menu.index_2
    local name = ""
    if players[pindex].valid_train_stop_list == nil or #players[pindex].valid_train_stop_list == 0 then
-      printout("Error: No reachable train stops found",pindex)
+      printout("Error: No reachable train stops found", pindex)
       return
    end
-   if index == nil then
-      index = 1
-   end
+   if index == nil then index = 1 end
    players[pindex].train_menu.index_2 = index
    name = players[pindex].valid_train_stop_list[index]
-   
+
    --Set the station target
-   local wait_condition_1 = {type = "passenger_not_present", compare_type = "and"}
-   local wait_condition_2 = {type = "time", ticks = 60, compare_type = "and"}
-   local new_record = {wait_conditions = {wait_condition_1,wait_condition_2}, station = name, temporary = true}
+   local wait_condition_1 = { type = "passenger_not_present", compare_type = "and" }
+   local wait_condition_2 = { type = "time", ticks = 60, compare_type = "and" }
+   local new_record = { wait_conditions = { wait_condition_1, wait_condition_2 }, station = name, temporary = true }
 
    local schedule = train.schedule
    if schedule == nil then
-     schedule = {current = 1, records = {new_record}}
-    --game.get_player(pindex).print("made new schedule")
+      schedule = { current = 1, records = { new_record } }
+   --game.get_player(pindex).print("made new schedule")
    else
-    local records = schedule.records
-    table.insert(records,1, new_record)
+      local records = schedule.records
+      table.insert(records, 1, new_record)
    end
    train.schedule = schedule
 
    --Make the train aim for the stop
    train.go_to_station(1)
    if not train.has_path or train.path.size < 3 then
-     --Invalid path or path to an station nearby
-       local records = schedule.records
+      --Invalid path or path to an station nearby
+      local records = schedule.records
       table.remove(records, 1)
       if records == nil or #records == 0 then
          train.schedule = nil
@@ -1002,39 +1039,33 @@ function mod.go_to_valid_train_stop_from_list(pindex,train)
          train.schedule = schedule
       end
    else
-     --Valid station and path selected.
-    --(do nothing)
+      --Valid station and path selected.
+      --(do nothing)
    end
-   
+
    --Check valid path again
    local str = ""
    if train.path_end_stop == nil then
       --Announce error to all passengers
       str = "Error: Train stop pathing error."
-      for i,player in ipairs(train.passengers) do
+      for i, player in ipairs(train.passengers) do
          players[player.index].last = str
-         localised_print{"","out ",str}
+         localised_print({ "", "out ", str })
       end
    else
       --Train will announce its new path by itself
    end
-   
+
    mod.menu_close(pindex, false)
 end
 
 --Honks if the following conditions are met: 1. The player is manually driving a train, 2. The train is moving, 3. Ahead of the train is a closed rail signal or rail chain signal, 4. It has been 5 seconds since the last honk.
-function mod.check_and_honk_at_closed_signal(tick,pindex)
-   if not check_for_player(pindex) then
-      return
-   end
+function mod.check_and_honk_at_closed_signal(tick, pindex)
+   if not check_for_player(pindex) then return end
    --0. Check if it has been 5 seconds since the last honk
-   if players[pindex].last_honk_tick == nil then
-      players[pindex].last_honk_tick = 1
-   end
-   if tick - players[pindex].last_honk_tick < 300 then
-      return
-   end
-   --1. Check if the player is on a train 
+   if players[pindex].last_honk_tick == nil then players[pindex].last_honk_tick = 1 end
+   if tick - players[pindex].last_honk_tick < 300 then return end
+   --1. Check if the player is on a train
    local p = game.get_player(pindex)
    local train = nil
    if p.vehicle == nil or p.vehicle.train == nil then
@@ -1043,32 +1074,22 @@ function mod.check_and_honk_at_closed_signal(tick,pindex)
       train = p.vehicle.train
    end
    --2. Check if the train is manually driving and has nonzero speed
-   if train.speed == 0 or not train.manual_mode then
-      return
-   end
+   if train.speed == 0 or not train.manual_mode then return end
    --3. Check if ahead of the train is a closed rail signal or rail chain signal
    local honk_score = mod.train_read_next_rail_entity_ahead(pindex, false, true)
-   if honk_score < 2 then 
-      return
-   end
+   if honk_score < 2 then return end
    --4. HONK (short)
-   game.get_player(pindex).play_sound{path="train-honk-short"}
+   game.get_player(pindex).play_sound({ path = "train-honk-short" })
    players[pindex].last_honk_tick = tick
 end
 
 --Honks if the following conditions are met: 1. The player is on a train, 2. The train is moving, 3. There is another train within the same rail block, 4. It has been 5 seconds since the last honk.
-function mod.check_and_honk_at_trains_in_same_block(tick,pindex)
-   if not check_for_player(pindex) then
-      return
-   end
+function mod.check_and_honk_at_trains_in_same_block(tick, pindex)
+   if not check_for_player(pindex) then return end
    --0. Check if it has been 5 seconds since the last honk
-   if players[pindex].last_honk_tick == nil then
-      players[pindex].last_honk_tick = 1
-   end
-   if tick - players[pindex].last_honk_tick < 300 then
-      return
-   end
-   --1. Check if the player is on a train 
+   if players[pindex].last_honk_tick == nil then players[pindex].last_honk_tick = 1 end
+   if tick - players[pindex].last_honk_tick < 300 then return end
+   --1. Check if the player is on a train
    local p = game.get_player(pindex)
    local train = nil
    if p.vehicle == nil or p.vehicle.train == nil then
@@ -1077,30 +1098,24 @@ function mod.check_and_honk_at_trains_in_same_block(tick,pindex)
       train = p.vehicle.train
    end
    --2. Check if the train has nonzero speed
-   if train.speed == 0 then
-      return
-   end
+   if train.speed == 0 then return end
    --3. Check if there is another train within the same rail block (for both the front rail and the back rail)
    if train.front_rail == nil or not train.front_rail.valid or train.back_rail == nil or not train.back_rail.valid then
       return
    end
-   if train.front_rail.trains_in_block < 2 and train.back_rail.trains_in_block < 2 then
-      return
-   end
+   if train.front_rail.trains_in_block < 2 and train.back_rail.trains_in_block < 2 then return end
    --4. HONK (long)
-   game.get_player(pindex).play_sound{path="train-honk-long"}
+   game.get_player(pindex).play_sound({ path = "train-honk-long" })
    players[pindex].last_honk_tick = tick
 end
 
 --Play a sound to indicate the train is turning
 function mod.check_and_play_sound_for_turning_trains(pindex)
    local p = game.get_player(pindex)
-   if p.vehicle == nil or p.vehicle.valid == false or p.vehicle.train == nil then
-      return 
-   end
+   if p.vehicle == nil or p.vehicle.valid == false or p.vehicle.train == nil then return end
    local ori = p.vehicle.orientation
    if players[pindex].last_train_orientation ~= nil and players[pindex].last_train_orientation ~= ori then
-      p.play_sound{path = "train-clack"}
+      p.play_sound({ path = "train-clack" })
    end
    players[pindex].last_train_orientation = ori
 end

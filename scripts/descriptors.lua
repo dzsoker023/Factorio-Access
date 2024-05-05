@@ -21,11 +21,11 @@ moment--we leave documentation of the schema aside.  Otherwise this comment will
 probably become stale very quickly.  The exammples here should be reasonably
 self-explanatory.
 ]]
-local F = require('scripts.field-ref')
+local F = require("scripts.field-ref")
 
 local dcb = defines.control_behavior
 
-local mod  = {}
+local mod = {}
 
 -- Prototypes, by type.
 mod.PROTOTYPES = {
@@ -36,8 +36,8 @@ mod.PROTOTYPES = {
             mode_field = F.circuit_hand_read_mode(),
             disabled_label = "None",
             choices = {
-               { dcb.inserter.hand_read_mode.hold,  "Reading held items" },
-               { dcb.inserter.hand_read_mode.pulse, "pulsing held items" }
+               { dcb.inserter.hand_read_mode.hold, "Reading held items" },
+               { dcb.inserter.hand_read_mode.pulse, "pulsing held items" },
             },
          },
       },

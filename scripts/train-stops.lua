@@ -8,7 +8,7 @@ function mod.run_train_stop_menu(menu_index, pindex, clicked, other_input)
    local index = menu_index
    local other = other_input or -1
    local train_stop = nil
-   if players[pindex].tile.ents[1]  ~= nil and players[pindex].tile.ents[1].name == "train-stop" then 
+   if players[pindex].tile.ents[1] ~= nil and players[pindex].tile.ents[1].name == "train-stop" then
       train_stop = players[pindex].tile.ents[1]
       players[pindex].train_stop_menu.stop = train_stop
    else
@@ -16,32 +16,45 @@ function mod.run_train_stop_menu(menu_index, pindex, clicked, other_input)
       players[pindex].train_stop_menu.stop = nil
       return
    end
-   
+
    if index == 0 then
-      printout("Train stop " .. train_stop.backer_name .. ", Press W and S to navigate options, press LEFT BRACKET to select an option or press E to exit this menu.", pindex)
+      printout(
+         "Train stop "
+            .. train_stop.backer_name
+            .. ", Press W and S to navigate options, press LEFT BRACKET to select an option or press E to exit this menu.",
+         pindex
+      )
    elseif index == 1 then
       if not clicked then
          printout("Select here to rename this train stop.", pindex)
       else
-         printout("Enter a new name for this train stop, then press 'ENTER' to confirm, or press 'ESC' to cancel.", pindex)
+         printout(
+            "Enter a new name for this train stop, then press 'ENTER' to confirm, or press 'ESC' to cancel.",
+            pindex
+         )
          players[pindex].train_stop_menu.renaming = true
-         local frame = game.get_player(pindex).gui.screen.add{type = "frame", name = "train-stop-rename"}
+         local frame = game.get_player(pindex).gui.screen.add({ type = "frame", name = "train-stop-rename" })
          frame.bring_to_front()
          frame.force_auto_center()
          frame.focus()
          game.get_player(pindex).opened = frame
-         local input = frame.add{type="textfield", name = "input"}
+         local input = frame.add({ type = "textfield", name = "input" })
          input.focus()
       end
    elseif index == 2 then
       local result = mod.nearby_train_schedule_read_this_stop(train_stop)
-         printout(result .. ", Use the below menu options to modify the train schedule.",pindex)
+      printout(result .. ", Use the below menu options to modify the train schedule.", pindex)
    elseif index == 3 then
       if not clicked then
          if players[pindex].train_stop_menu.wait_condition == nil then
             players[pindex].train_stop_menu.wait_condition = "time"
          end
-         printout("Proposed wait condition: " .. players[pindex].train_stop_menu.wait_condition .. " selected, change by selecting here, this change needs to also be applied.",pindex)
+         printout(
+            "Proposed wait condition: "
+               .. players[pindex].train_stop_menu.wait_condition
+               .. " selected, change by selecting here, this change needs to also be applied.",
+            pindex
+         )
       else
          local condi = players[pindex].train_stop_menu.wait_condition
          if condi == "time" then
@@ -58,13 +71,23 @@ function mod.run_train_stop_menu(menu_index, pindex, clicked, other_input)
             condi = "time"
          end
          players[pindex].train_stop_menu.wait_condition = condi
-         printout(" " .. players[pindex].train_stop_menu.wait_condition .. " condition proposed, change by selecting here, this change needs to also be applied.",pindex)
+         printout(
+            " "
+               .. players[pindex].train_stop_menu.wait_condition
+               .. " condition proposed, change by selecting here, this change needs to also be applied.",
+            pindex
+         )
       end
    elseif index == 4 then
       if players[pindex].train_stop_menu.wait_time_seconds == nil then
          players[pindex].train_stop_menu.wait_time_seconds = 60
       end
-      printout("Proposed wait time: " .. players[pindex].train_stop_menu.wait_time_seconds .. " seconds selected, if applicable, change using page up or page down, and hold control to increase step size. This change needs to also be applied.",pindex)
+      printout(
+         "Proposed wait time: "
+            .. players[pindex].train_stop_menu.wait_time_seconds
+            .. " seconds selected, if applicable, change using page up or page down, and hold control to increase step size. This change needs to also be applied.",
+         pindex
+      )
    elseif index == 5 then
       if not clicked then
          if players[pindex].train_stop_menu.safety_wait_enabled == nil then
@@ -72,64 +95,81 @@ function mod.run_train_stop_menu(menu_index, pindex, clicked, other_input)
          end
          local result = ""
          if players[pindex].train_stop_menu.safety_wait_enabled == true then
-            result = "ENABLED proposed safety waiting, select here to disable it, Enabling it makes the train wait at this stop for 5 seconds regardless of the main wait condition, this change needs to also be applied."
+            result =
+               "ENABLED proposed safety waiting, select here to disable it, Enabling it makes the train wait at this stop for 5 seconds regardless of the main wait condition, this change needs to also be applied."
          else
-            result = "DISABLED proposed safety waiting, select here to enable it, Enabling it makes the train wait at this stop for 5 seconds regardless of the main wait condition, this change needs to also be applied."
+            result =
+               "DISABLED proposed safety waiting, select here to enable it, Enabling it makes the train wait at this stop for 5 seconds regardless of the main wait condition, this change needs to also be applied."
          end
-         printout(result,pindex)
+         printout(result, pindex)
       else
          players[pindex].train_stop_menu.safety_wait_enabled = not players[pindex].train_stop_menu.safety_wait_enabled
          if players[pindex].train_stop_menu.safety_wait_enabled == true then
-            result = "ENABLED proposed safety waiting, select here to disable it, Enabling it makes the train wait at this stop for 5 seconds regardless of the main wait condition, this change needs to also be applied."
+            result =
+               "ENABLED proposed safety waiting, select here to disable it, Enabling it makes the train wait at this stop for 5 seconds regardless of the main wait condition, this change needs to also be applied."
          else
-            result = "DISABLED proposed safety waiting, select here to enable it, Enabling it makes the train wait at this stop for 5 seconds regardless of the main wait condition, this change needs to also be applied."
+            result =
+               "DISABLED proposed safety waiting, select here to enable it, Enabling it makes the train wait at this stop for 5 seconds regardless of the main wait condition, this change needs to also be applied."
          end
-         printout(result,pindex)
+         printout(result, pindex)
       end
    elseif index == 6 then
       if not clicked then
-         printout("ADD A NEW ENTRY for this train stop by selecting here, with the proposed conditions applied, for a train parked by this train stop.",pindex)
+         printout(
+            "ADD A NEW ENTRY for this train stop by selecting here, with the proposed conditions applied, for a train parked by this train stop.",
+            pindex
+         )
       else
-         local result = mod.nearby_train_schedule_add_stop(train_stop, players[pindex].train_stop_menu.wait_condition, players[pindex].train_stop_menu.wait_time_seconds)
-         printout(result,pindex)
+         local result = mod.nearby_train_schedule_add_stop(
+            train_stop,
+            players[pindex].train_stop_menu.wait_condition,
+            players[pindex].train_stop_menu.wait_time_seconds
+         )
+         printout(result, pindex)
       end
    elseif index == 7 then
       if not clicked then
-         printout("UPDATE ALL ENTRIES for this train stop by selecting here, with the proposed conditions applied, for a train parked by this train stop.",pindex)
+         printout(
+            "UPDATE ALL ENTRIES for this train stop by selecting here, with the proposed conditions applied, for a train parked by this train stop.",
+            pindex
+         )
       else
-         local result = mod.nearby_train_schedule_update_stop(train_stop, players[pindex].train_stop_menu.wait_condition, players[pindex].train_stop_menu.wait_time_seconds)
-         printout(result,pindex)
+         local result = mod.nearby_train_schedule_update_stop(
+            train_stop,
+            players[pindex].train_stop_menu.wait_condition,
+            players[pindex].train_stop_menu.wait_time_seconds
+         )
+         printout(result, pindex)
       end
    elseif index == 8 then
       if not clicked then
-         printout("REMOVE ALL ENTRIES for this train stop by selecting here, for a train parked by this train stop.",pindex)
+         printout(
+            "REMOVE ALL ENTRIES for this train stop by selecting here, for a train parked by this train stop.",
+            pindex
+         )
       else
          local result = mod.nearby_train_schedule_remove_stop(train_stop)
-         printout(result,pindex)
+         printout(result, pindex)
       end
    end
 end
 
-
 function mod.train_stop_menu_open(pindex)
-   if players[pindex].vanilla_mode then
-      return 
-   end
+   if players[pindex].vanilla_mode then return end
    --Set the player menu tracker to this menu
    players[pindex].menu = "train_stop_menu"
    players[pindex].in_menu = true
    players[pindex].move_queue = {}
-   
+
    --Set the menu line counter to 0
    players[pindex].train_stop_menu.index = 0
-   
+
    --Play sound
-   game.get_player(pindex).play_sound{path = "Open-Inventory-Sound"}  
-   
-   --Load menu 
+   game.get_player(pindex).play_sound({ path = "Open-Inventory-Sound" })
+
+   --Load menu
    mod.run_train_stop_menu(players[pindex].train_stop_menu.index, pindex, false)
 end
-
 
 function mod.train_stop_menu_close(pindex, mute_in)
    local mute = mute_in
@@ -139,52 +179,46 @@ function mod.train_stop_menu_close(pindex, mute_in)
 
    --Set the menu line counter to 0
    players[pindex].train_stop_menu.index = 0
-   
+
    --Destroy GUI
    if game.get_player(pindex).gui.screen["train-stop-rename"] ~= nil then
       game.get_player(pindex).gui.screen["train-stop-rename"].destroy()
    end
-   
-   --play sound
-   if not mute then
-      game.get_player(pindex).play_sound{path="Close-Inventory-Sound"}
-   end
-end
 
+   --play sound
+   if not mute then game.get_player(pindex).play_sound({ path = "Close-Inventory-Sound" }) end
+end
 
 function mod.train_stop_menu_up(pindex)
    players[pindex].train_stop_menu.index = players[pindex].train_stop_menu.index - 1
    if players[pindex].train_stop_menu.index < 0 then
       players[pindex].train_stop_menu.index = 0
-      game.get_player(pindex).play_sound{path = "inventory-edge"}
+      game.get_player(pindex).play_sound({ path = "inventory-edge" })
    else
       --Play sound
-      game.get_player(pindex).play_sound{path = "Inventory-Move"}
+      game.get_player(pindex).play_sound({ path = "Inventory-Move" })
    end
-   --Load menu 
+   --Load menu
    mod.run_train_stop_menu(players[pindex].train_stop_menu.index, pindex, false)
 end
-
 
 function mod.train_stop_menu_down(pindex)
    players[pindex].train_stop_menu.index = players[pindex].train_stop_menu.index + 1
    if players[pindex].train_stop_menu.index > 8 then
       players[pindex].train_stop_menu.index = 8
-      game.get_player(pindex).play_sound{path = "inventory-edge"}
+      game.get_player(pindex).play_sound({ path = "inventory-edge" })
    else
       --Play sound
-      game.get_player(pindex).play_sound{path = "Inventory-Move"}
+      game.get_player(pindex).play_sound({ path = "Inventory-Move" })
    end
-   --Load menu 
+   --Load menu
    mod.run_train_stop_menu(players[pindex].train_stop_menu.index, pindex, false)
 end
 
---For the selected train stop, changes assigned wait time in seconds for the parked train. The increment is a positive or negative integer. 
-function mod.nearby_train_schedule_add_to_wait_time(increment,pindex)
+--For the selected train stop, changes assigned wait time in seconds for the parked train. The increment is a positive or negative integer.
+function mod.nearby_train_schedule_add_to_wait_time(increment, pindex)
    local seconds = players[pindex].train_stop_menu.wait_time_seconds
-   if seconds == nil then 
-      seconds = 300 
-   end
+   if seconds == nil then seconds = 300 end
    seconds = seconds + increment
    if seconds < 5 then
       seconds = 5
@@ -192,7 +226,7 @@ function mod.nearby_train_schedule_add_to_wait_time(increment,pindex)
       seconds = 10000
    end
    players[pindex].train_stop_menu.wait_time_seconds = seconds
-   printout(players[pindex].train_stop_menu.wait_time_seconds .. " seconds wait time set.",pindex)
+   printout(players[pindex].train_stop_menu.wait_time_seconds .. " seconds wait time set.", pindex)
 end
 
 --Returns an info string on what the parked train at this stop is scheduled to do at this stop.
@@ -203,7 +237,8 @@ function mod.nearby_train_schedule_read_this_stop(train_stop)
    --Locate the nearby train
    local train = train_stop.get_stopped_train()
    if train == nil or not train.valid then
-      local locos = train_stop.surface.find_entities_filtered{position = train_stop.position, radius = 5, name = "locomotive"}
+      local locos =
+         train_stop.surface.find_entities_filtered({ position = train_stop.position, radius = 5, name = "locomotive" })
       if locos[1] ~= nil and locos[1].valid then
          train = locos[1].train
       else
@@ -223,7 +258,7 @@ function mod.nearby_train_schedule_read_this_stop(train_stop)
    else
       local records = schedule.records
       result = "Reading parked train, "
-      for i,r in ipairs(records) do
+      for i, r in ipairs(records) do
          if r.station == train_stop.backer_name then
             found_any = true
             result = result .. ", at this stop it waits for "
@@ -243,7 +278,7 @@ function mod.nearby_train_schedule_read_this_stop(train_stop)
          end
       end
    end
-   
+
    if found_any == false then
       result = "Reading parked train: Error: The nearby train schedule does not contain this train stop,"
    end
@@ -256,7 +291,8 @@ function mod.nearby_train_schedule_add_stop(train_stop, wait_condition_type, wai
    --Locate the nearby train
    local train = train_stop.get_stopped_train()
    if train == nil or not train.valid then
-      local locos = train_stop.surface.find_entities_filtered{position = train_stop.position, radius = 5, name = "locomotive"}
+      local locos =
+         train_stop.surface.find_entities_filtered({ position = train_stop.position, radius = 5, name = "locomotive" })
       if locos[1] ~= nil and locos[1].valid then
          train = locos[1].train
       else
@@ -269,20 +305,24 @@ function mod.nearby_train_schedule_add_stop(train_stop, wait_condition_type, wai
       return result
    end
    --Create new record
-   local wait_condition_1 = {type = wait_condition_type , ticks = wait_time_seconds * 60 , compare_type = "and"}
-   local wait_condition_2 = {type = "time", ticks = 300, compare_type = "and"}
-   local new_record = {wait_conditions = {wait_condition_1}, station = train_stop.backer_name, temporary = false}
+   local wait_condition_1 = { type = wait_condition_type, ticks = wait_time_seconds * 60, compare_type = "and" }
+   local wait_condition_2 = { type = "time", ticks = 300, compare_type = "and" }
+   local new_record = { wait_conditions = { wait_condition_1 }, station = train_stop.backer_name, temporary = false }
    if players[pindex].train_stop_menu.safety_wait_enabled then
-      new_record = {wait_conditions = {wait_condition_1,wait_condition_2}, station = train_stop.backer_name, temporary = false}
+      new_record = {
+         wait_conditions = { wait_condition_1, wait_condition_2 },
+         station = train_stop.backer_name,
+         temporary = false,
+      }
    end
    --Copy and modify the schedule
    local schedule = train.schedule
    local records = nil
    if schedule == nil then
-      schedule = {current = 1, records = {new_record}}
+      schedule = { current = 1, records = { new_record } }
    else
       records = schedule.records
-      table.insert(records,#records+1, new_record)
+      table.insert(records, #records + 1, new_record)
    end
    --Apply the new schedule
    train.manual_mode = true
@@ -298,7 +338,8 @@ function mod.nearby_train_schedule_update_stop(train_stop, wait_condition_type, 
    --Locate the nearby train
    local train = train_stop.get_stopped_train()
    if train == nil or not train.valid then
-      local locos = train_stop.surface.find_entities_filtered{position = train_stop.position, radius = 5, name = "locomotive"}
+      local locos =
+         train_stop.surface.find_entities_filtered({ position = train_stop.position, radius = 5, name = "locomotive" })
       if locos[1] ~= nil and locos[1].valid then
          train = locos[1].train
       else
@@ -311,11 +352,15 @@ function mod.nearby_train_schedule_update_stop(train_stop, wait_condition_type, 
       return result
    end
    --Create new record
-   local wait_condition_1 = {type = wait_condition_type , ticks = wait_time_seconds * 60 , compare_type = "and"}
-   local wait_condition_2 = {type = "time", ticks = 300, compare_type = "and"}
-   local new_record = {wait_conditions = {wait_condition_1}, station = train_stop.backer_name, temporary = false}
+   local wait_condition_1 = { type = wait_condition_type, ticks = wait_time_seconds * 60, compare_type = "and" }
+   local wait_condition_2 = { type = "time", ticks = 300, compare_type = "and" }
+   local new_record = { wait_conditions = { wait_condition_1 }, station = train_stop.backer_name, temporary = false }
    if players[pindex].train_stop_menu.safety_wait_enabled then
-      new_record = {wait_conditions = {wait_condition_1,wait_condition_2}, station = train_stop.backer_name, temporary = false}
+      new_record = {
+         wait_conditions = { wait_condition_1, wait_condition_2 },
+         station = train_stop.backer_name,
+         temporary = false,
+      }
    end
    --Copy and modify the schedule
    local schedule = train.schedule
@@ -327,13 +372,13 @@ function mod.nearby_train_schedule_update_stop(train_stop, wait_condition_type, 
    else
       records = schedule.records
       local new_records = {}
-      for i,r in ipairs(records) do
+      for i, r in ipairs(records) do
          if r.station == train_stop.backer_name then
             updated_any = true
-            table.insert(new_records,new_record)
+            table.insert(new_records, new_record)
             --game.get_player(pindex).print(" hit " .. i)
          else
-            table.insert(new_records,r)
+            table.insert(new_records, r)
             --game.get_player(pindex).print(" miss " .. i)
          end
       end
@@ -357,7 +402,8 @@ function mod.nearby_train_schedule_remove_stop(train_stop)
    --Locate the nearby train
    local train = train_stop.get_stopped_train()
    if train == nil or not train.valid then
-      local locos = train_stop.surface.find_entities_filtered{position = train_stop.position, radius = 5, name = "locomotive"}
+      local locos =
+         train_stop.surface.find_entities_filtered({ position = train_stop.position, radius = 5, name = "locomotive" })
       if locos[1] ~= nil and locos[1].valid then
          train = locos[1].train
       else
@@ -379,13 +425,13 @@ function mod.nearby_train_schedule_remove_stop(train_stop)
    else
       records = schedule.records
       local new_records = {}
-      for i,r in ipairs(records) do
+      for i, r in ipairs(records) do
          if r.station == train_stop.backer_name then
             records[i] = nil
             updated_any = true
             --game.get_player(pindex).print(" hit ".. i)
          else
-            table.insert(new_records,r)
+            table.insert(new_records, r)
             --game.get_player(pindex).print(" miss ".. i)
          end
       end

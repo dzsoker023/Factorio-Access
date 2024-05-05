@@ -147,7 +147,7 @@ local function compile(path)
       set = function(object, val)
          local ret, last = follow_path(object, path, true)
          ret[last] = val
-      end
+      end,
    }
 
    return setmetatable(funcs, { __newindex = no_setting_meta })
@@ -167,7 +167,7 @@ local function capture_path_and_build(path)
          -- cloned simply by being created, but an extra clone doesn't hurt on
          -- the slow, infrequent path.
          return compile(copy(path))
-      end
+      end,
    }
 
    -- The empty table has no keys and so will always call our metatable methods.
@@ -188,11 +188,13 @@ local test_value = {
    f1 = "f1",
    f2 = {
       f1 = "f2.f1",
-   }
+   },
 }
 
 -- No root path compilation.
-ok = pcall(function() F() end)
+ok = pcall(function()
+   F()
+end)
 assert(ok == false)
 
 -- 1 field deep works.
@@ -211,7 +213,7 @@ assert(test_value.f2.f1 == "new2")
 
 -- We can work over something mixed between strings and numbers.
 local mixed = {
-   f = { 1, 2, 3 }
+   f = { 1, 2, 3 },
 }
 local mixed_ref = F.f[2]()
 assert(mixed_ref.get(mixed) == 2)
