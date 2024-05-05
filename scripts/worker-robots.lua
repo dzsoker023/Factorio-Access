@@ -731,7 +731,7 @@ function mod.logistics_info_key_handler(pindex)
       --Personal logistics
       local stack = game.get_player(pindex).cursor_stack
       local stack_inv = game.get_player(pindex).get_main_inventory()[players[pindex].inventory.index]
-      local stack_tra = game.get_player(pindex).get_inventory(defines.inventory.character_trash)[players[pindex].inventory.index]
+      local stack_tra = nil
       --Check item in hand or item in inventory
       if stack and stack.valid_for_read and stack.valid then
          --Item in hand
@@ -740,6 +740,7 @@ function mod.logistics_info_key_handler(pindex)
          --Item in inv
          mod.player_logistic_request_read(stack_inv,pindex,true)
       elseif players[pindex].menu == "player_trash" and stack_tra and stack_tra.valid_for_read and stack_tra.valid then
+         stack_tra = game.get_player(pindex).get_inventory(defines.inventory.character_trash)[players[pindex].inventory.index]
          mod.player_logistic_request_read(stack_tra,pindex,true)
       else
          --Logistic chest in front
