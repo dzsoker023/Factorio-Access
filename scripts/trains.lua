@@ -683,7 +683,7 @@ function mod.menu_right(pindex)
    mod.run_train_menu(players[pindex].train_menu.index, pindex, false)
 end
 
---Returns most common items in a cargo wagon. 
+--Returns most common items in a cargo wagon.
 function mod.cargo_wagon_top_contents_info(wagon)
    local result = ""
    local itemset = wagon.get_inventory(defines.inventory.cargo_wagon).get_contents()

@@ -809,7 +809,7 @@ function mod.blueprint_book_set_name(pindex, new_name)
    local p = game.get_player(pindex)
    local bp_data = players[pindex].blueprint_book_menu.book_data
    bp_data.blueprint_book.label = new_name
-   mod.set_stack_bp_from_data(p.cursor_stack,bp_data)
+   mod.set_stack_bp_from_data(p.cursor_stack, bp_data)
 end
 
 function mod.blueprint_book_get_item_count(pindex)
@@ -852,12 +852,12 @@ function mod.blueprint_book_copy_item_to_hand(pindex, i)
 end
 
 --WIP: Remove a blueprint from a selected blueprint book, based on the index
-function mod.blueprint_book_take_out_item(pindex,index)
+function mod.blueprint_book_take_out_item(pindex, index)
    --laterdo ***
 end
 
 --WIP: Add a selected blueprint to a selected blueprint book
-function mod.blueprint_book_add_item(pindex,bp)
+function mod.blueprint_book_add_item(pindex, bp)
    --laterdo ***
 end
 
@@ -914,7 +914,11 @@ function mod.run_blueprint_book_menu(pindex, menu_index, list_mode, left_clicked
             local label = item.label
             if label == nil then label = "" end
             local book_data = players[pindex].blueprint_book_menu.book_data
-            name = "Blueprint book " .. label .. ", with " .. mod.blueprint_book_data_get_item_count(book_data) .. " items "
+            name = "Blueprint book "
+               .. label
+               .. ", with "
+               .. mod.blueprint_book_data_get_item_count(book_data)
+               .. " items "
          else
             name = "unknown item " .. item.item
          end

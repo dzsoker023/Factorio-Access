@@ -1097,7 +1097,7 @@ function mod.player_logistic_requests_summary_info(pindex)
    local current_slot = nil
    local correct_slot_id = nil
    local result = ""
-  
+
    --1. Check if logistics have been researched
    for i, tech in pairs(game.get_player(pindex).force.technologies) do
       if tech.name == "logistic-robotics" and not tech.researched == true then
@@ -1105,7 +1105,7 @@ function mod.player_logistic_requests_summary_info(pindex)
          return
       end
    end
-  
+
    --2. Check if inside any logistic network or not (simpler than logistics network info)
    local network = p.surface.find_logistic_network_by_position(p.position, p.force)
    if network == nil or not network.valid then
@@ -1119,12 +1119,12 @@ function mod.player_logistic_requests_summary_info(pindex)
    else
       --Definitely within range
       local nearest, min_dist = fa_utils.find_nearest_roboport(p.surface, p.position, 30)
-      result = result .. "In network " .. nearest.backer_name .. ", " 
+      result = result .. "In network " .. nearest.backer_name .. ", "
    end
-   
+
    --3. Check if personal logistics are enabled
    if not p.character_personal_logistic_requests_enabled then result = result .. "Requests paused, " end
-   
+
    --4. Count logistics requests
    result = result .. count_active_personal_logistic_slots(pindex) .. " personal logistic requests set, "
    return result
@@ -1347,7 +1347,7 @@ function mod.spidertron_logistic_requests_summary_info(spidertron, pindex)
 
    --3. Check if spidertron logistics are enabled
    if not spidertron.vehicle_logistic_requests_enabled then result = result .. "Requests paused, " end
-   
+
    --4. Count logistics requests
    result = result .. count_active_spidertron_logistic_slots(pindex) .. " spidertron logistic requests set, "
    return result

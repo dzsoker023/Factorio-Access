@@ -168,28 +168,28 @@ function mod.run_preferences_menu(pindex, menu_index, clicked, pg_up, pg_down)
       if not clicked then
          printout("Mute enemy proximity alerts", pindex)
       else
-         --*** 
+         --***
       end
    elseif index == 2 then
       --...
       if not clicked then
          printout("Player inventory wrap around", pindex)
       else
-         --*** 
+         --***
       end
    elseif index == 3 then
       --...
       if not clicked then
          printout("Building inventory wrap around", pindex)
       else
-         --*** 
+         --***
       end
    elseif index == 4 then
       --...
       if not clicked then
          printout("Building row length", pindex)
       else
-         --*** 
+         --***
       end
    end
 end
@@ -217,21 +217,21 @@ function mod.run_advanced_settings_menu(pindex, menu_index, clicked, pg_up, pg_d
       if not clicked then
          printout("Triple player reach", pindex)
       else
-         --*** 
+         --***
       end
    elseif index == 2 then
       --...
       if not clicked then
          printout("Peaceful mode", pindex)
       else
-         --*** 
+         --***
       end
    elseif index == 3 then
       --...
       if not clicked then
          printout("  ", pindex)
       else
-         --*** 
+         --***
       end
    end
 end

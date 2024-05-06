@@ -243,9 +243,7 @@ end
 --laterdo review
 function mod.run_atomic_bomb_checks(pindex)
    local p = game.get_player(pindex)
-   if p.character == nil then
-      return
-   end
+   if p.character == nil then return end
    --local main_inv = p.get_inventory(defines.inventory.character_main)
    --local ammos_count = #ammo_inv - ammo_inv.count_empty_stacks()
    local ammo_inv = p.get_inventory(defines.inventory.character_ammo)
@@ -254,14 +252,10 @@ function mod.run_atomic_bomb_checks(pindex)
    local abort_missle = false
    local abort_message = ""
 
-   if selected_ammo == nil or selected_ammo.valid_for_read == false then
-      return
-   end
+   if selected_ammo == nil or selected_ammo.valid_for_read == false then return end
 
    --Stop checking if atomic bombs are not equipped
-   if selected_ammo.name ~= "atomic-bomb" then
-      return
-   end
+   if selected_ammo.name ~= "atomic-bomb" then return end
 
    --If the target position is shown as the center of the screen where the player stands, it means the cursor is not on screen
    if target_pos == nil or util.distance(p.position, target_pos) < 1.5 then
@@ -283,7 +277,7 @@ function mod.run_atomic_bomb_checks(pindex)
       abort_missle = true
       abort_message = "Aiming alert, move cursor to sync mouse."
    end
-   if (aim_dist_1 < 35 or aim_dist_2 < 35) then
+   if aim_dist_1 < 35 or aim_dist_2 < 35 then
       abort_missle = true
       abort_message = "Range alert, target too close, hold to fire anyway."
    end
@@ -295,7 +289,7 @@ function mod.run_atomic_bomb_checks(pindex)
       fa_equipment.delete_equipped_atomic_bombs(pindex)
 
       --Warn the player
-      p.play_sound{path = "utility/cannot_build"}
+      p.play_sound({ path = "utility/cannot_build" })
       printout(abort_message, pindex)
 
       --Schedule to restore the items on a later tick

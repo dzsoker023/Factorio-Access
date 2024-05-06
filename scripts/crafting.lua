@@ -183,7 +183,7 @@ function mod.recipe_raw_ingredients_info(recipe, pindex)
    return result
 end
 
---Explores a recipe and its sub-recipes and returns a table that contains all ingredients that do not have their own sub-recipes. 
+--Explores a recipe and its sub-recipes and returns a table that contains all ingredients that do not have their own sub-recipes.
 --The same ingredient may appear multiple times in the table, so its entries need to be merged.
 --Bug: Due to ratios of ingredients to products across multiple recipes, the counts are not being calculated correctly, so they are ignored.
 function mod.get_raw_ingredients_table(recipe, pindex, count_in)

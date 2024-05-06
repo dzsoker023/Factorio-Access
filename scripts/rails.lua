@@ -561,7 +561,7 @@ function mod.end_ghost_rail_planning(pindex)
    end
    --No errors, but rail planner may still fail at invalid placements. Clear the cursor anyway
    p.clear_cursor()
-   --Check whether there is a ghost rail at the cursor location (from before processing this action) 
+   --Check whether there is a ghost rail at the cursor location (from before processing this action)
    --...
    --Schedule to check whether successful (which can be verified by there being a rail ghost near the cursor 2 ticks later)
    schedule(2, "call_to_check_ghost_rails", pindex)

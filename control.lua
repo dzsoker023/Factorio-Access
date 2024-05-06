@@ -1087,7 +1087,7 @@ function read_item_selector_slot(pindex, start_phrase)
    printout(start_phrase .. players[pindex].item_cache[players[pindex].item_selector.index].name, pindex)
 end
 
---Ent info: Gives the distance and direction of a fluidbox connection target? 
+--Ent info: Gives the distance and direction of a fluidbox connection target?
 --Todo: update to clarify and include localization
 function get_adjacent_source(box, pos, dir)
    local result = { position = pos, direction = "" }
@@ -8641,9 +8641,7 @@ end)
 --Runs before shooting a weapon to check for selected atomic bombs and the target distance
 script.on_event("shoot-weapon-fa", function(event)
    local pindex = event.player_index
-   if not check_for_player(pindex) then
-      return
-   end
+   if not check_for_player(pindex) then return end
    fa_combat.run_atomic_bomb_checks(pindex)
 end)
 
