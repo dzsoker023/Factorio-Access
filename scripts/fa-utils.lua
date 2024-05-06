@@ -249,13 +249,13 @@ function mod.get_heading_value(ent)
    return heading
 end
 
---Returns the length and width of the entity version of an item. Todo: review and cleanup direction defines.
+--Returns the length and width of the entity version of an item.
 function mod.get_tile_dimensions(item, dir)
    if item.place_result ~= nil then
       local dimensions = item.place_result.selection_box
       x = math.ceil(dimensions.right_bottom.x - dimensions.left_top.x)
       y = math.ceil(dimensions.right_bottom.y - dimensions.left_top.y)
-      if (dir / 2) % 2 == 0 then
+      if dir == dirs.north or dir == dirs.south then
          return { x = x, y = y }
       else
          return { x = y, y = x }
@@ -477,7 +477,7 @@ function mod.scale_area(area, factor)
    return result
 end
 
---todo: use defines directions here
+--Checks whether a given position is at the edge of an area, in the selected direction
 function mod.area_edge(area, dir, pos, name)
    local adjusted_area = table.deepcopy(area)
    if name == "forest" then
@@ -487,25 +487,25 @@ function mod.area_edge(area, dir, pos, name)
       adjusted_area.right_bottom.x = adjusted_area.right_bottom.x / chunk_size
       adjusted_area.right_bottom.y = adjusted_area.right_bottom.y / chunk_size
    end
-   if dir == 0 then
+   if dir == dirs.north then
       if adjusted_area.left_top.y == math.floor(pos.y) then
          return true
       else
          return false
       end
-   elseif dir == 2 then
+   elseif dir == dirs.east then
       if adjusted_area.right_bottom.x == math.ceil(0.001 + pos.x) then
          return true
       else
          return false
       end
-   elseif dir == 4 then
+   elseif dir == dirs.south then
       if adjusted_area.right_bottom.y == math.ceil(0.001 + pos.y) then
          return true
       else
          return false
       end
-   elseif dir == 6 then
+   elseif dir == dirs.west then
       if adjusted_area.left_top.x == math.floor(pos.x) then
          return true
       else

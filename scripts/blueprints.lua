@@ -419,7 +419,7 @@ end
    10. Export this blueprint as a text string
    11. Import a text string to overwrite this blueprint
    12. Reselect the area for this blueprint 
-   13. Use the last selected area to reselect this blueprint --todo add***
+   13. Use the last selected area to reselect this blueprint --todo will add later***
 
    This menu opens when you press RIGHT BRACKET on a blueprint in hand 
 ]]
@@ -804,12 +804,12 @@ function mod.blueprint_book_get_name(pindex)
    return label
 end
 
+--WIP
 function mod.blueprint_book_set_name(pindex, new_name)
+   local p = game.get_player(pindex)
    local bp_data = players[pindex].blueprint_book_menu.book_data
    bp_data.blueprint_book.label = new_name
-   -- TODO: stack is a global but too generically named to find.  If it's not
-   -- this is nil and that's bad.
-   mod.set_stack_bp_from_data(stack, bp_data)
+   mod.set_stack_bp_from_data(p.cursor_stack,bp_data)
 end
 
 function mod.blueprint_book_get_item_count(pindex)
@@ -851,14 +851,14 @@ function mod.blueprint_book_copy_item_to_hand(pindex, i)
    printout("Copied blueprint to hand", pindex)
 end
 
---todo ***
-function mod.blueprint_book_take_out_item(pindex, index)
-   --todo ***
+--WIP: Remove a blueprint from a selected blueprint book, based on the index
+function mod.blueprint_book_take_out_item(pindex,index)
+   --laterdo ***
 end
 
---todo ***
-function mod.blueprint_book_add_item(pindex, bp)
-   --todo ***
+--WIP: Add a selected blueprint to a selected blueprint book
+function mod.blueprint_book_add_item(pindex,bp)
+   --laterdo ***
 end
 
 --[[ Blueprint book menu options summary
@@ -913,10 +913,8 @@ function mod.run_blueprint_book_menu(pindex, menu_index, list_mode, left_clicked
          elseif item.item == "blueprint-book" or item.item == "blueprint_book" or item.item == "book" then
             local label = item.label
             if label == nil then label = "" end
-            -- TODO: nil in the following line used to be an undefined global
-            -- book_data.  Someone needs to determine what that's supposed to
-            -- be.
-            name = "Blueprint book " .. label .. ", with " .. mod.blueprint_book_data_get_item_count(nil) .. " items "
+            local book_data = players[pindex].blueprint_book_menu.book_data
+            name = "Blueprint book " .. label .. ", with " .. mod.blueprint_book_data_get_item_count(book_data) .. " items "
          else
             name = "unknown item " .. item.item
          end
