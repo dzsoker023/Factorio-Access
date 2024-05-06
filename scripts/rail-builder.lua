@@ -1877,8 +1877,8 @@ function mod.build_fork_at_end_rail(anchor_rail, pindex, include_forward, includ
    local is_end_rail
    local anchor_dir = anchor_rail.direction
    include_forward = include_forward or false
-   include_left = include_left or true
-   include_right = include_right or true
+   include_left = include_left or false
+   include_right = include_right or false
 
    --1. Firstly, check if the player has enough rails to place this (5 units)
    if not (stack.valid and stack.valid_for_read and stack.name == "rail" and stack.count >= 5) then
@@ -2998,9 +2998,9 @@ function mod.build_fork_at_end_rail(anchor_rail, pindex, include_forward, includ
    game.get_player(pindex).play_sound({ path = "entity-build/straight-rail" })
    game.get_player(pindex).play_sound({ path = "entity-build/curved-rail" })
    local result = "Rail fork built with exits at " .. build_comment
-   if include_left then result = "left, " .. build_comment end
-   if include_right then result = "right, " .. build_comment end
-   if include_forward then result = "forward, " .. build_comment end
+   if include_left then result = result .. "left, " .. build_comment end
+   if include_right then result = result .. "right, " .. build_comment end
+   if include_forward then result = result .. "forward, " .. build_comment end
    result = result .. build_comment
    printout(result, pindex)
    return
@@ -3040,6 +3040,7 @@ function mod.build_rail_bypass_junction(anchor_rail, pindex)
       --Check if the inventory has enough
       if players[pindex].inventory.lua_inventory.get_item_count("rail-chain-signal") < 4 then
          game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
+         game.get_player(pindex).clear_cursor()
          printout("You need at least 4 rail chain signals in your inventory to build this.", pindex)
          return
       else

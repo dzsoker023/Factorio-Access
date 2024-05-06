@@ -5345,6 +5345,7 @@ script.on_event("mine-area", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu then return end
+   local p = game.get_player(pindex)
    local ent = get_selected_ent(pindex)
    local cleared_count = 0
    local cleared_total = 0
@@ -5389,11 +5390,8 @@ script.on_event("mine-area", function(event)
             name = { "straight-rail", "curved-rail", "rail-signal", "rail-chain-signal", "train-stop" },
          })
          for i, rail_ent in ipairs(rail_ents) do
-            if rail_ent.name == "straight-rail" or rail_ent.name == "curved-rail" then
-               fa_rails.mine_signals(rail_ent, pindex)
-            end
-            game.get_player(pindex).play_sound({ path = "entity-mined/straight-rail" })
-            game.get_player(pindex).mine_entity(rail_ent, true)
+            p.play_sound({ path = "entity-mined/straight-rail" })
+            p.mine_entity(rail_ent, true)
             cleared_count = cleared_count + 1
          end
          rendering.draw_circle({
