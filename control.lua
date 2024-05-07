@@ -3384,9 +3384,9 @@ function move(direction, pindex)
          else
             local tile = game.get_player(pindex).surface.get_tile(new_pos.x, new_pos.y)
             local sound_path = "tile-walking/" .. tile.name
-            if game.is_valid_sound_path(sound_path) then
+            if game.is_valid_sound_path(sound_path) and players[pindex].in_menu == false then
                game.get_player(pindex).play_sound({ path = "tile-walking/" .. tile.name, volume_modifier = 1 })
-            else
+            elseif players[pindex].in_menu == false then
                game.get_player(pindex).play_sound({ path = "player-walk", volume_modifier = 1 })
             end
          end
@@ -7669,7 +7669,7 @@ end)
 function fix_walk(pindex)
    if not check_for_player(pindex) then return end
    if game.get_player(pindex).character == nil or game.get_player(pindex).character.valid == false then return end
-   if players[pindex].walk == 0 then
+   if players[pindex].walk == 0 and players[pindex].kruise_kontrolling ~= true then
       game.get_player(pindex).character_running_speed_modifier = -1 -- 100% - 100% = 0%
    else --walk > 0
       game.get_player(pindex).character_running_speed_modifier = 0 -- 100% + 0 = 100%
@@ -9826,12 +9826,14 @@ script.on_event("klient-alt-move-to", function(event)
 
    if players[pindex].remote_view == true then
       players[pindex].kruise_kontrolling = true
+      game.get_player(pindex).character_running_speed_modifier = 0
       local kk_pos = players[pindex].cursor_pos
       toggle_remote_view(pindex, false, true)
       close_menu_resets(pindex)
       printout("Moving to " .. math.floor(kk_pos.x) .. ", " .. math.floor(kk_pos.y), pindex)
    else
       players[pindex].kruise_kontrolling = false
+      fix_walk(pindex)
       toggle_remote_view(pindex, true)
       sync_remote_view(pindex)
       printout("Opened in remote view, press again to confirm", pindex)
@@ -9843,5 +9845,6 @@ script.on_event("klient-cancel-enter", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].kruise_kontrolling == true then printout("Cancelled action.", pindex) end
    players[pindex].kruise_kontrolling = false
+   fix_walk(pindex)
    toggle_remote_view(pindex, false, true)
 end)

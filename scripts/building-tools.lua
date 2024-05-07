@@ -467,7 +467,7 @@ function mod.rotate_building_info_read(event, forward)
          else
             printout(stack.name .. " never needs rotating.", pindex)
          end
-      elseif stack.valid_for_read and stack.is_blueprint and stack.is_blueprint_setup() then
+      elseif stack ~= nil and stack.valid_for_read and stack.is_blueprint and stack.is_blueprint_setup() then
          --Rotate blueprints: They are tracked separately, and we reset them to north when cursor stack changes
          game.get_player(pindex).play_sound({ path = "Rotate-Hand-Sound" })
          players[pindex].blueprint_hand_direction = (players[pindex].blueprint_hand_direction + dirs.east * mult)
