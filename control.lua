@@ -3275,7 +3275,8 @@ function on_tick(event)
          --Fix running speed bug (toggle walk also fixes it)
          fix_walk(pindex)
       end
-   elseif event.tick % 300 == 14 then
+   elseif event.tick % 500 == 14 then
+      --Run regular reminders
       for pindex, player in pairs(players) do
          --Tutorial reminder every 10 seconds until you open it
          if players[pindex].started ~= true then
@@ -3284,6 +3285,9 @@ function on_tick(event)
             printout("Press 'H' to open the tutorial", pindex)
          elseif game.get_player(pindex).ticks_to_respawn ~= nil then
             printout(math.floor(game.get_player(pindex).ticks_to_respawn / 60) .. " seconds until respawn", pindex)
+         elseif players[pindex].kruise_kontrolling == true then
+            local result = kk_status_prediction(pindex)
+            printout(result,pindex)
          end
       end
    end
@@ -3505,7 +3509,7 @@ function move_key(direction, event, force_single_tile)
    end
 
    --Stop kruise kontrol related permissions
-   players[pindex].kruise_kontrolling = false
+   --players[pindex].kruise_kontrolling = false
 end
 
 --Moves the cursor, and conducts an area scan for larger cursors. If the player is in a slow moving vehicle, it is stopped.
@@ -7674,6 +7678,7 @@ function fix_walk(pindex)
    else --walk > 0
       game.get_player(pindex).character_running_speed_modifier = 0 -- 100% + 0 = 100%
    end
+   players[pindex].position = game.get_player(pindex).position
 end
 
 --Toggle building while walking
@@ -9820,17 +9825,25 @@ function read_pollution_level_at_position(pos, pindex)
    printout(result, pindex)
 end
 
+--Enables remote view if not already, and then enables kruise kontrol
 script.on_event("klient-alt-move-to", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-
+   local p = game.get_player(pindex)
    if players[pindex].remote_view == true then
+      --Allow KK
       players[pindex].kruise_kontrolling = true
-      game.get_player(pindex).character_running_speed_modifier = 0
+      p.character_running_speed_modifier = 0
       local kk_pos = players[pindex].cursor_pos
       toggle_remote_view(pindex, false, true)
       close_menu_resets(pindex)
       printout("Moving to " .. math.floor(kk_pos.x) .. ", " .. math.floor(kk_pos.y), pindex)
+      --Save what the player targetted
+      players[pindex].kk_pos = kk_pos
+      local kk_targets = p.surface.find_entities_filtered{position = kk_pos, name = "highlight-box", invert = true}
+      if kk_targets and #kk_targets > 0 then
+         players[pindex].kk_target = kk_targets[1]
+      end
    else
       players[pindex].kruise_kontrolling = false
       fix_walk(pindex)
@@ -9843,8 +9856,39 @@ end)
 script.on_event("klient-cancel-enter", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if players[pindex].kruise_kontrolling == true then printout("Cancelled action.", pindex) end
-   players[pindex].kruise_kontrolling = false
-   fix_walk(pindex)
-   toggle_remote_view(pindex, false, true)
+   if players[pindex].kruise_kontrolling == true then 
+      players[pindex].kruise_kontrolling = false
+      fix_walk(pindex)
+      toggle_remote_view(pindex, false, true)
+      printout("Cancelled kruise kontrol action.", pindex)
+   end
 end)
+
+--Predicts what Kruise Kontrol is doing based on the current target
+function kk_status_prediction(pindex)
+   local p = game.get_player(pindex)
+   local result = "Kruise Kontrol "
+   local target = players[pindex].kk_target
+   local target_pos = players[pindex].kk_pos
+   if target == nil or target.valid == false then
+      result = result .. "Walking"
+   elseif target.type == "entity-ghost" then
+      result = result .. "Building ghosts"
+   elseif target.type == "resource" then
+      result = result .. "Mining"
+   elseif target.type == "unit" or target.type == "unit-spawner" or target.type == "turret" then
+      result = result .. "Fighting"
+   elseif target.to_be_deconstructed() == true then
+      result = result .. "Deconstructing marked buildings "
+   else
+      result = result .. "Walking"
+   end
+   local target_dist = math.floor(util.distance(p.position,target_pos))
+   local dist_info = result .. ", " .. target_dist .. " tiles to target"
+   if target_dist < 3 then
+      dist_info = ""
+   end
+   result = result .. dist_info
+   result = result .. ", press ENTER to exit Kruise Kontrol"
+   return result
+end
