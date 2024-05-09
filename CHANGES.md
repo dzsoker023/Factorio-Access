@@ -19,6 +19,10 @@
 - The rail builder now supports adding left forks and right forks, giving a total of 4 possible forks.
 
 ## Changes
+- When reading the relative direction of the cursor or a scan list entry, if it is fully aligned in that cardinal or diagonal direction, the game will now also read out "aligned".
+
+- Checking for the nearest damaged entity will now also jump the cursor to the entity, making it easier to target it.
+
 - Items in hand can now have their logistic requests edited while the trash menu is open.
   * You can now also check the request info for an item in a slot of the trash inventory, but you need to take it in hand to edit its requests. This is good because editing the requests for an item might have it automatically flushed out of the trash inventory without warning.
 
@@ -41,7 +45,7 @@
 
 - Fixed footstep sounds being wrongly played while navigating through menus.
 
-- Fixed a bug that was placing the mouse pointer incorrectly while in remote view and interfering with Kruise Kontrol.
+- Fixed a bug that was placing the mouse pointer incorrectly while in Remote View, and interfering with Kruise Kontrol.
 
 - Fixed a crash that occurs while rotating buildings.
 
