@@ -50,7 +50,7 @@ function mod.dir_dist(pos1, pos2)
    local dy = y2 - y1
    if dx == 0 and dy == 0 then return { 8, 0 } end
    --Consistent way to calculate dir:
-   local dir = mod.get_direction_biased(pos1,pos2)
+   local dir = mod.get_direction_biased(pos1, pos2) --***todo check whether pos1 is "this" or "that"
    --Alternate way to calculate dir:
    --local dir = math.atan2(dy, dx) --scaled -pi to pi 0 being east
    --dir = dir + math.sin(4 * dir) / 4 --bias towards the diagonals
@@ -661,9 +661,7 @@ end
 function mod.dir_dist_locale(pos1, pos2)
    local dir_dist = mod.dir_dist(pos1, pos2)
    local aligned_note = ""
-   if mod.is_direction_aligned(pos1,pos2) then
-      aligned_note = " aligned"
-   end
+   if mod.is_direction_aligned(pos1, pos2) then aligned_note = " aligned" end
    return { "access.dir-dist", mod.direction_lookup(dir_dist[1]) .. aligned_note, math.floor(dir_dist[2] + 0.5) }
 end
 

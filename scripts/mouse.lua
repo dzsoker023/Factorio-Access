@@ -10,9 +10,9 @@ function mod.move_mouse_pointer(position, pindex)
    local player = players[pindex]
    local pos = position
    local screen = game.players[pindex].display_resolution
-   local screen_center = fa_utils.mult_position({ x = screen.width, y = screen.height },0.5)
+   local screen_center = fa_utils.mult_position({ x = screen.width, y = screen.height }, 0.5)
    local pixels = screen_center
-   local offset = {x = 0, y = 0}
+   local offset = { x = 0, y = 0 }
    if players[pindex].vanilla_mode or game.get_player(pindex).game_view_settings.update_entity_selection == true then
       return
    elseif mod.cursor_position_is_on_screen_with_player_centered(pindex) == false then
@@ -20,8 +20,8 @@ function mod.move_mouse_pointer(position, pindex)
       pos = players[pindex].position
       offset = fa_utils.mult_position(fa_utils.sub_position(pos, player.position), 32 * player.zoom)
    elseif player.remote_view == true then
-      --If in remote view, 
-      offset = {x = 0, y = 0}
+      --If in remote view,
+      offset = { x = 0, y = 0 }
    else
       offset = fa_utils.mult_position(fa_utils.sub_position(pos, player.position), 32 * player.zoom)
    end

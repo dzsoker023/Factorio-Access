@@ -3287,7 +3287,7 @@ function on_tick(event)
             printout(math.floor(game.get_player(pindex).ticks_to_respawn / 60) .. " seconds until respawn", pindex)
          elseif players[pindex].kruise_kontrolling == true then
             local result = kk_status_prediction(pindex)
-            printout(result,pindex)
+            printout(result, pindex)
          end
       end
    end
@@ -9840,10 +9840,8 @@ script.on_event("klient-alt-move-to", function(event)
       printout("Moving to " .. math.floor(kk_pos.x) .. ", " .. math.floor(kk_pos.y), pindex)
       --Save what the player targetted
       players[pindex].kk_pos = kk_pos
-      local kk_targets = p.surface.find_entities_filtered{position = kk_pos, name = "highlight-box", invert = true}
-      if kk_targets and #kk_targets > 0 then
-         players[pindex].kk_target = kk_targets[1]
-      end
+      local kk_targets = p.surface.find_entities_filtered({ position = kk_pos, name = "highlight-box", invert = true })
+      if kk_targets and #kk_targets > 0 then players[pindex].kk_target = kk_targets[1] end
    else
       players[pindex].kruise_kontrolling = false
       fix_walk(pindex)
@@ -9856,7 +9854,7 @@ end)
 script.on_event("klient-cancel-enter", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if players[pindex].kruise_kontrolling == true then 
+   if players[pindex].kruise_kontrolling == true then
       players[pindex].kruise_kontrolling = false
       fix_walk(pindex)
       toggle_remote_view(pindex, false, true)
@@ -9883,11 +9881,9 @@ function kk_status_prediction(pindex)
    else
       result = result .. "Walking"
    end
-   local target_dist = math.floor(util.distance(p.position,target_pos))
+   local target_dist = math.floor(util.distance(p.position, target_pos))
    local dist_info = result .. ", " .. target_dist .. " tiles to target"
-   if target_dist < 3 then
-      dist_info = ""
-   end
+   if target_dist < 3 then dist_info = "" end
    result = result .. dist_info
    result = result .. ", press ENTER to exit Kruise Kontrol"
    return result
