@@ -9783,6 +9783,11 @@ function read_nearest_damaged_ent_info(pos, pindex)
       printout("No damaged structures within 1000 tiles.", pindex)
       return
    else
+      --Move cursor to closest
+      players[pindex].cursor_pos = closest.position
+      fa_graphics.draw_cursor_highlight(pindex, closest, nil, nil)
+
+      --Report the result
       min_dist = math.floor(min_dist)
       local dir = fa_utils.get_direction_biased(closest.position, pos)
       local result = fa_localising.get(closest, pindex)
@@ -9790,6 +9795,7 @@ function read_nearest_damaged_ent_info(pos, pindex)
          .. min_dist
          .. " "
          .. fa_utils.direction_lookup(dir)
+         .. ", cursor moved. "
       printout(result, pindex)
    end
 end
