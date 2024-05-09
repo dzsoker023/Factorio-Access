@@ -1,13 +1,20 @@
-# Version 0.11.1 BETA - EXPERIMENTAL
+# Version 0.11.1 BETA
+Release requirements:
+1) Test this whole changelog for 0.11.0 and 0.11.1, and close the GitHub issues.
+2) Do a full tutorial run and incorporate the simpler suggestions!
+3) Prepare for a stable release: the usual final tests. Also Dtylua checks.
+4) Add the JKM exception, both changelogs written, merge to next-update and then to main.
 
 ## Summary
+- This update features the second phase of the refactoring of the codebase into modules, making it easier to follow and maintain. It is also accompanied by some small additions, changes, and bugfixes. Improved systems include Kruise Kontrol, fast travel, and the rail builder. While a fair amount of testing has been done so far, new bugs may still emerge due to the refactor.
 
 ## Info
-- The second part of the refactoring into modules was completed. Another pass may be done later.
+- The second part of the refactoring into modules was completed.
   * Files with multiple modules in them were split so that every module has one file and vice versa.
   * Any Lua module being referenced within its own file is now called "mod" for brevity and simplicity. 
   * All Lua modules related to the runtime stage were moved to a "scripts" folder, matching modding conventions.
   * Cleaned up several todo comments.
+  * More refactor work is needed later, to further clean up "control.lua".
 
 - Started using the GitHub Issues system to track all issues and some feature requests. The Discord channels will still be open for use but the goal is to log everything on GitHub.
 
@@ -31,6 +38,7 @@
 - Improved integration for the mod Kruise Kontrol, by Klonan.
   * KK actions will now be possible while in telestep mode.
   * Pressing any walking key will no longer cancal KK actions because this was not working correctly. You must press "ENTER" to cancel actions.
+  * The current Kruise Kontrol status is now predicted independently by this mod and reported regularly, although this report is often interrupted by cursor readouts.
 
 ## Bugfixes
 - Fixed a locale error about teleporting the cursor.
@@ -48,6 +56,8 @@
 - Fixed a bug that was placing the mouse pointer incorrectly while in Remote View, and interfering with Kruise Kontrol.
 
 - Fixed a crash that occurs while rotating buildings.
+
+- Fixed some invalid keybinds.
 
 - Re-fixed the playing of multiple mining sounds while mining a resource.
 
