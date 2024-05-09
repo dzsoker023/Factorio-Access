@@ -1,4 +1,4 @@
---Here: Crafting menu, crafting queue menu, technology menu, related functions
+--Here: Crafting menu, crafting queue menu, and related functions
 
 local util = require("util")
 local fa_utils = require("scripts.fa-utils")

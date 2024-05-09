@@ -1,5 +1,5 @@
 --Here: Functions about building rail systems, including the rail appender and everything called by the rail buidler menu
---Does not include event handlers
+--Does not include event handlers, rail analysis
 ---@diagnostic disable: assign-type-mismatch
 
 local util = require("util")

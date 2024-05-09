@@ -1,4 +1,4 @@
---Here: Functions about rail systems, excluding building them
+--Here: Functions about rail systems, excluding those about building them
 --Does not include event handlers
 
 local util = require("util")
