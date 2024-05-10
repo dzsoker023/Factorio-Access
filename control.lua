@@ -1028,7 +1028,9 @@ function ent_info(pindex, ent, description)
          result = result .. ", temperature " .. math.floor(ent.temperature) .. " degrees C "
       end
    end
-   if ent.type == "constant-combinator" then result = result .. fa_circuits.constant_combinator_signals_info(ent, pindex) end
+   if ent.type == "constant-combinator" then
+      result = result .. fa_circuits.constant_combinator_signals_info(ent, pindex)
+   end
    return result
 end
 
@@ -7973,8 +7975,11 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
          if valid_number then
             if players[pindex].signal_selector.ent.type == "constant-combinator" then
                --Constant combinators (set last signal value)
-               local success =
-                  fa_circuits.constant_combinator_set_last_signal_count(constant, players[pindex].signal_selector.ent, pindex)
+               local success = fa_circuits.constant_combinator_set_last_signal_count(
+                  constant,
+                  players[pindex].signal_selector.ent,
+                  pindex
+               )
                if success then
                   printout("Set " .. result, pindex)
                else

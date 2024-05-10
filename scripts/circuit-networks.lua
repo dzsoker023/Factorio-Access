@@ -1067,7 +1067,13 @@ function mod.circuit_network_menu_run(pindex, ent_in, menu_index, clicked, other
                --(inventory edge: play sound and set index and call this menu again)
                p.play_sound({ path = "inventory-edge" })
                players[pindex].mod.circuit_network_menu_run.index = 11
-               mod.circuit_network_menu_run(pindex, ent, players[pindex].mod.circuit_network_menu_run.index, false, false)
+               mod.circuit_network_menu_run(
+                  pindex,
+                  ent,
+                  players[pindex].mod.circuit_network_menu_run.index,
+                  false,
+                  false
+               )
             end
          else
             --Programmable speaker menu
@@ -1232,7 +1238,13 @@ function mod.circuit_network_menu_run(pindex, ent_in, menu_index, clicked, other
                --(inventory edge: play sound and set index and call this menu again)
                p.play_sound({ path = "inventory-edge" })
                players[pindex].mod.circuit_network_menu_run.index = 19
-               mod.circuit_network_menu_run(pindex, ent, players[pindex].mod.circuit_network_menu_run.index, false, false)
+               mod.circuit_network_menu_run(
+                  pindex,
+                  ent,
+                  players[pindex].mod.circuit_network_menu_run.index,
+                  false,
+                  false
+               )
             end
          end
       end
