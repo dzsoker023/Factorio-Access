@@ -27,8 +27,7 @@ local fa_blueprints = require("scripts.blueprints")
 local fa_travel = require("scripts.travel-tools")
 local fa_teleport = require("scripts.teleport")
 local fa_warnings = require("scripts.warnings")
-
-local circuit_networks = require("scripts.circuit-networks")
+local fa_circuits = require("scripts.circuit-networks")
 
 groups = {}
 entity_types = {}
@@ -731,7 +730,7 @@ function ent_info(pindex, ent, description)
       --game.print(result)--test
    elseif ent.type == "electric-pole" then
       --List connected wire neighbors
-      result = result .. wire_neighbours_info(ent, false)
+      result = result .. fa_circuits.wire_neighbours_info(ent, false)
       --Count number of entities being supplied within supply area.
       local pos = ent.position
       local sdist = ent.prototype.supply_area_distance
@@ -756,7 +755,7 @@ function ent_info(pindex, ent, description)
          result = result .. " on, "
       end
       if (#ent.neighbours.red + #ent.neighbours.green) > 0 then result = result .. " observes circuit condition, " end
-      result = result .. wire_neighbours_info(ent, true)
+      result = result .. fa_circuits.wire_neighbours_info(ent, true)
    elseif ent.name == "rail-signal" or ent.name == "rail-chain-signal" then
       result = result .. ", " .. fa_rails.get_signal_state_info(ent)
    elseif ent.name == "roboport" then
@@ -1029,7 +1028,7 @@ function ent_info(pindex, ent, description)
          result = result .. ", temperature " .. math.floor(ent.temperature) .. " degrees C "
       end
    end
-   if ent.type == "constant-combinator" then result = result .. constant_combinator_signals_info(ent, pindex) end
+   if ent.type == "constant-combinator" then result = result .. fa_circuits.constant_combinator_signals_info(ent, pindex) end
    return result
 end
 
@@ -2535,10 +2534,10 @@ function menu_cursor_up(pindex)
       fa_blueprints.blueprint_book_menu_up(pindex)
    elseif players[pindex].menu == "circuit_network_menu" then
       general_mod_menu_up(pindex, players[pindex].circuit_network_menu, 0)
-      circuit_network_menu(pindex, nil, players[pindex].circuit_network_menu.index, false)
+      fa_circuits.circuit_network_menu_run(pindex, nil, players[pindex].circuit_network_menu.index, false)
    elseif players[pindex].menu == "signal_selector" then
-      signal_selector_group_up(pindex)
-      read_selected_signal_group(pindex, "")
+      fa_circuits.signal_selector_group_up(pindex)
+      fa_circuits.read_selected_signal_group(pindex, "")
    end
 end
 
@@ -2797,11 +2796,11 @@ function menu_cursor_down(pindex)
    elseif players[pindex].menu == "blueprint_book_menu" then
       fa_blueprints.blueprint_book_menu_down(pindex)
    elseif players[pindex].menu == "circuit_network_menu" then
-      general_mod_menu_down(pindex, players[pindex].circuit_network_menu, CIRCUIT_NETWORK_MENU_LENGTH)
-      circuit_network_menu(pindex, nil, players[pindex].circuit_network_menu.index, false)
+      general_mod_menu_down(pindex, players[pindex].circuit_network_menu, fa_circuits.CN_MENU_LENGTH)
+      fa_circuits.circuit_network_menu_run(pindex, nil, players[pindex].circuit_network_menu.index, false)
    elseif players[pindex].menu == "signal_selector" then
-      signal_selector_group_down(pindex)
-      read_selected_signal_group(pindex, "")
+      fa_circuits.signal_selector_group_down(pindex)
+      fa_circuits.read_selected_signal_group(pindex, "")
    end
 end
 
@@ -2957,8 +2956,8 @@ function menu_cursor_left(pindex)
    elseif players[pindex].menu == "structure-travel" then
       fa_travel.move_cursor_structure(pindex, 6)
    elseif players[pindex].menu == "signal_selector" then
-      signal_selector_signal_prev(pindex)
-      read_selected_signal_slot(pindex, "")
+      fa_circuits.signal_selector_signal_prev(pindex)
+      fa_circuits.read_selected_signal_slot(pindex, "")
    end
 end
 
@@ -3131,8 +3130,8 @@ function menu_cursor_right(pindex)
    elseif players[pindex].menu == "structure-travel" then
       fa_travel.move_cursor_structure(pindex, 2)
    elseif players[pindex].menu == "signal_selector" then
-      signal_selector_signal_next(pindex)
-      read_selected_signal_slot(pindex, "")
+      fa_circuits.signal_selector_signal_next(pindex)
+      fa_circuits.read_selected_signal_slot(pindex, "")
    end
 end
 
@@ -4706,7 +4705,7 @@ function close_menu_resets(pindex)
    elseif players[pindex].menu == "blueprint_book_menu" then
       fa_blueprints.blueprint_book_menu_close(pindex)
    elseif players[pindex].menu == "circuit_network_menu" then
-      circuit_network_menu_close(pindex, false)
+      fa_circuits.circuit_network_menu_close(pindex, false)
    end
 
    if p.gui.screen["cursor-jump"] ~= nil then p.gui.screen["cursor-jump"].destroy() end
@@ -5969,9 +5968,9 @@ script.on_event("click-menu", function(event)
          local bpb_menu = players[pindex].blueprint_book_menu
          fa_blueprints.run_blueprint_book_menu(pindex, bpb_menu.index, bpb_menu.list_mode, true, false)
       elseif players[pindex].menu == "circuit_network_menu" then
-         circuit_network_menu(pindex, nil, players[pindex].circuit_network_menu.index, true, false)
+         fa_circuits.circuit_network_menu_run(pindex, nil, players[pindex].circuit_network_menu.index, true, false)
       elseif players[pindex].menu == "signal_selector" then
-         apply_selected_signal_to_enabled_condition(
+         fa_circuits.apply_selected_signal_to_enabled_condition(
             pindex,
             players[pindex].signal_selector.ent,
             players[pindex].signal_selector.editing_first_slot
@@ -6135,7 +6134,7 @@ script.on_event("click-hand", function(event)
             printout(ent_counter .. " entities marked to be upgraded.", pindex)
          end
       elseif stack.name == "red-wire" or stack.name == "green-wire" or stack.name == "copper-cable" then
-         drag_wire_and_read(pindex)
+         fa_circuits.drag_wire_and_read(pindex)
       elseif stack.prototype ~= nil and stack.prototype.type == "capsule" then
          --If holding a capsule type, e.g. cliff explosives or robot capsules, or remotes, try to use it at the cursor position (no feedback about successful usage)
          local cursor_dist = util.distance(game.get_player(pindex).position, players[pindex].cursor_pos)
@@ -6378,10 +6377,10 @@ script.on_event("open-circuit-menu", function(event)
       end
       if ent.type == "electric-pole" then
          --Open the menu
-         circuit_network_menu_open(pindex, ent)
+         fa_circuits.circuit_network_menu_open(pindex, ent)
          return
       elseif ent.type == "constant-combinator" then
-         circuit_network_menu_open(pindex, ent)
+         fa_circuits.circuit_network_menu_open(pindex, ent)
          return
       elseif ent.type == "arithmetic-combinator" or ent.type == "decider-combinator" then
          printout("Error: This combinator is not supported", pindex)
@@ -6401,7 +6400,7 @@ script.on_event("open-circuit-menu", function(event)
          return
       end
       --Open the menu
-      circuit_network_menu_open(pindex, ent)
+      fa_circuits.circuit_network_menu_open(pindex, ent)
    elseif players[pindex].in_menu == false then
       local ent = p.selected or get_selected_ent(pindex)
       if ent == nil or ent.valid == false or (ent.get_control_behavior() == nil and ent.type ~= "electric-pole") then
@@ -6412,10 +6411,10 @@ script.on_event("open-circuit-menu", function(event)
       p.opened = ent
       if ent.type == "electric-pole" then
          --Open the menu
-         circuit_network_menu_open(pindex, ent)
+         fa_circuits.circuit_network_menu_open(pindex, ent)
          return
       elseif ent.type == "constant-combinator" then
-         circuit_network_menu_open(pindex, ent)
+         fa_circuits.circuit_network_menu_open(pindex, ent)
          return
       elseif ent.type == "arithmetic-combinator" or ent.type == "decider-combinator" then
          printout("Error: This combinator is not supported", pindex)
@@ -6429,7 +6428,7 @@ script.on_event("open-circuit-menu", function(event)
          return
       end
       --Open the menu
-      circuit_network_menu_open(pindex, ent)
+      fa_circuits.circuit_network_menu_open(pindex, ent)
    end
 end)
 
@@ -7975,7 +7974,7 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
             if players[pindex].signal_selector.ent.type == "constant-combinator" then
                --Constant combinators (set last signal value)
                local success =
-                  constant_combinator_set_last_signal_count(constant, players[pindex].signal_selector.ent, pindex)
+                  fa_circuits.constant_combinator_set_last_signal_count(constant, players[pindex].signal_selector.ent, pindex)
                if success then
                   printout("Set " .. result, pindex)
                else
@@ -7994,7 +7993,7 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
                   "Set "
                      .. result
                      .. ", condition now checks if "
-                     .. read_circuit_condition(players[pindex].signal_selector.ent, true),
+                     .. fa_circuits.read_circuit_condition(players[pindex].signal_selector.ent, true),
                   pindex
                )
             end
@@ -8513,7 +8512,7 @@ script.on_event("set-entity-filter-from-hand", function(event)
             printout(result, pindex)
          elseif ent.type == "constant-combinator" then
             --Remove the last signal
-            constant_combinator_remove_last_signal(ent, pindex)
+            fa_circuits.constant_combinator_remove_last_signal(ent, pindex)
          elseif ent.type == "inserter" then
             local result = set_inserter_filter_by_hand(pindex, ent)
             printout(result, pindex)
@@ -8525,7 +8524,7 @@ script.on_event("set-entity-filter-from-hand", function(event)
             printout(result, pindex)
          elseif ent.type == "constant-combinator" then
             --Add a new signal
-            constant_combinator_add_stack_signal(ent, stack, pindex)
+            fa_circuits.constant_combinator_add_stack_signal(ent, stack, pindex)
          elseif ent.type == "inserter" then
             local result = set_inserter_filter_by_hand(pindex, ent)
             printout(result, pindex)
@@ -8729,7 +8728,7 @@ script.on_event("debug-test-key", function(event)
    --end
    if ent and ent.type == "programmable-speaker" then
       --ent.play_note(12,1)
-      --play_selected_speaker_note(ent)
+      --fa_circuits.play_selected_speaker_note(ent)
    end
    --show_sprite_demo(pindex)
    --Character:move_to(players[pindex].cursor_pos, util.distance(players[pindex].position,players[pindex].cursor_pos), 100)
