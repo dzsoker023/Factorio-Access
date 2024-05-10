@@ -9,6 +9,8 @@ local multistate_switch = require("scripts.ui.low-level.multistate-switch")
 
 local dcb = defines.control_behavior
 
+local mod = {}
+
 -- We must be able to convert our descriptors into multistate switches.  This
 -- will hopefully go away in future; the right move is to just feed to a menu
 -- abstraction directly.  Since we also know that they cannot change for the
@@ -62,8 +64,6 @@ local function make_read_switch_for_entity(entity)
 
    return uncached
 end
-
-local mod = {}
 
 function mod.drag_wire_and_read(pindex)
    --Start/end dragging wire
@@ -367,7 +367,7 @@ end
 -- @param entity LuaEntity
 -- @param direction "prev"|"current"|"next"
 -- @returns string?
-local function read_mode_multistate_call(entity, direction)
+function mod.read_mode_multistate_call(entity, direction)
    -- We're using this indirectly, so make Lua stop warning at the last line of
    -- this function.
    --- @type table<any, any>?
@@ -422,7 +422,7 @@ local function get_circuit_read_mode_name(ent)
       result = "None"
    else
       -- Try to go through the new code path.
-      local possible_new = read_mode_multistate_call(ent, "current")
+      local possible_new = mod.read_mode_multistate_call(ent, "current")
       if possible_new then result = possible_new end
    end
 
@@ -472,7 +472,7 @@ local function toggle_circuit_read_mode(ent)
       result = get_circuit_read_mode_name(ent) --laterdo** allow toggling some other read modes
 
       -- Try to go through the new code path.
-      local possible_new = read_mode_multistate_call(ent, "next")
+      local possible_new = mod.read_mode_multistate_call(ent, "next")
       if possible_new then
          result = possible_new
          changed = true
@@ -726,21 +726,24 @@ local function toggle_condition_comparator(ent, pindex, comparator_in_words)
 end
 
 local function write_condition_first_signal_item(circuit_condition, stack)
-   local cond = circuit_condition.condition
+   local cond = table.deepcopy(circuit_condition.condition)
    cond.first_signal = { type = "item", name = stack.name }
+   circuit_condition = cond
    return
 end
 
 local function write_condition_second_signal_item(circuit_condition, stack)
-   local cond = circuit_condition.condition
+   local cond = table.deepcopy(circuit_condition.condition)
    cond.second_signal = { type = "item", name = stack.name }
+   circuit_condition = cond
    return
 end
 
 local function write_condition_second_signal_constant(circuit_condition, constant)
-   local cond = circuit_condition.condition
+   local cond = table.deepcopy(circuit_condition.condition)
    cond.second_signal = nil
    cond.constant = constant
+   circuit_condition = cond
    return
 end
 
