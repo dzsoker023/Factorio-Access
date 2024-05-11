@@ -50,7 +50,7 @@ function mod.dir_dist(pos1, pos2)
    local dy = y2 - y1
    if dx == 0 and dy == 0 then return { 8, 0 } end
    --Consistent way to calculate dir:
-   local dir = mod.get_direction_biased(pos1, pos2) --***todo check whether pos1 is "this" or "that"
+   local dir = mod.get_direction_biased(pos2, pos1) --pos2 = that, pos1 = this
    --Alternate way to calculate dir:
    --local dir = math.atan2(dy, dx) --scaled -pi to pi 0 being east
    --dir = dir + math.sin(4 * dir) / 4 --bias towards the diagonals
@@ -167,7 +167,7 @@ end
 function mod.is_direction_aligned(pos_that, pos_this)
    local diff_x = math.abs(pos_this.x - pos_that.x)
    local diff_y = math.abs(pos_this.y - pos_that.y)
-   return (diff_x == 0 or diff_y == 0 or diff_x == diff_y)
+   return (diff_x < 1 or diff_y < 1 or (diff_x - diff_y) < 1)
 end
 
 --Converts an input direction into a localised string.
@@ -661,8 +661,8 @@ end
 function mod.dir_dist_locale(pos1, pos2)
    local dir_dist = mod.dir_dist(pos1, pos2)
    local aligned_note = ""
-   if mod.is_direction_aligned(pos1, pos2) then aligned_note = " aligned" end
-   return { "access.dir-dist", mod.direction_lookup(dir_dist[1]) .. aligned_note, math.floor(dir_dist[2] + 0.5) }
+   if mod.is_direction_aligned(pos1, pos2) then aligned_note = "aligned " end
+   return { "access.dir-dist", aligned_note .. mod.direction_lookup(dir_dist[1]), math.floor(dir_dist[2] + 0.5) }
 end
 
 function mod.ent_name_locale(ent)

@@ -2997,10 +2997,10 @@ function mod.build_fork_at_end_rail(anchor_rail, pindex, include_forward, includ
    --7. Sounds and results
    game.get_player(pindex).play_sound({ path = "entity-build/straight-rail" })
    game.get_player(pindex).play_sound({ path = "entity-build/curved-rail" })
-   local result = "Rail fork built with exits at " .. build_comment
-   if include_left then result = result .. "left, " .. build_comment end
-   if include_right then result = result .. "right, " .. build_comment end
-   if include_forward then result = result .. "forward, " .. build_comment end
+   local result = "Rail fork built with exits at "
+   if include_left then result = result .. "left, " end
+   if include_right then result = result .. "right, " end
+   if include_forward then result = result .. "forward, " end
    result = result .. build_comment
    printout(result, pindex)
    return

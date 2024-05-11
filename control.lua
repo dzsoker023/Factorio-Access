@@ -3287,6 +3287,7 @@ function on_tick(event)
          elseif game.get_player(pindex).ticks_to_respawn ~= nil then
             printout(math.floor(game.get_player(pindex).ticks_to_respawn / 60) .. " seconds until respawn", pindex)
          elseif players[pindex].kruise_kontrolling == true then
+            --Report the KK state
             local result = kk_status_prediction(pindex)
             printout(result, pindex)
          end
@@ -9373,7 +9374,12 @@ function check_and_play_bump_alert_sound(pindex, this_tick)
    if p.walking_state.walking == false then return end
 
    --Return if not enough positions filled (trying 4 for now)
-   if players[pindex].bump.last_pos_4 == nil then return end
+   if players[pindex].bump.last_pos_4 == nil then
+      players[pindex].bump.filled = false
+      return
+   else
+      players[pindex].bump.filled = true
+   end
 
    --Return if bump sounded recently
    if this_tick - players[pindex].bump.last_bump_tick < 15 then return end
@@ -9794,10 +9800,13 @@ function read_nearest_damaged_ent_info(pos, pindex)
       --Report the result
       min_dist = math.floor(min_dist)
       local dir = fa_utils.get_direction_biased(closest.position, pos)
+      local aligned_note = ""
+      if fa_utils.is_direction_aligned(closest.position, pos) then aligned_note = "aligned " end
       local result = fa_localising.get(closest, pindex)
          .. "  damaged at "
          .. min_dist
          .. " "
+         .. aligned_note
          .. fa_utils.direction_lookup(dir)
          .. ", cursor moved. "
       printout(result, pindex)
@@ -9845,17 +9854,22 @@ script.on_event("klient-alt-move-to", function(event)
       players[pindex].kruise_kontrolling = true
       p.character_running_speed_modifier = 0
       local kk_pos = players[pindex].cursor_pos
-      toggle_remote_view(pindex, false, true)
-      close_menu_resets(pindex)
       printout("Moving to " .. math.floor(kk_pos.x) .. ", " .. math.floor(kk_pos.y), pindex)
       --Save what the player targetted
       players[pindex].kk_pos = kk_pos
       local kk_targets = p.surface.find_entities_filtered({ position = kk_pos, name = "highlight-box", invert = true })
-      if kk_targets and #kk_targets > 0 then players[pindex].kk_target = kk_targets[1] end
+      if kk_targets and #kk_targets > 0 then
+         players[pindex].kk_target = kk_targets[1]
+      else
+         players[pindex].kk_target = nil
+      end
+      --Close remote view
+      toggle_remote_view(pindex, false, true)
+      close_menu_resets(pindex)
    else
       players[pindex].kruise_kontrolling = false
       fix_walk(pindex)
-      toggle_remote_view(pindex, true)
+      toggle_remote_view(pindex, true, false)
       sync_remote_view(pindex)
       printout("Opened in remote view, press again to confirm", pindex)
    end
@@ -9868,18 +9882,22 @@ script.on_event("klient-cancel-enter", function(event)
       players[pindex].kruise_kontrolling = false
       fix_walk(pindex)
       toggle_remote_view(pindex, false, true)
+      close_menu_resets(pindex)
       printout("Cancelled kruise kontrol action.", pindex)
    end
 end)
 
 --Predicts what Kruise Kontrol is doing based on the current target
 function kk_status_prediction(pindex)
+   --Predict the status based on the selected location and entity
    local p = game.get_player(pindex)
    local result = "Kruise Kontrol "
    local target = players[pindex].kk_target
    local target_pos = players[pindex].kk_pos
+   local walking = false
    if target == nil or target.valid == false then
       result = result .. "Walking"
+      walking = true
    elseif target.type == "entity-ghost" then
       result = result .. "Building ghosts"
    elseif target.type == "resource" then
@@ -9889,12 +9907,44 @@ function kk_status_prediction(pindex)
    elseif target.to_be_deconstructed() == true then
       result = result .. "Deconstructing marked buildings "
    else
-      result = result .. "Walking"
+      result = result .. "Active"
    end
    local target_dist = math.floor(util.distance(p.position, target_pos))
-   local dist_info = result .. ", " .. target_dist .. " tiles to target"
+   local dist_info = ", " .. target_dist .. " tiles to target location"
    if target_dist < 3 then dist_info = "" end
    result = result .. dist_info
    result = result .. ", press ENTER to exit Kruise Kontrol"
+
+   --If KK is simply walking, check whether the character has stopped for 1 second, so that the status is assumed to be done
+   --Note: we do not do a distance check because if KK has ended and the player walks freely, the distance check fails.
+   --Note: This could have been applied to all KK states but it is hard to know whether a stopped player is finished
+   if walking and player_was_still_for_1_second(pindex) then
+      players[pindex].kruise_kontrolling = false
+      fix_walk(pindex)
+      toggle_remote_view(pindex, false, true)
+      result = "Kruise Kontrol arrived."
+   end
    return result
+end
+
+--Checks whether the player has not walked for 1 second. Uses the bump alert checks.
+function player_was_still_for_1_second(pindex)
+   local b = players[pindex].bump
+   if b == nil or b.filled ~= true then
+      --It is too soon to report anything
+      return false
+   end
+   local diff_x1 = b.last_pos_1.x - b.last_pos_2.x
+   local diff_x2 = b.last_pos_2.x - b.last_pos_3.x
+   local diff_x3 = b.last_pos_3.x - b.last_pos_4.x
+   local diff_y1 = b.last_pos_1.y - b.last_pos_2.y
+   local diff_y2 = b.last_pos_2.y - b.last_pos_3.y
+   local diff_y3 = b.last_pos_3.y - b.last_pos_4.y
+   if (diff_x1 + diff_x2 + diff_x3 + diff_y1 + diff_y2 + diff_y3) == 0 then
+      --Confirmed no movement in the past 60 ticks
+      return true
+   else
+      --Confirmed some movement in the past 60 ticks
+      return false
+   end
 end

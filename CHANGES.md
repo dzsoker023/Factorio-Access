@@ -38,7 +38,12 @@ Release requirements:
 - Improved integration for the mod Kruise Kontrol, by Klonan.
   * KK actions will now be possible while in telestep mode.
   * Pressing any walking key will no longer cancal KK actions because this was not working correctly. You must press "ENTER" to cancel actions.
-  * The current Kruise Kontrol status is now predicted independently by this mod and reported regularly, although this report is often interrupted by cursor readouts.
+
+- Added a system for independently predicting and reporting the Kruise Kontrol status. 
+  * The status checks what was targeted to initiate Kruise Kontrol and is updated accordingly.
+  * The status is reported regularly, although this report is often interrupted by cursor readouts.
+  * If the status was walking and the player has reached the destination and has not moved for 1 second, then the status automatically is assumed to be arrived.
+  * For other cases, the status reporting is finished only when you cancel Kruise Kontrol by pressing "Enter", because there may be ongoing actions despite the player standing still at the target location.
 
 ## Bugfixes
 - Fixed a locale error about teleporting the cursor.
