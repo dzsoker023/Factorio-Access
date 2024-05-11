@@ -1,4 +1,4 @@
---Here: functions specific to building menus
+--Here: functions specific to the menus of buildings and vehicles.
 local util = require("util")
 local fa_utils = require("scripts.fa-utils")
 local fa_crafting = require("scripts.crafting")

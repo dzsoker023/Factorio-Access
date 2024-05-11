@@ -40,6 +40,7 @@ function mod.offset_position(oldpos, direction, distance)
    end
 end
 
+--Reports the direction and distance of one point from another. Biased towards the diagonals.
 function mod.dir_dist(pos1, pos2)
    local x1 = pos1.x
    local x2 = pos2.x
@@ -48,11 +49,14 @@ function mod.dir_dist(pos1, pos2)
    local y2 = pos2.y
    local dy = y2 - y1
    if dx == 0 and dy == 0 then return { 8, 0 } end
-   local dir = math.atan2(dy, dx) --scaled -pi to pi 0 being east
-   dir = dir + math.sin(4 * dir) / 4 --bias towards the diagonals
-   dir = dir / math.pi -- now scaled as -0.5 north, 0 east, 0.5 south
-   dir = math.floor(dir * defines.direction.south + defines.direction.east + 0.5) --now scaled correctly
-   dir = dir % (2 * defines.direction.south) --now wrapped correctly
+   --Consistent way to calculate dir:
+   local dir = mod.get_direction_biased(pos2, pos1) --pos2 = that, pos1 = this
+   --Alternate way to calculate dir:
+   --local dir = math.atan2(dy, dx) --scaled -pi to pi 0 being east
+   --dir = dir + math.sin(4 * dir) / 4 --bias towards the diagonals
+   --dir = dir / math.pi -- now scaled as -0.5 north, 0 east, 0.5 south
+   --dir = math.floor(dir * defines.direction.south + defines.direction.east + 0.5) --now scaled correctly
+   --dir = dir % (2 * defines.direction.south) --now wrapped correctly
    local dist = math.sqrt(dx * dx + dy * dy)
    return { dir, dist }
 end
@@ -157,6 +161,13 @@ function mod.get_direction_precise(pos_that, pos_this)
 
    if dir < 0 then dir = dirs.north end
    return dir
+end
+
+--Checks whether a cardinal or diagonal direction is precisely aligned.
+function mod.is_direction_aligned(pos_that, pos_this)
+   local diff_x = math.abs(pos_this.x - pos_that.x)
+   local diff_y = math.abs(pos_this.y - pos_that.y)
+   return (diff_x < 1 or diff_y < 1 or (diff_x - diff_y) < 1)
 end
 
 --Converts an input direction into a localised string.
@@ -646,12 +657,12 @@ function mod.get_substring_before_dash(str)
    end
 end
 
-function mod.dir_dist_locale_h(dir_dist)
-   return { "access.dir-dist", { "access.direction", dir_dist[1] }, math.floor(dir_dist[2] + 0.5) }
-end
-
+--Reads the localised result for the distance and direction from one point to the other. Also mentions if they are precisely aligned.
 function mod.dir_dist_locale(pos1, pos2)
-   return mod.dir_dist_locale_h(mod.dir_dist(pos1, pos2))
+   local dir_dist = mod.dir_dist(pos1, pos2)
+   local aligned_note = ""
+   if mod.is_direction_aligned(pos1, pos2) then aligned_note = "aligned " end
+   return { "access.dir-dist", aligned_note .. mod.direction_lookup(dir_dist[1]), math.floor(dir_dist[2] + 0.5) }
 end
 
 function mod.ent_name_locale(ent)

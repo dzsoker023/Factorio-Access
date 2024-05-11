@@ -27,8 +27,7 @@ local fa_blueprints = require("scripts.blueprints")
 local fa_travel = require("scripts.travel-tools")
 local fa_teleport = require("scripts.teleport")
 local fa_warnings = require("scripts.warnings")
-
-local circuit_networks = require("scripts.circuit-networks")
+local fa_circuits = require("scripts.circuit-networks")
 
 groups = {}
 entity_types = {}
@@ -731,7 +730,7 @@ function ent_info(pindex, ent, description)
       --game.print(result)--test
    elseif ent.type == "electric-pole" then
       --List connected wire neighbors
-      result = result .. wire_neighbours_info(ent, false)
+      result = result .. fa_circuits.wire_neighbours_info(ent, false)
       --Count number of entities being supplied within supply area.
       local pos = ent.position
       local sdist = ent.prototype.supply_area_distance
@@ -756,7 +755,7 @@ function ent_info(pindex, ent, description)
          result = result .. " on, "
       end
       if (#ent.neighbours.red + #ent.neighbours.green) > 0 then result = result .. " observes circuit condition, " end
-      result = result .. wire_neighbours_info(ent, true)
+      result = result .. fa_circuits.wire_neighbours_info(ent, true)
    elseif ent.name == "rail-signal" or ent.name == "rail-chain-signal" then
       result = result .. ", " .. fa_rails.get_signal_state_info(ent)
    elseif ent.name == "roboport" then
@@ -1029,7 +1028,9 @@ function ent_info(pindex, ent, description)
          result = result .. ", temperature " .. math.floor(ent.temperature) .. " degrees C "
       end
    end
-   if ent.type == "constant-combinator" then result = result .. constant_combinator_signals_info(ent, pindex) end
+   if ent.type == "constant-combinator" then
+      result = result .. fa_circuits.constant_combinator_signals_info(ent, pindex)
+   end
    return result
 end
 
@@ -2535,10 +2536,10 @@ function menu_cursor_up(pindex)
       fa_blueprints.blueprint_book_menu_up(pindex)
    elseif players[pindex].menu == "circuit_network_menu" then
       general_mod_menu_up(pindex, players[pindex].circuit_network_menu, 0)
-      circuit_network_menu(pindex, nil, players[pindex].circuit_network_menu.index, false)
+      fa_circuits.circuit_network_menu_run(pindex, nil, players[pindex].circuit_network_menu.index, false)
    elseif players[pindex].menu == "signal_selector" then
-      signal_selector_group_up(pindex)
-      read_selected_signal_group(pindex, "")
+      fa_circuits.signal_selector_group_up(pindex)
+      fa_circuits.read_selected_signal_group(pindex, "")
    end
 end
 
@@ -2797,11 +2798,11 @@ function menu_cursor_down(pindex)
    elseif players[pindex].menu == "blueprint_book_menu" then
       fa_blueprints.blueprint_book_menu_down(pindex)
    elseif players[pindex].menu == "circuit_network_menu" then
-      general_mod_menu_down(pindex, players[pindex].circuit_network_menu, CIRCUIT_NETWORK_MENU_LENGTH)
-      circuit_network_menu(pindex, nil, players[pindex].circuit_network_menu.index, false)
+      general_mod_menu_down(pindex, players[pindex].circuit_network_menu, fa_circuits.CN_MENU_LENGTH)
+      fa_circuits.circuit_network_menu_run(pindex, nil, players[pindex].circuit_network_menu.index, false)
    elseif players[pindex].menu == "signal_selector" then
-      signal_selector_group_down(pindex)
-      read_selected_signal_group(pindex, "")
+      fa_circuits.signal_selector_group_down(pindex)
+      fa_circuits.read_selected_signal_group(pindex, "")
    end
 end
 
@@ -2957,8 +2958,8 @@ function menu_cursor_left(pindex)
    elseif players[pindex].menu == "structure-travel" then
       fa_travel.move_cursor_structure(pindex, 6)
    elseif players[pindex].menu == "signal_selector" then
-      signal_selector_signal_prev(pindex)
-      read_selected_signal_slot(pindex, "")
+      fa_circuits.signal_selector_signal_prev(pindex)
+      fa_circuits.read_selected_signal_slot(pindex, "")
    end
 end
 
@@ -3131,8 +3132,8 @@ function menu_cursor_right(pindex)
    elseif players[pindex].menu == "structure-travel" then
       fa_travel.move_cursor_structure(pindex, 2)
    elseif players[pindex].menu == "signal_selector" then
-      signal_selector_signal_next(pindex)
-      read_selected_signal_slot(pindex, "")
+      fa_circuits.signal_selector_signal_next(pindex)
+      fa_circuits.read_selected_signal_slot(pindex, "")
    end
 end
 
@@ -3275,7 +3276,8 @@ function on_tick(event)
          --Fix running speed bug (toggle walk also fixes it)
          fix_walk(pindex)
       end
-   elseif event.tick % 300 == 14 then
+   elseif event.tick % 500 == 14 then
+      --Run regular reminders
       for pindex, player in pairs(players) do
          --Tutorial reminder every 10 seconds until you open it
          if players[pindex].started ~= true then
@@ -3284,6 +3286,10 @@ function on_tick(event)
             printout("Press 'H' to open the tutorial", pindex)
          elseif game.get_player(pindex).ticks_to_respawn ~= nil then
             printout(math.floor(game.get_player(pindex).ticks_to_respawn / 60) .. " seconds until respawn", pindex)
+         elseif players[pindex].kruise_kontrolling == true then
+            --Report the KK state
+            local result = kk_status_prediction(pindex)
+            printout(result, pindex)
          end
       end
    end
@@ -3384,9 +3390,9 @@ function move(direction, pindex)
          else
             local tile = game.get_player(pindex).surface.get_tile(new_pos.x, new_pos.y)
             local sound_path = "tile-walking/" .. tile.name
-            if game.is_valid_sound_path(sound_path) then
+            if game.is_valid_sound_path(sound_path) and players[pindex].in_menu == false then
                game.get_player(pindex).play_sound({ path = "tile-walking/" .. tile.name, volume_modifier = 1 })
-            else
+            elseif players[pindex].in_menu == false then
                game.get_player(pindex).play_sound({ path = "player-walk", volume_modifier = 1 })
             end
          end
@@ -3505,7 +3511,7 @@ function move_key(direction, event, force_single_tile)
    end
 
    --Stop kruise kontrol related permissions
-   players[pindex].kruise_kontrolling = false
+   --players[pindex].kruise_kontrolling = false
 end
 
 --Moves the cursor, and conducts an area scan for larger cursors. If the player is in a slow moving vehicle, it is stopped.
@@ -4702,7 +4708,7 @@ function close_menu_resets(pindex)
    elseif players[pindex].menu == "blueprint_book_menu" then
       fa_blueprints.blueprint_book_menu_close(pindex)
    elseif players[pindex].menu == "circuit_network_menu" then
-      circuit_network_menu_close(pindex, false)
+      fa_circuits.circuit_network_menu_close(pindex, false)
    end
 
    if p.gui.screen["cursor-jump"] ~= nil then p.gui.screen["cursor-jump"].destroy() end
@@ -5345,6 +5351,7 @@ script.on_event("mine-area", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu then return end
+   local p = game.get_player(pindex)
    local ent = get_selected_ent(pindex)
    local cleared_count = 0
    local cleared_total = 0
@@ -5389,11 +5396,8 @@ script.on_event("mine-area", function(event)
             name = { "straight-rail", "curved-rail", "rail-signal", "rail-chain-signal", "train-stop" },
          })
          for i, rail_ent in ipairs(rail_ents) do
-            if rail_ent.name == "straight-rail" or rail_ent.name == "curved-rail" then
-               fa_rails.mine_signals(rail_ent, pindex)
-            end
-            game.get_player(pindex).play_sound({ path = "entity-mined/straight-rail" })
-            game.get_player(pindex).mine_entity(rail_ent, true)
+            p.play_sound({ path = "entity-mined/straight-rail" })
+            p.mine_entity(rail_ent, true)
             cleared_count = cleared_count + 1
          end
          rendering.draw_circle({
@@ -5967,9 +5971,9 @@ script.on_event("click-menu", function(event)
          local bpb_menu = players[pindex].blueprint_book_menu
          fa_blueprints.run_blueprint_book_menu(pindex, bpb_menu.index, bpb_menu.list_mode, true, false)
       elseif players[pindex].menu == "circuit_network_menu" then
-         circuit_network_menu(pindex, nil, players[pindex].circuit_network_menu.index, true, false)
+         fa_circuits.circuit_network_menu_run(pindex, nil, players[pindex].circuit_network_menu.index, true, false)
       elseif players[pindex].menu == "signal_selector" then
-         apply_selected_signal_to_enabled_condition(
+         fa_circuits.apply_selected_signal_to_enabled_condition(
             pindex,
             players[pindex].signal_selector.ent,
             players[pindex].signal_selector.editing_first_slot
@@ -6133,7 +6137,7 @@ script.on_event("click-hand", function(event)
             printout(ent_counter .. " entities marked to be upgraded.", pindex)
          end
       elseif stack.name == "red-wire" or stack.name == "green-wire" or stack.name == "copper-cable" then
-         drag_wire_and_read(pindex)
+         fa_circuits.drag_wire_and_read(pindex)
       elseif stack.prototype ~= nil and stack.prototype.type == "capsule" then
          --If holding a capsule type, e.g. cliff explosives or robot capsules, or remotes, try to use it at the cursor position (no feedback about successful usage)
          local cursor_dist = util.distance(game.get_player(pindex).position, players[pindex].cursor_pos)
@@ -6376,10 +6380,10 @@ script.on_event("open-circuit-menu", function(event)
       end
       if ent.type == "electric-pole" then
          --Open the menu
-         circuit_network_menu_open(pindex, ent)
+         fa_circuits.circuit_network_menu_open(pindex, ent)
          return
       elseif ent.type == "constant-combinator" then
-         circuit_network_menu_open(pindex, ent)
+         fa_circuits.circuit_network_menu_open(pindex, ent)
          return
       elseif ent.type == "arithmetic-combinator" or ent.type == "decider-combinator" then
          printout("Error: This combinator is not supported", pindex)
@@ -6399,7 +6403,7 @@ script.on_event("open-circuit-menu", function(event)
          return
       end
       --Open the menu
-      circuit_network_menu_open(pindex, ent)
+      fa_circuits.circuit_network_menu_open(pindex, ent)
    elseif players[pindex].in_menu == false then
       local ent = p.selected or get_selected_ent(pindex)
       if ent == nil or ent.valid == false or (ent.get_control_behavior() == nil and ent.type ~= "electric-pole") then
@@ -6410,10 +6414,10 @@ script.on_event("open-circuit-menu", function(event)
       p.opened = ent
       if ent.type == "electric-pole" then
          --Open the menu
-         circuit_network_menu_open(pindex, ent)
+         fa_circuits.circuit_network_menu_open(pindex, ent)
          return
       elseif ent.type == "constant-combinator" then
-         circuit_network_menu_open(pindex, ent)
+         fa_circuits.circuit_network_menu_open(pindex, ent)
          return
       elseif ent.type == "arithmetic-combinator" or ent.type == "decider-combinator" then
          printout("Error: This combinator is not supported", pindex)
@@ -6427,7 +6431,7 @@ script.on_event("open-circuit-menu", function(event)
          return
       end
       --Open the menu
-      circuit_network_menu_open(pindex, ent)
+      fa_circuits.circuit_network_menu_open(pindex, ent)
    end
 end)
 
@@ -7671,11 +7675,12 @@ end)
 function fix_walk(pindex)
    if not check_for_player(pindex) then return end
    if game.get_player(pindex).character == nil or game.get_player(pindex).character.valid == false then return end
-   if players[pindex].walk == 0 then
+   if players[pindex].walk == 0 and players[pindex].kruise_kontrolling ~= true then
       game.get_player(pindex).character_running_speed_modifier = -1 -- 100% - 100% = 0%
    else --walk > 0
       game.get_player(pindex).character_running_speed_modifier = 0 -- 100% + 0 = 100%
    end
+   players[pindex].position = game.get_player(pindex).position
 end
 
 --Toggle building while walking
@@ -7971,8 +7976,11 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
          if valid_number then
             if players[pindex].signal_selector.ent.type == "constant-combinator" then
                --Constant combinators (set last signal value)
-               local success =
-                  constant_combinator_set_last_signal_count(constant, players[pindex].signal_selector.ent, pindex)
+               local success = fa_circuits.constant_combinator_set_last_signal_count(
+                  constant,
+                  players[pindex].signal_selector.ent,
+                  pindex
+               )
                if success then
                   printout("Set " .. result, pindex)
                else
@@ -7991,7 +7999,7 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
                   "Set "
                      .. result
                      .. ", condition now checks if "
-                     .. read_circuit_condition(players[pindex].signal_selector.ent, true),
+                     .. fa_circuits.read_circuit_condition(players[pindex].signal_selector.ent, true),
                   pindex
                )
             end
@@ -8510,7 +8518,7 @@ script.on_event("set-entity-filter-from-hand", function(event)
             printout(result, pindex)
          elseif ent.type == "constant-combinator" then
             --Remove the last signal
-            constant_combinator_remove_last_signal(ent, pindex)
+            fa_circuits.constant_combinator_remove_last_signal(ent, pindex)
          elseif ent.type == "inserter" then
             local result = set_inserter_filter_by_hand(pindex, ent)
             printout(result, pindex)
@@ -8522,7 +8530,7 @@ script.on_event("set-entity-filter-from-hand", function(event)
             printout(result, pindex)
          elseif ent.type == "constant-combinator" then
             --Add a new signal
-            constant_combinator_add_stack_signal(ent, stack, pindex)
+            fa_circuits.constant_combinator_add_stack_signal(ent, stack, pindex)
          elseif ent.type == "inserter" then
             local result = set_inserter_filter_by_hand(pindex, ent)
             printout(result, pindex)
@@ -8726,7 +8734,7 @@ script.on_event("debug-test-key", function(event)
    --end
    if ent and ent.type == "programmable-speaker" then
       --ent.play_note(12,1)
-      --play_selected_speaker_note(ent)
+      --fa_circuits.play_selected_speaker_note(ent)
    end
    --show_sprite_demo(pindex)
    --Character:move_to(players[pindex].cursor_pos, util.distance(players[pindex].position,players[pindex].cursor_pos), 100)
@@ -9366,7 +9374,12 @@ function check_and_play_bump_alert_sound(pindex, this_tick)
    if p.walking_state.walking == false then return end
 
    --Return if not enough positions filled (trying 4 for now)
-   if players[pindex].bump.last_pos_4 == nil then return end
+   if players[pindex].bump.last_pos_4 == nil then
+      players[pindex].bump.filled = false
+      return
+   else
+      players[pindex].bump.filled = true
+   end
 
    --Return if bump sounded recently
    if this_tick - players[pindex].bump.last_bump_tick < 15 then return end
@@ -9780,13 +9793,22 @@ function read_nearest_damaged_ent_info(pos, pindex)
       printout("No damaged structures within 1000 tiles.", pindex)
       return
    else
+      --Move cursor to closest
+      players[pindex].cursor_pos = closest.position
+      fa_graphics.draw_cursor_highlight(pindex, closest, nil, nil)
+
+      --Report the result
       min_dist = math.floor(min_dist)
       local dir = fa_utils.get_direction_biased(closest.position, pos)
+      local aligned_note = ""
+      if fa_utils.is_direction_aligned(closest.position, pos) then aligned_note = "aligned " end
       local result = fa_localising.get(closest, pindex)
          .. "  damaged at "
          .. min_dist
          .. " "
+         .. aligned_note
          .. fa_utils.direction_lookup(dir)
+         .. ", cursor moved. "
       printout(result, pindex)
    end
 end
@@ -9822,19 +9844,32 @@ function read_pollution_level_at_position(pos, pindex)
    printout(result, pindex)
 end
 
+--Enables remote view if not already, and then enables kruise kontrol
 script.on_event("klient-alt-move-to", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-
+   local p = game.get_player(pindex)
    if players[pindex].remote_view == true then
+      --Allow KK
       players[pindex].kruise_kontrolling = true
+      p.character_running_speed_modifier = 0
       local kk_pos = players[pindex].cursor_pos
+      printout("Moving to " .. math.floor(kk_pos.x) .. ", " .. math.floor(kk_pos.y), pindex)
+      --Save what the player targetted
+      players[pindex].kk_pos = kk_pos
+      local kk_targets = p.surface.find_entities_filtered({ position = kk_pos, name = "highlight-box", invert = true })
+      if kk_targets and #kk_targets > 0 then
+         players[pindex].kk_target = kk_targets[1]
+      else
+         players[pindex].kk_target = nil
+      end
+      --Close remote view
       toggle_remote_view(pindex, false, true)
       close_menu_resets(pindex)
-      printout("Moving to " .. math.floor(kk_pos.x) .. ", " .. math.floor(kk_pos.y), pindex)
    else
       players[pindex].kruise_kontrolling = false
-      toggle_remote_view(pindex, true)
+      fix_walk(pindex)
+      toggle_remote_view(pindex, true, false)
       sync_remote_view(pindex)
       printout("Opened in remote view, press again to confirm", pindex)
    end
@@ -9843,7 +9878,74 @@ end)
 script.on_event("klient-cancel-enter", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if players[pindex].kruise_kontrolling == true then printout("Cancelled action.", pindex) end
-   players[pindex].kruise_kontrolling = false
-   toggle_remote_view(pindex, false, true)
+   if players[pindex].kruise_kontrolling == true then
+      players[pindex].kruise_kontrolling = false
+      fix_walk(pindex)
+      toggle_remote_view(pindex, false, true)
+      close_menu_resets(pindex)
+      printout("Cancelled kruise kontrol action.", pindex)
+   end
 end)
+
+--Predicts what Kruise Kontrol is doing based on the current target
+function kk_status_prediction(pindex)
+   --Predict the status based on the selected location and entity
+   local p = game.get_player(pindex)
+   local result = "Kruise Kontrol "
+   local target = players[pindex].kk_target
+   local target_pos = players[pindex].kk_pos
+   local walking = false
+   if target == nil or target.valid == false then
+      result = result .. "Walking"
+      walking = true
+   elseif target.type == "entity-ghost" then
+      result = result .. "Building ghosts"
+   elseif target.type == "resource" then
+      result = result .. "Mining"
+   elseif target.type == "unit" or target.type == "unit-spawner" or target.type == "turret" then
+      result = result .. "Fighting"
+   elseif target.to_be_deconstructed() == true then
+      result = result .. "Deconstructing marked buildings "
+   else
+      result = result .. "Walking"
+      walking = true
+   end
+   local target_dist = math.floor(util.distance(p.position, target_pos))
+   local dist_info = ", " .. target_dist .. " tiles to target location"
+   if target_dist < 3 then dist_info = "" end
+   result = result .. dist_info
+   result = result .. ", press ENTER to exit Kruise Kontrol"
+
+   --If KK is simply walking, check whether the character has stopped for 1 second, so that the status is assumed to be done
+   --Note: we do not do a distance check because if KK has ended and the player walks freely, the distance check fails.
+   --Note: This could have been applied to all KK states but it is hard to know whether a stopped player is finished
+   if walking and player_was_still_for_1_second(pindex) then
+      players[pindex].kruise_kontrolling = false
+      fix_walk(pindex)
+      toggle_remote_view(pindex, false, true)
+      result = "Kruise Kontrol arrived."
+   end
+   return result
+end
+
+--Checks whether the player has not walked for 1 second. Uses the bump alert checks.
+function player_was_still_for_1_second(pindex)
+   local b = players[pindex].bump
+   if b == nil or b.filled ~= true then
+      --It is too soon to report anything
+      return false
+   end
+   local diff_x1 = b.last_pos_1.x - b.last_pos_2.x
+   local diff_x2 = b.last_pos_2.x - b.last_pos_3.x
+   local diff_x3 = b.last_pos_3.x - b.last_pos_4.x
+   local diff_y1 = b.last_pos_1.y - b.last_pos_2.y
+   local diff_y2 = b.last_pos_2.y - b.last_pos_3.y
+   local diff_y3 = b.last_pos_3.y - b.last_pos_4.y
+   if (diff_x1 + diff_x2 + diff_x3 + diff_y1 + diff_y2 + diff_y3) == 0 then
+      --Confirmed no movement in the past 60 ticks
+      return true
+   else
+      --Confirmed some movement in the past 60 ticks
+      return false
+   end
+end

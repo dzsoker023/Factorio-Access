@@ -1,4 +1,4 @@
---Here: Functions relating to train train stops and train scheduling from them (a unique mod feature)
+--Here: Functions relating to train train stops and train scheduling from them (which is a unique mod feature)
 --Does not include event handlers
 
 local mod = {}

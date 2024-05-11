@@ -467,7 +467,7 @@ function mod.rotate_building_info_read(event, forward)
          else
             printout(stack.name .. " never needs rotating.", pindex)
          end
-      elseif stack.valid_for_read and stack.is_blueprint and stack.is_blueprint_setup() then
+      elseif stack ~= nil and stack.valid_for_read and stack.is_blueprint and stack.is_blueprint_setup() then
          --Rotate blueprints: They are tracked separately, and we reset them to north when cursor stack changes
          game.get_player(pindex).play_sound({ path = "Rotate-Hand-Sound" })
          players[pindex].blueprint_hand_direction = (players[pindex].blueprint_hand_direction + dirs.east * mult)
@@ -1261,7 +1261,10 @@ function mod.build_preview_checks_info(stack, pindex)
          surf.find_entities_filtered({ type = "electric-pole", position = pos, radius = ent_p.max_wire_distance })
       local poles = {}
       for i, v in pairs(pole_dict) do
-         if v.prototype.max_wire_distance ~= nil and v.prototype.max_wire_distance >= ent_p.max_wire_distance then --Select only the poles that can connect back
+         if
+            v.prototype.max_wire_distance >= ent_p.max_wire_distance
+            or v.prototype.max_wire_distance >= util.distance(v.position, pos)
+         then
             table.insert(poles, v)
          end
       end

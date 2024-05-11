@@ -4,6 +4,7 @@ local fa_utils = require("scripts.fa-utils")
 local fa_crafting = require("scripts.crafting")
 local localising = require("scripts.localising")
 local fa_sectors = require("scripts.building-vehicle-sectors")
+local fa_circuits = require("scripts.circuit-networks")
 
 local mod = {}
 
@@ -352,7 +353,7 @@ function mod.fetch_next(pindex, str, start_phrase_in)
       new_index = prototypes_find_index_of_next_name_match(group, search_index, str, pindex)
       while new_index <= 0 and tries < #players[pindex].signal_selector.group_names + 1 do
          players[pindex].menu_search_last_name = "(none)"
-         signal_selector_group_down(pindex)
+         fa_circuits.signal_selector_group_down(pindex)
          group_index = players[pindex].signal_selector.group_index
          group_name = players[pindex].signal_selector.group_names[group_index]
          group = players[pindex].signal_selector.signals[group_name]
@@ -436,7 +437,7 @@ function mod.fetch_next(pindex, str, start_phrase_in)
    elseif players[pindex].menu == "signal_selector" then
       players[pindex].menu_search_index = new_index
       players[pindex].signal_selector.signal_index = new_index
-      read_selected_signal_slot(pindex, start_phrase)
+      fa_circuits.read_selected_signal_slot(pindex, start_phrase)
    else
       printout("Search error", pindex)
       return

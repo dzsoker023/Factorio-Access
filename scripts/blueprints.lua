@@ -1,4 +1,4 @@
---Here: Functions related to blueprints and blueprint books
+--Here: Functions related to ghosts, blueprints and blueprint books
 --Does not include event handlers
 
 local fa_utils = require("scripts.fa-utils")

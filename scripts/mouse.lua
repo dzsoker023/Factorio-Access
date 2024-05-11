@@ -7,19 +7,25 @@ local mod = {}
 
 --Moves the mouse pointer to the correct pixel on the screen for an input map position. If the position is off screen, then the pointer is centered on the player character instead. Does not run in vanilla mode or if the mouse is released from synchronizing.
 function mod.move_mouse_pointer(position, pindex)
+   local player = players[pindex]
    local pos = position
+   local screen = game.players[pindex].display_resolution
+   local screen_center = fa_utils.mult_position({ x = screen.width, y = screen.height }, 0.5)
+   local pixels = screen_center
+   local offset = { x = 0, y = 0 }
    if players[pindex].vanilla_mode or game.get_player(pindex).game_view_settings.update_entity_selection == true then
       return
-   elseif players[pindex].cursor and mod.cursor_position_is_on_screen_with_player_centered(pindex) == false then
+   elseif mod.cursor_position_is_on_screen_with_player_centered(pindex) == false then
+      --If the cursor is distant, center the pointer on the player
       pos = players[pindex].position
-      --move_mouse_pointer_map_mode(position,pindex)
-      --return
+      offset = fa_utils.mult_position(fa_utils.sub_position(pos, player.position), 32 * player.zoom)
+   elseif player.remote_view == true then
+      --If in remote view,
+      offset = { x = 0, y = 0 }
+   else
+      offset = fa_utils.mult_position(fa_utils.sub_position(pos, player.position), 32 * player.zoom)
    end
-   local player = players[pindex]
-   local pixels = fa_utils.mult_position(fa_utils.sub_position(pos, player.position), 32 * player.zoom)
-   local screen = game.players[pindex].display_resolution
-   local screen_c = { x = screen.width, y = screen.height }
-   pixels = fa_utils.add_position(pixels, fa_utils.mult_position(screen_c, 0.5))
+   pixels = fa_utils.add_position(pixels, offset)
    mod.move_pointer_to_pixels(pixels.x, pixels.y, pindex)
    --game.get_player(pindex).print("moved to " ..  math.floor(pixels.x) .. " , " ..  math.floor(pixels.y), {volume_modifier=0})--
 end

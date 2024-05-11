@@ -1,3 +1,71 @@
+# Version 0.11.1 BETA
+Release requirements:
+1) Test this whole changelog for 0.11.0 and 0.11.1, and close the GitHub issues.
+2) Do a full tutorial run and incorporate the simpler suggestions!
+3) Prepare for a stable release: the usual final tests. Also Dtylua checks.
+4) Add the JKM exception, both changelogs written, merge to next-update and then to main.
+
+## Summary
+- This update features the second phase of the refactoring of the codebase into modules, making it easier to follow and maintain. It is also accompanied by some small additions, changes, and bugfixes. Improved systems include Kruise Kontrol, fast travel, and the rail builder. While a fair amount of testing has been done so far, new bugs may still emerge due to the refactor.
+
+## Info
+- The second part of the refactoring into modules was completed.
+  * Files with multiple modules in them were split so that every module has one file and vice versa.
+  * Any Lua module being referenced within its own file is now called "mod" for brevity and simplicity. 
+  * All Lua modules related to the runtime stage were moved to a "scripts" folder, matching modding conventions.
+  * Cleaned up several todo comments.
+  * More refactor work is needed later, to further clean up "control.lua".
+
+- Started using the GitHub Issues system to track all issues and some feature requests. The Discord channels will still be open for use but the goal is to log everything on GitHub.
+
+- Moved to using StyLua to standardize code formatting. It needs to be run after you finish making changes. GitHUb actions were added so that every commit is now checked for StyLua compliance.
+
+- A new menu system and other code infrastructure is being designed by @ahicks. It is being tested right now for circuit networks code and may be applied to the rest of the codebase later so that more flexible and useful menu designs can be supported later on.
+
+## Features
+- The rail builder now supports adding left forks and right forks, giving a total of 4 possible forks.
+
+## Changes
+- When reading the relative direction of the cursor or a scan list entry, if it is fully aligned in that cardinal or diagonal direction, the game will now also read out "aligned".
+
+- Checking for the nearest damaged entity will now also jump the cursor to the entity, making it easier to target it.
+
+- Items in hand can now have their logistic requests edited while the trash menu is open.
+  * You can now also check the request info for an item in a slot of the trash inventory, but you need to take it in hand to edit its requests. This is good because editing the requests for an item might have it automatically flushed out of the trash inventory without warning.
+
+- Closing the fast travel menu no longer returns the cursor to the player, and the cursor being jumped to a point when it is selected is now stated openly.
+
+- Improved integration for the mod Kruise Kontrol, by Klonan.
+  * KK actions will now be possible while in telestep mode.
+  * Pressing any walking key will no longer cancal KK actions because this was not working correctly. You must press "ENTER" to cancel actions.
+
+- Added a system for independently predicting and reporting the Kruise Kontrol status. 
+  * The status checks what was targeted to initiate Kruise Kontrol and is updated accordingly.
+  * The status is reported regularly, although this report is often interrupted by cursor readouts.
+  * If the status was walking and the player has reached the destination and has not moved for 1 second, then the status automatically is assumed to be arrived.
+  * For other cases, the status reporting is finished only when you cancel Kruise Kontrol by pressing "Enter", because there may be ongoing actions despite the player standing still at the target location.
+
+## Bugfixes
+- Fixed a locale error about teleporting the cursor.
+
+- Fixed lab module slots being incorrectly labeled as reserved for science packs.
+
+- Fixed an issue with the handling of the undocumented direction number 8, which represents "here". It is read out as an empty string.
+
+- Fixed a crash due to loading a cursor bookmark before having set any.
+
+- Fixed a crash when using area mining to clear rail objects including signals.
+
+- Fixed footstep sounds being wrongly played while navigating through menus.
+
+- Fixed a bug that was placing the mouse pointer incorrectly while in Remote View, and interfering with Kruise Kontrol.
+
+- Fixed a crash that occurs while rotating buildings.
+
+- Fixed some invalid keybinds.
+
+- Re-fixed the playing of multiple mining sounds while mining a resource.
+
 # Version 0.11.0 BETA - EXPERIMENTAL
 Released preview 0.11.0e1 on April 27th, 2024.
 

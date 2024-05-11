@@ -1,5 +1,5 @@
---Here: Functions relating to train topics such as train info, train stops, train scheduling
---Does not include event handlers
+--Here: Functions relating to train topics such as train info, instant train scheduling
+--Does not include event handlers, train stops, rails
 
 local util = require("util")
 local fa_utils = require("scripts.fa-utils")
