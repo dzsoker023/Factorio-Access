@@ -9907,7 +9907,8 @@ function kk_status_prediction(pindex)
    elseif target.to_be_deconstructed() == true then
       result = result .. "Deconstructing marked buildings "
    else
-      result = result .. "Active"
+      result = result .. "Walking"
+      walking = true
    end
    local target_dist = math.floor(util.distance(p.position, target_pos))
    local dist_info = ", " .. target_dist .. " tiles to target location"
