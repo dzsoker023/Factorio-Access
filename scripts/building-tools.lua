@@ -1261,7 +1261,10 @@ function mod.build_preview_checks_info(stack, pindex)
          surf.find_entities_filtered({ type = "electric-pole", position = pos, radius = ent_p.max_wire_distance })
       local poles = {}
       for i, v in pairs(pole_dict) do
-         if v.prototype.max_wire_distance ~= nil and v.prototype.max_wire_distance >= ent_p.max_wire_distance then --Select only the poles that can connect back
+         if
+            v.prototype.max_wire_distance >= ent_p.max_wire_distance
+            or v.prototype.max_wire_distance >= util.distance(v.position, pos)
+         then
             table.insert(poles, v)
          end
       end
