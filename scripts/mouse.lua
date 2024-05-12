@@ -15,13 +15,13 @@ function mod.move_mouse_pointer(position, pindex)
    local offset = { x = 0, y = 0 }
    if players[pindex].vanilla_mode or game.get_player(pindex).game_view_settings.update_entity_selection == true then
       return
+   elseif player.remote_view == true then
+      --If in remote view, take the cursor position as the center point
+      offset = fa_utils.mult_position(fa_utils.sub_position(pos, player.cursor_pos), 32 * player.zoom)
    elseif mod.cursor_position_is_on_screen_with_player_centered(pindex) == false then
       --If the cursor is distant, center the pointer on the player
       pos = players[pindex].position
       offset = fa_utils.mult_position(fa_utils.sub_position(pos, player.position), 32 * player.zoom)
-   elseif player.remote_view == true then
-      --If in remote view,
-      offset = { x = 0, y = 0 }
    else
       offset = fa_utils.mult_position(fa_utils.sub_position(pos, player.position), 32 * player.zoom)
    end

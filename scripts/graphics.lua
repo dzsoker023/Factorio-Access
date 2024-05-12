@@ -156,7 +156,9 @@ function mod.update_menu_visuals()
    end
 end
 
---Updates graphics to match the mod's current construction preview in hand. Draws stuff like the building footprint, direction indicator arrow, selection tool selection box. Also moves the mouse pointer to hold the preview at the correct position on screen.
+--Updates graphics to match the mod's current construction preview in hand. 
+--Draws stuff like the building footprint, direction indicator arrow, selection tool selection box. 
+--Also moves the mouse pointer to hold the preview at the correct position on screen.
 function mod.sync_build_cursor_graphics(pindex)
    local player = players[pindex]
    if player == nil or player.player.character == nil then return end
@@ -263,7 +265,7 @@ function mod.sync_build_cursor_graphics(pindex)
          rendering.set_visible(player.building_footprint, false)
       end
 
-      --Move mouse cursor according to building box
+      --Move mouse pointer according to building box
       if player.cursor then
          --Adjust for cursor
          local new_pos = { x = (left_top.x + width / 2), y = (left_top.y + height / 2) }

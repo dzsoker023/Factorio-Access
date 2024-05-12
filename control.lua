@@ -1464,7 +1464,7 @@ function toggle_cursor_mode(pindex)
       read_tile(pindex, "Cursor mode disabled, ")
 
       --Close Remote view
-      players[pindex].remote_view = false
+      toggle_remote_view(pindex,false,true)
       p.close_map()
    end
    if players[pindex].cursor_size < 2 then
@@ -3595,6 +3595,7 @@ end
 function sync_remote_view(pindex)
    local p = game.get_player(pindex)
    p.zoom_to_world(players[pindex].cursor_pos)
+   fa_zoom.fix_zoom(pindex)
    fa_graphics.sync_build_cursor_graphics(pindex)
 end
 
@@ -3661,7 +3662,7 @@ script.on_event("pause-game-fa", function(event)
    game.get_player(pindex).close_map()
    game.get_player(pindex).play_sound({ path = "Close-Inventory-Sound" })
    if players[pindex].remote_view == true then
-      players[pindex].remote_view = false
+      toggle_remote_view(pindex,false,true)
       printout("Remote view closed", pindex)
    end
    if game.tick_paused == true then
