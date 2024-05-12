@@ -3241,7 +3241,7 @@ function on_tick(event)
       for pindex, player in pairs(players) do
          if players[pindex].remote_view == true then
             sync_remote_view(pindex)
-         else
+         elseif players[pindex].vanilla_mode ~= true then
             game.get_player(pindex).close_map()
          end
       end

@@ -70,7 +70,10 @@ function mod.check_and_play_driving_alert_sound(pindex, tick, mode_in)
       local mode = mode_in or 1
       local p = game.get_player(pindex)
       local surf = p.surface
+      --Return in inapplicable cases
       if p == nil or p.valid == false or p.driving == false or p.vehicle == nil then return false end
+      --Return in vanilla mode
+      if players[pindex].vanilla_mode == true then return end
       --Return if beeped recently
       local min_delay = 15
       if players[pindex].last_driving_alert_tick == nil then
