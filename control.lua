@@ -1464,7 +1464,7 @@ function toggle_cursor_mode(pindex)
       read_tile(pindex, "Cursor mode disabled, ")
 
       --Close Remote view
-      toggle_remote_view(pindex,false,true)
+      toggle_remote_view(pindex, false, true)
       p.close_map()
    end
    if players[pindex].cursor_size < 2 then
@@ -3662,7 +3662,7 @@ script.on_event("pause-game-fa", function(event)
    game.get_player(pindex).close_map()
    game.get_player(pindex).play_sound({ path = "Close-Inventory-Sound" })
    if players[pindex].remote_view == true then
-      toggle_remote_view(pindex,false,true)
+      toggle_remote_view(pindex, false, true)
       printout("Remote view closed", pindex)
    end
    if game.tick_paused == true then
