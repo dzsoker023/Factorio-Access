@@ -2,6 +2,8 @@
 
 Hello and thank you for your interest in contributing to Factorio Access! Here is some general information about how Factorio mods work, and how this mod in particular works.
 
+This document has been updated for Mod Version 0.11.1.
+
 ## Dev environment setup
 
 Our normal way to receive your proposed code changes is via a GitHub pull request, but you can get in touch with us on Discord about alternatives. These instructions assume a default setup where you fork the mod's repository and use Visual Studio Code. Lots of setup variations are possible though, so take these instructions with a grain of salt, and ask for help with deviations, if needed.
@@ -10,7 +12,7 @@ Our normal way to receive your proposed code changes is via a GitHub pull reques
 2. Replace the FactorioAccess mod folder in "`%appdata%\Factorio\mods\`" with a clone of your fork, so that your changes can be tested in game right away.
 3. Ensure you have a somewhat up to date version of VS Code installed.
 4. Open a new VS Code window, and from there open that newly created FactorioAccess folder.
-5. VS Code may or may not prompt you to install some extentions, in either case install the recommended extensions. You can find recommended extensions in the "`Extensions`" tab, under the "`Recommended`" section. We generally recommend using the "`Factorio Modding Toolkit (FMTK)`" and "`Factorio Lua API autocomplete`".
+5. VS Code may or may not prompt you to install some extentions, in either case install the recommended extensions. You can find recommended extensions in the "`Extensions`" tab, under the "`Recommended`" section. We generally recommend using the "`Factorio Modding Toolkit (FMTK)`" and "`Factorio Lua API autocomplete`". Meanwhile, we require using "`StyLua`".
 6. Save your VS Code workspace with the "`Save Workspace As...`" menu option, under the "`File`" tab. You can save it anywhere you'll remeber and you should use that file to reopen your VS Code workspace whenever you want to restart working on Facotrio Access. This workspace file is used to store your VS Code settings that are not shared by different developers, like folder locations. 
 7. Update your working branch of the repository, using either the "`main`" branch or the "`next-update`" branch. We usually reserve the `main` branch for stable releases while ongoing work is collected on the `next-update` branch after it has been (mostly) tested and intended for the next release. 
 8. The code is now ready for editing but we recommend setting up VS Code for testing as well. If you'd like to do live debugging while still hearing what's going on, you'll need a special version of the mod launcher that doesn't have a console. You can find that [linked here](https://github.com/Factorio-Access/Factorio-Access-Launcher/releases). It should be placed next to facotrio.exe in the folder "`Facotrio\bin\x64\` ".
@@ -40,6 +42,8 @@ When not referencing game objects, the mod has a global data table where persist
 
 Other aspects of the runtime can be referenced as well, such as the graphics rendering system, or the remote calls system for interfacing with other mods. Read more about the runtime stage on [the API page for runtime](https://lua-api.factorio.com/latest/index-runtime.html).
 
+Most of the mod work is done using simple Lua types. As of version 0.11, the mod is also setting up its own data structures to let it do more sophisticated things in an elegant way, but this work is still underway.
+
 ## Key mod files
 
 ### Standard files
@@ -57,13 +61,13 @@ The standard files for Factorio mods include the following:
 
 ### Lua module files
 
-Every other lua file in the Factorio Access folder is for the runtime stage and gets loaded by `control.lua`. The mod uses Lua modules to ogranize much of the runtime code, and so these lua files contain one or two modules each. A few files of interest are the following:
+The `scripts`folder contains all the runtime stage code for this mod, separated into Lua modules with one file per module. All of these modules get loaded by `control.lua` and some of them require others. Modules are defined according to the game features they relate to. Some notable modules are:
 
 * `fa-utils.lua`contains utility functions that are used across the mod, including position and direction processing, string processing, and the like.
 
 * `building-tools.lua`contains building related functions, including basic functions and advanced helper functions. It is worth noting that the mod does not (and can not?) use any of the built-in smart building features of the base game.
 
-* `graphics-and-mouse.lua`contains mod functions related to drawing things in the world, or updating GUI's, or moving the mouse pointer on the screen. If there are issues related to these features, sighted developers can start debugging here. There are other places where the mod draws stuff but those tend to be simple graphics for debugging assistance.
+* `graphics.lua` and `mouse.lua` contain mod functions related to drawing things in the world, or updating GUI's, or moving the mouse pointer on the screen. If there are issues related to these features, sighted developers can start debugging here. There are other places where the mod draws stuff but those tend to be simple graphics for debugging assistance.
 
 * `localising.lua`contains the mod's own helper functions for fetching localized strings that can be concatinated, which cannot be done easily with the API alone.
 
@@ -143,7 +147,7 @@ Factorio allows every player to open at most one menu window at a time. Based on
 
 * `signal_selector`: The menu for browsing all available circuit network signals.
 
-Note: The scanner tool does not have its own menu but its features can be used only when no menus are open.
+Note 1: The scanner tool does not have its own menu but its features can be used only when no menus are open.
 
 ## More resources
 
