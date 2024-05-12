@@ -352,7 +352,9 @@ function mod.sync_build_cursor_graphics(pindex)
          rendering.set_visible(player.building_footprint, true)
 
          --Move the mouse pointer
-         if fa_mouse.cursor_position_is_on_screen_with_player_centered(pindex) then
+         if players[pindex].remote_view == true then
+            fa_mouse.move_mouse_pointer(center_pos, pindex)
+         elseif fa_mouse.cursor_position_is_on_screen_with_player_centered(pindex) then
             fa_mouse.move_mouse_pointer(center_pos, pindex)
          else
             fa_mouse.move_mouse_pointer(players[pindex].position, pindex)
