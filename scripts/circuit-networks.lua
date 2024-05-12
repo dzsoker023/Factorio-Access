@@ -903,8 +903,8 @@ function mod.circuit_network_menu_run(pindex, ent_in, menu_index, clicked, other
       if index > 3 then
          --(inventory edge: play sound and set index and call this menu again)
          p.play_sound({ path = "inventory-edge" })
-         players[pindex].mod.circuit_network_menu_run.index = 3
-         mod.circuit_network_menu_run(pindex, ent, players[pindex].mod.circuit_network_menu_run.index, false, false)
+         players[pindex].circuit_network_menu.index = 3
+         mod.circuit_network_menu_run(pindex, ent, players[pindex].circuit_network_menu.index, false, false)
       end
       return
    elseif ent.type == "constant-combinator" then
@@ -956,8 +956,8 @@ function mod.circuit_network_menu_run(pindex, ent_in, menu_index, clicked, other
       elseif index > 8 then
          --(inventory edge: play sound and set index and call this menu again)
          p.play_sound({ path = "inventory-edge" })
-         players[pindex].mod.circuit_network_menu_run.index = 8
-         mod.circuit_network_menu_run(pindex, ent, players[pindex].mod.circuit_network_menu_run.index, false, false)
+         players[pindex].circuit_network_menu.index = 8
+         mod.circuit_network_menu_run(pindex, ent, players[pindex].circuit_network_menu.index, false, false)
       end
       return
    else
@@ -1066,14 +1066,8 @@ function mod.circuit_network_menu_run(pindex, ent_in, menu_index, clicked, other
             elseif index == 12 then
                --(inventory edge: play sound and set index and call this menu again)
                p.play_sound({ path = "inventory-edge" })
-               players[pindex].mod.circuit_network_menu_run.index = 11
-               mod.circuit_network_menu_run(
-                  pindex,
-                  ent,
-                  players[pindex].mod.circuit_network_menu_run.index,
-                  false,
-                  false
-               )
+               players[pindex].circuit_network_menu.index = 11
+               mod.circuit_network_menu_run(pindex, ent, players[pindex].circuit_network_menu.index, false, false)
             end
          else
             --Programmable speaker menu
@@ -1237,14 +1231,8 @@ function mod.circuit_network_menu_run(pindex, ent_in, menu_index, clicked, other
             elseif index == 20 then
                --(inventory edge: play sound and set index and call this menu again)
                p.play_sound({ path = "inventory-edge" })
-               players[pindex].mod.circuit_network_menu_run.index = 19
-               mod.circuit_network_menu_run(
-                  pindex,
-                  ent,
-                  players[pindex].mod.circuit_network_menu_run.index,
-                  false,
-                  false
-               )
+               players[pindex].circuit_network_menu.index = 19
+               mod.circuit_network_menu_run(pindex, ent, players[pindex].circuit_network_menu.index, false, false)
             end
          end
       end
@@ -1257,12 +1245,12 @@ mod.CN_MENU_LENGTH = 20
 function mod.circuit_network_menu_open(pindex, ent)
    if players[pindex].vanilla_mode then return end
    --Set the player menu tracker to this menu
-   players[pindex].menu = "mod.circuit_network_menu_run"
+   players[pindex].menu = "circuit_network_menu"
    players[pindex].in_menu = true
    players[pindex].move_queue = {}
 
    --Set the menu line counter to 0
-   players[pindex].mod.circuit_network_menu_run = {
+   players[pindex].circuit_network_menu = {
       index = 0,
    }
 
@@ -1270,7 +1258,6 @@ function mod.circuit_network_menu_open(pindex, ent)
    game.get_player(pindex).play_sound({ path = "Open-Inventory-Sound" })
 
    --Load menu
-   local cn_menu = players[pindex].mod.circuit_network_menu_run
    mod.circuit_network_menu_run(pindex, ent, 0, false)
 end
 
@@ -1281,7 +1268,7 @@ function mod.circuit_network_menu_close(pindex, mute_in)
    players[pindex].in_menu = false
 
    --Set the menu line counter to 0
-   players[pindex].mod.circuit_network_menu_run.index = 0
+   players[pindex].circuit_network_menu.index = 0
 
    --play sound
    if not mute then game.get_player(pindex).play_sound({ path = "Close-Inventory-Sound" }) end
@@ -1522,7 +1509,7 @@ function mod.apply_selected_signal_to_enabled_condition(pindex, ent, first)
    end
    circuit_condition.condition = cond
    ent.get_control_behavior().circuit_condition = circuit_condition
-   players[pindex].menu = "mod.circuit_network_menu_run"
+   players[pindex].menu = "circuit_network_menu"
    players[pindex].signal_selector = nil
    printout(
       set_message
