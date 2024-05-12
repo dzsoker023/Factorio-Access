@@ -474,7 +474,9 @@ function mod.draw_cursor_highlight(pindex, ent, box_type, skip_mouse_movement)
    end
 
    --Move the mouse cursor to the object on screen or to the player position for objects off screen
-   if fa_mouse.cursor_position_is_on_screen_with_player_centered(pindex) then
+   if players[pindex].remote_view == true then
+      fa_mouse.move_mouse_pointer(fa_utils.center_of_tile(c_pos), pindex)
+   elseif fa_mouse.cursor_position_is_on_screen_with_player_centered(pindex) then
       fa_mouse.move_mouse_pointer(fa_utils.center_of_tile(c_pos), pindex)
    else
       fa_mouse.move_mouse_pointer(fa_utils.center_of_tile(p.position), pindex)

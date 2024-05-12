@@ -1503,6 +1503,9 @@ function toggle_remote_view(pindex, force_true, force_false)
       printout("Remote view closed", pindex)
       game.get_player(pindex).close_map()
    end
+
+   --Fix zoom
+   fa_zoom.fix_zoom(pindex)
 end
 
 --Teleports the player character to the nearest tile center position to allow grid aligned cursor movement.
@@ -3595,7 +3598,6 @@ end
 function sync_remote_view(pindex)
    local p = game.get_player(pindex)
    p.zoom_to_world(players[pindex].cursor_pos)
-   fa_zoom.fix_zoom(pindex)
    fa_graphics.sync_build_cursor_graphics(pindex)
 end
 
@@ -3868,7 +3870,6 @@ script.on_event("toggle-remote-view", function(event)
       players[pindex].move_queue = {}
       toggle_remote_view(pindex)
    end
-   fa_zoom.fix_zoom(pindex)
 end)
 
 --We have cursor sizes 1,3,5,11,21,51,101,251
