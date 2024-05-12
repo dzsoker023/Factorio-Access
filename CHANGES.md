@@ -1,12 +1,8 @@
 # Version 0.11.1 BETA
-Release requirements:
-1) Test this whole changelog for 0.11.0 and 0.11.1, and close the GitHub issues.
-2) Do a full tutorial run and incorporate the simpler suggestions!
-3) Prepare for a stable release: the usual final tests. Also Dtylua checks.
-4) Add the JKM exception, both changelogs written, merge to next-update and then to main.
+Released on May 13th, 2024.
 
 ## Summary
-- This update features the second phase of the refactoring of the codebase into modules, making it easier to follow and maintain. It is also accompanied by some small additions, changes, and bugfixes. Improved systems include Kruise Kontrol, fast travel, and the rail builder. While a fair amount of testing has been done so far, new bugs may still emerge due to the refactor.
+- This update features the second phase of the refactoring of the codebase into modules, making it easier to follow and maintain. It is also accompanied by some small additions, changes, and bugfixes. Improved systems include the launcher, Remote View, Kruise Kontrol, fast travel, and the rail builder. While a fair amount of testing has been done, new bugs may still emerge due to the refactor.
 
 ## Info
 - The second part of the refactoring into modules was completed.
@@ -25,6 +21,8 @@ Release requirements:
 ## Features
 - The rail builder now supports adding left forks and right forks, giving a total of 4 possible forks.
 
+- Launcher: Added braille display support so that mod readouts are also written to the displays.
+
 ## Changes
 - When reading the relative direction of the cursor or a scan list entry, if it is fully aligned in that cardinal or diagonal direction, the game will now also read out "aligned".
 
@@ -35,6 +33,8 @@ Release requirements:
 
 - Closing the fast travel menu no longer returns the cursor to the player, and the cursor being jumped to a point when it is selected is now stated openly.
 
+- Tweaked the early tutorial chapters to improve clarity. Notably, added reminders to empty the hand, and switched to using chests instead of pipes as reference points for placing burner inserters.
+
 - Improved integration for the mod Kruise Kontrol, by Klonan.
   * KK actions will now be possible while in telestep mode.
   * Pressing any walking key will no longer cancal KK actions because this was not working correctly. You must press "ENTER" to cancel actions.
@@ -44,6 +44,8 @@ Release requirements:
   * The status is reported regularly, although this report is often interrupted by cursor readouts.
   * If the status was walking and the player has reached the destination and has not moved for 1 second, then the status automatically is assumed to be arrived.
   * For other cases, the status reporting is finished only when you cancel Kruise Kontrol by pressing "Enter", because there may be ongoing actions despite the player standing still at the target location.
+
+- Launcher: Improved command line parameter handling.
 
 ## Bugfixes
 - Fixed a locale error about teleporting the cursor.
@@ -58,13 +60,15 @@ Release requirements:
 
 - Fixed footstep sounds being wrongly played while navigating through menus.
 
-- Fixed a bug that was placing the mouse pointer incorrectly while in Remote View, and interfering with Kruise Kontrol.
+- Fixed several bugs that were placing the mouse pointer incorrectly while in Remote View, and so interfering with Kruise Kontrol.
 
 - Fixed a crash that occurs while rotating buildings.
 
 - Fixed some invalid keybinds.
 
 - Re-fixed the playing of multiple mining sounds while mining a resource.
+
+- Fixed some mod features interfering with vanilla mode.
 
 # Version 0.11.0 BETA - EXPERIMENTAL
 Released preview 0.11.0e1 on April 27th, 2024.
