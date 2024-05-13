@@ -7738,20 +7738,22 @@ script.on_event("clear-renders", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    game.get_player(pindex).gui.screen.clear()
-
-   rendering.clear()
-   for pindex, player in pairs(players) do
-      player.cursor_ent_highlight_box = nil
-      player.cursor_tile_highlight_box = nil
-      player.building_footprint = nil
-      player.building_dir_arrow = nil
-      player.overhead_sprite = nil
-      player.overhead_circle = nil
-      player.custom_GUI_frame = nil
-      player.custom_GUI_sprite = nil
-   end
+   players[pindex].cursor_ent_highlight_box = nil
+   players[pindex].cursor_tile_highlight_box = nil
+   players[pindex].building_footprint = nil
+   players[pindex].building_dir_arrow = nil
+   players[pindex].overhead_sprite = nil
+   players[pindex].overhead_circle = nil
+   players[pindex].custom_GUI_frame = nil
+   players[pindex].custom_GUI_sprite = nil
+   clear_renders()
    printout("Cleared renders", pindex)
 end)
+
+function clear_renders()
+   rendering.clear("FactorioAccess")
+   rendering.clear("")
+end
 
 script.on_event("recalibrate-zoom", function(event)
    local pindex = event.player_index

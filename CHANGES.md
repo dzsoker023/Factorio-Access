@@ -14,6 +14,8 @@ Released on May 13th, 2024.
 
 - Started using the GitHub Issues system to track all issues and some feature requests. The Discord channels will still be open for use but the goal is to log everything on GitHub.
 
+- Added a document that provides info for contributors, as a starting point for explaining how the mod code works.
+
 - Moved to using StyLua to standardize code formatting. It needs to be run after you finish making changes. GitHUb actions were added so that every commit is now checked for StyLua compliance.
 
 - A new menu system and other code infrastructure is being designed by @ahicks. It is being tested right now for circuit networks code and may be applied to the rest of the codebase later so that more flexible and useful menu designs can be supported later on.
