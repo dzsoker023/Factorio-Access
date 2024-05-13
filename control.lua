@@ -3282,8 +3282,8 @@ function on_tick(event)
          --Fix running speed bug (toggle walk also fixes it)
          fix_walk(pindex)
       end
-   elseif event.tick % 500 == 14 then
-      --Run regular reminders
+   elseif event.tick % 450 == 14 then
+      --Run regular reminders every 7.5 seconds
       for pindex, player in pairs(players) do
          --Tutorial reminder every 10 seconds until you open it
          if players[pindex].started ~= true then
@@ -7589,7 +7589,7 @@ end)
 
 script.on_event(defines.events.on_player_created, function(event)
    initialize(game.players[event.player_index])
-   if not game.is_multiplayer() then printout("Press 'TAB' to continue", pindex) end
+   --if not game.is_multiplayer() then printout("Press 'TAB' to continue", pindex) end
 end)
 
 script.on_event(defines.events.on_gui_closed, function(event)
@@ -9861,7 +9861,6 @@ script.on_event("klient-alt-move-to", function(event)
       players[pindex].kruise_kontrolling = true
       p.character_running_speed_modifier = 0
       local kk_pos = players[pindex].cursor_pos
-      printout("Moving to " .. math.floor(kk_pos.x) .. ", " .. math.floor(kk_pos.y), pindex)
       --Save what the player targetted
       players[pindex].kk_pos = kk_pos
       local kk_targets = p.surface.find_entities_filtered({ position = kk_pos, name = "highlight-box", invert = true })
@@ -9873,6 +9872,9 @@ script.on_event("klient-alt-move-to", function(event)
       --Close remote view
       toggle_remote_view(pindex, false, true)
       close_menu_resets(pindex)
+
+      --Report action
+      printout(kk_status_prediction(pindex, true), pindex)
    else
       players[pindex].kruise_kontrolling = false
       fix_walk(pindex)
@@ -9895,7 +9897,7 @@ script.on_event("klient-cancel-enter", function(event)
 end)
 
 --Predicts what Kruise Kontrol is doing based on the current target
-function kk_status_prediction(pindex)
+function kk_status_prediction(pindex, short_version)
    --Predict the status based on the selected location and entity
    local p = game.get_player(pindex)
    local result = "Kruise Kontrol "
@@ -9907,7 +9909,7 @@ function kk_status_prediction(pindex)
       walking = true
    elseif target.type == "entity-ghost" then
       result = result .. "Building ghosts"
-   elseif target.type == "resource" then
+   elseif target.type == "resource" or target.type == "simple-entity" then
       result = result .. "Mining"
    elseif target.type == "unit" or target.type == "unit-spawner" or target.type == "turret" then
       result = result .. "Fighting"
@@ -9917,11 +9919,12 @@ function kk_status_prediction(pindex)
       result = result .. "Walking"
       walking = true
    end
+   if short_version == true then return result end
    local target_dist = math.floor(util.distance(p.position, target_pos))
-   local dist_info = ", " .. target_dist .. " tiles to target location"
+   local dist_info = ", " .. target_dist .. " tiles to target"
    if target_dist < 3 then dist_info = "" end
    result = result .. dist_info
-   result = result .. ", press ENTER to exit Kruise Kontrol"
+   result = result .. ", press ENTER to cancel"
 
    --If KK is simply walking, check whether the character has stopped for 1 second, so that the status is assumed to be done
    --Note: we do not do a distance check because if KK has ended and the player walks freely, the distance check fails.

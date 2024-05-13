@@ -543,7 +543,7 @@ function mod.read_sector_slot(pindex, prefix_inventory_size_and_name)
             players[pindex].building.ent ~= nil
             and players[pindex].building.ent.valid
             and players[pindex].building.ent.type == "lab"
-            and building_sector.name == "Input"
+            and building_sector.name == "Output"
          then
             --laterdo switch to {"item-name.".. ent.prototype.lab_inputs[players[pindex].building.index] }
             result = result .. " reserved for science pack type " .. players[pindex].building.index
