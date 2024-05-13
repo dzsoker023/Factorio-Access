@@ -3239,10 +3239,13 @@ function on_tick(event)
    elseif event.tick % 15 == 3 then
       --Adjust camera if in remote view
       for pindex, player in pairs(players) do
+         players[pindex].closed_map_count = players[pindex].closed_map_count or 0
          if players[pindex].remote_view == true then
             sync_remote_view(pindex)
-         elseif players[pindex].vanilla_mode ~= true then
+            players[pindex].closed_map_count = 0
+         elseif players[pindex].vanilla_mode ~= true and players[pindex].closed_map_count < 1 then
             game.get_player(pindex).close_map()
+            players[pindex].closed_map_count = players[pindex].closed_map_count + 1
          end
       end
    elseif event.tick % 30 == 6 then
@@ -7621,7 +7624,7 @@ script.on_event("save-game-manually", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    game.auto_save("manual")
-   printout("Saving Game, please do not quit yet.", pindex)
+   printout("Saving Game, please wait 3 seconds.", pindex)
 end)
 
 --Reads flying text
@@ -9354,8 +9357,8 @@ function check_and_play_bump_alert_sound(pindex, this_tick)
    --Initialize
    if players[pindex].bump == nil then reset_bump_stats(pindex) end
 
-   --Return and reset if in a menu or a vehicle or in a different walking mode than smooth walking
-   if players[pindex].in_menu or p.vehicle ~= nil or players[pindex].walk ~= 2 then
+   --Return and reset if in a menu or a vehicle
+   if players[pindex].in_menu or p.vehicle ~= nil then
       players[pindex].bump.last_pos_4 = nil
       players[pindex].bump.last_pos_3 = nil
       players[pindex].bump.last_pos_2 = nil
@@ -9455,7 +9458,7 @@ function check_and_play_bump_alert_sound(pindex, this_tick)
 
    --Now we can confirm that there is a sudden lateral movement
    players[pindex].bump.last_bump_tick = this_tick
-   p.play_sound({ path = "player-bump-alert" })
+   --p.play_sound({ path = "player-bump-alert" }) --Removed the alert beep
    local bump_was_ent = false
    local bump_was_cliff = false
    local bump_was_tile = false
