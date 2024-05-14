@@ -424,7 +424,11 @@ function ent_info(pindex, ent, description)
       result = result .. " of train " .. fa_trains.get_train_name(ent.train)
    --State the signal state of a rail signal
    elseif ent.name == "rail-signal" or ent.name == "rail-chain-signal" then
-      result = result .. ", " .. fa_rails.get_signal_state_info(ent)
+      if ent.status == defines.entity_status.not_connected_to_rail then
+         result = result .. " not connected to rails "
+      else
+         result = result .. ", " .. fa_rails.get_signal_state_info(ent)
+      end
    end
    --Report the entity facing direction
    if

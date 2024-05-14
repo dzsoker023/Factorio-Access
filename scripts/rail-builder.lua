@@ -316,7 +316,7 @@ function mod.free_place_rail_signal_in_hand(pindex, preview_only)
    local build_comment = ""
    --Check if the building area is occupied
    if surf.can_place_entity({ position = pos, name = stack.name, force = p.force }) == false then
-      game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
+      if not preview_only then p.play_sound({ path = "utility/cannot_build" }) end
       build_comment = "Tile occupied."
       printout(build_comment, pindex)
       return
@@ -325,15 +325,15 @@ function mod.free_place_rail_signal_in_hand(pindex, preview_only)
    local nearby_signals =
       surf.find_entities_filtered({ position = pos, radius = 1.5, name = { "rail-signal", "rail-chain-signal" } })
    if #nearby_signals > 0 then
-      game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
+      if not preview_only then p.play_sound({ path = "utility/cannot_build" }) end
       build_comment = "Too close to existing signals."
       printout(build_comment, pindex)
       return
    end
    --Scan for straight rails nearby
-   local rails = surf.find_entities_filtered({ position = pos, radius = 2.0, name = "straight-rail" })
+   local rails = surf.find_entities_filtered({ position = pos, radius = 2.5, name = "straight-rail" })
    if #rails == 0 then
-      game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
+      if not preview_only then p.play_sound({ path = "utility/cannot_build" }) end
       build_comment = "Must be placed next to a straight rail."
       printout(build_comment, pindex)
       return
@@ -360,12 +360,35 @@ function mod.free_place_rail_signal_in_hand(pindex, preview_only)
          --Place at east, heading north
          if preview_only then return dirs.north end
          created = surf.create_entity({ position = pos, name = stack.name, force = p.force, direction = dirs.south })
+      elseif rail_at == dirs.northeast and (rail_dir == dirs.northeast or rail_dir == dirs.southwest) then
+         --Place at southwest, heading southeast
+         if preview_only then return dirs.southeast end
+         created =
+            surf.create_entity({ position = pos, name = stack.name, force = p.force, direction = dirs.northwest })
+      elseif rail_at == dirs.southwest and (rail_dir == dirs.northeast or rail_dir == dirs.southwest) then
+         --Place at northeast, heading northwest
+         if preview_only then return dirs.northwest end
+         created =
+            surf.create_entity({ position = pos, name = stack.name, force = p.force, direction = dirs.southeast })
+      elseif rail_at == dirs.southeast and (rail_dir == dirs.southeast or rail_dir == dirs.northwest) then
+         --Place at northwest, heading southwest
+         if preview_only then return dirs.southwest end
+         created =
+            surf.create_entity({ position = pos, name = stack.name, force = p.force, direction = dirs.northeast })
+      elseif rail_at == dirs.northwest and (rail_dir == dirs.southeast or rail_dir == dirs.northwest) then
+         --Place at southeast, heading northeast
+         if preview_only then return dirs.northeast end
+         created =
+            surf.create_entity({ position = pos, name = stack.name, force = p.force, direction = dirs.southwest })
       end
       --Check if successful
       if created ~= nil then
          p.play_sound({ path = "entity-build/straight-rail" })
          p.cursor_stack.count = p.cursor_stack.count - 1
          build_comment = "Signal placed heading " .. fa_utils.direction_lookup(fa_utils.rotate_180(created.direction))
+         if created.status == defines.entity_status.not_connected_to_rail then
+            build_comment = "Error: Signal not connected to rail, placed too far."
+         end
          printout(build_comment, pindex)
          return fa_utils.rotate_180(created.direction)
       end
