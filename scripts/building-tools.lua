@@ -47,8 +47,7 @@ function mod.build_item_in_hand(pindex, free_place_straight_rail)
          return
       end
    elseif stack.name == "rail-signal" or stack.name == "rail-chain-signal" then
-      game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
-      printout("You need to use the building menu of a rail.", pindex)
+      fa_rail_builder.free_place_rail_signal_in_hand(pindex)
       return
    end
    --General build cases
@@ -1355,6 +1354,12 @@ function mod.build_preview_checks_info(stack, pindex)
          local network_name = network.cells[1].owner.backer_name
          result = result .. ", in network" .. network_name
       end
+   end
+
+   --For rail signals, check for valid placement
+   if ent_p.name == "rail-signal" or ent_p.name == "rail-chain-signal" then
+      local preview_dir = fa_rail_builder.free_place_rail_signal_in_hand(pindex, true)
+      if preview_dir ~= nil then result = result .. ", signal heading " .. fa_utils.direction_lookup(preview_dir) end
    end
 
    --For all electric powered entities, note whether powered, and from which direction. Otherwise report the nearest power pole.

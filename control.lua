@@ -422,6 +422,9 @@ function ent_info(pindex, ent, description)
    --State the ID number of a train
    elseif ent.name == "locomotive" or ent.name == "cargo-wagon" or ent.name == "fluid-wagon" then
       result = result .. " of train " .. fa_trains.get_train_name(ent.train)
+   --State the signal state of a rail signal
+   elseif ent.name == "rail-signal" or ent.name == "rail-chain-signal" then
+      result = result .. ", " .. fa_rails.get_signal_state_info(ent)
    end
    --Report the entity facing direction
    if
@@ -435,6 +438,9 @@ function ent_info(pindex, ent, description)
       end
    elseif ent.type == "locomotive" or ent.type == "car" then
       result = result .. " facing " .. fa_utils.get_heading_info(ent)
+   end
+   if ent.name == "rail-signal" or ent.name == "rail-chain-signal" then
+      result = result .. ", Heading " .. fa_utils.direction_lookup(fa_utils.rotate_180(ent.direction))
    end
    --Report if marked for deconstruction or upgrading
    if ent.to_be_deconstructed() == true then
@@ -756,8 +762,6 @@ function ent_info(pindex, ent, description)
       end
       if (#ent.neighbours.red + #ent.neighbours.green) > 0 then result = result .. " observes circuit condition, " end
       result = result .. fa_circuits.wire_neighbours_info(ent, true)
-   elseif ent.name == "rail-signal" or ent.name == "rail-chain-signal" then
-      result = result .. ", " .. fa_rails.get_signal_state_info(ent)
    elseif ent.name == "roboport" then
       local cell = ent.logistic_cell
       local network = ent.logistic_cell.logistic_network

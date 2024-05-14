@@ -298,6 +298,81 @@ function mod.append_rail(pos, pindex)
    end
 end
 
+--Allows free placement of a rail signal. Note that signals can only be placed on the right hand side with respect to the direction of travel.
+--If callled with preview_only, then the function returns the direction of the signal that can be placed there.
+function mod.free_place_rail_signal_in_hand(pindex, preview_only)
+   local p = game.get_player(pindex)
+   local stack = p.cursor_stack
+   --Verify that a rail or chain signal is in hand
+   if
+      stack == nil
+      or stack.valid_for_read == false
+      or (stack.name ~= "rail-signal" and stack.name ~= "rail-chain-signal")
+   then
+      return
+   end
+   local surf = p.surface
+   local pos = players[pindex].cursor_pos
+   local build_comment = ""
+   --Check if the building area is occupied
+   if surf.can_place_entity({ position = pos, name = stack.name, force = p.force }) == false then
+      game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
+      build_comment = "Tile occupied."
+      printout(build_comment, pindex)
+      return
+   end
+   --Check if too close to existing signals
+   local nearby_signals =
+      surf.find_entities_filtered({ position = pos, radius = 1.5, name = { "rail-signal", "rail-chain-signal" } })
+   if #nearby_signals > 0 then
+      game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
+      build_comment = "Too close to existing signals."
+      printout(build_comment, pindex)
+      return
+   end
+   --Scan for straight rails nearby
+   local rails = surf.find_entities_filtered({ position = pos, radius = 2.0, name = "straight-rail" })
+   if #rails == 0 then
+      game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
+      build_comment = "Must be placed next to a straight rail."
+      printout(build_comment, pindex)
+      return
+   end
+   for i, rail in ipairs(rails) do
+      --Check if the placement area is valid
+      local rail_dir = rail.direction
+      local rail_at = fa_utils.get_direction_precise(rail.position, pos)
+      local created = nil
+      --Check if the rail is correctly oriented
+      if rail_at == dirs.north and (rail_dir == dirs.east or rail_dir == dirs.west) then
+         --Place at south, heading east
+         if preview_only then return dirs.east end
+         created = surf.create_entity({ position = pos, name = stack.name, force = p.force, direction = dirs.west })
+      elseif rail_at == dirs.south and (rail_dir == dirs.east or rail_dir == dirs.west) then
+         --Place at north, heading west
+         if preview_only then return dirs.west end
+         created = surf.create_entity({ position = pos, name = stack.name, force = p.force, direction = dirs.east })
+      elseif rail_at == dirs.east and (rail_dir == dirs.north or rail_dir == dirs.south) then
+         --Place at west, heading south
+         if preview_only then return dirs.south end
+         created = surf.create_entity({ position = pos, name = stack.name, force = p.force, direction = dirs.north })
+      elseif rail_at == dirs.west and (rail_dir == dirs.north or rail_dir == dirs.south) then
+         --Place at east, heading north
+         if preview_only then return dirs.north end
+         created = surf.create_entity({ position = pos, name = stack.name, force = p.force, direction = dirs.south })
+      end
+      --Check if successful
+      if created ~= nil then
+         p.play_sound({ path = "entity-build/straight-rail" })
+         p.cursor_stack.count = p.cursor_stack.count - 1
+         build_comment = "Signal placed heading " .. fa_utils.direction_lookup(fa_utils.rotate_180(created.direction))
+         printout(build_comment, pindex)
+         return fa_utils.rotate_180(created.direction)
+      end
+   end
+   return nil
+end
+
 --Builds a 45 degree rail turn to the right from a horizontal or vertical end rail that is the anchor rail.
 function mod.build_rail_turn_right_45_degrees(anchor_rail, pindex)
    local build_comment = ""
