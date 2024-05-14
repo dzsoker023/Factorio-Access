@@ -2576,6 +2576,14 @@ function mod.build_fork_at_end_rail(anchor_rail, pindex, include_forward, includ
                direction = dir,
                force = game.forces.player,
             })
+      elseif dir == dirs.northeast then
+         game.print("missing checks here ****")
+      elseif dir == dirs.southeast then
+         game.print("missing checks here ****")
+      elseif dir == dirs.southwest then
+         game.print("missing checks here ****")
+      elseif dir == dirs.northwest then
+         game.print("missing checks here ****")
       else
          game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
          printout("Error: rail placement not defined", pindex)
@@ -3080,6 +3088,14 @@ function mod.build_fork_at_end_rail(anchor_rail, pindex, include_forward, includ
             direction = dir,
             force = game.forces.player,
          })
+      elseif dir == dirs.northeast then
+         game.print("missing creates here ****")
+      elseif dir == dirs.southeast then
+         game.print("missing creates here ****")
+      elseif dir == dirs.southwest then
+         game.print("missing creates here ****")
+      elseif dir == dirs.northwest then
+         game.print("missing creates here ****")
       else
          game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
          printout("Error: rail placement not defined", pindex)
@@ -5548,7 +5564,7 @@ function mod.open_menu(pindex, rail)
       else
          --Diagonal end rails
          players[pindex].rail_builder.rail_type = 2
-         players[pindex].rail_builder.index_max = 2
+         players[pindex].rail_builder.index_max = 6
       end
    else
       if dir == dirs.north or dir == dirs.east or dir == dirs.south or dir == dirs.west then
@@ -5742,6 +5758,38 @@ function mod.run_menu(pindex, clicked_in)
          else
             --Build it here
             mod.build_rail_turn_right_45_degrees(rail, pindex)
+         end
+      elseif menu_line == 3 then
+         if not clicked then
+            comment = comment .. "Rail fork left and right and forward"
+            printout(comment, pindex)
+         else
+            --Build it here
+            mod.build_fork_at_end_rail(rail, pindex, true, true, true)
+         end
+      elseif menu_line == 4 then
+         if not clicked then
+            comment = comment .. "Rail fork only left and right"
+            printout(comment, pindex)
+         else
+            --Build it here
+            mod.build_fork_at_end_rail(rail, pindex, false, true, true)
+         end
+      elseif menu_line == 5 then
+         if not clicked then
+            comment = comment .. "Rail fork only left and forward"
+            printout(comment, pindex)
+         else
+            --Build it here
+            mod.build_fork_at_end_rail(rail, pindex, true, true, false)
+         end
+      elseif menu_line == 6 then
+         if not clicked then
+            comment = comment .. "Rail fork only right and forward"
+            printout(comment, pindex)
+         else
+            --Build it here
+            mod.build_fork_at_end_rail(rail, pindex, true, false, true)
          end
       end
    elseif rail_type == 3 then
