@@ -3758,8 +3758,8 @@ script.on_event("read-cursor-distance-vector", function(event)
    if players[pindex].menu ~= "crafting" then
       local c_pos = players[pindex].cursor_pos
       local p_pos = players[pindex].position
-      local diff_x = math.floor(c_pos.x - p_pos.x)
-      local diff_y = math.floor(c_pos.y - p_pos.y)
+      local diff_x = math.floor(c_pos.x - p_pos.x + 0.5)
+      local diff_y = math.floor(c_pos.y - p_pos.y + 0.5)
       local dir_x = dirs.east
       if diff_x < 0 then dir_x = dirs.west end
       local dir_y = dirs.south
@@ -3774,6 +3774,7 @@ script.on_event("read-cursor-distance-vector", function(event)
          .. fa_utils.direction_lookup(dir_y)
       printout(result, pindex)
       game.get_player(pindex).print(result, { volume_modifier = 0 })
+      --Show cursor position
       rendering.draw_circle({
          color = { 1, 0.2, 0 },
          radius = 0.1,

@@ -84,9 +84,9 @@ end
 * Returns 1 of 8 main directions, based on the ratios of the x and y distances. 
 * The deciding ratio is 1 to 4, meaning that for an object that is 100 tiles north, it can be offset by up to 25 tiles east or west before it stops being counted as "directly" in the north. 
 * The arctangent of 1/4 is about 14 degrees, meaning that the field of view that directly counts as a cardinal direction is about 30 degrees, while for a diagonal direction it is about 60 degrees.]]
-function mod.get_direction_biased(pos_that, pos_this)
-   local diff_x = pos_that.x - pos_this.x
-   local diff_y = pos_that.y - pos_this.y
+function mod.get_direction_biased(pos_target, pos_origin)
+   local diff_x = pos_target.x - pos_origin.x
+   local diff_y = pos_target.y - pos_origin.y
    local dir = -1
 
    if math.abs(diff_x) > 4 * math.abs(diff_y) then --along east-west
@@ -126,9 +126,9 @@ end
 * Returns 1 of 8 main directions, based on the ratios of the x and y distances. 
 * The deciding ratio is 1 to 2.5, meaning that for an object that is 25 tiles north, it can be offset by up to 10 tiles east or west before it stops being counted as "directly" in the north. 
 * The arctangent of 1/2.5 is about 22 degrees, meaning that the field of view that directly counts as a cardinal direction is about 44 degrees, while for a diagonal direction it is about 46 degrees.]]
-function mod.get_direction_precise(pos_that, pos_this)
-   local diff_x = pos_that.x - pos_this.x
-   local diff_y = pos_that.y - pos_this.y
+function mod.get_direction_precise(pos_target, pos_origin)
+   local diff_x = pos_target.x - pos_origin.x
+   local diff_y = pos_target.y - pos_origin.y
    local dir = -1
 
    if math.abs(diff_x) > 2.5 * math.abs(diff_y) then --along east-west
@@ -164,10 +164,10 @@ function mod.get_direction_precise(pos_that, pos_this)
 end
 
 --Checks whether a cardinal or diagonal direction is precisely aligned.
-function mod.is_direction_aligned(pos_that, pos_this)
-   local diff_x = math.abs(pos_this.x - pos_that.x)
-   local diff_y = math.abs(pos_this.y - pos_that.y)
-   return (diff_x < 1 or diff_y < 1 or (diff_x - diff_y) < 1)
+function mod.is_direction_aligned(pos_target, pos_origin)
+   local diff_x = math.abs(pos_origin.x - pos_target.x)
+   local diff_y = math.abs(pos_origin.y - pos_target.y)
+   return (diff_x < 0.5 or diff_y < 0.5 or math.abs(diff_x - diff_y) < 0.5)
 end
 
 --Converts an input direction into a localised string.
@@ -657,7 +657,7 @@ function mod.get_substring_before_dash(str)
    end
 end
 
---Reads the localised result for the distance and direction from one point to the other. Also mentions if they are precisely aligned.
+--Reads the localised result for the distance and direction from one point to the other. Also mentions if they are precisely aligned. Distances are rounded.
 function mod.dir_dist_locale(pos1, pos2)
    local dir_dist = mod.dir_dist(pos1, pos2)
    local aligned_note = ""
