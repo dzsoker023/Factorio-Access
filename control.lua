@@ -3281,6 +3281,9 @@ function on_tick(event)
       for pindex, player in pairs(players) do
          --Fix running speed bug (toggle walk also fixes it)
          fix_walk(pindex)
+
+         --Update the Kruise Kontrol status
+         kk_status_update(pindex)
       end
    elseif event.tick % 450 == 14 then
       --Run regular reminders every 7.5 seconds
@@ -3294,8 +3297,7 @@ function on_tick(event)
             printout(math.floor(game.get_player(pindex).ticks_to_respawn / 60) .. " seconds until respawn", pindex)
          elseif players[pindex].kruise_kontrolling == true then
             --Report the KK state
-            local result = kk_status_prediction(pindex)
-            printout(result, pindex)
+            kk_status_read(pindex, false)
          end
       end
    end
@@ -9874,8 +9876,9 @@ script.on_event("klient-alt-move-to", function(event)
       toggle_remote_view(pindex, false, true)
       close_menu_resets(pindex)
 
-      --Report action
-      printout(kk_status_prediction(pindex, true), pindex)
+      --Determine and report the KK status
+      players[pindex].kk_status = kk_status_determine(pindex)
+      kk_status_read(pindex, true)
    else
       players[pindex].kruise_kontrolling = false
       fix_walk(pindex)
@@ -9897,46 +9900,145 @@ script.on_event("klient-cancel-enter", function(event)
    end
 end)
 
---Predicts what Kruise Kontrol is doing based on the current target
-function kk_status_prediction(pindex, short_version)
-   --Predict the status based on the selected location and entity
+--Determines the assumed status of kruise kontrol. Mimics the checks from the mod itself in Character:determine_job(entity, position)
+function kk_status_determine(pindex)
    local p = game.get_player(pindex)
-   local result = "Kruise Kontrol "
+   local entity = players[pindex].kk_target
+   local position = players[pindex].kk_pos
+   local status = ""
+   players[pindex].kk_radius = -1
+
+   if not (entity and entity.valid) then
+      if p.vehicle then
+         status = "driving"
+      else
+         status = "walking"
+      end
+      return status
+   end
+
+   local force = entity.force
+
+   if force == p.force then
+      if entity.type == "entity-ghost" then
+         status = "building ghosts"
+         return status
+      end
+
+      if entity.type == "tile-ghost" then
+         status = "building ghosts"
+         return status
+      end
+
+      if entity.to_be_deconstructed() then
+         status = "deconstructing"
+         return status
+      end
+
+      if entity.get_health_ratio() and entity.get_health_ratio() < 1 then
+         status = "repairing"
+         players[pindex].kk_radius = 50
+         return status
+      end
+
+      if entity.to_be_upgraded() then
+         status = "upgrading"
+         return status
+      end
+
+      local fuel_inventory = entity.get_fuel_inventory()
+      if fuel_inventory and fuel_inventory.is_empty() then
+         status = "refueling"
+         players[pindex].kk_radius = 50
+         return status
+      end
+   end
+
+   if entity.to_be_deconstructed() and (force.name == "neutral") then
+      status = "deconstructing"
+      return status
+   end
+
+   if entity.type == "resource" then
+      status = "mining resources"
+      return status
+   end
+
+   if entity.type == "tree" then
+      status = "mining resources"
+      return status
+   end
+
+   if entity.type == "simple-entity" and force.name == "neutral" then
+      status = "mining resources"
+      return status
+   end
+
+   if p.force.get_cease_fire(entity.force) == false then
+      status = "attacking"
+      players[pindex].kk_radius = 64
+      return status
+   end
+
+   --[[
+   if can_follow[entity.type] then
+      status = "following"
+      return status
+   else
+      status = "walking"
+      return status
+   end 
+   ]]
+   --Unknown case:
+   return "walking"
+end
+
+--Updates the assumed status of Kruise Kontrol based on specific checks per status
+function kk_status_update(pindex)
+   if players[pindex].kruise_kontrolling == false then return end
+   local p = game.get_player(pindex)
+   local status = players[pindex].kk_status
+
+   if status == "walking" then
+      --Check that the player is not moving and not mining
+      if player_was_still_for_1_second(pindex) and p.mining_state.mining == false then
+         status = "arrived"
+         players[pindex].kruise_kontrolling = false
+         fix_walk(pindex)
+         toggle_remote_view(pindex, false, true)
+      end
+   elseif status == "driving" then
+      --Check that the player vehicle is not moving
+      if p.vehicle and p.vehicle.speed == 0 then
+         status = "arrived"
+         players[pindex].kruise_kontrolling = false
+         fix_walk(pindex)
+         toggle_remote_view(pindex, false, true)
+      end
+   end
+
+   players[pindex].kk_status = status
+   --Printout the status change if it is an end state
+   if status == "arrived" or status == "finished" then kk_status_read(pindex, true) end
+end
+
+--Reads out the assumed Kruise Kontrol status
+function kk_status_read(pindex, short_version)
+   local p = game.get_player(pindex)
+   local status = players[pindex].kk_status
    local target = players[pindex].kk_target
    local target_pos = players[pindex].kk_pos
-   local walking = false
-   if target == nil or target.valid == false then
-      result = result .. "Walking"
-      walking = true
-   elseif target.type == "entity-ghost" then
-      result = result .. "Building ghosts"
-   elseif target.type == "resource" or target.type == "simple-entity" then
-      result = result .. "Mining"
-   elseif target.type == "unit" or target.type == "unit-spawner" or target.type == "turret" then
-      result = result .. "Fighting"
-   elseif target.to_be_deconstructed() == true then
-      result = result .. "Deconstructing marked buildings "
-   else
-      result = result .. "Walking"
-      walking = true
+   local result = "Kruise Kontrol " .. status
+   if short_version == true then
+      printout(result, pindex)
+      return
    end
-   if short_version == true then return result end
    local target_dist = math.floor(util.distance(p.position, target_pos))
    local dist_info = ", " .. target_dist .. " tiles to target"
    if target_dist < 3 then dist_info = "" end
    result = result .. dist_info
    result = result .. ", press ENTER to cancel"
-
-   --If KK is simply walking, check whether the character has stopped for 1 second, so that the status is assumed to be done
-   --Note: we do not do a distance check because if KK has ended and the player walks freely, the distance check fails.
-   --Note: This could have been applied to all KK states but it is hard to know whether a stopped player is finished
-   if walking and player_was_still_for_1_second(pindex) then
-      players[pindex].kruise_kontrolling = false
-      fix_walk(pindex)
-      toggle_remote_view(pindex, false, true)
-      result = "Kruise Kontrol arrived."
-   end
-   return result
+   printout(result, pindex)
 end
 
 --Checks whether the player has not walked for 1 second. Uses the bump alert checks.
