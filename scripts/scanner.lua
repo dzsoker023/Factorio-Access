@@ -621,11 +621,12 @@ function mod.list_index(pindex)
             printout("Error: This object is no longer valid. Try rescanning.", pindex)
             return
          end
-         --Select northwest corner unless it is a spaceship wreck
+         --Select northwest corner unless it is a spaceship wreck or curved rail
          players[pindex].cursor_pos = fa_utils.get_ent_northwest_corner_position(ent)
          local check = ent.name
          local a = string.find(check, "spaceship")
          if a ~= nil then players[pindex].cursor_pos = ent.position end
+         if ent.name == "curved-rail" then players[pindex].cursor_pos = ent.position end
          fa_graphics.draw_cursor_highlight(pindex, ent, "train-visualization") --focus on scanned item
          fa_graphics.sync_build_cursor_graphics(pindex)
          players[pindex].last_indexed_ent = ent
