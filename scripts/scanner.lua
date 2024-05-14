@@ -534,6 +534,7 @@ function mod.list_index(pindex)
       printout("Scan pindex error.", pindex)
       return
    end
+   local p = game.get_player(pindex)
    if
       (players[pindex].nearby.category == 1 and next(players[pindex].nearby.ents) == nil)
       or (players[pindex].nearby.category == 2 and next(players[pindex].nearby.resources) == nil)
@@ -605,7 +606,7 @@ function mod.list_index(pindex)
          end
          --Sort by distance to player pos while describing indexed entries
          table.sort(ents[players[pindex].nearby.index].ents, function(k1, k2)
-            local pos = players[pindex].position
+            local pos = p.position
             return fa_utils.squared_distance(pos, k1.position) < fa_utils.squared_distance(pos, k2.position)
          end)
          if players[pindex].nearby.selection > #ents[players[pindex].nearby.index].ents then
@@ -675,9 +676,9 @@ function mod.list_index(pindex)
 
       refresh_player_tile(pindex)
 
-      local dir_dist = fa_utils.dir_dist_locale(players[pindex].position, ent.position)
+      local dir_dist = fa_utils.dir_dist_locale(p.position, players[pindex].cursor_pos)
       if players[pindex].nearby.count == false then
-         --Read the entity in terms of distance and direction
+         --Read the entity in terms of distance and direction, taking the cursor position as the reference point
          local result = { "access.thing-producing-listpos-dirdist", fa_utils.ent_name_locale(ent) }
          table.insert(result, mod.ent_extra_list_info(ent, pindex, true))
          table.insert(

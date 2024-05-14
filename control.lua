@@ -1707,21 +1707,15 @@ function read_coords(pindex, start_phrase)
          result = result .. " in " .. fa_localising.get(vehicle, pindex) .. " at point "
          printout(result .. math.floor(vehicle.position.x) .. ", " .. math.floor(vehicle.position.y), pindex)
       else
-         --Simply give coords
+         --Simply give coords (floored for the readout, extra precision for the console)
          local location = fa_utils.get_entity_part_at_cursor(pindex)
          if location == nil then location = " " end
          local marked_pos = { x = players[pindex].cursor_pos.x, y = players[pindex].cursor_pos.y }
-         local printed_pos = {
-            x = math.floor(players[pindex].cursor_pos.x * 10) / 10,
-            y = math.floor(players[pindex].cursor_pos.y * 10) / 10,
-         }
-
-         --Floor the marked and read pos for consistency and conciseness
-         marked_pos.x = math.floor(marked_pos.x + 0.0)
-         marked_pos.y = math.floor(marked_pos.y + 0.0)
-
-         result = result .. " " .. location .. ", at " .. marked_pos.x .. ", " .. marked_pos.y
-         game.get_player(pindex).print("At " .. printed_pos.x .. ", " .. printed_pos.y, { volume_modifier = 0 })
+         result = result .. " " .. location .. " at " .. math.floor(marked_pos.x) .. ", " .. math.floor(marked_pos.y)
+         game.get_player(pindex).print(
+            result .. "\n (" .. math.floor(marked_pos.x * 10) / 10 .. ", " .. math.floor(marked_pos.y * 10) / 10 .. ")",
+            { volume_modifier = 0 }
+         )
          rendering.draw_circle({
             color = { 1.0, 0.2, 0.0 },
             radius = 0.1,
@@ -1799,6 +1793,7 @@ function read_coords(pindex, start_phrase)
                   .. (player.cursor_size * 2 + 1)
                   .. " south, starting from this tile. "
             end
+            result = result .. preview_str
          end
          printout(result, pindex)
       end
@@ -3793,8 +3788,12 @@ script.on_event("read-character-coords", function(event)
    if not check_for_player(pindex) then return end
    local pos = game.get_player(pindex).position
    local result = "Character at " .. math.floor(pos.x) .. ", " .. math.floor(pos.y)
+   --Report co-ordinates (floored for the readout, extra precision for the console)
    printout(result, pindex)
-   game.get_player(pindex).print(result, { volume_modifier = 0 })
+   game.get_player(pindex).print(
+      result .. "\n (" .. math.floor(pos.x * 10) / 10 .. ", " .. math.floor(pos.y * 10) / 10 .. ")",
+      { volume_modifier = 0 }
+   )
 end)
 
 --Returns the cursor to the player position.

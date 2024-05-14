@@ -163,11 +163,22 @@ function mod.get_direction_precise(pos_target, pos_origin)
    return dir
 end
 
---Checks whether a cardinal or diagonal direction is precisely aligned.
-function mod.is_direction_aligned(pos_target, pos_origin)
-   local diff_x = math.abs(pos_origin.x - pos_target.x)
-   local diff_y = math.abs(pos_origin.y - pos_target.y)
-   return (diff_x < 0.5 or diff_y < 0.5 or math.abs(diff_x - diff_y) < 0.5)
+--Checks whether a cardinal or diagonal direction is precisely aligned. All check positions are floored to their northwest corners.
+function mod.is_direction_aligned(pos_origin, pos_target)
+   local diff_x = math.abs(math.floor(pos_origin.x) - math.floor(pos_target.x))
+   local diff_y = math.abs(math.floor(pos_origin.y) - math.floor(pos_target.y))
+
+   -- If both are zero, they're on top of each other.
+   if diff_x == 0 and diff_y == 0 then return false end
+
+   -- The cardinal directions are aligned if exactly one of the diff_x or diff_y is 0.
+   if diff_x == 0 or diff_y == 0 then return true end
+
+   -- The diagonals are aligned if the x and y distances are equal.
+   if diff_x == diff_y then return true end
+
+   --None of the above means they are not aligned.
+   return false
 end
 
 --Converts an input direction into a localised string.
