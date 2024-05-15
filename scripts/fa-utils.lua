@@ -699,7 +699,7 @@ function mod.index_of_entity(array, value)
 end
 
 --Rounds down a number to the nearest thousand after 10 thousand, and nearest 100 thousand after 1 million.
-function mod.floor_to_nearest_k_after_10k(num_in)
+function mod.simplify_large_number(num_in)
    local num = num_in
    num = math.ceil(num)
    if num > 10000 then num = 1000 * math.floor(num / 1000) end

@@ -891,7 +891,7 @@ function ent_info(pindex, ent, description)
             if i == "crude-oil" then
                result = result .. " " .. i .. " times " .. math.floor(amount / 3000) / 10 .. " per second "
             else
-               result = result .. " " .. i .. " times " .. fa_utils.floor_to_nearest_k_after_10k(amount)
+               result = result .. " " .. i .. " times " .. fa_utils.simplify_large_number(amount)
             end
          end
       end
@@ -9759,10 +9759,10 @@ function selected_item_production_stats_info(pindex)
       precision_index = interval.one_thousand_hours,
       count = true,
    })
-   last_minute = fa_utils.floor_to_nearest_k_after_10k(last_minute)
-   last_10_minutes = fa_utils.floor_to_nearest_k_after_10k(last_10_minutes)
-   last_hour = fa_utils.floor_to_nearest_k_after_10k(last_hour)
-   thousand_hours = fa_utils.floor_to_nearest_k_after_10k(thousand_hours)
+   last_minute = fa_utils.simplify_large_number(last_minute)
+   last_10_minutes = fa_utils.simplify_large_number(last_10_minutes)
+   last_hour = fa_utils.simplify_large_number(last_hour)
+   thousand_hours = fa_utils.simplify_large_number(thousand_hours)
    result = result .. " Produced "
    result = result .. last_minute .. " in the last minute, "
    result = result .. last_10_minutes .. " in the last 10 minutes, "
