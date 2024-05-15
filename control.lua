@@ -6650,6 +6650,7 @@ script.on_event("open-rail-builder", function(event)
             if stack and stack.valid_for_read and stack.name == "rail" then
                ghost_rail_case = fa_rails.cursor_is_at_straight_end_rail_tip(pindex)
             end
+            ghost_rail_case = false --keep this feature off for now
             if ghost_rail_case then
                fa_rails.start_ghost_rail_planning(pindex)
             else
@@ -7449,6 +7450,7 @@ script.on_event("read-time-and-research-progress", function(event)
    game.get_player(pindex).force.research_queue_enabled = false
 end)
 
+--When the item in hand changes
 script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7473,6 +7475,7 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
    fa_building_tools.delete_empty_planners_in_inventory(pindex)
    players[pindex].bp_selecting = false
    players[pindex].blueprint_reselecting = false
+   players[pindex].ghost_rail_planning = false
    fa_graphics.sync_build_cursor_graphics(pindex)
 end)
 

@@ -515,11 +515,11 @@ function mod.cursor_is_at_straight_end_rail_tip(pindex)
    perimeter[6] = fa_utils.add_position(pos, { x = 1, y = -1 })
    perimeter[7] = fa_utils.add_position(pos, { x = 1, y = 0 })
    perimeter[8] = fa_utils.add_position(pos, { x = 1, y = 1 })
-   for pos_p in perimeter do
+   for i, pos_p in ipairs(perimeter) do
       --Find rails, if any
       local ents = p.surface.find_entities_filtered({ name = { "straight-rail", "curved-rail" }, position = pos_p })
       if ents ~= nil and #ents > 0 then
-         for rail in ents do
+         for j, rail in ipairs(ents) do
             --For rails found, check whether the unit number is different
             if rail.unit_number ~= rail_at_cursor.unit_number then return false end
          end
@@ -541,6 +541,7 @@ end
 --Note: The rail planner itself does nothing if an invalid location is chosen
 function mod.end_ghost_rail_planning(pindex)
    local p = game.get_player(pindex)
+   players[pindex].ghost_rail_planning = false
    --Check if cursor is on screen OR if remote view is running
    local on_screen = fa_mouse.cursor_position_is_on_screen_with_player_centered(pindex) == true
       or players[pindex].remote_view == true
