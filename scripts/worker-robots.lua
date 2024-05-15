@@ -272,7 +272,13 @@ local function player_logistic_request_increment_min(item_stack, pindex)
       p.set_personal_logistic_slot(correct_slot_id, new_slot)
    else
       --Update existing request
-      current_slot.min = increment_logistic_request_min_amount(item_stack.prototype.stack_size, current_slot.min)
+      local stack_size = 1
+      if item_stack.object_name == "LuaItemStack" then
+         stack_size = item_stack.prototype.stack_size
+      elseif item_stack.object_name == "LuaItemPrototype" then
+         stack_size = item_stack.stack_size
+      end
+      current_slot.min = increment_logistic_request_min_amount(stack_size, current_slot.min)
       --Force min <= max
       if current_slot.min ~= nil and current_slot.max ~= nil and current_slot.min > current_slot.max then
          printout("Error: Minimum request value cannot exceed maximum", pindex)
@@ -317,7 +323,13 @@ local function player_logistic_request_decrement_min(item_stack, pindex)
       p.set_personal_logistic_slot(correct_slot_id, new_slot)
    else
       --Update existing request
-      current_slot.min = decrement_logistic_request_min_amount(item_stack.prototype.stack_size, current_slot.min)
+      local stack_size = 1
+      if item_stack.object_name == "LuaItemStack" then
+         stack_size = item_stack.prototype.stack_size
+      elseif item_stack.object_name == "LuaItemPrototype" then
+         stack_size = item_stack.stack_size
+      end
+      current_slot.min = decrement_logistic_request_min_amount(stack_size, current_slot.min)
       --Force min <= max
       if current_slot.min ~= nil and current_slot.max ~= nil and current_slot.min > current_slot.max then
          printout("Error: Minimum request value cannot exceed maximum", pindex)
@@ -356,13 +368,19 @@ local function player_logistic_request_increment_max(item_stack, pindex)
 
    --Read the correct slot id value, decrement it, set it
    current_slot = p.get_personal_logistic_slot(correct_slot_id)
+   local stack_size = 1
+   if item_stack.object_name == "LuaItemStack" then
+      stack_size = item_stack.prototype.stack_size
+   elseif item_stack.object_name == "LuaItemPrototype" then
+      stack_size = item_stack.stack_size
+   end
    if current_slot == nil or current_slot.name == nil then
       --Create a fresh request
-      local new_slot = { name = item_stack.name, min = 0, max = MAX_STACK_COUNT * item_stack.prototype.stack_size }
+      local new_slot = { name = item_stack.name, min = 0, max = MAX_STACK_COUNT * stack_size }
       p.set_personal_logistic_slot(correct_slot_id, new_slot)
    else
       --Update existing request
-      current_slot.max = increment_logistic_request_max_amount(item_stack.prototype.stack_size, current_slot.max)
+      current_slot.max = increment_logistic_request_max_amount(stack_size, current_slot.max)
       --Force min <= max
       if current_slot.min ~= nil and current_slot.max ~= nil and current_slot.min > current_slot.max then
          printout("Error: Minimum request value cannot exceed maximum", pindex)
@@ -401,13 +419,20 @@ local function player_logistic_request_decrement_max(item_stack, pindex)
 
    --Read the correct slot id value, increment it, set it
    current_slot = p.get_personal_logistic_slot(correct_slot_id)
+
+   local stack_size = 1
+   if item_stack.object_name == "LuaItemStack" then
+      stack_size = item_stack.prototype.stack_size
+   elseif item_stack.object_name == "LuaItemPrototype" then
+      stack_size = item_stack.stack_size
+   end
    if current_slot == nil or current_slot.name == nil then
       --Create a fresh request
-      local new_slot = { name = item_stack.name, min = 0, max = MAX_STACK_COUNT * item_stack.prototype.stack_size }
+      local new_slot = { name = item_stack.name, min = 0, max = MAX_STACK_COUNT * stack_size }
       p.set_personal_logistic_slot(correct_slot_id, new_slot)
    else
       --Update existing request
-      current_slot.max = decrement_logistic_request_max_amount(item_stack.prototype.stack_size, current_slot.max)
+      current_slot.max = decrement_logistic_request_max_amount(stack_size, current_slot.max)
       --Force min <= max
       if current_slot.min ~= nil and current_slot.max ~= nil and current_slot.min > current_slot.max then
          printout("Error: Minimum request value cannot exceed maximum", pindex)
@@ -489,13 +514,19 @@ local function chest_logistic_request_increment_min(item_stack, chest, pindex)
 
    --Read the correct slot id value, increment it, set it
    current_slot = chest.get_request_slot(correct_slot_id)
+   local stack_size = 1
+   if item_stack.object_name == "LuaItemStack" then
+      stack_size = item_stack.prototype.stack_size
+   elseif item_stack.object_name == "LuaItemPrototype" then
+      stack_size = item_stack.stack_size
+   end
    if current_slot == nil or current_slot.name == nil then
       --Create a fresh request
-      local new_slot = { name = item_stack.name, count = item_stack.prototype.stack_size }
+      local new_slot = { name = item_stack.name, count = stack_size }
       chest.set_request_slot(new_slot, correct_slot_id)
    else
       --Update existing request
-      current_slot.count = increment_logistic_request_min_amount(item_stack.prototype.stack_size, current_slot.count)
+      current_slot.count = increment_logistic_request_min_amount(stack_size, current_slot.count)
       chest.set_request_slot(current_slot, correct_slot_id)
    end
 
@@ -529,13 +560,19 @@ local function chest_logistic_request_decrement_min(item_stack, chest, pindex)
 
    --Read the correct slot id value, decrement it, set it
    current_slot = chest.get_request_slot(correct_slot_id)
+   local stack_size = 1
+   if item_stack.object_name == "LuaItemStack" then
+      stack_size = item_stack.prototype.stack_size
+   elseif item_stack.object_name == "LuaItemPrototype" then
+      stack_size = item_stack.stack_size
+   end
    if current_slot == nil or current_slot.name == nil then
       --Create a fresh request
-      local new_slot = { name = item_stack.name, count = item_stack.prototype.stack_size }
+      local new_slot = { name = item_stack.name, count = stack_size }
       chest.set_request_slot(new_slot, correct_slot_id)
    else
       --Update existing request
-      current_slot.count = decrement_logistic_request_min_amount(item_stack.prototype.stack_size, current_slot.count)
+      current_slot.count = decrement_logistic_request_min_amount(stack_size, current_slot.count)
       if current_slot.count == nil or current_slot.count == 0 then
          chest.clear_request_slot(correct_slot_id)
       else
@@ -578,7 +615,13 @@ local function spidertron_logistic_request_increment_min(item_stack, spidertron,
       spidertron.set_vehicle_logistic_slot(correct_slot_id, new_slot)
    else
       --Update existing request
-      current_slot.min = increment_logistic_request_min_amount(item_stack.prototype.stack_size, current_slot.min)
+      local stack_size = 1
+      if item_stack.object_name == "LuaItemStack" then
+         stack_size = item_stack.prototype.stack_size
+      elseif item_stack.object_name == "LuaItemPrototype" then
+         stack_size = item_stack.stack_size
+      end
+      current_slot.min = increment_logistic_request_min_amount(stack_size, current_slot.min)
       --Force min <= max
       if current_slot.min ~= nil and current_slot.max ~= nil and current_slot.min > current_slot.max then
          printout("Error: Minimum request value cannot exceed maximum", pindex)
@@ -622,7 +665,13 @@ local function spidertron_logistic_request_decrement_min(item_stack, spidertron,
       spidertron.set_vehicle_logistic_slot(correct_slot_id, new_slot)
    else
       --Update existing request
-      current_slot.min = decrement_logistic_request_min_amount(item_stack.prototype.stack_size, current_slot.min)
+      local stack_size = 1
+      if item_stack.object_name == "LuaItemStack" then
+         stack_size = item_stack.prototype.stack_size
+      elseif item_stack.object_name == "LuaItemPrototype" then
+         stack_size = item_stack.stack_size
+      end
+      current_slot.min = decrement_logistic_request_min_amount(stack_size, current_slot.min)
       --Force min <= max
       if current_slot.min ~= nil and current_slot.max ~= nil and current_slot.min > current_slot.max then
          printout("Error: Minimum request value cannot exceed maximum", pindex)
@@ -660,13 +709,19 @@ local function spidertron_logistic_request_increment_max(item_stack, spidertron,
 
    --Read the correct slot id value, decrement it, set it
    current_slot = spidertron.get_vehicle_logistic_slot(correct_slot_id)
+   local stack_size = 1
+   if item_stack.object_name == "LuaItemStack" then
+      stack_size = item_stack.prototype.stack_size
+   elseif item_stack.object_name == "LuaItemPrototype" then
+      stack_size = item_stack.stack_size
+   end
    if current_slot == nil or current_slot.name == nil then
       --Create a fresh request
-      local new_slot = { name = item_stack.name, min = 0, max = MAX_STACK_COUNT * item_stack.prototype.stack_size }
+      local new_slot = { name = item_stack.name, min = 0, max = MAX_STACK_COUNT * stack_size }
       spidertron.set_vehicle_logistic_slot(correct_slot_id, new_slot)
    else
       --Update existing request
-      current_slot.max = increment_logistic_request_max_amount(item_stack.prototype.stack_size, current_slot.max)
+      current_slot.max = increment_logistic_request_max_amount(stack_size, current_slot.max)
       --Force min <= max
       if current_slot.min ~= nil and current_slot.max ~= nil and current_slot.min > current_slot.max then
          printout("Error: Minimum request value cannot exceed maximum", pindex)
@@ -704,13 +759,19 @@ local function spidertron_logistic_request_decrement_max(item_stack, spidertron,
 
    --Read the correct slot id value, increment it, set it
    current_slot = spidertron.get_vehicle_logistic_slot(correct_slot_id)
+   local stack_size = 1
+   if item_stack.object_name == "LuaItemStack" then
+      stack_size = item_stack.prototype.stack_size
+   elseif item_stack.object_name == "LuaItemPrototype" then
+      stack_size = item_stack.stack_size
+   end
    if current_slot == nil or current_slot.name == nil then
       --Create a fresh request
-      local new_slot = { name = item_stack.name, min = 0, max = MAX_STACK_COUNT * item_stack.prototype.stack_size }
+      local new_slot = { name = item_stack.name, min = 0, max = MAX_STACK_COUNT * stack_size }
       spidertron.set_vehicle_logistic_slot(correct_slot_id, new_slot)
    else
       --Update existing request
-      current_slot.max = decrement_logistic_request_max_amount(item_stack.prototype.stack_size, current_slot.max)
+      current_slot.max = decrement_logistic_request_max_amount(stack_size, current_slot.max)
       --Force min <= max
       if current_slot.min ~= nil and current_slot.max ~= nil and current_slot.min > current_slot.max then
          printout("Error: Minimum request value cannot exceed maximum", pindex)
@@ -729,6 +790,7 @@ function mod.logistics_info_key_handler(pindex)
       players[pindex].in_menu == false
       or players[pindex].menu == "inventory"
       or players[pindex].menu == "player_trash"
+      or players[pindex].menu == "crafting"
    then
       --Personal logistics
       local stack = game.get_player(pindex).cursor_stack
@@ -745,6 +807,10 @@ function mod.logistics_info_key_handler(pindex)
          stack_tra =
             game.get_player(pindex).get_inventory(defines.inventory.character_trash)[players[pindex].inventory.index]
          mod.player_logistic_request_read(stack_tra, pindex, true)
+      elseif players[pindex].menu == "crafting" then
+         --Use the first found item product of the selected recipe, pass it as a stack
+         local prototype = fa_utils.get_prototype_of_item_product(pindex)
+         if prototype then mod.player_logistic_request_read(prototype, pindex, true) end
       else
          --Logistic chest in front
          local ent = get_selected_ent(pindex)
@@ -809,7 +875,12 @@ end
 
 --Call the appropriate function after a keypress for modifying a logistic request
 function mod.logistics_request_increment_min_handler(pindex)
-   if not players[pindex].in_menu or players[pindex].menu == "inventory" or players[pindex].menu == "player_trash" then
+   if
+      not players[pindex].in_menu
+      or players[pindex].menu == "inventory"
+      or players[pindex].menu == "player_trash"
+      or players[pindex].menu == "crafting"
+   then
       --Personal logistics
       local stack = game.get_player(pindex).cursor_stack
       local stack_inv = game.get_player(pindex).get_main_inventory()[players[pindex].inventory.index]
@@ -828,6 +899,10 @@ function mod.logistics_request_increment_min_handler(pindex)
       elseif players[pindex].menu == "player_trash" then
          --Item in trash
          printout("Take this item in hand to change its requests", pindex)
+      elseif players[pindex].menu == "crafting" then
+         --Use the first found item product of the selected recipe, pass it as a stack
+         local prototype = fa_utils.get_prototype_of_item_product(pindex)
+         if prototype then player_logistic_request_increment_min(prototype, pindex) end
       else
          --Empty hand, empty inventory slot
          --(do nothing)
@@ -891,7 +966,12 @@ end
 
 --Call the appropriate function after a keypress for modifying a logistic request
 function mod.logistics_request_decrement_min_handler(pindex)
-   if not players[pindex].in_menu or players[pindex].menu == "inventory" or players[pindex].menu == "player_trash" then
+   if
+      not players[pindex].in_menu
+      or players[pindex].menu == "inventory"
+      or players[pindex].menu == "player_trash"
+      or players[pindex].menu == "crafting"
+   then
       --Personal logistics
       local stack = game.get_player(pindex).cursor_stack
       local stack_inv = game.get_player(pindex).get_main_inventory()[players[pindex].inventory.index]
@@ -910,6 +990,10 @@ function mod.logistics_request_decrement_min_handler(pindex)
       elseif players[pindex].menu == "player_trash" then
          --Item in trash
          printout("Take this item in hand to change its requests", pindex)
+      elseif players[pindex].menu == "crafting" then
+         --Use the first found item product of the selected recipe, pass it as a stack
+         local prototype = fa_utils.get_prototype_of_item_product(pindex)
+         if prototype then player_logistic_request_decrement_min(prototype, pindex) end
       else
          --Empty hand, empty inventory slot
          --(do nothing)
@@ -973,7 +1057,12 @@ end
 
 --Call the appropriate function after a keypress for modifying a logistic request
 function mod.logistics_request_increment_max_handler(pindex)
-   if not players[pindex].in_menu or players[pindex].menu == "inventory" or players[pindex].menu == "player_trash" then
+   if
+      not players[pindex].in_menu
+      or players[pindex].menu == "inventory"
+      or players[pindex].menu == "player_trash"
+      or players[pindex].menu == "crafting"
+   then
       --Personal logistics
       local stack = game.get_player(pindex).cursor_stack
       local stack_inv = game.get_player(pindex).get_main_inventory()[players[pindex].inventory.index]
@@ -992,6 +1081,10 @@ function mod.logistics_request_increment_max_handler(pindex)
       elseif players[pindex].menu == "player_trash" then
          --Item in trash
          printout("Take this item in hand to change its requests", pindex)
+      elseif players[pindex].menu == "crafting" then
+         --Use the first found item product of the selected recipe, pass it as a stack
+         local prototype = fa_utils.get_prototype_of_item_product(pindex)
+         if prototype then player_logistic_request_increment_max(prototype, pindex) end
       else
          --Empty hand, empty inventory slot
          --(do nothing)
@@ -1021,7 +1114,12 @@ end
 
 --Call the appropriate function after a keypress for modifying a logistic request
 function mod.logistics_request_decrement_max_handler(pindex)
-   if not players[pindex].in_menu or players[pindex].menu == "inventory" or players[pindex].menu == "player_trash" then
+   if
+      not players[pindex].in_menu
+      or players[pindex].menu == "inventory"
+      or players[pindex].menu == "player_trash"
+      or players[pindex].menu == "crafting"
+   then
       --Personal logistics
       local stack = game.get_player(pindex).cursor_stack
       local stack_inv = game.get_player(pindex).get_main_inventory()[players[pindex].inventory.index]
@@ -1040,6 +1138,10 @@ function mod.logistics_request_decrement_max_handler(pindex)
       elseif players[pindex].menu == "player_trash" then
          --Item in trash
          printout("Take this item in hand to change its requests", pindex)
+      elseif players[pindex].menu == "crafting" then
+         --Use the first found item product of the selected recipe, pass it as a stack
+         local prototype = fa_utils.get_prototype_of_item_product(pindex)
+         if prototype then player_logistic_request_decrement_max(prototype, pindex) end
       else
          --Empty hand, empty inventory slot
          --(do nothing)
@@ -1070,7 +1172,12 @@ end
 --Call the appropriate function after a keypress for modifying a logistic request
 function mod.logistics_request_toggle_handler(pindex)
    local ent = game.get_player(pindex).opened
-   if not players[pindex].in_menu or players[pindex].menu == "inventory" or players[pindex].menu == "player_trash" then
+   if
+      not players[pindex].in_menu
+      or players[pindex].menu == "inventory"
+      or players[pindex].menu == "player_trash"
+      or players[pindex].menu == "crafting"
+   then
       --Player: Toggle enabling requests
       logistics_request_toggle_personal_logistics(pindex)
    elseif players[pindex].menu == "vehicle" and mod.can_make_logistic_requests(ent) then
@@ -1181,23 +1288,26 @@ function mod.player_logistic_request_read(item_stack, pindex, additional_checks)
          local max_result = ""
          local inv_result = ""
          local trash_result = ""
+         local stack_size = 1
+         if item_stack.object_name == "LuaItemStack" then
+            stack_size = item_stack.prototype.stack_size
+         elseif item_stack.object_name == "LuaItemPrototype" then
+            stack_size = item_stack.stack_size
+         end
 
          if current_slot.min ~= nil then
-            min_result = fa_utils.express_in_stacks(current_slot.min, item_stack.prototype.stack_size, false)
-               .. " minimum and "
+            min_result = fa_utils.express_in_stacks(current_slot.min, stack_size, false) .. " minimum and "
          end
 
          if current_slot.max ~= nil then
-            max_result = fa_utils.express_in_stacks(current_slot.max, item_stack.prototype.stack_size, false)
-               .. " maximum "
+            max_result = fa_utils.express_in_stacks(current_slot.max, stack_size, false) .. " maximum "
          end
 
          local inv_count = p.get_main_inventory().get_item_count(item_stack.name)
-         inv_result = fa_utils.express_in_stacks(inv_count, item_stack.prototype.stack_size, false) .. " in inventory, "
+         inv_result = fa_utils.express_in_stacks(inv_count, stack_size, false) .. " in inventory, "
 
          local trash_count = p.get_inventory(defines.inventory.character_trash).get_item_count(item_stack.name)
-         trash_result = fa_utils.express_in_stacks(trash_count, item_stack.prototype.stack_size, false)
-            .. " in personal trash, "
+         trash_result = fa_utils.express_in_stacks(trash_count, stack_size, false) .. " in personal trash, "
 
          printout(
             result
@@ -1261,16 +1371,22 @@ function mod.chest_logistic_request_read(item_stack, chest, pindex)
       )
       return
    else
+      local stack_size = 1
+      if item_stack.object_name == "LuaItemStack" then
+         stack_size = item_stack.prototype.stack_size
+      elseif item_stack.object_name == "LuaItemPrototype" then
+         stack_size = item_stack.stack_size
+      end
       --Report request counts and inventory counts
       local req_result = ""
       local inv_result = ""
 
       if current_slot.count ~= nil then
-         req_result = fa_utils.express_in_stacks(current_slot.count, item_stack.prototype.stack_size, false)
+         req_result = fa_utils.express_in_stacks(current_slot.count, stack_size, false)
       end
 
       local inv_count = chest.get_output_inventory().get_item_count(item_stack.name)
-      inv_result = fa_utils.express_in_stacks(inv_count, item_stack.prototype.stack_size, false)
+      inv_result = fa_utils.express_in_stacks(inv_count, stack_size, false)
 
       printout(
          req_result
@@ -1403,23 +1519,26 @@ function mod.spidertron_logistic_request_read(item_stack, spidertron, pindex, ad
          local max_result = ""
          local inv_result = ""
          local trash_result = ""
+         local stack_size = 1
+         if item_stack.object_name == "LuaItemStack" then
+            stack_size = item_stack.prototype.stack_size
+         elseif item_stack.object_name == "LuaItemPrototype" then
+            stack_size = item_stack.stack_size
+         end
 
          if current_slot.min ~= nil then
-            min_result = fa_utils.express_in_stacks(current_slot.min, item_stack.prototype.stack_size, false)
-               .. " minimum and "
+            min_result = fa_utils.express_in_stacks(current_slot.min, stack_size, false) .. " minimum and "
          end
 
          if current_slot.max ~= nil then
-            max_result = fa_utils.express_in_stacks(current_slot.max, item_stack.prototype.stack_size, false)
-               .. " maximum "
+            max_result = fa_utils.express_in_stacks(current_slot.max, stack_size, false) .. " maximum "
          end
 
          local inv_count = spidertron.get_inventory(defines.inventory.spider_trunk).get_item_count(item_stack.name)
-         inv_result = fa_utils.express_in_stacks(inv_count, item_stack.prototype.stack_size, false) .. " in inventory, "
+         inv_result = fa_utils.express_in_stacks(inv_count, stack_size, false) .. " in inventory, "
 
          local trash_count = spidertron.get_inventory(defines.inventory.spider_trash).get_item_count(item_stack.name)
-         trash_result = fa_utils.express_in_stacks(trash_count, item_stack.prototype.stack_size, false)
-            .. " in spidertron trash, "
+         trash_result = fa_utils.express_in_stacks(trash_count, stack_size, false) .. " in spidertron trash, "
 
          printout(
             result

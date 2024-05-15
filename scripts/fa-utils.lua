@@ -698,6 +698,25 @@ function mod.index_of_entity(array, value)
    return nil
 end
 
+--Returns the first found item prototype in the currently selected crafting menu slot, if any. Else returns nil.
+function mod.get_prototype_of_item_product(pindex)
+   local recipe =
+      players[pindex].crafting.lua_recipes[players[pindex].crafting.category][players[pindex].crafting.index]
+   if recipe and recipe.valid and recipe.products and recipe.products[1] then
+      for i, product in ipairs(recipe.products) do
+         local prototype = nil
+         if product.type == "item" then
+            --Select product item #1
+            prototype = game.item_prototypes[product.name]
+            if prototype then
+               return prototype
+            end
+         end
+      end
+   end
+   return nil
+end
+
 --Rounds down a number to the nearest thousand after 10 thousand, and nearest 100 thousand after 1 million.
 function mod.simplify_large_number(num_in)
    local num = num_in
