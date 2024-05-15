@@ -44,8 +44,8 @@ end
 
 --Checks if the map position of the mod cursor falls on screen when the camera is locked on the player character.
 function mod.cursor_position_is_on_screen_with_player_centered(pindex)
-   local range_y = math.floor(16 / players[pindex].zoom) --found experimentally by counting tile ranges at different zoom levels
-   local range_x = range_y * game.get_player(pindex).display_scale * 1.5 --found experimentally by checking scales
+   local range_y = math.floor(18 / players[pindex].zoom) --found experimentally by counting tile ranges at different zoom levels
+   local range_x = range_y * game.get_player(pindex).display_scale * 1.6 --found experimentally by checking scales
    return (
       math.abs(players[pindex].cursor_pos.y - players[pindex].position.y) <= range_y
       and math.abs(players[pindex].cursor_pos.x - players[pindex].position.x) <= range_x

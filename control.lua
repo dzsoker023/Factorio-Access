@@ -9916,7 +9916,7 @@ script.on_event("klient-alt-move-to", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
-   if players[pindex].remote_view == true then
+   if players[pindex].remote_view == true or fa_mouse.cursor_position_is_on_screen_with_player_centered(pindex) then
       --Allow KK
       players[pindex].kruise_kontrolling = true
       p.character_running_speed_modifier = 0
