@@ -3498,6 +3498,7 @@ end
 --Chooses the function to call after a movement keypress, according to the current mode.
 function move_key(direction, event, force_single_tile)
    local pindex = event.player_index
+   local p = game.get_player(pindex)
    if not check_for_player(pindex) or players[pindex].menu == "prompt" then return end
    --Stop any enabled mouse entity selection
    if players[pindex].vanilla_mode ~= true then
@@ -3529,8 +3530,10 @@ function move_key(direction, event, force_single_tile)
       game.get_player(pindex).play_sound({ path = "utility/upgrade_selection_started" })
    end
 
-   --Stop kruise kontrol related permissions
-   --players[pindex].kruise_kontrolling = false
+   --If driving a spidertron in telestep mode, suggest using smooth walking
+   if p.vehicle and p.vehicle.type == "spider-vehicle" and players[pindex].walk ~= 2 then
+      printout("To walk the spidertron, enable smooth walking mode", pindex)
+   end
 end
 
 --Moves the cursor, and conducts an area scan for larger cursors. If the player is in a slow moving vehicle, it is stopped.
