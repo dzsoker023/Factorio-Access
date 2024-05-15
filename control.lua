@@ -8824,6 +8824,16 @@ script.on_event("logistic-request-decrement-max", function(event)
    fa_bot_logistics.logistics_request_decrement_max_handler(pindex)
 end)
 
+script.on_event("vanilla-toggle-personal-logistics-info", function(event)
+   local pindex = event.player_index
+   local p = game.get_player(pindex)
+   if p.character_personal_logistic_requests_enabled then
+      printout("Resumed personal logistics requests", pindex)
+   else
+      printout("Paused personal logistics requests", pindex)
+   end
+end)
+
 script.on_event("logistic-request-toggle-personal-logistics", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end

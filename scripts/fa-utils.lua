@@ -708,9 +708,7 @@ function mod.get_prototype_of_item_product(pindex)
          if product.type == "item" then
             --Select product item #1
             prototype = game.item_prototypes[product.name]
-            if prototype then
-               return prototype
-            end
+            if prototype then return prototype end
          end
       end
    end
