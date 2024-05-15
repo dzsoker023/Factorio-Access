@@ -46,6 +46,31 @@ function mod.add_to_inventory_bar(ent, amount)
    return { "access.inventory-limit-status", value, current_bar }
 end
 
+--Increases the selected inserter's hand stack size by 1
+function mod.inserter_hand_stack_size_up(inserter)
+   local result = ""
+   inserter.inserter_stack_size_override = inserter.inserter_stack_size_override + 1
+   result = inserter.inserter_stack_size_override .. " set for hand stack size"
+   return result
+end
+
+--Decreases the selected inserter's hand stack size by 1
+function mod.inserter_hand_stack_size_down(inserter)
+   local result = ""
+   if inserter.inserter_stack_size_override > 1 then
+      inserter.inserter_stack_size_override = inserter.inserter_stack_size_override - 1
+      result = inserter.inserter_stack_size_override .. " set for hand stack size"
+   else
+      inserter.inserter_stack_size_override = 0
+      local cap = inserter.force.inserter_stack_size_bonus + 1
+      if inserter.name == "stack-inserter" or inserter.name == "stack-filter-inserter" then
+         cap = inserter.force.stack_inserter_capacity_bonus + 1
+      end
+      result = "restored " .. cap .. " as default hand stack size "
+   end
+   return result
+end
+
 --Loads and opens the building menu
 function mod.open_operable_building(ent, pindex)
    if ent.operable and ent.prototype.is_building then
@@ -218,6 +243,9 @@ function mod.open_operable_building(ent, pindex)
             players[pindex].in_menu = true
             players[pindex].menu = "building_no_sectors"
             local result = localising.get(ent, pindex) .. ", this menu has no options "
+            if ent.type == "inserter" then
+               result = localising.get(ent, pindex) .. ", press PAGEUP or PAGEDOWN to edit hand stack size"
+            end
             if ent.get_control_behavior() ~= nil then
                result = result .. ", press 'N' to open the circuit network menu "
             end

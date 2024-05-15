@@ -4075,6 +4075,32 @@ script.on_event("decrease-train-wait-times-by-60", function(event)
    end
 end)
 
+script.on_event("inserter-hand-stack-size-up", function(event)
+   pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   local p = game.get_player(pindex)
+   if p.opened and p.opened.type == "inserter" then
+      local ent = get_selected_ent(pindex)
+      if ent.type == "inserter" then
+         local result = fa_sectors.inserter_hand_stack_size_up(ent)
+         printout(result, pindex)
+      end
+   end
+end)
+
+script.on_event("inserter-hand-stack-size-down", function(event)
+   pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   local p = game.get_player(pindex)
+   if p.opened and p.opened.type == "inserter" then
+      local ent = get_selected_ent(pindex)
+      if ent.type == "inserter" then
+         local result = fa_sectors.inserter_hand_stack_size_down(ent)
+         printout(result, pindex)
+      end
+   end
+end)
+
 script.on_event("read-rail-structure-ahead", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end

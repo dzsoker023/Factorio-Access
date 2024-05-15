@@ -791,6 +791,22 @@ data:extend({
 
    {
       type = "custom-input",
+      name = "inserter-hand-stack-size-up",
+      key_sequence = "PAGEUP",
+      alternative_key_sequence = "ALT + UP",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
+      name = "inserter-hand-stack-size-down",
+      key_sequence = "PAGEDOWN",
+      alternative_key_sequence = "ALT + DOWN",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
       name = "read-rail-structure-ahead",
       key_sequence = "SHIFT + J",
       consuming = "none",
