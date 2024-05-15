@@ -749,9 +749,9 @@ function ent_info(pindex, ent, description)
       local supplied_count = 0
       local producer_count = 0
       for i, ent2 in ipairs(supplied_ents) do
-         if ent2.prototype.max_energy_usage ~= nil and ent2.prototype.max_energy_usage > 0 then
+         if ent2.prototype.max_energy_usage ~= nil and ent2.prototype.max_energy_usage > 0 and ent2.prototype.is_building then
             supplied_count = supplied_count + 1
-         elseif ent2.prototype.max_energy_production ~= nil and ent2.prototype.max_energy_production > 0 then
+         elseif ent2.prototype.max_energy_production ~= nil and ent2.prototype.max_energy_production > 0 and ent2.prototype.is_building then
             producer_count = producer_count + 1
          end
       end
