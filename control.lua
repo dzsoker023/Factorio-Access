@@ -10063,7 +10063,7 @@ end
 function kk_status_update(pindex)
    --Return if not KK or KK was activated recently
    if players[pindex].kruise_kontrolling == false then return end
-   if game.tick - players[pindex].kk_start_tick < 65 then return end
+   if players[pindex].kk_start_tick == nil or game.tick - players[pindex].kk_start_tick < 65 then return end
    local p = game.get_player(pindex)
    local status = players[pindex].kk_status
 
