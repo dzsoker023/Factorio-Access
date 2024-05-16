@@ -19,6 +19,7 @@ function mod.teleport_to_closest(pindex, pos, muted, ignore_enemies)
    local first_player = game.get_player(pindex)
    local surf = first_player.surface
    local radius = 0.5
+   --Find a non-colliding position
    local new_pos = surf.find_non_colliding_position("character", pos, radius, 0.1, true)
    while new_pos == nil do
       radius = radius + 1
@@ -75,13 +76,17 @@ function mod.teleport_to_closest(pindex, pos, muted, ignore_enemies)
             draw_on_ground = true,
             time_to_live = 60,
          })
-         local smoke_effect = first_player.surface.create_entity({
-            name = "iron-chest",
-            position = first_player.position,
-            raise_built = false,
-            force = first_player.force,
-         })
-         smoke_effect.destroy({})
+         local smoke_spot_ghosts =
+            first_player.surface.find_entities_filtered({ position = first_player.position, type = "entity-ghost" })
+         if smoke_spot_ghosts == nil or #smoke_spot_ghosts == 0 then
+            local smoke_effect = first_player.surface.create_entity({
+               name = "iron-chest",
+               position = first_player.position,
+               raise_built = false,
+               force = first_player.force,
+            })
+            smoke_effect.destroy({})
+         end
          --Teleport sound at origin
          game.get_player(pindex).play_sound({ path = "player-teleported", volume_modifier = 0.2, position = old_pos })
          game
@@ -121,13 +126,17 @@ function mod.teleport_to_closest(pindex, pos, muted, ignore_enemies)
                draw_on_ground = true,
                time_to_live = 60,
             })
-            local smoke_effect = first_player.surface.create_entity({
-               name = "iron-chest",
-               position = first_player.position,
-               raise_built = false,
-               force = first_player.force,
-            })
-            smoke_effect.destroy({})
+            local smoke_spot_ghosts =
+               first_player.surface.find_entities_filtered({ position = first_player.position, type = "entity-ghost" })
+            if smoke_spot_ghosts == nil or #smoke_spot_ghosts == 0 then
+               local smoke_effect = first_player.surface.create_entity({
+                  name = "iron-chest",
+                  position = first_player.position,
+                  raise_built = false,
+                  force = first_player.force,
+               })
+               smoke_effect.destroy({})
+            end
             --Teleport sound at target
             game
                .get_player(pindex)
