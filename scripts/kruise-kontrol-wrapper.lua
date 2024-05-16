@@ -128,15 +128,11 @@ function mod.status_determine(pindex)
       return status
    end
 
-   --[[
-   if can_follow[entity.type] then
+   if entity.train ~= nil or entity.type == "car" then
       status = "following"
       return status
-   else
-      status = "walking"
-      return status
-   end 
-   ]]
+   end
+
    --Unknown case:
    return "walking"
 end
