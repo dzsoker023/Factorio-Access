@@ -6397,7 +6397,7 @@ function mod.run_menu(pindex, clicked_in)
 
    if menu_line == 0 then
       comment = comment
-         .. "Select a structure to build by going up or down this menu, attempt to build it via LEFT BRACKET, "
+         .. "Rail builder, select a structure to build by going up or down this menu, attempt to build it via LEFT BRACKET, "
       printout(comment, pindex)
       return
    end

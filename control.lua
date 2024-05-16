@@ -4654,16 +4654,18 @@ end)
 
 --Sets up mod character menus. Cannot actually open the character GUI.
 function open_player_inventory(tick, pindex)
-   game.get_player(pindex).play_sound({ path = "Open-Inventory-Sound" })
-   game.get_player(pindex).selected = nil
+   local p = game.get_player(pindex)
+   if p.ticks_to_respawn ~= nil then return end
+   p.play_sound({ path = "Open-Inventory-Sound" })
+   p.selected = nil
    players[pindex].last_menu_toggle_tick = tick
    players[pindex].in_menu = true
    players[pindex].menu = "inventory"
-   players[pindex].inventory.lua_inventory = game.get_player(pindex).get_main_inventory()
+   players[pindex].inventory.lua_inventory = p.get_main_inventory()
    players[pindex].inventory.max = #players[pindex].inventory.lua_inventory
    players[pindex].inventory.index = 1
    read_inventory_slot(pindex, "Inventory, ")
-   players[pindex].crafting.lua_recipes = fa_crafting.get_recipes(pindex, game.get_player(pindex).character, true)
+   players[pindex].crafting.lua_recipes = fa_crafting.get_recipes(pindex, p.character, true)
    players[pindex].crafting.max = #players[pindex].crafting.lua_recipes
    players[pindex].crafting.category = 1
    players[pindex].crafting.index = 1
@@ -7957,7 +7959,7 @@ script.on_event("open-warnings-menu", function(event)
       players[pindex].move_queue = {}
       game.get_player(pindex).selected = nil
       game.get_player(pindex).play_sound({ path = "Open-Inventory-Sound" })
-      printout("Short Range: " .. players[pindex].warnings.short.summary, pindex)
+      printout("Warnings, Short Range: " .. players[pindex].warnings.short.summary, pindex)
    else
       printout("Another menu is open. ", pindex)
    end
@@ -8241,7 +8243,7 @@ script.on_event("open-structure-travel-menu", function(event)
       end
       if description == "" then description = "No nearby buildings." end
       printout(
-         "Now at "
+         "Structure travel, Now at "
             .. ent.name
             .. " "
             .. fa_scanner.ent_extra_list_info(ent, pindex, true)

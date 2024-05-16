@@ -341,6 +341,8 @@ function mod.compile_building_network(ent, radius_in, pindex)
 end
 
 function mod.fast_travel_menu_open(pindex)
+   local p = game.get_player(pindex)
+   if p.ticks_to_respawn ~= nil then return end
    if
       players[pindex].in_menu == false
       and game.get_player(pindex).driving == false
@@ -356,7 +358,7 @@ function mod.fast_travel_menu_open(pindex)
       players[pindex].travel.renaming = false
       players[pindex].travel.describing = false
       printout(
-         "Navigate up and down with W and S to select a fast travel location, and jump to it with LEFT BRACKET.  Alternatively, select an option by navigating left and right with A and D.",
+         "Fast travel, Navigate up and down with W and S to select a fast travel location, and jump to it with LEFT BRACKET.  Alternatively, select an option by navigating left and right with A and D.",
          pindex
       )
       local screen = game.get_player(pindex).gui.screen
