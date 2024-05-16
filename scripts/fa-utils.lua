@@ -850,4 +850,26 @@ function mod.identify_water_shores(pindex)
    return result
 end
 
+--Checks whether the player has not walked for 1 second. Uses the bump alert checks.
+function mod.player_was_still_for_1_second(pindex)
+   local b = players[pindex].bump
+   if b == nil or b.filled ~= true then
+      --It is too soon to report anything
+      return false
+   end
+   local diff_x1 = math.abs(b.last_pos_1.x - b.last_pos_2.x)
+   local diff_x2 = math.abs(b.last_pos_2.x - b.last_pos_3.x)
+   local diff_x3 = math.abs(b.last_pos_3.x - b.last_pos_4.x)
+   local diff_y1 = math.abs(b.last_pos_1.y - b.last_pos_2.y)
+   local diff_y2 = math.abs(b.last_pos_2.y - b.last_pos_3.y)
+   local diff_y3 = math.abs(b.last_pos_3.y - b.last_pos_4.y)
+   if (diff_x1 + diff_x2 + diff_x3 + diff_y1 + diff_y2 + diff_y3) == 0 then
+      --Confirmed no movement in the past 60 ticks
+      return true
+   else
+      --Confirmed some movement in the past 60 ticks
+      return false
+   end
+end
+
 return mod
