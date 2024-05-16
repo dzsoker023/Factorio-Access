@@ -8827,6 +8827,12 @@ script.on_event("logistic-request-decrement-max", function(event)
    fa_bot_logistics.logistics_request_decrement_max_handler(pindex)
 end)
 
+script.on_event("logistic-request-clear", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   fa_bot_logistics.logistics_request_clear_handler(pindex)
+end)
+
 script.on_event("vanilla-toggle-personal-logistics-info", function(event)
    local pindex = event.player_index
    local p = game.get_player(pindex)
@@ -9936,6 +9942,7 @@ script.on_event("klient-alt-move-to", function(event)
       --Determine and report the KK status
       players[pindex].kk_status = kk_status_determine(pindex)
       kk_status_read(pindex, true)
+      players[pindex].kk_start_tick = event.tick
    else
       players[pindex].kruise_kontrolling = false
       fix_walk(pindex)
@@ -10052,7 +10059,9 @@ end
 
 --Updates the assumed status of Kruise Kontrol based on specific checks per status
 function kk_status_update(pindex)
+   --Return if not KK or KK was activated recently
    if players[pindex].kruise_kontrolling == false then return end
+   if game.tick - players[pindex].kk_start_tick < 65 then return end
    local p = game.get_player(pindex)
    local status = players[pindex].kk_status
 
@@ -10105,12 +10114,12 @@ function player_was_still_for_1_second(pindex)
       --It is too soon to report anything
       return false
    end
-   local diff_x1 = b.last_pos_1.x - b.last_pos_2.x
-   local diff_x2 = b.last_pos_2.x - b.last_pos_3.x
-   local diff_x3 = b.last_pos_3.x - b.last_pos_4.x
-   local diff_y1 = b.last_pos_1.y - b.last_pos_2.y
-   local diff_y2 = b.last_pos_2.y - b.last_pos_3.y
-   local diff_y3 = b.last_pos_3.y - b.last_pos_4.y
+   local diff_x1 = math.abs(b.last_pos_1.x - b.last_pos_2.x)
+   local diff_x2 = math.abs(b.last_pos_2.x - b.last_pos_3.x)
+   local diff_x3 = math.abs(b.last_pos_3.x - b.last_pos_4.x)
+   local diff_y1 = math.abs(b.last_pos_1.y - b.last_pos_2.y)
+   local diff_y2 = math.abs(b.last_pos_2.y - b.last_pos_3.y)
+   local diff_y3 = math.abs(b.last_pos_3.y - b.last_pos_4.y)
    if (diff_x1 + diff_x2 + diff_x3 + diff_y1 + diff_y2 + diff_y3) == 0 then
       --Confirmed no movement in the past 60 ticks
       return true

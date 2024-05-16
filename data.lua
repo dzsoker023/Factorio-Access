@@ -1949,6 +1949,13 @@ data:extend({
 
    {
       type = "custom-input",
+      name = "logistic-request-clear",
+      key_sequence = "CONTROL + SHIFT + ALT + L",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
       name = "vanilla-toggle-personal-logistics-info",
       key_sequence = "ALT + L",
       consuming = "none",
