@@ -511,20 +511,22 @@ function mod.run_train_menu(menu_index, pindex, clicked, other_input)
                else
                   namelist = namelist .. ", temporary station " .. record.station
                end
-               local wait_cond_1 = record.wait_conditions[1]
-               if wait_cond_1 ~= nil then
-                  local cond = wait_cond_1.type
-                  namelist = namelist .. ", waiting for " .. cond
-                  if cond == "time" or cond == "inactivity" then
-                     namelist = namelist .. " " .. math.ceil(wait_cond_1.ticks / 60) .. " seconds "
+               if record.wait_conditions ~= nil then
+                  local wait_cond_1 = record.wait_conditions[1]
+                  if wait_cond_1 ~= nil then
+                     local cond = wait_cond_1.type
+                     namelist = namelist .. ", waiting for " .. cond
+                     if cond == "time" or cond == "inactivity" then
+                        namelist = namelist .. " " .. math.ceil(wait_cond_1.ticks / 60) .. " seconds "
+                     end
                   end
-               end
-               local wait_cond_2 = record.wait_conditions[2]
-               if wait_cond_2 ~= nil then
-                  local cond = wait_cond_2.type
-                  namelist = namelist .. ", and waiting for " .. cond
-                  if cond == "time" or cond == "inactivity" then
-                     namelist = namelist .. " " .. math.ceil(wait_cond_2.ticks / 60) .. " seconds "
+                  local wait_cond_2 = record.wait_conditions[2]
+                  if wait_cond_2 ~= nil then
+                     local cond = wait_cond_2.type
+                     namelist = namelist .. ", and waiting for " .. cond
+                     if cond == "time" or cond == "inactivity" then
+                        namelist = namelist .. " " .. math.ceil(wait_cond_2.ticks / 60) .. " seconds "
+                     end
                   end
                end
                namelist = namelist .. ", "
@@ -965,8 +967,8 @@ function mod.sub_automatic_travel_to_other_stop(train)
       --Set a stop
       local wait_condition_1 = { type = "passenger_not_present", compare_type = "and" }
       local wait_condition_2 = { type = "time", ticks = 60, compare_type = "and" }
-      local new_record =
-         { wait_conditions = { wait_condition_1, wait_condition_2 }, station = stop.backer_name, temporary = true }
+      local new_record = { wait_conditions = nil, station = stop.backer_name, temporary = true }
+      --{ wait_conditions = { wait_condition_1, wait_condition_2 }, station = stop.backer_name, temporary = true }
 
       --train.schedule = {current = 1, records = {new_record}}
       local schedule = train.schedule
@@ -1010,7 +1012,8 @@ function mod.sub_automatic_travel_to_other_stop(train)
    return str
 end
 
-function mod.refresh_valid_train_stop_list(train, pindex) --table.insert
+--Tries to travel to every station on the surface to determine the valid ones
+function mod.refresh_valid_train_stop_list(train, pindex)
    players[pindex].valid_train_stop_list = {}
    train.manual_mode = true
    local surf = train.front_stock.surface
@@ -1020,8 +1023,8 @@ function mod.refresh_valid_train_stop_list(train, pindex) --table.insert
       --Set a stop
       local wait_condition_1 = { type = "passenger_not_present", compare_type = "and" }
       local wait_condition_2 = { type = "time", ticks = 60, compare_type = "and" }
-      local new_record =
-         { wait_conditions = { wait_condition_1, wait_condition_2 }, station = stop.backer_name, temporary = true }
+      local new_record = { wait_conditions = nil, station = stop.backer_name, temporary = true }
+      --{ wait_conditions = { wait_condition_1, wait_condition_2 }, station = stop.backer_name, temporary = true }
 
       local schedule = train.schedule
       if schedule == nil then
@@ -1085,7 +1088,8 @@ function mod.go_to_valid_train_stop_from_list(pindex, train)
    --Set the station target
    local wait_condition_1 = { type = "passenger_not_present", compare_type = "and" }
    local wait_condition_2 = { type = "time", ticks = 60, compare_type = "and" }
-   local new_record = { wait_conditions = { wait_condition_1, wait_condition_2 }, station = name, temporary = true }
+   local new_record = { wait_conditions = nil, station = name, temporary = true }
+   --local new_record = { wait_conditions = { wait_condition_1, wait_condition_2 }, station = name, temporary = true }
 
    local schedule = train.schedule
    if schedule == nil then
@@ -1128,6 +1132,18 @@ function mod.go_to_valid_train_stop_from_list(pindex, train)
    end
 
    mod.menu_close(pindex, false)
+end
+
+--Checks whether the train schedule contains any temporary train stops.
+function mod.schedule_contains_temporary_stops(train)
+   local schedule = train.schedule
+   if schedule == nil or schedule == {} then return false end
+   local records = schedule.records
+   if records == nil or records == {} then return false end
+   for i, record in ipairs(records) do
+      if record.temporary == true then return true end
+   end
+   return false
 end
 
 --Honks if the following conditions are met: 1. The player is manually driving a train, 2. The train is moving, 3. Ahead of the train is a closed rail signal or rail chain signal, 4. It has been 5 seconds since the last honk.

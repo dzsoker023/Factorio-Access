@@ -9186,23 +9186,21 @@ script.on_event(defines.events.on_train_changed_state, function(event)
       --Trains with no schedule are set back to manual mode
       event.train.manual_mode = true
    elseif event.train.state == defines.train_state.arrive_station then
-      --Announce station to players on the train
+      --Announce arriving station to players on the train
       for i, player in ipairs(event.train.passengers) do
          local stop = event.train.path_end_stop
          if stop ~= nil then
-            str = " Arriving at station " .. stop.backer_name .. " "
-            players[player.index].last = str
-            localised_print({ "", "out ", str })
+            local str = " Arriving at station " .. stop.backer_name .. " "
+            printout(str, player.index)
          end
       end
    elseif event.train.state == defines.train_state.on_the_path then --laterdo make this announce only when near another trainstop.
-      --Announce station to players on the train
+      --Announce heading station to players on the train
       for i, player in ipairs(event.train.passengers) do
          local stop = event.train.path_end_stop
          if stop ~= nil then
-            str = " Heading to station " .. stop.backer_name .. " "
-            players[player.index].last = str
-            localised_print({ "", "out ", str })
+            local str = " Heading to station " .. stop.backer_name .. " "
+            printout(str, player.index)
          end
       end
    elseif event.train.state == defines.train_state.wait_signal then
@@ -9210,10 +9208,25 @@ script.on_event(defines.events.on_train_changed_state, function(event)
       for i, player in ipairs(event.train.passengers) do
          local stop = event.train.path_end_stop
          if stop ~= nil then
-            str = " Waiting at signal. "
-            players[player.index].last = str
-            localised_print({ "", "out ", str })
+            local str = " Waiting at signal. "
+            printout(str, player.index)
          end
+      end
+   end
+   --Check if the train has temporary stops and note this for its passengers
+   if fa_trains.schedule_contains_temporary_stops(event.train) == true then
+      for i, player in ipairs(event.train.passengers) do
+         players[player.index].train_has_temporary_stops = true
+      end
+   else
+      --If not, check if any passangers recently noted that there was a temporary train stop (meaning that you arrived)
+      for i, player in ipairs(event.train.passengers) do
+         if players[player.index].train_has_temporary_stops == true then
+            event.train.manual_mode = true
+            local str = "Temporary travel complete, switched to manual control"
+            printout(str, player.index)
+         end
+         players[player.index].train_has_temporary_stops = false
       end
    end
 end)
@@ -9932,25 +9945,3 @@ script.on_event("klient-cancel-enter", function(event)
    if not check_for_player(pindex) then return end
    fa_kk.cancelled_kk(pindex)
 end)
-
---Checks whether the player has not walked for 1 second. Uses the bump alert checks.
-function player_was_still_for_1_second(pindex)
-   local b = players[pindex].bump
-   if b == nil or b.filled ~= true then
-      --It is too soon to report anything
-      return false
-   end
-   local diff_x1 = math.abs(b.last_pos_1.x - b.last_pos_2.x)
-   local diff_x2 = math.abs(b.last_pos_2.x - b.last_pos_3.x)
-   local diff_x3 = math.abs(b.last_pos_3.x - b.last_pos_4.x)
-   local diff_y1 = math.abs(b.last_pos_1.y - b.last_pos_2.y)
-   local diff_y2 = math.abs(b.last_pos_2.y - b.last_pos_3.y)
-   local diff_y3 = math.abs(b.last_pos_3.y - b.last_pos_4.y)
-   if (diff_x1 + diff_x2 + diff_x3 + diff_y1 + diff_y2 + diff_y3) == 0 then
-      --Confirmed no movement in the past 60 ticks
-      return true
-   else
-      --Confirmed some movement in the past 60 ticks
-      return false
-   end
-end
