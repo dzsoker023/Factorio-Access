@@ -1,3 +1,84 @@
+# Version 0.11.2 BETA
+Released on May 17th, 2024.
+
+## Summary
+- This minor update brings several small new features, tweaks, and bugfixes across the board based on recent feedback, with special thanks this week to @ahicks. Improvements include better info and controls regarding personal logistics, rail signals, the scanner list, and the Kruise Kontrol feature.
+
+## Features
+- Added inserter hand stack size tuning from their menus.
+  * Press PAGEUP or PAGEDOWN to edit
+  * Alternative controls: ALT + UP/DOWN
+  * Setting it to 0 restores the default (maximum available) value.
+
+- Added freeform placement of rail signals next to straight rails.
+  * Like in vanilla gameplay, you can now drop a rail signal at a candidate position next to a straight rail and it will automatically rotate itself.
+  * The rule is that the signal should always be on the right hand side with respect to the direction of travel along the rail.
+  * Preview checks have been added as well.
+  * Disconnected rail signals will now also report that they are not working.
+
+- Added diagonal rail fork building options to the rail builder.
+  * Also extended the lengths of the forward exit segments built for cardinal direction rail forks.
+
+- The player logistic info summary now lists how many unfulfilled requests you have and what the missing items are.
+
+- For a selected item, its logistic request slot can now be entirely cleared by pressing "CONTROL + SHIFT + ALT + L".
+
+## Changes
+- Personal logistic requests can now be edited from the crafting menu, so you no longer need to have the items on hand.
+  * The first item product of each recipe is selected.
+  * The few items that you cannot craft by hand are missing, but this tweak is intended as a temporary Q.O.L. improvement until we build a dedicated logistics requests menu.
+
+- Distance and direction and alignment checks have been revised.
+  * The algorithm to check alignment has been simplified: All positions are floored to the northwest corner of the respective tile.
+  * An entity reported by the scan list now reports the cursor position at the northwest corner rather than the entity's center position. Therefore alignment using the scan list considers the northwest corner.
+  * Cursor distance and direction vectors now use the same calculations as the alignment checks to ensure that they agree.
+
+- The scan list categories have been expanded.
+  * There are now three types of buildings: logistics buildings, production buildings, and other buildings. The categories match the vanilla groupings of the buildings.
+  * Train stops are still listed along with vehicles, as an exception for the sake of convenience.
+  * A category for ghosts has been added.
+
+- The scan list, as an exception, selects curved rails from the center instead of the northwest corner.
+  * This is done because usually the northwest corner of a curved rail's rectangle is a few tiles away from it.
+
+- Kruise Kontrol status prediction has been significantly improved.
+  * Factorio Access now use identical checks as Kruise Kontrol to predict what the initial state will be when the feature is activated.
+  * Factorio Access is now better able to predict whether KK has arrived at a walking or driving destination, or has finished building related tasks.
+  * In general, though, if the character seems to be doing nothing during KK, we recommend pressing "ENTER" to cancel it and re-sync the mods.
+
+- Kruise Kontrol can now be activated without opening Remote View if the target location is not distant.
+  * This also makes its behavior more predictable.
+
+- Revised sub-automatic train travel to make it easier to use.
+  * Setting this now makes the train head directly to the temporary station and switch to manual control upon arriving and instantly removing the temporary station.
+  * Therefore you can set a train back to automatic after you arrive and let it resume its schedule with minimal fuss.
+
+- Cursor skipping now reacts to entering and exiting an area with water.
+
+- Improved reporting of the top item contents of trains and logistic networks.
+  * Large numbers are simplified, such as numbers greater than 10 thousand being floored to the nearest thousand.
+  * The top 10 items are listed instead of top 3 or 5.
+
+- Every mod menu now says its name after you open it, making it easier to follow along.
+  * Most menus did this already, but it was added for those left over: fast travel, structure travel, rail builder, warnings.
+
+- Added information to notify that pressing "ALT + L" toggles personal logistic requests.
+  * This is a vanilla game feature that applies in any menu.
+
+- Added information to notify that a spidertron can only be driven manually during smooth walking mode.
+
+## Bugfixes
+- Fixed a bug that made teleporting to a ghost delete that ghost.
+
+- Fixed a crash due to opening the inventory while still waiting to respawn.
+
+- Fixed a bug that prevented info reports about tile pavement previews.
+
+- Fixed some crashes related to the unfinished ghost rail planner support feature.
+
+- Fixed electric poles reporting supplied buildings incorrectly because the reports were also counting flying robots.
+
+
 # Version 0.11.1 BETA
 Released on May 13th, 2024.
 
@@ -39,7 +120,7 @@ Released on May 13th, 2024.
 
 - Improved integration for the mod Kruise Kontrol, by Klonan.
   * KK actions will now be possible while in telestep mode.
-  * Pressing any walking key will no longer cancal KK actions because this was not working correctly. You must press "ENTER" to cancel actions.
+  * Pressing any walking key will no longer cancel KK actions because this was not working correctly. You must press "ENTER" to cancel actions.
 
 - Added a system for independently predicting and reporting the Kruise Kontrol status. 
   * The status checks what was targeted to initiate Kruise Kontrol and is updated accordingly.
@@ -47,12 +128,16 @@ Released on May 13th, 2024.
   * If the status was walking and the player has reached the destination and has not moved for 1 second, then the status automatically is assumed to be arrived.
   * For other cases, the status reporting is finished only when you cancel Kruise Kontrol by pressing "Enter", because there may be ongoing actions despite the player standing still at the target location.
 
+- Bumping into objects no longer makes an alert beep but you still hear the sound of a striking metal boot or sliding gravel.
+
+- Improved info about saving times. The mod suggests waiting 3 seconds although generally it takes less than 1 second.
+
 - Launcher: Improved command line parameter handling.
 
 ## Bugfixes
 - Fixed a locale error about teleporting the cursor.
 
-- Fixed lab module slots being incorrectly labeled as reserved for science packs.
+- Fixed lab module slots being incorrectly labelled as reserved for science packs.
 
 - Fixed an issue with the handling of the undocumented direction number 8, which represents "here". It is read out as an empty string.
 
@@ -71,6 +156,7 @@ Released on May 13th, 2024.
 - Re-fixed the playing of multiple mining sounds while mining a resource.
 
 - Fixed some mod features interfering with vanilla mode.
+
 
 # Version 0.11.0 BETA - EXPERIMENTAL
 Released preview 0.11.0e1 on April 27th, 2024.
@@ -97,7 +183,7 @@ Released preview 0.11.0e1 on April 27th, 2024.
 - Added alternate keybinds for increasing and decreasing chest locked slots and train wait times: You can use "ALT + UP" / "ALT + DOWN" instead of "PAGE UP" / "PAGE DOWN". You can also use "SHIFT"/"CONTROL" and "UP"/"DOWN" instead of "SHIFT"/"CONTROL" and "PAGE UP"/"PAGE DOWN".
 
 ## Bugfixes
-- Fixed a stray textbox bug that softlocks the game. Closing any menu should should now remove stray GUI elements such as these textboxes. Also, pressing ENTER to confirm these textboxes now closes them too.
+- Fixed a stray textbox bug that softlocks the game. Closing any menu should now remove stray GUI elements such as these textboxes. Also, pressing ENTER to confirm these textboxes now closes them too.
 
 - Pressing "RIGHT BRACKET" on a blueprint in the inventory now does nothing instead of deleting it.
 
