@@ -115,11 +115,27 @@ local function logistics_request_toggle_spidertron_logistics(spidertron, pindex)
    end
 end
 
---WIP: Checks if the request for the given item is fulfilled. You can pass the personal logistics request slot index if you have it already
-function mod.is_this_player_logistic_request_fulfilled(item_stack, pindex, slot_index_in)
-   local result = false
-   local slot_index = slot_index_in or nil
-   return result
+--Checks if a player logistic request is fulfilled at the moment (as in, you have the desired item count in your inventory and hand).
+--Empty requesrs return nil.
+local function get_player_logistic_request_missing_count(pindex, slot_id)
+   local p = game.get_player(pindex)
+   local slot = p.get_personal_logistic_slot(slot_id)
+   if slot == nil or slot.name == nil then return nil end
+   local missing = slot.min
+   if missing == nil then return nil end
+   --Check player hand
+   if p.cursor_stack and p.cursor_stack.valid_for_read and p.cursor_stack.name == slot.name then
+      missing = missing - stack.count
+   end
+   if missing <= 0 then return 0 end
+   --Check all player inventories
+   missing = missing - p.get_inventory(defines.inventory.character_ammo).get_item_count(slot.name)
+   missing = missing - p.get_inventory(defines.inventory.character_armor).get_item_count(slot.name)
+   missing = missing - p.get_inventory(defines.inventory.character_guns).get_item_count(slot.name)
+   missing = missing - p.get_inventory(defines.inventory.character_main).get_item_count(slot.name)
+   missing = missing - p.get_inventory(defines.inventory.character_trash).get_item_count(slot.name)
+   if missing <= 0 then return 0 end
+   return missing
 end
 
 --Returns info string on the current logistics network, or the nearest one, for the current position
@@ -212,10 +228,9 @@ local function count_active_personal_logistic_slots(pindex) --**laterdo count fu
       if current_slot == nil or current_slot.name == nil then
          slots_nil_counter = slots_nil_counter + 1
       else
-         slot_founds = slots_found + 1
+         slots_found = slots_found + 1
       end
    end
-
    return slots_found
 end
 
@@ -1437,7 +1452,31 @@ function mod.player_logistic_requests_summary_info(pindex)
    if not p.character_personal_logistic_requests_enabled then result = result .. "Requests paused, " end
 
    --4. Count logistics requests
-   result = result .. count_active_personal_logistic_slots(pindex) .. " personal logistic requests set, "
+   local req_count = count_active_personal_logistic_slots(pindex)
+   result = result .. req_count .. " personal logistic requests set, "
+
+   --5. Count unfulfilled requests and list missing request items
+   local unfulfilled_count = 0
+   for i = 1, 250 do
+      local missing_check = get_player_logistic_request_missing_count(pindex, i)
+      if missing_check ~= nil then
+         if missing_check > 0 then unfulfilled_count = unfulfilled_count + 1 end
+      end
+   end
+   if unfulfilled_count > 0 then
+      result = result .. unfulfilled_count .. " unfulfilled, missing items include "
+      for i = 1, 250 do
+         local missing_check = get_player_logistic_request_missing_count(pindex, i)
+         if missing_check ~= nil then
+            if missing_check > 0 then
+               local slot_name = p.get_personal_logistic_slot(i).name
+               result = result .. missing_check .. " " .. slot_name .. ", "
+            end
+         end
+      end
+   else
+      result = result .. " all are fulfilled"
+   end
    return result
 end
 
