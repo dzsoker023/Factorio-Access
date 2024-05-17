@@ -148,24 +148,65 @@ function mod.status_update(pindex)
    if status == "walking" then
       --Check that the player is not moving and not mining
       if fa_utils.player_was_still_for_1_second(pindex) and p.mining_state.mining == false then
-         status = "arrived"
-         players[pindex].kruise_kontrolling = false
-         fix_walk(pindex)
-         toggle_remote_view(pindex, false, true)
+         status = mod.apply_arrived(pindex)
       end
    elseif status == "driving" then
       --Check that the player vehicle is not moving
-      if p.vehicle and p.vehicle.speed == 0 then
-         status = "arrived"
-         players[pindex].kruise_kontrolling = false
-         fix_walk(pindex)
-         toggle_remote_view(pindex, false, true)
+      if p.vehicle and p.vehicle.speed == 0 then status = mod.apply_arrived(pindex) end
+   elseif status == "building ghosts" then
+      --Check if no more ghosts around, or the existing ghosts do not have items in inventory
+      local ghosts = p.surface.find_entities_filtered({ position = p.position, radius = 100, type = "entity-ghost" })
+      if ghosts == nil or #ghosts == 0 then
+         status = mod.apply_finished(pindex)
+      else
+         --Check which ghosts to ignore
+         local ghost_count = #ghosts
+         local ignore_count = 0
+         for i, ghost in ipairs(ghosts) do
+            if p.get_main_inventory().get_item_count(ghost.ghost_name) == 0 then
+               ignore_count = ignore_count + 1
+            else
+               --Still going to build it
+               return
+            end
+         end
+         if ghost_count == ignore_count then
+            --Ignore all remaining ghosts
+            status = mod.apply_finished(pindex)
+         end
       end
+   elseif status == "deconstructing" then
+      --Check if no more deconstructables around
+      --Note: there are other end states such as inventory being full
+      local targets =
+         p.surface.find_entities_filtered({ position = p.position, radius = 100, to_be_deconstructed = true })
+      if targets == nil or #targets == 0 then status = mod.apply_finished(pindex) end
+   elseif status == "upgrading" then
+      --Check if no more upgradables around
+      --Note: there are other end states such as not having the missing items
+      local targets = p.surface.find_entities_filtered({ position = p.position, radius = 100, to_be_upgraded = true })
+      if targets == nil or #targets == 0 then status = mod.apply_finished(pindex) end
    end
 
    players[pindex].kk_status = status
    --Printout the status change if it is an end state
    if status == "arrived" or status == "finished" then mod.status_read(pindex, true) end
+end
+
+function mod.apply_finished(pindex)
+   players[pindex].kk_status = "finished"
+   players[pindex].kruise_kontrolling = false
+   fix_walk(pindex)
+   toggle_remote_view(pindex, false, true)
+   return "finished"
+end
+
+function mod.apply_arrived(pindex)
+   players[pindex].kk_status = "arrived"
+   players[pindex].kruise_kontrolling = false
+   fix_walk(pindex)
+   toggle_remote_view(pindex, false, true)
+   return "arrived"
 end
 
 --Reads out the assumed Kruise Kontrol status
@@ -182,7 +223,7 @@ function mod.status_read(pindex, short_version)
    local target_dist = math.floor(util.distance(p.position, target_pos))
    local dist_info = ", " .. target_dist .. " tiles to target"
    if target_dist < 3 then dist_info = "" end
-   result = result .. dist_info
+   if status == "walking" or status == "driving" then result = result .. dist_info end
    result = result .. ", press ENTER to cancel"
    printout(result, pindex)
 end
