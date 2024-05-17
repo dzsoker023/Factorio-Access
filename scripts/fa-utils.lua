@@ -767,6 +767,24 @@ function mod.factorio_default_sort(k1, k2)
    end
 end
 
+--Checks a position to see if it has a water tile
+function mod.tile_is_water(surface, pos)
+   local water_tiles = surface.find_tiles_filtered({
+      position = pos,
+      radius = 0.1,
+      name = {
+         "water",
+         "deepwater",
+         "water-green",
+         "deepwater-green",
+         "water-shallow",
+         "water-mud",
+         "water-wube",
+      },
+   })
+   return (water_tiles ~= nil and #water_tiles > 0)
+end
+
 --If the cursor is over a water tile, this function is called to check if it is open water or a shore.
 function mod.identify_water_shores(pindex)
    local p = game.get_player(pindex)

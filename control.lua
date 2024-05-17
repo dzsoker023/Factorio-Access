@@ -8333,12 +8333,13 @@ end
 function cursor_skip_iteration(pindex, direction, iteration_limit)
    local p = game.get_player(pindex)
    local start = get_selected_ent(pindex)
+   local start_tile_is_water = fa_utils.tile_is_water(p.surface, players[pindex].cursor_pos)
    local current = nil
    local limit = iteration_limit or 100
    local moved = 1
    local comment = ""
 
-   --For underground belts and pipes in the relevant direction, apply a special case where you jump to the underground neighbour
+   --For pipes, apply a special case where you jump to the underground neighbour
    if start ~= nil and start.valid and start.type == "pipe-to-ground" then
       local connections = start.fluidbox.get_pipe_connections(1)
       for i, con in ipairs(connections) do
@@ -8353,6 +8354,7 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
             end
          end
       end
+   --For underground belts, apply a special case where you jump to the underground neighbour
    elseif start ~= nil and start.valid and start.type == "underground-belt" then
       local neighbour = start.neighbours
       if neighbour then
@@ -8366,6 +8368,27 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
             return dist
          end
       end
+   --For water start, find the first non-water tile
+   elseif start_tile_is_water then
+      local selected_tile_is_water = nil
+      --Iterate first_tile
+      players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, 1)
+      selected_tile_is_water = fa_utils.tile_is_water(p.surface, players[pindex].cursor_pos)
+
+      --Run checks and skip when needed
+      while moved < limit do
+         if selected_tile_is_water == false then
+            --Water tile -> non-water tile found
+            return moved
+         else
+            --Iterate again
+            players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, 1)
+            selected_tile_is_water = fa_utils.tile_is_water(p.surface, players[pindex].cursor_pos)
+            moved = moved + 1
+         end
+      end
+      --Reached limit
+      return -1
    end
    --Iterate first tile
    players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, 1)
@@ -8376,14 +8399,21 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
    while moved < limit do
       if current == nil or current.valid == false then
          if start == nil or start.valid == false then
-            --Both are nil: skip
+            --Both are nil: check if water, else skip
+            local selected_tile_is_water = fa_utils.tile_is_water(p.surface, players[pindex].cursor_pos)
+            if selected_tile_is_water then
+               --Non-water tile -> water tile found
+               return moved
+            else
+               --skip
+            end
          else
-            --Valid start to nil
+            --Valid start ent -> nil found
             return moved
          end
       else
          if start == nil or start.valid == false then
-            --Nil start to valid
+            --Nil entity start -> valid entity found
             return moved
          else
             --Both are valid
