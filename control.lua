@@ -4356,90 +4356,13 @@ script.on_event(
 script.on_event("scan-category-up", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if not players[pindex].in_menu then
-      local new_category = players[pindex].nearby.category - 1
-      while
-         new_category > 0
-         and (
-            (new_category == 1 and next(players[pindex].nearby.ents) == nil)
-            or (new_category == 2 and next(players[pindex].nearby.resources) == nil)
-            or (new_category == 3 and next(players[pindex].nearby.containers) == nil)
-            or (new_category == 4 and next(players[pindex].nearby.buildings) == nil)
-            or (new_category == 5 and next(players[pindex].nearby.vehicles) == nil)
-            or (new_category == 6 and next(players[pindex].nearby.players) == nil)
-            or (new_category == 7 and next(players[pindex].nearby.enemies) == nil)
-            or (new_category == 8 and next(players[pindex].nearby.other) == nil)
-         )
-      do
-         new_category = new_category - 1
-      end
-      if new_category > 0 then
-         players[pindex].nearby.index = 1
-         players[pindex].nearby.category = new_category
-      end
-      if players[pindex].nearby.category == 1 then
-         printout("All", pindex)
-      elseif players[pindex].nearby.category == 2 then
-         printout("Resources", pindex)
-      elseif players[pindex].nearby.category == 3 then
-         printout("Containers", pindex)
-      elseif players[pindex].nearby.category == 4 then
-         printout("Buildings", pindex)
-      elseif players[pindex].nearby.category == 5 then
-         printout("Vehicles", pindex)
-      elseif players[pindex].nearby.category == 6 then
-         printout("Players", pindex)
-      elseif players[pindex].nearby.category == 7 then
-         printout("Enemies", pindex)
-      elseif players[pindex].nearby.category == 8 then
-         printout("Other", pindex)
-      end
-   end
+   if not players[pindex].in_menu then fa_scanner.category_up(pindex) end
 end)
 
 script.on_event("scan-category-down", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if not players[pindex].in_menu then
-      local new_category = players[pindex].nearby.category + 1
-      while
-         new_category <= 8
-         and (
-            (new_category == 1 and next(players[pindex].nearby.ents) == nil)
-            or (new_category == 2 and next(players[pindex].nearby.resources) == nil)
-            or (new_category == 3 and next(players[pindex].nearby.containers) == nil)
-            or (new_category == 4 and next(players[pindex].nearby.buildings) == nil)
-            or (new_category == 5 and next(players[pindex].nearby.vehicles) == nil)
-            or (new_category == 6 and next(players[pindex].nearby.players) == nil)
-            or (new_category == 7 and next(players[pindex].nearby.enemies) == nil)
-            or (new_category == 8 and next(players[pindex].nearby.other) == nil)
-         )
-      do
-         new_category = new_category + 1
-      end
-      if new_category <= 8 then
-         players[pindex].nearby.category = new_category
-         players[pindex].nearby.index = 1
-      end
-
-      if players[pindex].nearby.category == 1 then
-         printout("All", pindex)
-      elseif players[pindex].nearby.category == 2 then
-         printout("Resources", pindex)
-      elseif players[pindex].nearby.category == 3 then
-         printout("Containers", pindex)
-      elseif players[pindex].nearby.category == 4 then
-         printout("Buildings", pindex)
-      elseif players[pindex].nearby.category == 5 then
-         printout("Vehicles", pindex)
-      elseif players[pindex].nearby.category == 6 then
-         printout("Players", pindex)
-      elseif players[pindex].nearby.category == 7 then
-         printout("Enemies", pindex)
-      elseif players[pindex].nearby.category == 8 then
-         printout("Other", pindex)
-      end
-   end
+   if not players[pindex].in_menu then fa_scanner.category_down(pindex) end
 end)
 
 script.on_event("scan-sort-by-distance", function(event)
@@ -8818,14 +8741,15 @@ script.on_event("debug-test-key", function(event)
    local ent = get_selected_ent(pindex)
    local stack = game.get_player(pindex).cursor_stack
 
+   game.print(ent.prototype.group.name)
    --get_blueprint_corners(pindex, true)
    --if ent and ent.valid then
    --   game.print("tile width: " .. game.entity_prototypes[ent.name].tile_width)
    --end
-   if ent and ent.type == "programmable-speaker" then
-      --ent.play_note(12,1)
-      --fa_circuits.play_selected_speaker_note(ent)
-   end
+   --if ent and ent.type == "programmable-speaker" then
+   --ent.play_note(12,1)
+   --fa_circuits.play_selected_speaker_note(ent)
+   --end
    --show_sprite_demo(pindex)
    --Character:move_to(players[pindex].cursor_pos, util.distance(players[pindex].position,players[pindex].cursor_pos), 100)
 end)

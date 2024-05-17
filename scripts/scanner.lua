@@ -341,11 +341,14 @@ end
 function mod.populate_list_categories(pindex)
    players[pindex].nearby.resources = {}
    players[pindex].nearby.containers = {}
-   players[pindex].nearby.buildings = {}
+   players[pindex].nearby.logistics_buildings = {}
+   players[pindex].nearby.production_buildings = {}
+   players[pindex].nearby.other_buildings = {}
+   players[pindex].nearby.ghosts = {}
    players[pindex].nearby.vehicles = {}
    players[pindex].nearby.players = {}
    players[pindex].nearby.enemies = {}
-   players[pindex].nearby.other = {}
+   players[pindex].nearby.others = {}
 
    for i, ent in ipairs(players[pindex].nearby.ents) do
       if ent.aggregate then
@@ -374,11 +377,21 @@ function mod.populate_list_categories(pindex)
             table.insert(players[pindex].nearby.containers, ent)
          elseif
             ent.ents[1].prototype.is_building
+            and ent.ents[1].prototype.group.name == "logistics"
+            and ent.ents[1].type ~= "train-stop"
+         then
+            table.insert(players[pindex].nearby.logistics_buildings, ent)
+         elseif ent.ents[1].prototype.is_building and ent.ents[1].prototype.group.name == "production" then
+            table.insert(players[pindex].nearby.production_buildings, ent)
+         elseif
+            ent.ents[1].prototype.is_building
             and ent.ents[1].type ~= "unit-spawner"
             and ent.ents[1].type ~= "turret"
-            and ent.ents[1].name ~= "train-stop"
+            and ent.ents[1].type ~= "train-stop"
          then
-            table.insert(players[pindex].nearby.buildings, ent)
+            table.insert(players[pindex].nearby.other_buildings, ent)
+         elseif ent.ents[1].type == "entity-ghost" then
+            table.insert(players[pindex].nearby.ghosts, ent)
          elseif
             ent.ents[1].type == "car"
             or ent.ents[1].type == "locomotive"
@@ -386,7 +399,7 @@ function mod.populate_list_categories(pindex)
             or ent.ents[1].type == "fluid-wagon"
             or ent.ents[1].type == "artillery-wagon"
             or ent.ents[1].type == "spider-vehicle"
-            or ent.ents[1].name == "train-stop"
+            or ent.ents[1].type == "train-stop" --Exception
          then
             table.insert(players[pindex].nearby.vehicles, ent)
          elseif ent.ents[1].type == "character" or ent.ents[1].type == "character-corpse" then
@@ -394,18 +407,24 @@ function mod.populate_list_categories(pindex)
          elseif ent.ents[1].type == "unit" or ent.ents[1].type == "unit-spawner" or ent.ents[1].type == "turret" then
             table.insert(players[pindex].nearby.enemies, ent)
          else --if ent.ents[1].type == "simple-entity" or ent.ents[1].type == "simple-entity-with-owner" or ent.ents[1].type == "entity-ghost" or ent.ents[1].type == "item-entity" then --(allowing all makes it include corpses/remnants as well)
-            table.insert(players[pindex].nearby.other, ent)
+            table.insert(players[pindex].nearby.others, ent)
          end
       end
    end
-   --for debugging
-   -- game.print("resource count: "  .. #players[pindex].nearby.resources,{volume_modifier = 0})
-   -- game.print("container count: " .. #players[pindex].nearby.containers,{volume_modifier = 0})
-   -- game.print("buildings count: " .. #players[pindex].nearby.buildings,{volume_modifier = 0})
-   -- game.print("vehicles count: "  .. #players[pindex].nearby.vehicles,{volume_modifier = 0})
-   -- game.print("'players' count: " .. #players[pindex].nearby.players,{volume_modifier = 0})
-   -- game.print("enemies count: "   .. #players[pindex].nearby.enemies,{volume_modifier = 0})
-   -- game.print("other count: "     .. #players[pindex].nearby.other,{volume_modifier = 0})
+   --Report category populations For debugging
+   if false then
+      game.print(" 1. all count: " .. #players[pindex].nearby.ents, { volume_modifier = 0 })
+      game.print(" 2. resources count: " .. #players[pindex].nearby.resources, { volume_modifier = 0 })
+      game.print(" 3. containers count: " .. #players[pindex].nearby.containers, { volume_modifier = 0 })
+      game.print(" 4. logis buildings count: " .. #players[pindex].nearby.logistics_buildings, { volume_modifier = 0 })
+      game.print(" 5. prod  buildings count: " .. #players[pindex].nearby.production_buildings, { volume_modifier = 0 })
+      game.print(" 6. other buildings count: " .. #players[pindex].nearby.other_buildings, { volume_modifier = 0 })
+      game.print(" 7. ghosts count: " .. #players[pindex].nearby.ghosts, { volume_modifier = 0 })
+      game.print(" 8. vehicles count: " .. #players[pindex].nearby.vehicles, { volume_modifier = 0 })
+      game.print(" 9. players count: " .. #players[pindex].nearby.players, { volume_modifier = 0 })
+      game.print("10. enemies count: " .. #players[pindex].nearby.enemies, { volume_modifier = 0 })
+      game.print("11. others count: " .. #players[pindex].nearby.others, { volume_modifier = 0 })
+   end
 end
 
 --Run the entity scanner tool ("rescan")
@@ -528,6 +547,98 @@ function mod.list_sort(pindex)
    mod.populate_list_categories(pindex)
 end
 
+local function get_ents_of_scanner_category(cat_no)
+   local ents = {}
+   if cat_no == 1 then
+      ents = players[pindex].nearby.ents
+   elseif cat_no == 2 then
+      ents = players[pindex].nearby.resources
+   elseif cat_no == 3 then
+      ents = players[pindex].nearby.containers
+   elseif cat_no == 4 then
+      ents = players[pindex].nearby.logistics_buildings
+   elseif cat_no == 5 then
+      ents = players[pindex].nearby.production_buildings
+   elseif cat_no == 6 then
+      ents = players[pindex].nearby.other_buildings
+   elseif cat_no == 7 then
+      ents = players[pindex].nearby.ghosts
+   elseif cat_no == 8 then
+      ents = players[pindex].nearby.vehicles
+   elseif cat_no == 9 then
+      ents = players[pindex].nearby.players
+   elseif cat_no == 10 then
+      ents = players[pindex].nearby.enemies
+   elseif cat_no == 11 then
+      ents = players[pindex].nearby.others
+   end
+   return ents
+end
+
+--Returns the name of the currently selected scanner category of a player
+function mod.get_selected_scanner_category_name(pindex)
+   local cat_no = players[pindex].nearby.category
+   if cat_no == 1 then
+      return "All"
+   elseif cat_no == 2 then
+      return "Resources"
+   elseif cat_no == 3 then
+      return "Containers"
+   elseif cat_no == 4 then
+      return "Logistics buildings"
+   elseif cat_no == 5 then
+      return "Production buildings"
+   elseif cat_no == 6 then
+      return "Other buildings"
+   elseif cat_no == 7 then
+      return "Ghosts"
+   elseif cat_no == 8 then
+      return "Vehicles"
+   elseif cat_no == 9 then
+      return "Players"
+   elseif cat_no == 10 then
+      return "Enemies"
+   elseif cat_no == 11 then
+      return "Others"
+   else
+      return "Unknwon category"
+   end
+end
+
+--Switch to and read out the previous category. Skip if empty.
+function mod.category_up(pindex)
+   local new_category = players[pindex].nearby.category - 1
+   local ents = get_ents_of_scanner_category(new_category)
+   while new_category > 0 and next(ents) == nil do
+      new_category = new_category - 1
+      ents = get_ents_of_scanner_category(new_category)
+   end
+   if new_category > 0 then
+      players[pindex].nearby.index = 1
+      players[pindex].nearby.category = new_category
+   end
+   local result = mod.get_selected_scanner_category_name(pindex)
+   printout(result, pindex)
+end
+
+--Switch to and read out the next category. Skip if empty.
+function mod.category_down(pindex)
+   local category_count = 11
+   local new_category = players[pindex].nearby.category + 1
+   local ents = get_ents_of_scanner_category(new_category)
+   while new_category <= category_count and next(ents) == nil do
+      new_category = new_category + 1
+      ents = get_ents_of_scanner_category(new_category)
+   end
+   if new_category <= category_count then
+      players[pindex].nearby.category = new_category
+      players[pindex].nearby.index = 1
+   end
+
+   local result = mod.get_selected_scanner_category_name(pindex)
+   printout(result, pindex)
+end
+
 --Reads the currently selected entity of the scanner list
 function mod.list_index(pindex)
    if not check_for_player(pindex) then
@@ -535,36 +646,10 @@ function mod.list_index(pindex)
       return
    end
    local p = game.get_player(pindex)
-   if
-      (players[pindex].nearby.category == 1 and next(players[pindex].nearby.ents) == nil)
-      or (players[pindex].nearby.category == 2 and next(players[pindex].nearby.resources) == nil)
-      or (players[pindex].nearby.category == 3 and next(players[pindex].nearby.containers) == nil)
-      or (players[pindex].nearby.category == 4 and next(players[pindex].nearby.buildings) == nil)
-      or (players[pindex].nearby.category == 5 and next(players[pindex].nearby.vehicles) == nil)
-      or (players[pindex].nearby.category == 6 and next(players[pindex].nearby.players) == nil)
-      or (players[pindex].nearby.category == 7 and next(players[pindex].nearby.enemies) == nil)
-      or (players[pindex].nearby.category == 8 and next(players[pindex].nearby.other) == nil)
-   then
+   local ents = get_ents_of_scanner_category(players[pindex].nearby.category)
+   if next(ents) == nil then
       printout("No entities found.  Try refreshing with end key.", pindex)
    else
-      local ents = {}
-      if players[pindex].nearby.category == 1 then
-         ents = players[pindex].nearby.ents
-      elseif players[pindex].nearby.category == 2 then
-         ents = players[pindex].nearby.resources
-      elseif players[pindex].nearby.category == 3 then
-         ents = players[pindex].nearby.containers
-      elseif players[pindex].nearby.category == 4 then
-         ents = players[pindex].nearby.buildings
-      elseif players[pindex].nearby.category == 5 then
-         ents = players[pindex].nearby.vehicles
-      elseif players[pindex].nearby.category == 6 then
-         ents = players[pindex].nearby.players
-      elseif players[pindex].nearby.category == 7 then
-         ents = players[pindex].nearby.enemies
-      elseif players[pindex].nearby.category == 8 then
-         ents = players[pindex].nearby.other
-      end
       local ent = nil
 
       if ents[players[pindex].nearby.index].aggregate == false then
@@ -730,16 +815,9 @@ function mod.list_down(pindex)
       --These keys may overlap a lot so might as well
       return
    end
-   if
-      (players[pindex].nearby.category == 1 and players[pindex].nearby.index < #players[pindex].nearby.ents)
-      or (players[pindex].nearby.category == 2 and players[pindex].nearby.index < #players[pindex].nearby.resources)
-      or (players[pindex].nearby.category == 3 and players[pindex].nearby.index < #players[pindex].nearby.containers)
-      or (players[pindex].nearby.category == 4 and players[pindex].nearby.index < #players[pindex].nearby.buildings)
-      or (players[pindex].nearby.category == 5 and players[pindex].nearby.index < #players[pindex].nearby.vehicles)
-      or (players[pindex].nearby.category == 6 and players[pindex].nearby.index < #players[pindex].nearby.players)
-      or (players[pindex].nearby.category == 7 and players[pindex].nearby.index < #players[pindex].nearby.enemies)
-      or (players[pindex].nearby.category == 8 and players[pindex].nearby.index < #players[pindex].nearby.other)
-   then
+   --Check if out of bounds
+   local ents = get_ents_of_scanner_category(players[pindex].nearby.category)
+   if players[pindex].nearby.index < #ents then
       players[pindex].nearby.index = players[pindex].nearby.index + 1
       players[pindex].nearby.selection = 1
    else
@@ -755,31 +833,14 @@ function mod.list_current(pindex)
       --These keys may overlap a lot so might as well
       return
    end
-   local ents = {}
-   if players[pindex].nearby.category == 1 then
-      ents = players[pindex].nearby.ents
-   elseif players[pindex].nearby.category == 2 then
-      ents = players[pindex].nearby.resources
-   elseif players[pindex].nearby.category == 3 then
-      ents = players[pindex].nearby.containers
-   elseif players[pindex].nearby.category == 4 then
-      ents = players[pindex].nearby.buildings
-   elseif players[pindex].nearby.category == 5 then
-      ents = players[pindex].nearby.vehicles
-   elseif players[pindex].nearby.category == 6 then
-      ents = players[pindex].nearby.players
-   elseif players[pindex].nearby.category == 7 then
-      ents = players[pindex].nearby.enemies
-   elseif players[pindex].nearby.category == 8 then
-      ents = players[pindex].nearby.other
-   end
-
+   local ents = get_ents_of_scanner_category(players[pindex].nearby.category)
+   --Correct an invalid index
    if players[pindex].nearby.index < 1 then
       players[pindex].nearby.index = 1
    elseif players[pindex].nearby.index > #ents then
       players[pindex].nearby.index = #ents
    end
-
+   --Call the list index
    if not (pcall(function()
       mod.list_index(pindex)
    end)) then
