@@ -329,16 +329,24 @@ function ent_info(pindex, ent, description)
             if #contents > 2 then result = result .. ", and other item types " end
          end
       else
-         --No currently carried items: Now try to announce likely recently carried items by checking the next belt over (must have only this belt as input)
+         --No currently carried items: Report recently carried items by checking the next belt over 
+         --Those items must be from this belt if this belt is the only input to the next belt and there are no inserters or loaders around it.
          local next_belt = ent.belt_neighbours["outputs"][1]
-         --Check contents of next belt
          local next_contents = {}
+         local next_belt_nearby_inserters =
+            next_belt.surface.find_entitities_filtered{ position = next_belt.position, radius = 3, type = {"inserter","loader","loader-1x1" }}
          if
             next_belt ~= nil
             and next_belt.valid
             and #next_belt.belt_neighbours["inputs"] == 1
-            and next_belt.name ~= "entity-ghost"
+            and next_belt.type ~= "entity-ghost"
+            and next_belt.get_circuit_network(defines.wire_type.red) == nil
+            and next_belt.get_circuit_network(defines.wire_type.green) == nil
+            and ent.get_circuit_network(defines.wire_type.red) == nil
+            and ent.get_circuit_network(defines.wire_type.green) == nil
+            and (next_belt_nearby_inserters == nil or #next_belt_nearby_inserters == 0)
          then
+            --Check contents of next belt
             local left = next_belt.get_transport_line(1).get_contents()
             local right = next_belt.get_transport_line(2).get_contents()
 
@@ -360,9 +368,20 @@ function ent_info(pindex, ent, description)
          --Check contents of prev belt
          local prev_belts = ent.belt_neighbours["inputs"]
          local prev_contents = {}
+         local this_belt_nearby_inserters =
+            ent.surface.find_entitities_filtered{ position = ent.position, radius = 5, type = {"inserter"}}
          for i, prev_belt in ipairs(prev_belts) do
             --Check contents
-            if prev_belt ~= nil and prev_belt.valid and prev_belt.name ~= "entity-ghost" then
+            if
+               prev_belt ~= nil
+               and prev_belt.valid
+               and prev_belt.type ~= "entity-ghost"
+               and prev_belt.get_circuit_network(defines.wire_type.red) == nil
+               and prev_belt.get_circuit_network(defines.wire_type.green) == nil
+               and ent.get_circuit_network(defines.wire_type.red) == nil
+               and ent.get_circuit_network(defines.wire_type.green) == nil
+               and (this_belt_nearby_inserters == nil or #this_belt_nearby_inserters == 0)
+            then
                local left = prev_belt.get_transport_line(1).get_contents()
                local right = prev_belt.get_transport_line(2).get_contents()
 
@@ -384,13 +403,13 @@ function ent_info(pindex, ent, description)
 
          --Report assumed carried items based on input/output neighbors
          if #next_contents > 0 then
-            result = result .. " assumed carrying " .. fa_localising.get_item_from_name(next_contents[1].name, pindex)
+            result = result .. " carrying " .. fa_localising.get_item_from_name(next_contents[1].name, pindex)
             if #next_contents > 1 then
                result = result .. ", and " .. fa_localising.get_item_from_name(next_contents[2].name, pindex)
                if #next_contents > 2 then result = result .. ", and other item types " end
             end
          elseif #prev_contents > 0 then
-            result = result .. " assumed carrying " .. fa_localising.get_item_from_name(prev_contents[1].name, pindex)
+            result = result .. " carrying " .. fa_localising.get_item_from_name(prev_contents[1].name, pindex)
             if #prev_contents > 1 then
                result = result .. ", and " .. fa_localising.get_item_from_name(prev_contents[2].name, pindex)
                if #prev_contents > 2 then result = result .. ", and other item types " end
@@ -707,12 +726,12 @@ function ent_info(pindex, ent, description)
       local insert_spots_left = 0
       local insert_spots_right = 0
       if not left.can_insert_at_back() and right.can_insert_at_back() then
-         result = result .. ", " .. left_dir .. " lane full and stopped, "
+         result = result .. ", " .. left_dir .. " lane full, "
       elseif left.can_insert_at_back() and not right.can_insert_at_back() then
-         result = result .. ", " .. right_dir .. " lane full and stopped, "
+         result = result .. ", " .. right_dir .. " lane full, "
       elseif not left.can_insert_at_back() and not right.can_insert_at_back() then
-         result = result .. ", both lanes full and stopped, "
-         --game.get_player(pindex).print(", both lanes full and stopped, ")
+         result = result .. ", both lanes full, "
+         --game.get_player(pindex).print(", both lanes full, ")
       else
          result = result .. ", both lanes open, "
          --game.get_player(pindex).print(", both lanes open, ")
