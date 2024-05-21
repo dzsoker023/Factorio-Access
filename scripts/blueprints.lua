@@ -168,7 +168,7 @@ function mod.paste_blueprint(pindex)
    end
 end
 
---Returns the left top and right bottom corners of the blueprint
+--Returns the left top and right bottom corners of the blueprint, as well as the center position
 function mod.get_blueprint_corners(pindex, draw_rect)
    local p = game.get_player(pindex)
    local bp = p.cursor_stack

@@ -329,12 +329,15 @@ function ent_info(pindex, ent, description)
             if #contents > 2 then result = result .. ", and other item types " end
          end
       else
-         --No currently carried items: Report recently carried items by checking the next belt over 
+         --No currently carried items: Report recently carried items by checking the next belt over
          --Those items must be from this belt if this belt is the only input to the next belt and there are no inserters or loaders around it.
          local next_belt = ent.belt_neighbours["outputs"][1]
          local next_contents = {}
-         local next_belt_nearby_inserters =
-            next_belt.surface.find_entitities_filtered{ position = next_belt.position, radius = 3, type = {"inserter","loader","loader-1x1" }}
+         local next_belt_nearby_inserters = next_belt.surface.find_entitities_filtered({
+            position = next_belt.position,
+            radius = 3,
+            type = { "inserter", "loader", "loader-1x1" },
+         })
          if
             next_belt ~= nil
             and next_belt.valid
@@ -369,7 +372,7 @@ function ent_info(pindex, ent, description)
          local prev_belts = ent.belt_neighbours["inputs"]
          local prev_contents = {}
          local this_belt_nearby_inserters =
-            ent.surface.find_entitities_filtered{ position = ent.position, radius = 5, type = {"inserter"}}
+            ent.surface.find_entitities_filtered({ position = ent.position, radius = 5, type = { "inserter" } })
          for i, prev_belt in ipairs(prev_belts) do
             --Check contents
             if
