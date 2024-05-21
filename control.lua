@@ -29,6 +29,7 @@ local fa_teleport = require("scripts.teleport")
 local fa_warnings = require("scripts.warnings")
 local fa_circuits = require("scripts.circuit-networks")
 local fa_kk = require("scripts.kruise-kontrol-wrapper")
+local fa_quickbar = require("scripts.quickbar")
 
 groups = {}
 entity_types = {}
@@ -4769,118 +4770,21 @@ script.on_event("read-menu-name", function(event) --read_menu_name
    printout(menu_name, pindex)
 end)
 
---Quickbar even handlers
-local quickbar_slots = {}
-local set_quickbar_names = {}
-local quickbar_pages = {}
+--Quickbar event handlers
+local quickbar_get_events = {}
+local quickbar_set_events = {}
+local quickbar_page_events = {}
 for i = 1, 10 do
-   table.insert(quickbar_slots, "quickbar-" .. i)
-   table.insert(set_quickbar_names, "set-quickbar-" .. i)
-   table.insert(quickbar_pages, "quickbar-page-" .. i)
+   table.insert(quickbar_get_events, "quickbar-" .. i)
+   table.insert(quickbar_set_events, "set-quickbar-" .. i)
+   table.insert(quickbar_page_events, "quickbar-page-" .. i)
 end
 
----@param event EventData.CustomInputEvent
-local function quickbar_slots_handler(event)
-   pindex = event.player_index
-   if not check_for_player(pindex) then return end
-   if
-      players[pindex].menu == "inventory"
-      or players[pindex].menu == "none"
-      or (players[pindex].menu == "building" or players[pindex].menu == "vehicle")
-   then
-      local num = tonumber(string.sub(event.input_name, -1))
-      if num == 0 then num = 10 end
-      read_quick_bar_slot(num, pindex)
-   end
-end
+script.on_event(quickbar_get_events, fa_quickbar.quickbar_get_handler)
 
-script.on_event(quickbar_slots, quickbar_slots_handler)
+script.on_event(quickbar_set_events, fa_quickbar.quickbar_set_handler)
 
---all 10 quickbar slot setting event handlers
----@param event EventData.CustomInputEvent
-local function set_quickbar_names_handler(event)
-   pindex = event.player_index
-   if not check_for_player(pindex) then return end
-   if
-      players[pindex].menu == "inventory"
-      or players[pindex].menu == "none"
-      or (players[pindex].menu == "building" or players[pindex].menu == "vehicle")
-   then
-      local num = tonumber(string.sub(event.input_name, -1))
-      if num == 0 then num = 10 end
-      set_quick_bar_slot(num, pindex)
-   end
-end
-script.on_event(set_quickbar_names, set_quickbar_names_handler)
-
---all 10 quickbar page setting event handlers
----@param event EventData.CustomInputEvent
-local function quickbar_pages_handler(event)
-   pindex = event.player_index
-   if not check_for_player(pindex) then return end
-
-   local num = tonumber(string.sub(event.input_name, -1))
-   if num == 0 then num = 10 end
-   read_switched_quick_bar(num, pindex)
-end
-script.on_event(quickbar_pages, quickbar_pages_handler)
-
-function read_quick_bar_slot(index, pindex)
-   page = game.get_player(pindex).get_active_quick_bar_page(1) - 1
-   local item = game.get_player(pindex).get_quick_bar_slot(index + 10 * page)
-   if item ~= nil then
-      local count = game.get_player(pindex).get_main_inventory().get_item_count(item.name)
-      local stack = game.get_player(pindex).cursor_stack
-      if stack and stack.valid_for_read then
-         count = count + stack.count
-         printout("unselected " .. fa_localising.get(item, pindex) .. " x " .. count, pindex)
-      else
-         printout("selected " .. fa_localising.get(item, pindex) .. " x " .. count, pindex)
-      end
-   else
-      printout("Empty quickbar slot", pindex) --does this print, maybe not working because it is linked to the game control?
-   end
-end
-
-function set_quick_bar_slot(index, pindex)
-   local p = game.get_player(pindex)
-   local page = game.get_player(pindex).get_active_quick_bar_page(1) - 1
-   local stack_cur = game.get_player(pindex).cursor_stack
-   local stack_inv = players[pindex].inventory.lua_inventory[players[pindex].inventory.index]
-   local ent = get_selected_ent(pindex)
-   if stack_cur and stack_cur.valid_for_read and stack_cur.valid == true then
-      game.get_player(pindex).set_quick_bar_slot(index + 10 * page, stack_cur)
-      printout("Quickbar assigned " .. index .. " " .. fa_localising.get(stack_cur, pindex), pindex)
-   elseif
-      players[pindex].menu == "inventory"
-      and stack_inv
-      and stack_inv.valid_for_read
-      and stack_inv.valid == true
-   then
-      game.get_player(pindex).set_quick_bar_slot(index + 10 * page, stack_inv)
-      printout("Quickbar assigned " .. index .. " " .. fa_localising.get(stack_inv, pindex), pindex)
-   elseif ent ~= nil and ent.valid and ent.force == p.force and game.item_prototypes[ent.name] ~= nil then
-      game.get_player(pindex).set_quick_bar_slot(index + 10 * page, ent.name)
-      printout("Quickbar assigned " .. index .. " " .. fa_localising.get(ent, pindex), pindex)
-   else
-      --Clear the slot
-      local item = game.get_player(pindex).get_quick_bar_slot(index + 10 * page)
-      local item_name = ""
-      if item ~= nil then item_name = fa_localising.get(item, pindex) end
-      ---@diagnostic disable-next-line: param-type-mismatch
-      game.get_player(pindex).set_quick_bar_slot(index + 10 * page, nil)
-      printout("Quickbar unassigned " .. index .. " " .. item_name, pindex)
-   end
-end
-
-function read_switched_quick_bar(index, pindex)
-   page = game.get_player(pindex).get_active_quick_bar_page(index)
-   local item = game.get_player(pindex).get_quick_bar_slot(1 + 10 * (index - 1))
-   local item_name = "empty slot"
-   if item ~= nil then item_name = fa_localising.get(item, pindex) end
-   local result = "Quickbar " .. index .. " selected starting with " .. item_name
-   printout(result, pindex)
-end
+script.on_event(quickbar_page_events, fa_quickbar.quickbar_page_handler)
 
 script.on_event("switch-menu-or-gun", function(event)
    pindex = event.player_index
