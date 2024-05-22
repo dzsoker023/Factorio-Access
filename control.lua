@@ -29,6 +29,7 @@ local fa_teleport = require("scripts.teleport")
 local fa_warnings = require("scripts.warnings")
 local fa_circuits = require("scripts.circuit-networks")
 local fa_kk = require("scripts.kruise-kontrol-wrapper")
+local fa_quickbar = require("scripts.quickbar")
 
 groups = {}
 entity_types = {}
@@ -329,16 +330,34 @@ function ent_info(pindex, ent, description)
             if #contents > 2 then result = result .. ", and other item types " end
          end
       else
-         --No currently carried items: Now try to announce likely recently carried items by checking the next belt over (must have only this belt as input)
+         --No currently carried items: Report recently carried items by checking the next belt over
+         --Those items must be from this belt if this belt is the only input to the next belt and there are no inserters or loaders around it.
          local next_belt = ent.belt_neighbours["outputs"][1]
-         --Check contents of next belt
          local next_contents = {}
+         local next_belt_nearby_inserters = next_belt.surface.find_entities_filtered({
+            position = next_belt.position,
+            radius = 3,
+            type = { "inserter", "loader", "loader-1x1" },
+         })
+         --check contents
+         --Ignore multiple input belts, ghosts, circuit connected transport belts, and belts with inserters near them
          if
             next_belt ~= nil
             and next_belt.valid
             and #next_belt.belt_neighbours["inputs"] == 1
-            and next_belt.name ~= "entity-ghost"
+            and next_belt.type ~= "entity-ghost"
+            and (
+               next_belt.type ~= "transport-belt" --Skip this check for non-belts, e.g. underground belts
+               or (
+                  next_belt.get_circuit_network(defines.wire_type.red) == nil
+                  and next_belt.get_circuit_network(defines.wire_type.green) == nil
+               )
+            )
+            and ent.get_circuit_network(defines.wire_type.red) == nil
+            and ent.get_circuit_network(defines.wire_type.green) == nil
+            and (next_belt_nearby_inserters == nil or #next_belt_nearby_inserters == 0)
          then
+            --Check contents of next belt
             local left = next_belt.get_transport_line(1).get_contents()
             local right = next_belt.get_transport_line(2).get_contents()
 
@@ -360,9 +379,26 @@ function ent_info(pindex, ent, description)
          --Check contents of prev belt
          local prev_belts = ent.belt_neighbours["inputs"]
          local prev_contents = {}
+         local this_belt_nearby_inserters =
+            ent.surface.find_entities_filtered({ position = ent.position, radius = 5, type = { "inserter" } })
          for i, prev_belt in ipairs(prev_belts) do
             --Check contents
-            if prev_belt ~= nil and prev_belt.valid and prev_belt.name ~= "entity-ghost" then
+            --Ignore ghosts, circuit connected transport belts, and belts with inserters near them
+            if
+               prev_belt ~= nil
+               and prev_belt.valid
+               and prev_belt.type ~= "entity-ghost"
+               and (
+                  prev_belt.type ~= "transport-belt" --Skip this check for non-belts, e.g. underground belts
+                  or (
+                     prev_belt.get_circuit_network(defines.wire_type.red) == nil
+                     and prev_belt.get_circuit_network(defines.wire_type.green) == nil
+                  )
+               )
+               and ent.get_circuit_network(defines.wire_type.red) == nil
+               and ent.get_circuit_network(defines.wire_type.green) == nil
+               and (this_belt_nearby_inserters == nil or #this_belt_nearby_inserters == 0)
+            then
                local left = prev_belt.get_transport_line(1).get_contents()
                local right = prev_belt.get_transport_line(2).get_contents()
 
@@ -384,13 +420,13 @@ function ent_info(pindex, ent, description)
 
          --Report assumed carried items based on input/output neighbors
          if #next_contents > 0 then
-            result = result .. " assumed carrying " .. fa_localising.get_item_from_name(next_contents[1].name, pindex)
+            result = result .. " carrying " .. fa_localising.get_item_from_name(next_contents[1].name, pindex)
             if #next_contents > 1 then
                result = result .. ", and " .. fa_localising.get_item_from_name(next_contents[2].name, pindex)
                if #next_contents > 2 then result = result .. ", and other item types " end
             end
          elseif #prev_contents > 0 then
-            result = result .. " assumed carrying " .. fa_localising.get_item_from_name(prev_contents[1].name, pindex)
+            result = result .. " carrying " .. fa_localising.get_item_from_name(prev_contents[1].name, pindex)
             if #prev_contents > 1 then
                result = result .. ", and " .. fa_localising.get_item_from_name(prev_contents[2].name, pindex)
                if #prev_contents > 2 then result = result .. ", and other item types " end
@@ -402,7 +438,7 @@ function ent_info(pindex, ent, description)
       end
    end
 
-   --For underground belts, note whether entrance or Exited
+   --For underground belts, note whether entrance or exit, and report contents
    if ent.type == "underground-belt" then
       if ent.belt_to_ground_type == "input" then
          result = result .. " entrance "
@@ -707,12 +743,12 @@ function ent_info(pindex, ent, description)
       local insert_spots_left = 0
       local insert_spots_right = 0
       if not left.can_insert_at_back() and right.can_insert_at_back() then
-         result = result .. ", " .. left_dir .. " lane full and stopped, "
+         result = result .. ", " .. left_dir .. " lane full, "
       elseif left.can_insert_at_back() and not right.can_insert_at_back() then
-         result = result .. ", " .. right_dir .. " lane full and stopped, "
+         result = result .. ", " .. right_dir .. " lane full, "
       elseif not left.can_insert_at_back() and not right.can_insert_at_back() then
-         result = result .. ", both lanes full and stopped, "
-         --game.get_player(pindex).print(", both lanes full and stopped, ")
+         result = result .. ", both lanes full, "
+         --game.get_player(pindex).print(", both lanes full, ")
       else
          result = result .. ", both lanes open, "
          --game.get_player(pindex).print(", both lanes open, ")
@@ -4396,62 +4432,14 @@ end)
 script.on_event("scan-selection-up", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if not players[pindex].in_menu then
-      if players[pindex].nearby.selection > 1 then
-         players[pindex].nearby.selection = players[pindex].nearby.selection - 1
-      else
-         game.get_player(pindex).play_sound({ path = "inventory-edge" })
-         players[pindex].nearby.selection = 1
-      end
-      fa_scanner.list_index(pindex)
-   end
+   fa_scanner.selection_up(pindex)
 end)
 
 --Move along different inmstances of the same item type
 script.on_event("scan-selection-down", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if not players[pindex].in_menu then
-      if
-         (players[pindex].nearby.category == 1 and next(players[pindex].nearby.ents) == nil)
-         or (players[pindex].nearby.category == 2 and next(players[pindex].nearby.resources) == nil)
-         or (players[pindex].nearby.category == 3 and next(players[pindex].nearby.containers) == nil)
-         or (players[pindex].nearby.category == 4 and next(players[pindex].nearby.buildings) == nil)
-         or (players[pindex].nearby.category == 5 and next(players[pindex].nearby.vehicles) == nil)
-         or (players[pindex].nearby.category == 6 and next(players[pindex].nearby.players) == nil)
-         or (players[pindex].nearby.category == 7 and next(players[pindex].nearby.enemies) == nil)
-         or (players[pindex].nearby.category == 8 and next(players[pindex].nearby.other) == nil)
-      then
-         printout("No entities found.  Try refreshing with end key.", pindex)
-      else
-         local ents = {}
-         if players[pindex].nearby.category == 1 then
-            ents = players[pindex].nearby.ents
-         elseif players[pindex].nearby.category == 2 then
-            ents = players[pindex].nearby.resources
-         elseif players[pindex].nearby.category == 3 then
-            ents = players[pindex].nearby.containers
-         elseif players[pindex].nearby.category == 4 then
-            ents = players[pindex].nearby.buildings
-         elseif players[pindex].nearby.category == 5 then
-            ents = players[pindex].nearby.vehicles
-         elseif players[pindex].nearby.category == 6 then
-            ents = players[pindex].nearby.players
-         elseif players[pindex].nearby.category == 7 then
-            ents = players[pindex].nearby.enemies
-         elseif players[pindex].nearby.category == 8 then
-            ents = players[pindex].nearby.other
-         end
-
-         if players[pindex].nearby.selection < #ents[players[pindex].nearby.index].ents then
-            players[pindex].nearby.selection = players[pindex].nearby.selection + 1
-         else
-            game.get_player(pindex).play_sound({ path = "inventory-edge" })
-            players[pindex].nearby.selection = #ents[players[pindex].nearby.index].ents
-         end
-      end
-      fa_scanner.list_index(pindex)
-   end
+   fa_scanner.selection_down(pindex)
 end)
 
 --Repeats the last thing read out. Not just the scanner.
@@ -4747,118 +4735,21 @@ script.on_event("read-menu-name", function(event) --read_menu_name
    printout(menu_name, pindex)
 end)
 
---Quickbar even handlers
-local quickbar_slots = {}
-local set_quickbar_names = {}
-local quickbar_pages = {}
+--Quickbar event handlers
+local quickbar_get_events = {}
+local quickbar_set_events = {}
+local quickbar_page_events = {}
 for i = 1, 10 do
-   table.insert(quickbar_slots, "quickbar-" .. i)
-   table.insert(set_quickbar_names, "set-quickbar-" .. i)
-   table.insert(quickbar_pages, "quickbar-page-" .. i)
+   table.insert(quickbar_get_events, "quickbar-" .. i)
+   table.insert(quickbar_set_events, "set-quickbar-" .. i)
+   table.insert(quickbar_page_events, "quickbar-page-" .. i)
 end
 
----@param event EventData.CustomInputEvent
-local function quickbar_slots_handler(event)
-   pindex = event.player_index
-   if not check_for_player(pindex) then return end
-   if
-      players[pindex].menu == "inventory"
-      or players[pindex].menu == "none"
-      or (players[pindex].menu == "building" or players[pindex].menu == "vehicle")
-   then
-      local num = tonumber(string.sub(event.input_name, -1))
-      if num == 0 then num = 10 end
-      read_quick_bar_slot(num, pindex)
-   end
-end
+script.on_event(quickbar_get_events, fa_quickbar.quickbar_get_handler)
 
-script.on_event(quickbar_slots, quickbar_slots_handler)
+script.on_event(quickbar_set_events, fa_quickbar.quickbar_set_handler)
 
---all 10 quickbar slot setting event handlers
----@param event EventData.CustomInputEvent
-local function set_quickbar_names_handler(event)
-   pindex = event.player_index
-   if not check_for_player(pindex) then return end
-   if
-      players[pindex].menu == "inventory"
-      or players[pindex].menu == "none"
-      or (players[pindex].menu == "building" or players[pindex].menu == "vehicle")
-   then
-      local num = tonumber(string.sub(event.input_name, -1))
-      if num == 0 then num = 10 end
-      set_quick_bar_slot(num, pindex)
-   end
-end
-script.on_event(set_quickbar_names, set_quickbar_names_handler)
-
---all 10 quickbar page setting event handlers
----@param event EventData.CustomInputEvent
-local function quickbar_pages_handler(event)
-   pindex = event.player_index
-   if not check_for_player(pindex) then return end
-
-   local num = tonumber(string.sub(event.input_name, -1))
-   if num == 0 then num = 10 end
-   read_switched_quick_bar(num, pindex)
-end
-script.on_event(quickbar_pages, quickbar_pages_handler)
-
-function read_quick_bar_slot(index, pindex)
-   page = game.get_player(pindex).get_active_quick_bar_page(1) - 1
-   local item = game.get_player(pindex).get_quick_bar_slot(index + 10 * page)
-   if item ~= nil then
-      local count = game.get_player(pindex).get_main_inventory().get_item_count(item.name)
-      local stack = game.get_player(pindex).cursor_stack
-      if stack and stack.valid_for_read then
-         count = count + stack.count
-         printout("unselected " .. fa_localising.get(item, pindex) .. " x " .. count, pindex)
-      else
-         printout("selected " .. fa_localising.get(item, pindex) .. " x " .. count, pindex)
-      end
-   else
-      printout("Empty quickbar slot", pindex) --does this print, maybe not working because it is linked to the game control?
-   end
-end
-
-function set_quick_bar_slot(index, pindex)
-   local p = game.get_player(pindex)
-   local page = game.get_player(pindex).get_active_quick_bar_page(1) - 1
-   local stack_cur = game.get_player(pindex).cursor_stack
-   local stack_inv = players[pindex].inventory.lua_inventory[players[pindex].inventory.index]
-   local ent = get_selected_ent(pindex)
-   if stack_cur and stack_cur.valid_for_read and stack_cur.valid == true then
-      game.get_player(pindex).set_quick_bar_slot(index + 10 * page, stack_cur)
-      printout("Quickbar assigned " .. index .. " " .. fa_localising.get(stack_cur, pindex), pindex)
-   elseif
-      players[pindex].menu == "inventory"
-      and stack_inv
-      and stack_inv.valid_for_read
-      and stack_inv.valid == true
-   then
-      game.get_player(pindex).set_quick_bar_slot(index + 10 * page, stack_inv)
-      printout("Quickbar assigned " .. index .. " " .. fa_localising.get(stack_inv, pindex), pindex)
-   elseif ent ~= nil and ent.valid and ent.force == p.force and game.item_prototypes[ent.name] ~= nil then
-      game.get_player(pindex).set_quick_bar_slot(index + 10 * page, ent.name)
-      printout("Quickbar assigned " .. index .. " " .. fa_localising.get(ent, pindex), pindex)
-   else
-      --Clear the slot
-      local item = game.get_player(pindex).get_quick_bar_slot(index + 10 * page)
-      local item_name = ""
-      if item ~= nil then item_name = fa_localising.get(item, pindex) end
-      ---@diagnostic disable-next-line: param-type-mismatch
-      game.get_player(pindex).set_quick_bar_slot(index + 10 * page, nil)
-      printout("Quickbar unassigned " .. index .. " " .. item_name, pindex)
-   end
-end
-
-function read_switched_quick_bar(index, pindex)
-   page = game.get_player(pindex).get_active_quick_bar_page(index)
-   local item = game.get_player(pindex).get_quick_bar_slot(1 + 10 * (index - 1))
-   local item_name = "empty slot"
-   if item ~= nil then item_name = fa_localising.get(item, pindex) end
-   local result = "Quickbar " .. index .. " selected starting with " .. item_name
-   printout(result, pindex)
-end
+script.on_event(quickbar_page_events, fa_quickbar.quickbar_page_handler)
 
 script.on_event("switch-menu-or-gun", function(event)
    pindex = event.player_index

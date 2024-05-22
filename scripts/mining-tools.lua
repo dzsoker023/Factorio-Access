@@ -30,7 +30,7 @@ function mod.try_to_mine_with_soun(ent, pindex)
    end
 end
 
---Mines all trees and rocks and ground items in a selected circular area. Useful when placing structures. Forces mining. laterdo add deleting stumps maybe but they do fade away eventually
+--Mines all simple obstacles selected the selected area. This includes trees, rocks, remnants, and ground items. Useful when placing structures. Forces mining.
 function mod.clear_obstacles_in_circle(position, radius, pindex)
    local surf = game.get_player(pindex).surface
    local comment = ""
@@ -133,7 +133,7 @@ function mod.clear_obstacles_in_circle(position, radius, pindex)
    return (trees_cleared + rocks_cleared + remnants_cleared + ground_items_cleared), comment
 end
 
---Same as function above for a circle, but the area is defined differently
+--Mines all simple obstacles in the selected area. This includes trees, rocks, remnants, and ground items. Useful when placing structures. Forces mining.
 function mod.clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
    local surf = game.get_player(pindex).surface
    local comment = ""
