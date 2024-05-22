@@ -1,7 +1,7 @@
 ---
 name: Feature change request
 about: Suggest a change for a feature this project.
-title: "[CHANGE]"
+title: ''
 labels: enhance existing feature
 assignees: ''
 
