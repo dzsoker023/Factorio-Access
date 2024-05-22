@@ -685,8 +685,20 @@ function mod.ent_name_locale(ent)
       print("todo: forest isn't an entity")
       return { "access.forest" }
    end
-   if not game.entity_prototypes[ent.name] then error(ent.name .. " is not an entity") end
-   return ent.localised_name or game.entity_prototypes[ent.name].localised_name
+   local entity_prototype = game.entity_prototypes[ent.name]
+   local resource_prototype = game.resource_category_prototypes[ent.name]
+   local name = nil
+   if ent.localised_name == nil and entity_prototype == nil and resource_prototype == nil then
+      print("todo: " .. ent.name .. " is not an entity")
+      name = ent.name .. " (localising error)"
+   elseif ent.localised_name then
+      name = ent.localised_name
+   elseif entity_prototype then
+      name = entity_prototype.localised_name
+   elseif resource_prototype then
+      name = resource_prototype.localised_name
+   end
+   return name
 end
 
 --small utility function for getting the index of a named object from an array of objects.
