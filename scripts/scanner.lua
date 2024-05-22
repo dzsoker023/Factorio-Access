@@ -849,6 +849,37 @@ function mod.list_current(pindex)
    end
 end
 
+--Switch to the previous instance of this scanner list entry
+function mod.selection_up(pindex)
+   if not players[pindex].in_menu then
+      if players[pindex].nearby.selection > 1 then
+         players[pindex].nearby.selection = players[pindex].nearby.selection - 1
+      else
+         game.get_player(pindex).play_sound({ path = "inventory-edge" })
+         players[pindex].nearby.selection = 1
+      end
+      mod.list_index(pindex)
+   end
+end
+
+--Switch to the next instance of this scanner list entry
+function mod.selection_down(pindex)
+   if not players[pindex].in_menu then
+      local ents = get_ents_of_scanner_category(players[pindex].nearby.category)
+      if next(ents) == nil then
+         printout("No entities found.  Try refreshing with end key.", pindex)
+      else
+         if players[pindex].nearby.selection < #ents[players[pindex].nearby.index].ents then
+            players[pindex].nearby.selection = players[pindex].nearby.selection + 1
+         else
+            game.get_player(pindex).play_sound({ path = "inventory-edge" })
+            players[pindex].nearby.selection = #ents[players[pindex].nearby.index].ents
+         end
+      end
+      mod.list_index(pindex)
+   end
+end
+
 --Returns an info string about the entities and tiles found within an area scan done by an enlarged cursor.
 function mod.area_scan_summary_info(scan_left_top, scan_right_bottom, pindex)
    local result = ""

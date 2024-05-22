@@ -4419,62 +4419,14 @@ end)
 script.on_event("scan-selection-up", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if not players[pindex].in_menu then
-      if players[pindex].nearby.selection > 1 then
-         players[pindex].nearby.selection = players[pindex].nearby.selection - 1
-      else
-         game.get_player(pindex).play_sound({ path = "inventory-edge" })
-         players[pindex].nearby.selection = 1
-      end
-      fa_scanner.list_index(pindex)
-   end
+   fa_scanner.selection_up(pindex)
 end)
 
 --Move along different inmstances of the same item type
 script.on_event("scan-selection-down", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if not players[pindex].in_menu then
-      if
-         (players[pindex].nearby.category == 1 and next(players[pindex].nearby.ents) == nil)
-         or (players[pindex].nearby.category == 2 and next(players[pindex].nearby.resources) == nil)
-         or (players[pindex].nearby.category == 3 and next(players[pindex].nearby.containers) == nil)
-         or (players[pindex].nearby.category == 4 and next(players[pindex].nearby.buildings) == nil)
-         or (players[pindex].nearby.category == 5 and next(players[pindex].nearby.vehicles) == nil)
-         or (players[pindex].nearby.category == 6 and next(players[pindex].nearby.players) == nil)
-         or (players[pindex].nearby.category == 7 and next(players[pindex].nearby.enemies) == nil)
-         or (players[pindex].nearby.category == 8 and next(players[pindex].nearby.other) == nil)
-      then
-         printout("No entities found.  Try refreshing with end key.", pindex)
-      else
-         local ents = {}
-         if players[pindex].nearby.category == 1 then
-            ents = players[pindex].nearby.ents
-         elseif players[pindex].nearby.category == 2 then
-            ents = players[pindex].nearby.resources
-         elseif players[pindex].nearby.category == 3 then
-            ents = players[pindex].nearby.containers
-         elseif players[pindex].nearby.category == 4 then
-            ents = players[pindex].nearby.buildings
-         elseif players[pindex].nearby.category == 5 then
-            ents = players[pindex].nearby.vehicles
-         elseif players[pindex].nearby.category == 6 then
-            ents = players[pindex].nearby.players
-         elseif players[pindex].nearby.category == 7 then
-            ents = players[pindex].nearby.enemies
-         elseif players[pindex].nearby.category == 8 then
-            ents = players[pindex].nearby.other
-         end
-
-         if players[pindex].nearby.selection < #ents[players[pindex].nearby.index].ents then
-            players[pindex].nearby.selection = players[pindex].nearby.selection + 1
-         else
-            game.get_player(pindex).play_sound({ path = "inventory-edge" })
-            players[pindex].nearby.selection = #ents[players[pindex].nearby.index].ents
-         end
-      end
-      fa_scanner.list_index(pindex)
-   end
+   fa_scanner.selection_down(pindex)
 end)
 
 --Repeats the last thing read out. Not just the scanner.
