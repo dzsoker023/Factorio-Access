@@ -334,18 +334,25 @@ function ent_info(pindex, ent, description)
          --Those items must be from this belt if this belt is the only input to the next belt and there are no inserters or loaders around it.
          local next_belt = ent.belt_neighbours["outputs"][1]
          local next_contents = {}
-         local next_belt_nearby_inserters = next_belt.surface.find_entitities_filtered({
+         local next_belt_nearby_inserters = next_belt.surface.find_entities_filtered({
             position = next_belt.position,
             radius = 3,
             type = { "inserter", "loader", "loader-1x1" },
          })
+         --check contents
+         --Ignore multiple input belts, ghosts, circuit connected transport belts, and belts with inserters near them
          if
             next_belt ~= nil
             and next_belt.valid
             and #next_belt.belt_neighbours["inputs"] == 1
             and next_belt.type ~= "entity-ghost"
-            and next_belt.get_circuit_network(defines.wire_type.red) == nil
-            and next_belt.get_circuit_network(defines.wire_type.green) == nil
+            and (
+               next_belt.type ~= "transport-belt" --Skip this check for non-belts, e.g. underground belts
+               or (
+                  next_belt.get_circuit_network(defines.wire_type.red) == nil
+                  and next_belt.get_circuit_network(defines.wire_type.green) == nil
+               )
+            )
             and ent.get_circuit_network(defines.wire_type.red) == nil
             and ent.get_circuit_network(defines.wire_type.green) == nil
             and (next_belt_nearby_inserters == nil or #next_belt_nearby_inserters == 0)
@@ -373,15 +380,21 @@ function ent_info(pindex, ent, description)
          local prev_belts = ent.belt_neighbours["inputs"]
          local prev_contents = {}
          local this_belt_nearby_inserters =
-            ent.surface.find_entitities_filtered({ position = ent.position, radius = 5, type = { "inserter" } })
+            ent.surface.find_entities_filtered({ position = ent.position, radius = 5, type = { "inserter" } })
          for i, prev_belt in ipairs(prev_belts) do
             --Check contents
+            --Ignore ghosts, circuit connected transport belts, and belts with inserters near them
             if
                prev_belt ~= nil
                and prev_belt.valid
                and prev_belt.type ~= "entity-ghost"
-               and prev_belt.get_circuit_network(defines.wire_type.red) == nil
-               and prev_belt.get_circuit_network(defines.wire_type.green) == nil
+               and (
+                  prev_belt.type ~= "transport-belt" --Skip this check for non-belts, e.g. underground belts
+                  or (
+                     prev_belt.get_circuit_network(defines.wire_type.red) == nil
+                     and prev_belt.get_circuit_network(defines.wire_type.green) == nil
+                  )
+               )
                and ent.get_circuit_network(defines.wire_type.red) == nil
                and ent.get_circuit_network(defines.wire_type.green) == nil
                and (this_belt_nearby_inserters == nil or #this_belt_nearby_inserters == 0)
@@ -425,7 +438,7 @@ function ent_info(pindex, ent, description)
       end
    end
 
-   --For underground belts, note whether entrance or Exited
+   --For underground belts, note whether entrance or exit, and report contents
    if ent.type == "underground-belt" then
       if ent.belt_to_ground_type == "input" then
          result = result .. " entrance "
