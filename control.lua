@@ -115,18 +115,19 @@ function call_to_check_ghost_rails(pindex)
 end
 
 --Returns the entity at this player's cursor selected tile
-function get_selected_ent(pindex)
+function get_selected_ent(pindex, ent_no)
    local tile = players[pindex].tile
    local ent
+   local ent_no = ent_no or 1
    while true do
       if tile.index > #tile.ents then tile.index = #tile.ents end
       if tile.index == 0 then return nil end
       ent = tile.ents[tile.index]
       if not ent then print(serpent.line(tile.ents), tile.index, ent) end
-      -- if ent.valid then
-      -- game.print(ent.name)
-      -- end
-      if ent.valid and (ent.type ~= "character" or players[pindex].cursor or ent.player ~= pindex) then return ent end
+      if ent.valid and (ent.type ~= "character" or players[pindex].cursor or ent.player ~= pindex) then
+         ent_no = ent_no - 1
+      end
+      if ent_no <= 0 then return ent end
       table.remove(tile.ents, tile.index)
    end
 end
@@ -8156,7 +8157,7 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
    local moved = 1
    local comment = ""
 
-   --For pipes, apply a special case where you jump to the underground neighbour
+   --For pipes to ground, apply a special case where you jump to the underground neighbour
    if start ~= nil and start.valid and start.type == "pipe-to-ground" then
       local connections = start.fluidbox.get_pipe_connections(1)
       for i, con in ipairs(connections) do
@@ -8211,6 +8212,17 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
    players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, 1)
    refresh_player_tile(pindex)
    current = get_selected_ent(pindex)
+
+   --Ignore flying robots (first tile)
+   local i = 1
+   while
+      current ~= nil
+      and current.valid
+      and (current.type == "logistic-robot" or current.type == "construction-robot" or current.type == "combat-robot")
+   do
+      i = i + 1
+      current = get_selected_ent(pindex, i)
+   end
 
    --Run checks and skip when needed
    while moved < limit do
@@ -8282,6 +8294,20 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
       refresh_player_tile(pindex)
       current = get_selected_ent(pindex)
       moved = moved + 1
+      --Ignore flying robots
+      local i = 1
+      while
+         current ~= nil
+         and current.valid
+         and (
+            current.type == "logistic-robot"
+            or current.type == "construction-robot"
+            or current.type == "combat-robot"
+         )
+      do
+         i = i + 1
+         current = get_selected_ent(pindex, i)
+      end
    end
    --Reached limit
    return -1
