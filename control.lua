@@ -334,11 +334,14 @@ function ent_info(pindex, ent, description)
          --Those items must be from this belt if this belt is the only input to the next belt and there are no inserters or loaders around it.
          local next_belt = ent.belt_neighbours["outputs"][1]
          local next_contents = {}
-         local next_belt_nearby_inserters = next_belt.surface.find_entities_filtered({
-            position = next_belt.position,
-            radius = 3,
-            type = { "inserter", "loader", "loader-1x1" },
-         })
+         local next_belt_nearby_inserters = nil
+         if next_belt ~= nil then
+            next_belt_nearby_inserters = next_belt.surface.find_entities_filtered({
+               position = next_belt.position,
+               radius = 3,
+               type = { "inserter", "loader", "loader-1x1" },
+            })
+         end
          --check contents
          --Ignore multiple input belts, ghosts, circuit connected transport belts, and belts with inserters near them
          if
