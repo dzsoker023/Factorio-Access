@@ -8234,10 +8234,10 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
             return moved
          else
             --Both are valid
-            if start.unit_number == current.unit_number then
+            if start.unit_number == current.unit_number and current.type ~= "resource" then
                --They are the same ent: skip
             else
-               --They are differemt ents
+               --They are differemt ents OR they are resource ents (which can have the same unit number despite being different ents)
                if start.name ~= current.name then
                   --They have different names: return
                   --p.print("RET 1, start: " .. start.name .. ", current: " .. current.name .. ", comment:" .. comment)--
