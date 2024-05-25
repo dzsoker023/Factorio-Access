@@ -879,13 +879,6 @@ data:extend({
       alternative_key_sequence = "RSHIFT",
       consuming = "none",
    },
-   {
-      type = "custom-input",
-      name = "jump-to-scan",
-      key_sequence = "CONTROL + HOME",
-      alternative_key_sequence = "CONTROL + RSHIFT",
-      consuming = "none",
-   },
 
    {
       type = "custom-input",
