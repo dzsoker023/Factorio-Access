@@ -52,4 +52,19 @@ function mod.cursor_position_is_on_screen_with_player_centered(pindex)
    )
 end
 
+--Reports if the cursor tile is uncharted/blurred and also if it is distant (off screen)
+function mod.cursor_visibility_info(pindex)
+   local p = game.get_player(pindex)
+   local result = ""
+   local pos = players[pindex].cursor_pos
+   local chunk_pos = { x = math.floor(pos.x / 32), y = math.floor(pos.y / 32) }
+   if p.force.is_chunk_charted(p.surface, chunk_pos) == false then
+      result = result .. " uncharted "
+   elseif p.force.is_chunk_visible(p.surface, chunk_pos) == false then
+      result = result .. " blurred "
+   end
+   if mod.cursor_position_is_on_screen_with_player_centered(pindex) == false then result = result .. " distant " end
+   return result
+end
+
 return mod
