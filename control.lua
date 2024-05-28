@@ -2260,6 +2260,7 @@ function on_tick(event)
          check_and_play_bump_alert_sound(pindex, event.tick)
          check_and_play_stuck_alert_sound(pindex, event.tick)
       end
+      read_flying_texts()
    elseif event.tick % 15 == 1 then
       --Check and play train track warning sounds at appropriate frequencies
       fa_rails.check_and_play_train_track_alert_sounds(3)
@@ -6362,16 +6363,16 @@ script.on_event("save-game-manually", function(event)
    printout("Saving Game, please wait 3 seconds.", pindex)
 end)
 
---Reads flying text
-script.on_nth_tick(10, function(event)
+--For all players, reads flying texts within 10 tiles of the cursor
+function read_flying_texts()
    for pindex, player in pairs(players) do
-      if player.allow_reading_flying_text == nil or player.allow_reading_flying_text == true then
+      if player.allow_reading_flying_text ~= false then
          if player.past_flying_texts == nil then player.past_flying_texts = {} end
          local flying_texts = {}
          local search = {
             type = "flying-text",
             position = player.cursor_pos,
-            radius = 80,
+            radius = 10,
          }
 
          for _, ftext in pairs(game.get_player(pindex).surface.find_entities_filtered(search)) do
@@ -6381,14 +6382,14 @@ script.on_nth_tick(10, function(event)
          end
          for id, count in pairs(flying_texts) do
             if count > (player.past_flying_texts[id] or 0) then
-               local ok, local_text = serpent.load(id)
-               if ok then printout(local_text, pindex) end
+               local ok, out_text = serpent.load(id)
+               if ok then printout(out_text, pindex) end
             end
          end
          player.past_flying_texts = flying_texts
       end
    end
-end)
+end
 
 walk_type_speech = {
    "Telestep enabled",
