@@ -1440,18 +1440,19 @@ function menu_cursor_up(pindex)
             --players[pindex].building.index = 1
          end
          fa_sectors.read_sector_slot(pindex, false)
-      elseif players[pindex].building.recipe_list == nil then
+      elseif players[pindex].building.sector_name == "player_inventory" then
          --Move one row up in player inventory
          game.get_player(pindex).play_sound({ path = "Inventory-Move" })
          players[pindex].inventory.index = players[pindex].inventory.index - 10
          if players[pindex].inventory.index < 1 then
             players[pindex].inventory.index = players[pindex].inventory.max + players[pindex].inventory.index
+            game.get_player(pindex).play_sound({ path = "inventory-wrap-around" })
          end
          read_inventory_slot(pindex)
       else
          if players[pindex].building.sector == #players[pindex].building.sectors + 1 then
-            --Last building sector. Case = ??? **
             if players[pindex].building.recipe_selection then
+               --Recipe selection
                game.get_player(pindex).play_sound({ path = "Inventory-Move" })
                players[pindex].building.category = players[pindex].building.category - 1
                players[pindex].building.index = 1
@@ -1461,13 +1462,13 @@ function menu_cursor_up(pindex)
             end
             fa_sectors.read_building_recipe(pindex)
          else
-            --Case = ???
-            game.get_player(pindex).play_sound({ path = "Inventory-Move" })
-            players[pindex].inventory.index = players[pindex].inventory.index - 10
-            if players[pindex].inventory.index < 1 then
-               players[pindex].inventory.index = players[pindex].inventory.max + players[pindex].inventory.index
-            end
-            read_inventory_slot(pindex)
+            --Case = Player inv again???
+            --game.get_player(pindex).play_sound({ path = "Inventory-Move" })
+            --players[pindex].inventory.index = players[pindex].inventory.index - 10
+            --if players[pindex].inventory.index < 1 then
+            --   players[pindex].inventory.index = players[pindex].inventory.max + players[pindex].inventory.index
+            --end
+            --read_inventory_slot(pindex)
          end
       end
    elseif players[pindex].menu == "technology" then
@@ -1693,18 +1694,19 @@ function menu_cursor_down(pindex)
             game.get_player(pindex).play_sound({ path = "inventory-wrap-around" })
          end
          fa_sectors.read_sector_slot(pindex, false)
-      elseif players[pindex].building.recipe_list == nil then
+      elseif players[pindex].building.sector_name == "player_inventory" then
          --Move one row down in player inventory
          game.get_player(pindex).play_sound({ path = "Inventory-Move" })
          players[pindex].inventory.index = players[pindex].inventory.index + 10
          if players[pindex].inventory.index > players[pindex].inventory.max then
             players[pindex].inventory.index = players[pindex].inventory.index % 10
             if players[pindex].inventory.index == 0 then players[pindex].inventory.index = 10 end
+            game.get_player(pindex).play_sound({ path = "inventory-wrap-around" })
          end
          read_inventory_slot(pindex)
       else
          if players[pindex].building.sector == #players[pindex].building.sectors + 1 then
-            --Last building sector. Case = ??? **
+            --Recipe selection
             if players[pindex].building.recipe_selection then
                game.get_player(pindex).play_sound({ path = "Inventory-Move" })
                players[pindex].building.index = 1
@@ -1715,14 +1717,14 @@ function menu_cursor_down(pindex)
             end
             fa_sectors.read_building_recipe(pindex)
          else
-            --Case = ???
-            game.get_player(pindex).play_sound({ path = "Inventory-Move" })
-            players[pindex].inventory.index = players[pindex].inventory.index + 10
-            if players[pindex].inventory.index > players[pindex].inventory.max then
-               players[pindex].inventory.index = players[pindex].inventory.index % 10
-               if players[pindex].inventory.index == 0 then players[pindex].inventory.index = 10 end
-            end
-            read_inventory_slot(pindex)
+            --Case = Player inv again?
+            --game.get_player(pindex).play_sound({ path = "Inventory-Move" })
+            --players[pindex].inventory.index = players[pindex].inventory.index + 10
+            --if players[pindex].inventory.index > players[pindex].inventory.max then
+            --   players[pindex].inventory.index = players[pindex].inventory.index % 10
+            --   if players[pindex].inventory.index == 0 then players[pindex].inventory.index = 10 end
+            --end
+            --read_inventory_slot(pindex)
          end
       end
    elseif players[pindex].menu == "technology" then
@@ -1948,7 +1950,7 @@ function menu_cursor_left(pindex)
             end
          end
          fa_sectors.read_sector_slot(pindex, false)
-      elseif players[pindex].building.recipe_list == nil then
+      elseif players[pindex].building.sector_name == "player_inventory" then
          game.get_player(pindex).play_sound({ path = "Inventory-Move" })
          players[pindex].inventory.index = players[pindex].inventory.index - 1
          if players[pindex].inventory.index % 10 < 1 then
@@ -1956,7 +1958,7 @@ function menu_cursor_left(pindex)
          end
          read_inventory_slot(pindex)
       else
-         if players[pindex].building.sector == #players[pindex].building.sectors + 1 then
+         if players[pindex].building.recipe_selection then
             --Recipe selection
             if players[pindex].building.recipe_selection then
                game.get_player(pindex).play_sound({ path = "Inventory-Move" })
@@ -1964,15 +1966,17 @@ function menu_cursor_left(pindex)
                if players[pindex].building.index < 1 then
                   players[pindex].building.index =
                      #players[pindex].building.recipe_list[players[pindex].building.category]
+                  game.get_player(pindex).play_sound({ path = "inventory-wrap-around" })
                end
             end
             fa_sectors.read_building_recipe(pindex)
-         else
-            --Case ???
+         elseif players[pindex].building.sector_name == "player_inventory" then
+            --Player inv from building
             game.get_player(pindex).play_sound({ path = "Inventory-Move" })
             players[pindex].inventory.index = players[pindex].inventory.index - 1
             if players[pindex].inventory.index % 10 < 1 then
                players[pindex].inventory.index = players[pindex].inventory.index + 10
+               game.get_player(pindex).play_sound({ path = "inventory-wrap-around" })
             end
             read_inventory_slot(pindex)
          end
@@ -2100,7 +2104,7 @@ function menu_cursor_right(pindex)
             end
          end
          fa_sectors.read_sector_slot(pindex, false)
-      elseif players[pindex].building.recipe_list == nil then
+      elseif players[pindex].building.sector_name == "player_inventory" then
          game.get_player(pindex).play_sound({ path = "Inventory-Move" })
          players[pindex].inventory.index = players[pindex].inventory.index + 1
          if players[pindex].inventory.index % 10 == 1 then
@@ -2108,7 +2112,7 @@ function menu_cursor_right(pindex)
          end
          read_inventory_slot(pindex)
       else
-         if players[pindex].building.sector == #players[pindex].building.sectors + 1 then
+         if players[pindex].building.recipe_selection then
             --Recipe selection
             if players[pindex].building.recipe_selection then
                game.get_player(pindex).play_sound({ path = "Inventory-Move" })
@@ -2119,15 +2123,17 @@ function menu_cursor_right(pindex)
                   > #players[pindex].building.recipe_list[players[pindex].building.category]
                then
                   players[pindex].building.index = 1
+                  game.get_player(pindex).play_sound({ path = "inventory-wrap-around" })
                end
             end
             fa_sectors.read_building_recipe(pindex)
-         else
-            --Case = ???
+         elseif players[pindex].building.sector_name == "player_inventory" then
+            --Player inv from building
             game.get_player(pindex).play_sound({ path = "Inventory-Move" })
             players[pindex].inventory.index = players[pindex].inventory.index + 1
             if players[pindex].inventory.index % 10 == 1 then
                players[pindex].inventory.index = players[pindex].inventory.index - 10
+               game.get_player(pindex).play_sound({ path = "inventory-wrap-around" })
             end
             read_inventory_slot(pindex)
          end
