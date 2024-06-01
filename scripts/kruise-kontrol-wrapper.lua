@@ -163,7 +163,20 @@ function mod.status_update(pindex)
          local ghost_count = #ghosts
          local ignore_count = 0
          for i, ghost in ipairs(ghosts) do
-            if p.get_main_inventory().get_item_count(ghost.ghost_name) == 0 then
+            local amount = 1
+            local inv_query = ghost.ghost_name
+
+            -- Rails are special: curved rails aren't crafted but cost 4 rail;
+            -- there is no straight-rail as an item.
+            if ghost.ghost_name == "curved-rail" then
+               inv_query = "rail"
+               amount = 4
+            elseif ghost.ghost_name == "straight-rail" then
+               amount = 1 -- for clarity.
+               inv_query = "rail"
+            end
+
+            if p.get_main_inventory().get_item_count(inv_query) < amount then
                ignore_count = ignore_count + 1
             else
                --Still going to build it
