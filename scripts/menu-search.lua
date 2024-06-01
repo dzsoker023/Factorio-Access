@@ -277,19 +277,23 @@ function mod.fetch_next(pindex, str, start_phrase_in)
    elseif players[pindex].menu == "player_trash" then
       inv = game.get_player(pindex).get_inventory(defines.inventory.character_trash)
       new_index = inventory_find_index_of_next_name_match(inv, search_index, str, pindex)
-   elseif
-      (players[pindex].menu == "building" or players[pindex].menu == "vehicle")
-      and pb.sectors
-      and pb.sectors[pb.sector]
-   then
-      if pb.sectors[pb.sector].name == "Output" then
+   elseif (players[pindex].menu == "building" or players[pindex].menu == "vehicle") and pb.sector_name ~= nil then
+      if pb.sector_name == "Output" then
          inv = game.get_player(pindex).opened.get_output_inventory()
          new_index = inventory_find_index_of_next_name_match(inv, search_index, str, pindex)
-      elseif pb.sectors[pb.sector].name == "player_inventory" then
+      elseif pb.sector_name == "player_inventory" then
          inv = game.get_player(pindex).get_main_inventory()
          new_index = inventory_find_index_of_next_name_match(inv, search_index, str, pindex)
+      elseif pb.recipe_selection == true then
+         new_index, new_index_2 = crafting_find_index_of_next_name_match(
+            str,
+            pindex,
+            search_index,
+            search_index_2,
+            players[pindex].building.recipe_list
+         )
       else
-         printout("This menu or building sector does not support searching.", pindex)
+         printout(pb.sector_name .. " sector does not support searching.", pindex)
          return
       end
    elseif players[pindex].menu == "crafting" then
@@ -299,14 +303,6 @@ function mod.fetch_next(pindex, str, start_phrase_in)
          search_index,
          search_index_2,
          players[pindex].crafting.lua_recipes
-      )
-   elseif (players[pindex].menu == "building" or players[pindex].menu == "vehicle") and pb.recipe_selection == true then
-      new_index, new_index_2 = crafting_find_index_of_next_name_match(
-         str,
-         pindex,
-         search_index,
-         search_index_2,
-         players[pindex].building.recipe_list
       )
    elseif players[pindex].menu == "technology" then
       --Search the selected tech catagory
@@ -393,43 +389,31 @@ function mod.fetch_next(pindex, str, start_phrase_in)
       players[pindex].menu_search_index = new_index
       players[pindex].inventory.index = new_index
       read_inventory_slot(pindex, start_phrase, inv)
-   elseif
-      (players[pindex].menu == "building" or players[pindex].menu == "vehicle")
-      and pb.sectors
-      and pb.sectors[pb.sector]
-   then
-      if pb.sectors[pb.sector].name == "Output" then
+   elseif (players[pindex].menu == "building" or players[pindex].menu == "vehicle") and pb.sector_name ~= nil then
+      if pb.sector_name == "Output" then
          players[pindex].menu_search_index = new_index
          players[pindex].building.index = new_index
          fa_sectors.read_sector_slot(pindex, false)
-      elseif pb.sectors[pb.sector].name == "player_inventory" then
+      elseif pb.sector_name == "player_inventory" then
          players[pindex].menu_search_index = new_index
-         players[pindex].building.index = new_index
-         fa_sectors.read_sector_slot(pindex, false)
+         players[pindex].inventory.index = new_index
+         read_inventory_slot(pindex, "")
+      elseif players[pindex].building.recipe_selection == true then
+         players[pindex].menu_search_index = new_index
+         players[pindex].menu_search_index_2 = new_index_2
+         players[pindex].building.category = new_index
+         players[pindex].building.index = new_index_2
+         fa_sectors.read_building_recipe(pindex, start_phrase)
+      else
+         printout("Search section error", pindex)
+         return
       end
-   elseif
-      (players[pindex].menu == "building" or players[pindex].menu == "vehicle")
-      and players[pindex].building.sector_name == "player_inventory"
-   then
-      players[pindex].menu_search_index = new_index
-      players[pindex].building.index = new_index
-      players[pindex].inventory.index = new_index
-      read_inventory_slot(pindex, false)
    elseif players[pindex].menu == "crafting" then
       players[pindex].menu_search_index = new_index
       players[pindex].menu_search_index_2 = new_index_2
       players[pindex].crafting.category = new_index
       players[pindex].crafting.index = new_index_2
       fa_crafting.read_crafting_slot(pindex, start_phrase)
-   elseif
-      (players[pindex].menu == "building" or players[pindex].menu == "vehicle")
-      and players[pindex].building.recipe_selection == true
-   then
-      players[pindex].menu_search_index = new_index
-      players[pindex].menu_search_index_2 = new_index_2
-      players[pindex].building.category = new_index
-      players[pindex].building.index = new_index_2
-      fa_sectors.read_building_recipe(pindex, start_phrase)
    elseif players[pindex].menu == "technology" then
       local techs = {}
       local note = start_phrase
@@ -456,15 +440,15 @@ function mod.fetch_next(pindex, str, start_phrase_in)
    end
 end
 
---Reads out the last inventory/menu item to match the search term. Implemented only in some menus.
+--Reads out the last inventory/menu item to match the search term. Implemented only in some menus, more can be added later.
 function mod.fetch_last(pindex, str)
    --Only allow "inventory" and "building" menus for now
    if not players[pindex].in_menu then
-      printout("This menu does not support searching backwards.", pindex)
+      printout("This menu does not support backwards searching.", pindex)
       return
    end
    if players[pindex].menu ~= "inventory" and players[pindex].menu ~= "building" then
-      printout(players[pindex].menu .. " menu does not support searching backwards.", pindex)
+      printout(players[pindex].menu .. " menu does not support backwards searching.", pindex)
       return
    end
    if str == nil or str == "" then
@@ -488,12 +472,12 @@ function mod.fetch_last(pindex, str)
       (players[pindex].menu == "building" or players[pindex].menu == "vehicle")
       and pb.sectors
       and pb.sectors[pb.sector]
-      and pb.sectors[pb.sector].name == "Output"
+      and pb.sector_name == "Output"
    then
       inv = game.get_player(pindex).opened.get_output_inventory()
       new_index = inventory_find_index_of_last_name_match(inv, search_index, str, pindex)
    else
-      printout("This menu or building sector does not support searching backwards.", pindex)
+      printout("This menu or building sector does not support backwards searching.", pindex)
       return
    end
    --Return a menu output according to the index found
@@ -508,7 +492,7 @@ function mod.fetch_last(pindex, str)
       (players[pindex].menu == "building" or players[pindex].menu == "vehicle")
       and pb.sectors
       and pb.sectors[pb.sector]
-      and pb.sectors[pb.sector].name == "Output"
+      and pb.sector_name == "Output"
    then
       players[pindex].menu_search_index = new_index
       players[pindex].building.index = new_index

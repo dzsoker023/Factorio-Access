@@ -1955,6 +1955,7 @@ function menu_cursor_left(pindex)
          players[pindex].inventory.index = players[pindex].inventory.index - 1
          if players[pindex].inventory.index % 10 < 1 then
             players[pindex].inventory.index = players[pindex].inventory.index + 10
+            game.get_player(pindex).play_sound({ path = "inventory-wrap-around" })
          end
          read_inventory_slot(pindex)
       else
@@ -1970,15 +1971,6 @@ function menu_cursor_left(pindex)
                end
             end
             fa_sectors.read_building_recipe(pindex)
-         elseif players[pindex].building.sector_name == "player_inventory" then
-            --Player inv from building
-            game.get_player(pindex).play_sound({ path = "Inventory-Move" })
-            players[pindex].inventory.index = players[pindex].inventory.index - 1
-            if players[pindex].inventory.index % 10 < 1 then
-               players[pindex].inventory.index = players[pindex].inventory.index + 10
-               game.get_player(pindex).play_sound({ path = "inventory-wrap-around" })
-            end
-            read_inventory_slot(pindex)
          end
       end
    elseif players[pindex].menu == "technology" then
@@ -2109,6 +2101,7 @@ function menu_cursor_right(pindex)
          players[pindex].inventory.index = players[pindex].inventory.index + 1
          if players[pindex].inventory.index % 10 == 1 then
             players[pindex].inventory.index = players[pindex].inventory.index - 10
+            game.get_player(pindex).play_sound({ path = "inventory-wrap-around" })
          end
          read_inventory_slot(pindex)
       else
@@ -2127,15 +2120,6 @@ function menu_cursor_right(pindex)
                end
             end
             fa_sectors.read_building_recipe(pindex)
-         elseif players[pindex].building.sector_name == "player_inventory" then
-            --Player inv from building
-            game.get_player(pindex).play_sound({ path = "Inventory-Move" })
-            players[pindex].inventory.index = players[pindex].inventory.index + 1
-            if players[pindex].inventory.index % 10 == 1 then
-               players[pindex].inventory.index = players[pindex].inventory.index - 10
-               game.get_player(pindex).play_sound({ path = "inventory-wrap-around" })
-            end
-            read_inventory_slot(pindex)
          end
       end
    elseif players[pindex].menu == "technology" then
@@ -3639,6 +3623,8 @@ script.on_event("switch-menu-or-gun", function(event)
          players[pindex].building.index = 1
          players[pindex].building.category = 1
          players[pindex].building.recipe_selection = false
+         players[pindex].menu_search_index = nil
+         players[pindex].menu_search_index_2 = nil
 
          players[pindex].building.sector = players[pindex].building.sector + 1 --Change sector
          players[pindex].building.item_selection = false
@@ -3652,10 +3638,8 @@ script.on_event("switch-menu-or-gun", function(event)
 
          if players[pindex].building.sector <= #players[pindex].building.sectors then
             fa_sectors.read_sector_slot(pindex, true)
-            players[pindex].building.sector_name = "other"
-         --            if inventory == players[pindex].building.sectors[players[pindex].building.sector+1].inventory then
-         --               printout("Big Problem!", pindex)
-         --          end
+            local pb = players[pindex].building
+            players[pindex].building.sector_name = pb.sectors[pb.sector].name
          elseif players[pindex].building.recipe_list == nil then
             if players[pindex].building.sector == (#players[pindex].building.sectors + 1) then
                read_inventory_slot(pindex, "Player Inventory, ")
@@ -3667,7 +3651,7 @@ script.on_event("switch-menu-or-gun", function(event)
          else
             if players[pindex].building.sector == #players[pindex].building.sectors + 1 then --Recipe selection sector
                fa_sectors.read_building_recipe(pindex, "Select a Recipe, ")
-               players[pindex].building.sector_name = "recipe_selection"
+               players[pindex].building.sector_name = "unloaded recipe selection"
             elseif players[pindex].building.sector == #players[pindex].building.sectors + 2 then --Player inventory sector
                read_inventory_slot(pindex, "Player Inventory, ")
                players[pindex].building.sector_name = "player_inventory"
@@ -3785,6 +3769,8 @@ script.on_event("reverse-switch-menu-or-gun", function(event)
          players[pindex].building.category = 1
          players[pindex].building.recipe_selection = false
          players[pindex].building.index = 1
+         players[pindex].menu_search_index = nil
+         players[pindex].menu_search_index_2 = nil
 
          players[pindex].building.sector = players[pindex].building.sector - 1
          players[pindex].building.item_selection = false
@@ -3806,7 +3792,8 @@ script.on_event("reverse-switch-menu-or-gun", function(event)
             read_inventory_slot(pindex, "Player Inventory, ")
          elseif players[pindex].building.sector <= #players[pindex].building.sectors then
             fa_sectors.read_sector_slot(pindex, true)
-            players[pindex].building.sector_name = "other"
+            local pb = players[pindex].building
+            players[pindex].building.sector_name = pb.sectors[pb.sector].name
          elseif players[pindex].building.recipe_list == nil then
             if players[pindex].building.sector == (#players[pindex].building.sectors + 1) then
                read_inventory_slot(pindex, "Player Inventory, ")
@@ -3815,7 +3802,7 @@ script.on_event("reverse-switch-menu-or-gun", function(event)
          else
             if players[pindex].building.sector == #players[pindex].building.sectors + 1 then
                fa_sectors.read_building_recipe(pindex, "Select a Recipe, ")
-               players[pindex].building.sector_name = "recipe_selection"
+               players[pindex].building.sector_name = "unloaded recipe selection"
             elseif players[pindex].building.sector == #players[pindex].building.sectors + 2 then
                read_inventory_slot(pindex, "Player Inventory, ")
                players[pindex].building.sector_name = "player_inventory"
@@ -4565,6 +4552,7 @@ script.on_event("click-menu", function(event)
                elseif #players[pindex].building.recipe_list > 0 then
                   game.get_player(pindex).play_sound({ path = "utility/inventory_click" })
                   players[pindex].building.recipe_selection = true
+                  players[pindex].building.sector_name = "recipe selection"
                   players[pindex].building.category = 1
                   players[pindex].building.index = 1
                   fa_sectors.read_building_recipe(pindex)
