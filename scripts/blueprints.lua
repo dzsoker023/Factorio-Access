@@ -2,8 +2,8 @@
 --Does not include event handlers
 
 local fa_utils = require("scripts.fa-utils")
+local fa_building_tools = require("scripts.building-tools")
 local fa_mining_tools = require("scripts.mining-tools")
-local localising = require("scripts.localising")
 local dirs = defines.direction
 
 local mod = {}
@@ -129,36 +129,8 @@ function mod.paste_blueprint(pindex)
    if result == nil or #result == 0 then
       p.play_sound({ path = "utility/cannot_build" })
       --Explain build error
-      local result = "Cannot place there "
       local build_area = { left_top, right_bottom }
-      local ents_in_area =
-         p.surface.find_entities_filtered({ area = build_area, invert = true, type = ENT_TYPES_YOU_CAN_BUILD_OVER })
-      local tiles_in_area = p.surface.find_tiles_filtered({
-         area = build_area,
-         invert = false,
-         name = { "water", "deepwater", "water-green", "deepwater-green", "water-shallow", "water-mud", "water-wube" },
-      })
-      local obstacle_ent_name = nil
-      local obstacle_tile_name = nil
-      --Check for an entity in the way
-      for i, area_ent in ipairs(ents_in_area) do
-         if
-            area_ent.valid
-            and area_ent.prototype.tile_width
-            and area_ent.prototype.tile_width > 0
-            and area_ent.prototype.tile_height
-            and area_ent.prototype.tile_height > 0
-         then
-            obstacle_ent_name = localising.get(area_ent, pindex)
-         end
-      end
-
-      --Report obstacles
-      if obstacle_ent_name ~= nil then
-         result = result .. ", " .. obstacle_ent_name .. " in the way."
-      elseif #tiles_in_area > 0 then
-         result = result .. ", water is in the way."
-      end
+      local result = fa_building_tools.identify_building_obstacle(pindex, build_area, nil)
       printout(result, pindex)
       return false
    else

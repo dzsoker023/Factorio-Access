@@ -2,6 +2,7 @@
 --Does not include event handlers directly, but can have functions called by them.
 local util = require("util")
 local fa_utils = require("scripts.fa-utils")
+local fa_mouse = require("scripts.mouse")
 local localising = require("scripts.localising")
 local dirs = defines.direction
 local fa_graphics = require("scripts.graphics")
@@ -774,7 +775,7 @@ function mod.list_index(pindex)
          local final_result = { "" }
          table.insert(final_result, result)
          table.insert(final_result, ", ")
-         table.insert(final_result, cursor_visibility_info(pindex))
+         table.insert(final_result, fa_mouse.cursor_visibility_info(pindex))
          printout(final_result, pindex)
       else
          --Read the entity in terms of count, and give the direction and distance of an example
@@ -786,7 +787,7 @@ function mod.list_index(pindex)
          local final_result = { "" }
          table.insert(final_result, result)
          table.insert(final_result, ", ")
-         table.insert(final_result, cursor_visibility_info(pindex))
+         table.insert(final_result, fa_mouse.cursor_visibility_info(pindex))
          printout(final_result, pindex)
       end
    end

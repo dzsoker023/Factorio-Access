@@ -18,13 +18,13 @@ function mod.load_tutorial(pindex)
    local CHAPTER_4_LENGTH = 36
    local CHAPTER_5_LENGTH = 34
    local CHAPTER_6_LENGTH = 24
-   local CHAPTER_7_LENGTH = 45
+   local CHAPTER_7_LENGTH = 47
    local CHAPTER_8_LENGTH = 26
    local CHAPTER_9_LENGTH = 37
    local CHAPTER_10_LENGTH = 37
    local CHAPTER_11_LENGTH = 37
    local CHAPTER_12_LENGTH = 14
-   local CHAPTER_13_LENGTH = 25
+   local CHAPTER_13_LENGTH = 26
 
    tutorial.chapter_lengths = {
       CHAPTER_1_LENGTH,

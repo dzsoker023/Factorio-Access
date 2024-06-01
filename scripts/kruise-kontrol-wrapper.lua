@@ -163,20 +163,20 @@ function mod.status_update(pindex)
          local ghost_count = #ghosts
          local ignore_count = 0
          for i, ghost in ipairs(ghosts) do
-            local amount = 1
+            local amount_required = 1
             local inv_query = ghost.ghost_name
 
-            -- Rails are special: curved rails aren't crafted but cost 4 rail;
-            -- there is no straight-rail as an item.
-            if ghost.ghost_name == "curved-rail" then
-               inv_query = "rail"
-               amount = 4
-            elseif ghost.ghost_name == "straight-rail" then
-               amount = 1 -- for clarity.
-               inv_query = "rail"
+            -- Address Special cases where item name not equals entity name, like for rails and curved rails
+            --NOTE: A ghost that requires more than one item to build (never in vanilla) is not fully checked
+            if
+               ghost.ghost_prototype.items_to_place_this
+               and ghost.ghost_prototype.items_to_place_this[1].name ~= inv_query
+            then
+               inv_query = ghost.ghost_prototype.items_to_place_this[1].name
+               amount_required = ghost.ghost_prototype.items_to_place_this[1].count
             end
 
-            if p.get_main_inventory().get_item_count(inv_query) < amount then
+            if p.get_main_inventory().get_item_count(inv_query) < amount_required then
                ignore_count = ignore_count + 1
             else
                --Still going to build it

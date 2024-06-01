@@ -257,45 +257,7 @@ function mod.build_item_in_hand(pindex, free_place_straight_rail)
             local result = "Cannot place that there "
             local build_area =
                { players[pindex].building_footprint_left_top, players[pindex].building_footprint_right_bottom }
-            local ents_in_area = p.surface.find_entities_filtered({
-               area = build_area,
-               invert = true,
-               type = ENT_TYPES_YOU_CAN_BUILD_OVER,
-            })
-            local tiles_in_area = p.surface.find_tiles_filtered({
-               area = build_area,
-               invert = false,
-               name = {
-                  "water",
-                  "deepwater",
-                  "water-green",
-                  "deepwater-green",
-                  "water-shallow",
-                  "water-mud",
-                  "water-wube",
-               },
-            })
-            local obstacle_ent_name = nil
-            local obstacle_tile_name = nil
-            --Check for an entity in the way
-            for i, area_ent in ipairs(ents_in_area) do
-               if
-                  area_ent.valid
-                  and area_ent.prototype.tile_width
-                  and area_ent.prototype.tile_width > 0
-                  and area_ent.prototype.tile_height
-                  and area_ent.prototype.tile_height > 0
-               then
-                  obstacle_ent_name = localising.get(area_ent, pindex)
-               end
-            end
-
-            --Report obstacles
-            if obstacle_ent_name ~= nil then
-               result = result .. ", " .. obstacle_ent_name .. " in the way."
-            elseif #tiles_in_area > 0 then
-               result = result .. ", water is in the way."
-            end
+            result = mod.identify_building_obstacle(pindex, build_area, nil)
             printout(result, pindex)
          end
       end
@@ -566,47 +528,9 @@ function mod.nudge_key(direction, event)
             game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
 
             --Explain build error
-            local result = "Cannot nudge"
+            local result = "Cannot nudge, "
             local build_area = { left_top, right_bottom }
-            local ents_in_area = p.surface.find_entities_filtered({
-               area = build_area,
-               invert = true,
-               type = ENT_TYPES_YOU_CAN_BUILD_OVER,
-            })
-            local tiles_in_area = p.surface.find_tiles_filtered({
-               area = build_area,
-               invert = false,
-               name = {
-                  "water",
-                  "deepwater",
-                  "water-green",
-                  "deepwater-green",
-                  "water-shallow",
-                  "water-mud",
-                  "water-wube",
-               },
-            })
-            local obstacle_ent_name = nil
-            local obstacle_tile_name = nil
-            --Check for an entity in the way
-            for i, area_ent in ipairs(ents_in_area) do
-               if
-                  area_ent.valid
-                  and area_ent.prototype.tile_width
-                  and area_ent.prototype.tile_width > 0
-                  and area_ent.prototype.tile_height
-                  and area_ent.prototype.tile_height > 0
-               then
-                  obstacle_ent_name = localising.get(area_ent, pindex)
-               end
-            end
-
-            --Report obstacles
-            if obstacle_ent_name ~= nil then
-               result = result .. ", " .. obstacle_ent_name .. " in the way."
-            elseif #tiles_in_area > 0 then
-               result = result .. ", water is in the way."
-            end
+            result = result .. mod.identify_building_obstacle(pindex, build_area, ent)
             printout(result, pindex)
             return
          end
@@ -1737,6 +1661,66 @@ function mod.delete_empty_planners_in_inventory(pindex)
          end
       end
    end
+end
+
+--Scans an area to identify obstacles for building there
+function mod.identify_building_obstacle(pindex, area, ent_to_ignore)
+   local p = game.get_player(pindex)
+   local ent_ignored = ent_to_ignore or nil
+   local result = "Cannot build"
+   --Check for an entity in the way
+   local ents_in_area = p.surface.find_entities_filtered({
+      area = area,
+      invert = true,
+      type = ENT_TYPES_YOU_CAN_BUILD_OVER,
+   })
+   local obstacle_ent = nil
+   for i, area_ent in ipairs(ents_in_area) do
+      if
+         area_ent.valid
+         and area_ent.prototype.tile_width
+         and area_ent.prototype.tile_width > 0
+         and area_ent.prototype.tile_height
+         and area_ent.prototype.tile_height > 0
+         and (ent_ignored == nil or ent_ignored.unit_number ~= area_ent.unit_number)
+      then
+         obstacle_ent = area_ent
+      end
+   end
+   --Check for water in the area
+   local water_tiles_in_area = p.surface.find_tiles_filtered({
+      area = area,
+      invert = false,
+      name = {
+         "water",
+         "deepwater",
+         "water-green",
+         "deepwater-green",
+         "water-shallow",
+         "water-mud",
+         "water-wube",
+      },
+   })
+   --Report obstacles
+   if obstacle_ent ~= nil then
+      local obstacle_ent_name = localising.get(obstacle_ent, pindex)
+      result = result
+         .. ", "
+         .. obstacle_ent_name
+         .. " in the way, at "
+         .. math.floor(obstacle_ent.position.x)
+         .. ", "
+         .. math.floor(obstacle_ent.position.y)
+   elseif #water_tiles_in_area > 0 then
+      local water = water_tiles_in_area[1]
+      result = result
+         .. ", water "
+         .. " in the way, at "
+         .. math.floor(water.position.x)
+         .. ", "
+         .. math.floor(water.position.y)
+   end
+   return result
 end
 
 return mod
