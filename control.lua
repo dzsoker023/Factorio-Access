@@ -5452,7 +5452,11 @@ end)
 function do_multi_stack_transfer(ratio, pindex)
    local result = { "" }
    local sector = players[pindex].building.sectors[players[pindex].building.sector]
-   if sector and sector.name ~= "Fluid" and players[pindex].building.sector_name ~= "player inventory from building" then
+   if
+      sector
+      and sector.name ~= "Fluid"
+      and players[pindex].building.sector_name ~= "player inventory from building"
+   then
       --This is the section where we move from the building to the player.
       local item_name = ""
       local stack = sector.inventory[players[pindex].building.index]
@@ -8388,7 +8392,7 @@ function reset_bump_stats(pindex)
       last_pos_4 = nil,
       last_dir_2 = nil,
       last_dir_1 = nil,
-      filled = false
+      filled = false,
    }
 end
 
