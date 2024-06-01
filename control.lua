@@ -8165,6 +8165,7 @@ function check_and_play_bump_alert_sound(pindex, this_tick)
 
    --Initialize
    if players[pindex].bump == nil then reset_bump_stats(pindex) end
+   players[pindex].bump.filled = false
 
    --Return and reset if in a menu or a vehicle
    if players[pindex].in_menu or p.vehicle ~= nil then
@@ -8387,6 +8388,7 @@ function reset_bump_stats(pindex)
       last_pos_4 = nil,
       last_dir_2 = nil,
       last_dir_1 = nil,
+      filled = false
    }
 end
 
