@@ -1440,7 +1440,7 @@ function menu_cursor_up(pindex)
             --players[pindex].building.index = 1
          end
          fa_sectors.read_sector_slot(pindex, false)
-      elseif players[pindex].building.sector_name == "player_inventory" then
+      elseif players[pindex].building.sector_name == "player inventory from building" then
          --Move one row up in player inventory
          game.get_player(pindex).play_sound({ path = "Inventory-Move" })
          players[pindex].inventory.index = players[pindex].inventory.index - 10
@@ -1694,7 +1694,7 @@ function menu_cursor_down(pindex)
             game.get_player(pindex).play_sound({ path = "inventory-wrap-around" })
          end
          fa_sectors.read_sector_slot(pindex, false)
-      elseif players[pindex].building.sector_name == "player_inventory" then
+      elseif players[pindex].building.sector_name == "player inventory from building" then
          --Move one row down in player inventory
          game.get_player(pindex).play_sound({ path = "Inventory-Move" })
          players[pindex].inventory.index = players[pindex].inventory.index + 10
@@ -1950,7 +1950,7 @@ function menu_cursor_left(pindex)
             end
          end
          fa_sectors.read_sector_slot(pindex, false)
-      elseif players[pindex].building.sector_name == "player_inventory" then
+      elseif players[pindex].building.sector_name == "player inventory from building" then
          game.get_player(pindex).play_sound({ path = "Inventory-Move" })
          players[pindex].inventory.index = players[pindex].inventory.index - 1
          if players[pindex].inventory.index % 10 < 1 then
@@ -2096,7 +2096,7 @@ function menu_cursor_right(pindex)
             end
          end
          fa_sectors.read_sector_slot(pindex, false)
-      elseif players[pindex].building.sector_name == "player_inventory" then
+      elseif players[pindex].building.sector_name == "player inventory from building" then
          game.get_player(pindex).play_sound({ path = "Inventory-Move" })
          players[pindex].inventory.index = players[pindex].inventory.index + 1
          if players[pindex].inventory.index % 10 == 1 then
@@ -3576,7 +3576,7 @@ script.on_event("read-menu-name", function(event) --read_menu_name
             menu_name = menu_name .. ", " .. pb.sectors[pb.sector].name
          elseif players[pindex].building.recipe_selection == true then
             menu_name = menu_name .. ", recipe selection"
-         elseif players[pindex].building.sector_name == "player_inventory" then
+         elseif players[pindex].building.sector_name == "player inventory from building" then
             menu_name = menu_name .. ", player inventory"
          else
             menu_name = menu_name .. ", other section"
@@ -3643,7 +3643,7 @@ script.on_event("switch-menu-or-gun", function(event)
          elseif players[pindex].building.recipe_list == nil then
             if players[pindex].building.sector == (#players[pindex].building.sectors + 1) then
                read_inventory_slot(pindex, "Player Inventory, ")
-               players[pindex].building.sector_name = "player_inventory"
+               players[pindex].building.sector_name = "player inventory from building"
             else
                players[pindex].building.sector = 1
                fa_sectors.read_sector_slot(pindex, true)
@@ -3654,7 +3654,7 @@ script.on_event("switch-menu-or-gun", function(event)
                players[pindex].building.sector_name = "unloaded recipe selection"
             elseif players[pindex].building.sector == #players[pindex].building.sectors + 2 then --Player inventory sector
                read_inventory_slot(pindex, "Player Inventory, ")
-               players[pindex].building.sector_name = "player_inventory"
+               players[pindex].building.sector_name = "player inventory from building"
             else
                players[pindex].building.sector = 1
                fa_sectors.read_sector_slot(pindex, true)
@@ -3788,7 +3788,7 @@ script.on_event("reverse-switch-menu-or-gun", function(event)
             else
                players[pindex].building.sector = #players[pindex].building.sectors + 2
             end
-            players[pindex].building.sector_name = "player_inventory"
+            players[pindex].building.sector_name = "player inventory from building"
             read_inventory_slot(pindex, "Player Inventory, ")
          elseif players[pindex].building.sector <= #players[pindex].building.sectors then
             fa_sectors.read_sector_slot(pindex, true)
@@ -3797,7 +3797,7 @@ script.on_event("reverse-switch-menu-or-gun", function(event)
          elseif players[pindex].building.recipe_list == nil then
             if players[pindex].building.sector == (#players[pindex].building.sectors + 1) then
                read_inventory_slot(pindex, "Player Inventory, ")
-               players[pindex].building.sector_name = "player_inventory"
+               players[pindex].building.sector_name = "player inventory from building"
             end
          else
             if players[pindex].building.sector == #players[pindex].building.sectors + 1 then
@@ -3805,7 +3805,7 @@ script.on_event("reverse-switch-menu-or-gun", function(event)
                players[pindex].building.sector_name = "unloaded recipe selection"
             elseif players[pindex].building.sector == #players[pindex].building.sectors + 2 then
                read_inventory_slot(pindex, "Player Inventory, ")
-               players[pindex].building.sector_name = "player_inventory"
+               players[pindex].building.sector_name = "player inventory from building"
             end
          end
       elseif players[pindex].menu == "inventory" then
@@ -5452,7 +5452,7 @@ end)
 function do_multi_stack_transfer(ratio, pindex)
    local result = { "" }
    local sector = players[pindex].building.sectors[players[pindex].building.sector]
-   if sector and sector.name ~= "Fluid" and players[pindex].building.sector_name ~= "player_inventory" then
+   if sector and sector.name ~= "Fluid" and players[pindex].building.sector_name ~= "player inventory from building" then
       --This is the section where we move from the building to the player.
       local item_name = ""
       local stack = sector.inventory[players[pindex].building.index]
@@ -5493,7 +5493,7 @@ function do_multi_stack_transfer(ratio, pindex)
    else
       local offset = 1
       if players[pindex].building.recipe_list ~= nil then offset = offset + 1 end
-      if players[pindex].building.sector_name == "player_inventory" then
+      if players[pindex].building.sector_name == "player inventory from building" then
          game.print("path 3b")
          --This is the section where we move from the player to the building.
          local item_name = ""

@@ -281,7 +281,7 @@ function mod.fetch_next(pindex, str, start_phrase_in)
       if pb.sector_name == "Output" then
          inv = game.get_player(pindex).opened.get_output_inventory()
          new_index = inventory_find_index_of_next_name_match(inv, search_index, str, pindex)
-      elseif pb.sector_name == "player_inventory" then
+      elseif pb.sector_name == "player inventory from building" then
          inv = game.get_player(pindex).get_main_inventory()
          new_index = inventory_find_index_of_next_name_match(inv, search_index, str, pindex)
       elseif pb.recipe_selection == true then
@@ -394,7 +394,7 @@ function mod.fetch_next(pindex, str, start_phrase_in)
          players[pindex].menu_search_index = new_index
          players[pindex].building.index = new_index
          fa_sectors.read_sector_slot(pindex, false)
-      elseif pb.sector_name == "player_inventory" then
+      elseif pb.sector_name == "player inventory from building" then
          players[pindex].menu_search_index = new_index
          players[pindex].inventory.index = new_index
          read_inventory_slot(pindex, "")

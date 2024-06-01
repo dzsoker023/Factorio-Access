@@ -1708,12 +1708,17 @@ function mod.identify_building_obstacle(pindex, area, ent_to_ignore)
          .. ", "
          .. obstacle_ent_name
          .. " in the way, at "
-         .. obstacle_ent.position.x
-         .. ","
-         .. obstacle_ent.position.y
+         .. math.floor(obstacle_ent.position.x)
+         .. ", "
+         .. math.floor(obstacle_ent.position.y)
    elseif #water_tiles_in_area > 0 then
       local water = water_tiles_in_area[1]
-      result = result .. ", water " .. " in the way, at " .. water.position.x .. "," .. water.position.y
+      result = result
+         .. ", water "
+         .. " in the way, at "
+         .. math.floor(water.position.x)
+         .. ", "
+         .. math.floor(water.position.y)
    end
    return result
 end
