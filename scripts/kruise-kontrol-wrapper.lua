@@ -168,8 +168,11 @@ function mod.status_update(pindex)
 
             -- Address Special cases where item name not equals entity name, like for rails and curved rails
             --NOTE: A ghost that requires more than one item to build (never in vanilla) is not fully checked
-            if ghost.ghost_prototype.items_to_place_this and ghost.ghost_prototype.items_to_place_this[1].name ~= inv_query then
-               inv_query = ghost.ghost_prototype.items_to_place_this[1].name 
+            if
+               ghost.ghost_prototype.items_to_place_this
+               and ghost.ghost_prototype.items_to_place_this[1].name ~= inv_query
+            then
+               inv_query = ghost.ghost_prototype.items_to_place_this[1].name
                amount_required = ghost.ghost_prototype.items_to_place_this[1].count
             end
 
