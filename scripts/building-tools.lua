@@ -1447,10 +1447,12 @@ function mod.get_relevant_fluidbox_and_fluid_name(building, pos, dir_from_pos)
    return relevant_box, relevant_fluid_name, dir_from_pos
 end
 
+--If the player is standing within the build area, they are teleported out.
 function mod.teleport_player_out_of_build_area(left_top, right_bottom, pindex)
    local p = game.get_player(pindex)
    local pos = p.position
    if pos.x < left_top.x or pos.x > right_bottom.x or pos.y < left_top.y or pos.y > right_bottom.y then return end
+   if p.walking_state.walking == true then return end
    local exits = {}
    exits[1] = { x = left_top.x - 1, y = left_top.y - 0 }
    exits[2] = { x = left_top.x - 0, y = left_top.y - 1 }
