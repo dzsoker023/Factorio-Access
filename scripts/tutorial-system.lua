@@ -262,7 +262,7 @@ function mod.read_current_header(pindex)
    local i = tutorial.chapter_index
    local j = tutorial.step_index
    local str = tutorial.step_headers[i][j]
-   str = str .. ", tutorial step " .. j " of " .. tutorial.chapter_lengths[i] .. " in chapter " .. i
+   str = str .. ", tutorial step " .. j .. " of " .. tutorial.chapter_lengths[i] .. " in chapter " .. i
    printout(str, pindex)
    game.get_player(pindex).print(str, { volume_modifier = 0 })
 end

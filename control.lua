@@ -7310,7 +7310,12 @@ script.on_event("set-entity-filter-from-hand", function(event)
             --Remove the last signal
             fa_circuits.constant_combinator_remove_last_signal(ent, pindex)
          elseif ent.type == "inserter" then
+            --Call the filter setter
             local result = set_inserter_filter_by_hand(pindex, ent)
+            printout(result, pindex)
+         elseif ent.type == "infinity-container" then
+            --Call the filter setter
+            local result = set_infinity_chest_filter_by_hand(pindex, ent)
             printout(result, pindex)
          end
       else
@@ -7322,7 +7327,12 @@ script.on_event("set-entity-filter-from-hand", function(event)
             --Add a new signal
             fa_circuits.constant_combinator_add_stack_signal(ent, stack, pindex)
          elseif ent.type == "inserter" then
+            --Call the filter setter
             local result = set_inserter_filter_by_hand(pindex, ent)
+            printout(result, pindex)
+         elseif ent.type == "infinity-container" then
+            --Call the filter setter
+            local result = set_infinity_chest_filter_by_hand(pindex, ent)
             printout(result, pindex)
          end
       end
@@ -7990,6 +8000,22 @@ function set_inserter_filter_by_hand(pindex, ent)
          end
       end
       return "All filters full"
+   end
+end
+
+--If an infinity chest is selected, the item in hand is set as its filter item.
+function set_infinity_chest_filter_by_hand(pindex, ent)
+   local stack = game.get_player(pindex).cursor_stack
+   ent.remove_unfiltered_items = true
+   if stack == nil or stack.valid_for_read == false then
+      --Delete filters
+      ent.infinity_container_filters = {}
+      return "All filters cleared"
+   else
+      --Set item in hand as the filter
+      ent.infinity_container_filters = {}
+      ent.set_infinity_container_filter(1, { name = stack.name, mode = "exactly" })
+      return "Set filter to item in hand"
    end
 end
 
