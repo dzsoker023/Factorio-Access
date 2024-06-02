@@ -6025,6 +6025,10 @@ script.on_event("item-info", function(event)
                for i1, v in pairs(reward) do
                   if v then table.insert(result, ", " .. tostring(v)) end
                end
+               if i > 10 then
+                  table.insert(result, ", and other rewards")
+                  break
+               end
             end
             if techs[players[pindex].technology.index].name == "electronics" then
                table.insert(result, ", later technologies")
