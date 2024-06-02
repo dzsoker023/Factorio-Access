@@ -3326,7 +3326,7 @@ function read_item_pickup_state(pindex)
       p.surface.find_entities_filtered({ position = p.position, radius = 1.25, type = "transport-belt" })
    local nearby_ground_items =
       p.surface.find_entities_filtered({ position = p.position, radius = 1.25, name = "item-on-ground" })
-   --Draw the pickup range 
+   --Draw the pickup range
    rendering.draw_circle({
       color = { 0.3, 1, 0.3 },
       radius = 1.25,
@@ -3389,7 +3389,7 @@ script.on_event(defines.events.on_picked_up_item, function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
-   --Draw the pickup range 
+   --Draw the pickup range
    rendering.draw_circle({
       color = { 0.3, 1, 0.3 },
       radius = 1.25,
@@ -4129,7 +4129,7 @@ script.on_event("mine-area", function(event)
             p.mine_entity(rail_ent, true)
             cleared_count = cleared_count + 1
          end
-         --Draw the clearing range 
+         --Draw the clearing range
          rendering.draw_circle({
             color = { 0, 1, 0 },
             radius = 10,
@@ -4148,7 +4148,7 @@ script.on_event("mine-area", function(event)
             cleared_count = cleared_count + 1
          end
          game.get_player(pindex).play_sound({ path = "utility/item_deleted" })
-         --Draw the clearing range 
+         --Draw the clearing range
          rendering.draw_circle({
             color = { 0, 1, 0 },
             radius = 10,
