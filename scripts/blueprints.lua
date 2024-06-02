@@ -222,6 +222,7 @@ function mod.get_blueprint_corners(pindex, draw_rect)
    return left_top, right_bottom, mouse_pos
 end
 
+--Returns: bp_width, bp_height
 function mod.get_blueprint_width_and_height(pindex)
    local p = game.get_player(pindex)
    local bp = p.cursor_stack

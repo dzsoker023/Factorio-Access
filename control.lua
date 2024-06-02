@@ -7083,6 +7083,34 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
 
    --Run checks and skip when needed
    while moved < limit do
+      --Check the moved count against the dimensions of the preview in hand
+      local stack = p.cursor_stack
+      if stack and stack.valid_for_read then
+         if stack.is_blueprint and stack.is_blueprint_setup() then
+            local width, height = fa_blueprints.get_blueprint_width_and_height(pindex)
+            if width and height and (width + height > 2) then
+               --For blueprints larger than 1x1, check if the height/width has been travelled.
+               if direction == dirs.east or direction == dirs.west then
+                  if moved >= width then return moved end
+               elseif direction == dirs.north or direction == dirs.south then
+                  if moved >= height then return moved end
+               end
+            end
+         elseif stack.prototype.place_result then
+            local width = stack.prototype.place_result.tile_width
+            local height = stack.prototype.place_result.tile_height
+            if width and height and (width + height > 2) then
+               --For entities larger than 1x1, check if the height/width has been travelled.
+               if direction == dirs.east or direction == dirs.west then
+                  if moved >= width then return moved end
+               elseif direction == dirs.north or direction == dirs.south then
+                  if moved >= height then return moved end
+               end
+            end
+         end
+      end
+
+      --Check the current entity or tile against the starting one
       if current == nil or current.valid == false then
          if start == nil or start.valid == false then
             --Both are nil: check if water, else skip
