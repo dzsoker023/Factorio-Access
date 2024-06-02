@@ -940,7 +940,7 @@ function mod.ent_info(pindex, ent, description)
       con_counts[dirs.west + 1] = 0
       if #con_targets > 0 then
          for i, con_target_pos in ipairs(con_targets) do
-            --For each heat connection target position
+            --For each heat connection target position, mark it and check for target ents
             rendering.draw_circle({
                color = { 1.0, 0.0, 0.5 },
                radius = 0.1,
@@ -969,7 +969,7 @@ function mod.ent_info(pindex, ent, description)
                         )
                      )
                   do
-                     --For each heat connection of the found target entity
+                     --For each heat connection of the found target entity, mark it and check for a match
                      rendering.draw_circle({
                         color = { 1.0, 1.0, 0.5 },
                         radius = 0.2,
@@ -979,7 +979,7 @@ function mod.ent_info(pindex, ent, description)
                         time_to_live = 30,
                      })
                      if util.distance(con_target_pos, spot) < 0.2 then
-                        --For each match
+                        --For each match, mark it and count it
                         rendering.draw_circle({
                            color = { 0.5, 1.0, 0.5 },
                            radius = 0.3,

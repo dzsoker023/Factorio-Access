@@ -145,6 +145,7 @@ function mod.find_nearest_electric_pole(ent, require_supplied, radius, alt_surfa
          return nil, nil --Nothing within 10000 tiles!
       end
    end
+   --Draw a circle around the nearest electric pole
    rendering.draw_circle({
       color = { 1, 1, 0 },
       radius = 2,

@@ -57,7 +57,7 @@ function mod.teleport_to_closest(pindex, pos, muted, ignore_enemies)
    if can_port then
       local old_pos = table.deepcopy(first_player.position)
       if not muted then
-         --Teleporting visuals at origin
+         --Draw teleporting visuals at origin
          rendering.draw_circle({
             color = { 0.8, 0.2, 0.0 },
             radius = 0.5,
@@ -107,7 +107,7 @@ function mod.teleport_to_closest(pindex, pos, muted, ignore_enemies)
          players[pindex].position = table.deepcopy(new_pos)
          reset_bump_stats(pindex)
          if not muted then
-            --Teleporting visuals at target
+            --Draw teleporting visuals at target
             rendering.draw_circle({
                color = { 0.3, 0.3, 0.9 },
                radius = 0.5,

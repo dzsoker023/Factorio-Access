@@ -375,7 +375,7 @@ function mod.train_read_next_rail_entity_ahead(pindex, invert, mute_in)
    end
    if not mute_in == true then
       printout(message, pindex)
-      --Draw circles for visual debugging
+      --Draw circle for visual confirmation or debugging of the next entity
       rendering.draw_circle({
          color = { 0, 0.5, 1 },
          radius = 1,
@@ -387,6 +387,7 @@ function mod.train_read_next_rail_entity_ahead(pindex, invert, mute_in)
    end
 
    if honk_score > 1 then
+      --Draw circle for visual confirmation or debugging of the next entity
       rendering.draw_circle({
          color = { 1, 0, 0 },
          radius = 1,

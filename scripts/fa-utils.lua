@@ -316,7 +316,10 @@ function mod.get_ent_northwest_corner_position(ent)
    end
    local pos =
       mod.center_of_tile({ x = ent.position.x - math.floor(width / 2), y = ent.position.y - math.floor(height / 2) })
-   --rendering.draw_rectangle{color = {0.75,1,1,0.75}, surface = ent.surface, draw_on_ground = true, players = nil, width = 2, left_top = {math.floor(pos.x)+0.05,math.floor(pos.y)+0.05}, right_bottom = {math.ceil(pos.x)-0.05,math.ceil(pos.y)-0.05}, time_to_live = 30}
+   --Mark the northwest corner
+   --rendering.draw_rectangle{color = {0.75,1,1,0.75}, surface = ent.surface, draw_on_ground = true,
+   --players = nil, width = 2,
+   --left_top = {math.floor(pos.x)+0.05,math.floor(pos.y)+0.05}, right_bottom = {math.ceil(pos.x)-0.05,math.ceil(pos.y)-0.05}, time_to_live = 30}
    return pos
 end
 

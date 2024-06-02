@@ -150,11 +150,10 @@ function mod.get_blueprint_corners(pindex, draw_rect)
    local north_most_y = 0
    local south_most_y = 0
    local first_ent = true
-   --Empty blueprint: Just circle the cursor
+   --Empty blueprint: Just report the tile of the cursor
    if bp.is_blueprint_setup() == false then
       local left_top = { x = math.floor(pos.x), y = math.floor(pos.y) }
       local right_bottom = { x = math.ceil(pos.x), y = math.ceil(pos.y) }
-      --local rect = rendering.draw_rectangle{left_top = left_top, right_bottom = right_bottom, color = {r = 0.25, b = 0.25, g = 1.0, a = 0.75}, draw_on_ground = true, surface = game.get_player(pindex).surface, players = nil }
       return left_top, right_bottom, pos
    end
 

@@ -622,6 +622,7 @@ function refresh_player_tile(pindex)
    }
    local excluded_names = { "highlight-box", "flying-text" }
    players[pindex].tile.ents = surf.find_entities_filtered({ area = search_area, name = excluded_names, invert = true })
+   --Draw the tile
    --rendering.draw_rectangle{left_top = search_area[1], right_bottom = search_area[2], color = {1,0,1}, surface = surf, time_to_live = 100}--
    local wide_area = {
       { x = math.floor(c_pos.x) - 0.01, y = math.floor(c_pos.y) - 0.01 },
@@ -764,6 +765,7 @@ function read_coords(pindex, start_phrase)
             result .. "\n (" .. math.floor(marked_pos.x * 10) / 10 .. ", " .. math.floor(marked_pos.y * 10) / 10 .. ")",
             { volume_modifier = 0 }
          )
+         --Draw the point
          rendering.draw_circle({
             color = { 1.0, 0.2, 0.0 },
             radius = 0.1,
@@ -772,7 +774,6 @@ function read_coords(pindex, start_phrase)
             surface = game.get_player(pindex).surface,
             time_to_live = 180,
          })
-         --rendering.draw_circle{color = {0.2, 0.8, 0.2},radius = 0.2,width = 5, target = marked_pos,surface = game.get_player(pindex).surface,time_to_live = 180}
 
          --If there is a build preview, give its dimensions and which way they extend
          local stack = game.get_player(pindex).cursor_stack
@@ -2779,6 +2780,7 @@ script.on_event("read-cursor-distance-and-direction", function(event)
       table.insert(result, dir_dist)
       printout(result, pindex)
       game.get_player(pindex).print(result, { volume_modifier = 0 })
+      --Draw the point
       rendering.draw_circle({
          color = { 1, 0.2, 0 },
          radius = 0.1,
@@ -3324,6 +3326,7 @@ function read_item_pickup_state(pindex)
       p.surface.find_entities_filtered({ position = p.position, radius = 1.25, type = "transport-belt" })
    local nearby_ground_items =
       p.surface.find_entities_filtered({ position = p.position, radius = 1.25, name = "item-on-ground" })
+   --Draw the pickup range 
    rendering.draw_circle({
       color = { 0.3, 1, 0.3 },
       radius = 1.25,
@@ -3386,6 +3389,7 @@ script.on_event(defines.events.on_picked_up_item, function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
+   --Draw the pickup range 
    rendering.draw_circle({
       color = { 0.3, 1, 0.3 },
       radius = 1.25,
@@ -4125,6 +4129,7 @@ script.on_event("mine-area", function(event)
             p.mine_entity(rail_ent, true)
             cleared_count = cleared_count + 1
          end
+         --Draw the clearing range 
          rendering.draw_circle({
             color = { 0, 1, 0 },
             radius = 10,
@@ -4143,6 +4148,7 @@ script.on_event("mine-area", function(event)
             cleared_count = cleared_count + 1
          end
          game.get_player(pindex).play_sound({ path = "utility/item_deleted" })
+         --Draw the clearing range 
          rendering.draw_circle({
             color = { 0, 1, 0 },
             radius = 10,
