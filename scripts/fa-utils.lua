@@ -490,6 +490,16 @@ function mod.nearest_edge(edges, pos, name)
    return result
 end
 
+--Checks whether a rectangle defined by the two points falls fully within the rectangular range value
+function mod.is_rectangle_fully_within_player_range(pindex, left_top, right_bottom, range)
+   local pos = game.get_player(pindex).position
+   if math.abs(left_top.x - pos.x) > range then return false end
+   if math.abs(left_top.y - pos.y) > range then return false end
+   if math.abs(right_bottom.x - pos.x) > range then return false end
+   if math.abs(right_bottom.y - pos.y) > range then return false end
+   return true
+end
+
 function mod.scale_area(area, factor)
    result = table.deepcopy(area)
    result.left_top.x = area.left_top.x * factor

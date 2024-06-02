@@ -111,10 +111,8 @@ function mod.paste_blueprint(pindex)
    --Get the offset blueprint positions
    local left_top, right_bottom, build_pos = mod.get_blueprint_corners(pindex, false)
 
-   --Clear build area (if not far away)
-   if util.distance(p.position, build_pos) < 2 * p.reach_distance then
-      fa_mining_tools.clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
-   end
+   --Clear build area for objects up to a certain range, while others are marked for deconstruction
+   fa_mining_tools.clear_obstacles_in_rectangle(left_top, right_bottom, pindex, 99)
 
    --Build it and check if successful
    local dir = players[pindex].blueprint_hand_direction
