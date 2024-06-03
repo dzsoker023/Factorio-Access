@@ -1453,6 +1453,10 @@ function mod.teleport_player_out_of_build_area(left_top, right_bottom, pindex)
    local pos = p.position
    if pos.x < left_top.x or pos.x > right_bottom.x or pos.y < left_top.y or pos.y > right_bottom.y then return end
    if p.walking_state.walking == true then return end
+   if players[pindex].build_lock == true then
+      p.play_sound({ path = "player-bump-stuck-alert" })
+      return
+   end
    local exits = {}
    exits[1] = { x = left_top.x - 1, y = left_top.y - 0 }
    exits[2] = { x = left_top.x - 0, y = left_top.y - 1 }

@@ -96,7 +96,8 @@ function mod.ent_info(pindex, ent, description)
       end
    end
    --Explain the contents of a container
-   if ent.type == "container" or ent.type == "logistic-container" then --Chests etc: Report the most common item and say "and other items" if there are other types.
+   if ent.type == "container" or ent.type == "logistic-container" or ent.type == "infinity-container" then
+      --Chests etc: Report the most common item and say "and other items" if there are other types.
       local itemset = ent.get_inventory(defines.inventory.chest).get_contents()
       local itemtable = {}
       for name, count in pairs(itemset) do

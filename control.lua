@@ -6028,10 +6028,16 @@ script.on_event("item-info", function(event)
             table.insert(result, ", Rewards: ")
             local rewards = techs[players[pindex].technology.index].effects
             for i, reward in ipairs(rewards) do
+               local j = 0
                for i1, v in pairs(reward) do
                   if v then table.insert(result, ", " .. tostring(v)) end
+                  j = j + 1
+                  if j > 5 then
+                     table.insert(result, ", and other rewards")
+                     break
+                  end
                end
-               if i > 10 then
+               if i > 5 then
                   table.insert(result, ", and other rewards")
                   break
                end
@@ -7101,9 +7107,9 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
             if width and height and (width + height > 2) then
                --For blueprints larger than 1x1, check if the height/width has been travelled.
                if direction == dirs.east or direction == dirs.west then
-                  if moved >= width then return moved end
+                  if moved >= width + 1 then return moved end
                elseif direction == dirs.north or direction == dirs.south then
-                  if moved >= height then return moved end
+                  if moved >= height + 1 then return moved end
                end
             end
          elseif stack.prototype.place_result then
@@ -8044,15 +8050,17 @@ end
 --If an infinity chest is selected, the item in hand is set as its filter item.
 function set_infinity_chest_filter_by_hand(pindex, ent)
    local stack = game.get_player(pindex).cursor_stack
-   ent.remove_unfiltered_items = true
-   if stack == nil or stack.valid_for_read == false then
+   ent.remove_unfiltered_items = false
+   if stack == nil or stack.valid_for_read == false or stack.valid == false then
       --Delete filters
       ent.infinity_container_filters = {}
+      ent.remove_unfiltered_items = true
       return "All filters cleared"
    else
       --Set item in hand as the filter
       ent.infinity_container_filters = {}
-      ent.set_infinity_container_filter(1, { name = stack.name, mode = "exactly" })
+      ent.set_infinity_container_filter(1, { name = stack.name, count = stack.prototype.stack_size, mode = "exactly" })
+      ent.remove_unfiltered_items = true
       return "Set filter to item in hand"
    end
 end
