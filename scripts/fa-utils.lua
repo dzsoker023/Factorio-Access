@@ -316,7 +316,10 @@ function mod.get_ent_northwest_corner_position(ent)
    end
    local pos =
       mod.center_of_tile({ x = ent.position.x - math.floor(width / 2), y = ent.position.y - math.floor(height / 2) })
-   --rendering.draw_rectangle{color = {0.75,1,1,0.75}, surface = ent.surface, draw_on_ground = true, players = nil, width = 2, left_top = {math.floor(pos.x)+0.05,math.floor(pos.y)+0.05}, right_bottom = {math.ceil(pos.x)-0.05,math.ceil(pos.y)-0.05}, time_to_live = 30}
+   --Mark the northwest corner
+   --rendering.draw_rectangle{color = {0.75,1,1,0.75}, surface = ent.surface, draw_on_ground = true,
+   --players = nil, width = 2,
+   --left_top = {math.floor(pos.x)+0.05,math.floor(pos.y)+0.05}, right_bottom = {math.ceil(pos.x)-0.05,math.ceil(pos.y)-0.05}, time_to_live = 30}
    return pos
 end
 
@@ -488,6 +491,16 @@ function mod.nearest_edge(edges, pos, name)
       result.y = result.y * 8 - 4
    end
    return result
+end
+
+--Checks whether a rectangle defined by the two points falls fully within the rectangular range value
+function mod.is_rectangle_fully_within_player_range(pindex, left_top, right_bottom, range)
+   local pos = game.get_player(pindex).position
+   if math.abs(left_top.x - pos.x) > range then return false end
+   if math.abs(left_top.y - pos.y) > range then return false end
+   if math.abs(right_bottom.x - pos.x) > range then return false end
+   if math.abs(right_bottom.y - pos.y) > range then return false end
+   return true
 end
 
 function mod.scale_area(area, factor)

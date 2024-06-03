@@ -111,10 +111,8 @@ function mod.paste_blueprint(pindex)
    --Get the offset blueprint positions
    local left_top, right_bottom, build_pos = mod.get_blueprint_corners(pindex, false)
 
-   --Clear build area (if not far away)
-   if util.distance(p.position, build_pos) < 2 * p.reach_distance then
-      fa_mining_tools.clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
-   end
+   --Clear build area for objects up to a certain range, while others are marked for deconstruction
+   fa_mining_tools.clear_obstacles_in_rectangle(left_top, right_bottom, pindex, 99)
 
    --Build it and check if successful
    local dir = players[pindex].blueprint_hand_direction
@@ -152,11 +150,10 @@ function mod.get_blueprint_corners(pindex, draw_rect)
    local north_most_y = 0
    local south_most_y = 0
    local first_ent = true
-   --Empty blueprint: Just circle the cursor
+   --Empty blueprint: Just report the tile of the cursor
    if bp.is_blueprint_setup() == false then
       local left_top = { x = math.floor(pos.x), y = math.floor(pos.y) }
       local right_bottom = { x = math.ceil(pos.x), y = math.ceil(pos.y) }
-      --local rect = rendering.draw_rectangle{left_top = left_top, right_bottom = right_bottom, color = {r = 0.25, b = 0.25, g = 1.0, a = 0.75}, draw_on_ground = true, surface = game.get_player(pindex).surface, players = nil }
       return left_top, right_bottom, pos
    end
 
@@ -224,6 +221,7 @@ function mod.get_blueprint_corners(pindex, draw_rect)
    return left_top, right_bottom, mouse_pos
 end
 
+--Returns: bp_width, bp_height
 function mod.get_blueprint_width_and_height(pindex)
    local p = game.get_player(pindex)
    local bp = p.cursor_stack

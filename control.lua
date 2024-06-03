@@ -622,6 +622,7 @@ function refresh_player_tile(pindex)
    }
    local excluded_names = { "highlight-box", "flying-text" }
    players[pindex].tile.ents = surf.find_entities_filtered({ area = search_area, name = excluded_names, invert = true })
+   --Draw the tile
    --rendering.draw_rectangle{left_top = search_area[1], right_bottom = search_area[2], color = {1,0,1}, surface = surf, time_to_live = 100}--
    local wide_area = {
       { x = math.floor(c_pos.x) - 0.01, y = math.floor(c_pos.y) - 0.01 },
@@ -764,6 +765,7 @@ function read_coords(pindex, start_phrase)
             result .. "\n (" .. math.floor(marked_pos.x * 10) / 10 .. ", " .. math.floor(marked_pos.y * 10) / 10 .. ")",
             { volume_modifier = 0 }
          )
+         --Draw the point
          rendering.draw_circle({
             color = { 1.0, 0.2, 0.0 },
             radius = 0.1,
@@ -772,7 +774,6 @@ function read_coords(pindex, start_phrase)
             surface = game.get_player(pindex).surface,
             time_to_live = 180,
          })
-         --rendering.draw_circle{color = {0.2, 0.8, 0.2},radius = 0.2,width = 5, target = marked_pos,surface = game.get_player(pindex).surface,time_to_live = 180}
 
          --If there is a build preview, give its dimensions and which way they extend
          local stack = game.get_player(pindex).cursor_stack
@@ -2779,6 +2780,7 @@ script.on_event("read-cursor-distance-and-direction", function(event)
       table.insert(result, dir_dist)
       printout(result, pindex)
       game.get_player(pindex).print(result, { volume_modifier = 0 })
+      --Draw the point
       rendering.draw_circle({
          color = { 1, 0.2, 0 },
          radius = 0.1,
@@ -3324,6 +3326,7 @@ function read_item_pickup_state(pindex)
       p.surface.find_entities_filtered({ position = p.position, radius = 1.25, type = "transport-belt" })
    local nearby_ground_items =
       p.surface.find_entities_filtered({ position = p.position, radius = 1.25, name = "item-on-ground" })
+   --Draw the pickup range
    rendering.draw_circle({
       color = { 0.3, 1, 0.3 },
       radius = 1.25,
@@ -3386,6 +3389,7 @@ script.on_event(defines.events.on_picked_up_item, function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
+   --Draw the pickup range
    rendering.draw_circle({
       color = { 0.3, 1, 0.3 },
       radius = 1.25,
@@ -4125,6 +4129,7 @@ script.on_event("mine-area", function(event)
             p.mine_entity(rail_ent, true)
             cleared_count = cleared_count + 1
          end
+         --Draw the clearing range
          rendering.draw_circle({
             color = { 0, 1, 0 },
             radius = 10,
@@ -4143,6 +4148,7 @@ script.on_event("mine-area", function(event)
             cleared_count = cleared_count + 1
          end
          game.get_player(pindex).play_sound({ path = "utility/item_deleted" })
+         --Draw the clearing range
          rendering.draw_circle({
             color = { 0, 1, 0 },
             radius = 10,
@@ -6022,8 +6028,18 @@ script.on_event("item-info", function(event)
             table.insert(result, ", Rewards: ")
             local rewards = techs[players[pindex].technology.index].effects
             for i, reward in ipairs(rewards) do
+               local j = 0
                for i1, v in pairs(reward) do
                   if v then table.insert(result, ", " .. tostring(v)) end
+                  j = j + 1
+                  if j > 5 then
+                     table.insert(result, ", and other rewards")
+                     break
+                  end
+               end
+               if i > 5 then
+                  table.insert(result, ", and other rewards")
+                  break
                end
             end
             if techs[players[pindex].technology.index].name == "electronics" then
@@ -7083,6 +7099,34 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
 
    --Run checks and skip when needed
    while moved < limit do
+      --Check the moved count against the dimensions of the preview in hand
+      local stack = p.cursor_stack
+      if stack and stack.valid_for_read then
+         if stack.is_blueprint and stack.is_blueprint_setup() then
+            local width, height = fa_blueprints.get_blueprint_width_and_height(pindex)
+            if width and height and (width + height > 2) then
+               --For blueprints larger than 1x1, check if the height/width has been travelled.
+               if direction == dirs.east or direction == dirs.west then
+                  if moved >= width + 1 then return moved end
+               elseif direction == dirs.north or direction == dirs.south then
+                  if moved >= height + 1 then return moved end
+               end
+            end
+         elseif stack.prototype.place_result then
+            local width = stack.prototype.place_result.tile_width
+            local height = stack.prototype.place_result.tile_height
+            if width and height and (width + height > 2) then
+               --For entities larger than 1x1, check if the height/width has been travelled.
+               if direction == dirs.east or direction == dirs.west then
+                  if moved >= width then return moved end
+               elseif direction == dirs.north or direction == dirs.south then
+                  if moved >= height then return moved end
+               end
+            end
+         end
+      end
+
+      --Check the current entity or tile against the starting one
       if current == nil or current.valid == false then
          if start == nil or start.valid == false then
             --Both are nil: check if water, else skip
@@ -7310,7 +7354,12 @@ script.on_event("set-entity-filter-from-hand", function(event)
             --Remove the last signal
             fa_circuits.constant_combinator_remove_last_signal(ent, pindex)
          elseif ent.type == "inserter" then
+            --Call the filter setter
             local result = set_inserter_filter_by_hand(pindex, ent)
+            printout(result, pindex)
+         elseif ent.type == "infinity-container" then
+            --Call the filter setter
+            local result = set_infinity_chest_filter_by_hand(pindex, ent)
             printout(result, pindex)
          end
       else
@@ -7322,7 +7371,12 @@ script.on_event("set-entity-filter-from-hand", function(event)
             --Add a new signal
             fa_circuits.constant_combinator_add_stack_signal(ent, stack, pindex)
          elseif ent.type == "inserter" then
+            --Call the filter setter
             local result = set_inserter_filter_by_hand(pindex, ent)
+            printout(result, pindex)
+         elseif ent.type == "infinity-container" then
+            --Call the filter setter
+            local result = set_infinity_chest_filter_by_hand(pindex, ent)
             printout(result, pindex)
          end
       end
@@ -7990,6 +8044,24 @@ function set_inserter_filter_by_hand(pindex, ent)
          end
       end
       return "All filters full"
+   end
+end
+
+--If an infinity chest is selected, the item in hand is set as its filter item.
+function set_infinity_chest_filter_by_hand(pindex, ent)
+   local stack = game.get_player(pindex).cursor_stack
+   ent.remove_unfiltered_items = false
+   if stack == nil or stack.valid_for_read == false or stack.valid == false then
+      --Delete filters
+      ent.infinity_container_filters = {}
+      ent.remove_unfiltered_items = true
+      return "All filters cleared"
+   else
+      --Set item in hand as the filter
+      ent.infinity_container_filters = {}
+      ent.set_infinity_container_filter(1, { name = stack.name, count = stack.prototype.stack_size, mode = "exactly" })
+      ent.remove_unfiltered_items = true
+      return "Set filter to item in hand"
    end
 end
 

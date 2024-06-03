@@ -197,7 +197,7 @@ function mod.scan_area(x, y, w, h, pindex, filter_direction, start_with_existing
             --If it is a forest, check density
             if name == "forest" then
                local forest_pos = nearest_edge
-               forest_density = mod.classify_forest(forest_pos, pindex, false)
+               forest_density = mod.classify_forest(forest_pos, pindex, false, false)
             else
                forest_density = nil
             end
@@ -1142,7 +1142,7 @@ function mod.ent_extra_list_info(ent, pindex, info_comes_after_indexing)
       result = result .. " " .. ent.backer_name
    elseif ent.name == "forest" then
       --Forest type by density
-      result = result .. mod.classify_forest(ent.position, pindex, true)
+      result = result .. mod.classify_forest(ent.position, pindex, true, false)
    elseif ent.name == "roboport" then
       --Roboport network name
       result = result .. " of network " .. fa_bot_logistics.get_network_name(ent)
@@ -1174,12 +1174,13 @@ function mod.ent_extra_list_info(ent, pindex, info_comes_after_indexing)
 end
 
 --Examines a forest position and classifies it by tree density. Used for the scanner list.
-function mod.classify_forest(position, pindex, drawing)
+function mod.classify_forest(position, pindex, drawing_forest, drawing_trees)
    local tree_count = 0
    local tree_group = game
       .get_player(pindex).surface
       .find_entities_filtered({ type = "tree", position = position, radius = 16, limit = 15 })
-   if drawing then
+   if drawing_forest == true then
+      --Draw the forest checking boundaries
       rendering.draw_circle({
          color = { 0, 1, 0.25 },
          radius = 16,
@@ -1190,9 +1191,10 @@ function mod.classify_forest(position, pindex, drawing)
          draw_on_ground = true,
       })
    end
-   for i, tree in ipairs(tree_group) do
-      tree_count = tree_count + 1
-      if drawing then
+   if tree_group then tree_count = #tree_group end
+   if drawing_trees == true then
+      for i, tree in ipairs(tree_group) do
+         --Draw the trees identified
          rendering.draw_circle({
             color = { 0, 1, 0.5 },
             radius = 1,
