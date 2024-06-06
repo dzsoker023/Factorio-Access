@@ -7115,6 +7115,7 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
 
    --Run checks and skip when needed
    while moved < limit do
+      --[[
       --Check the moved count against the dimensions of the preview in hand
       local stack = p.cursor_stack
       if stack and stack.valid_for_read then
@@ -7141,6 +7142,7 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
             end
          end
       end
+      ]]
 
       --Check the current entity or tile against the starting one
       if current == nil or current.valid == false then
