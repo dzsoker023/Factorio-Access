@@ -4786,7 +4786,7 @@ script.on_event("click-hand", function(event)
       elseif
          stack.is_blueprint and (stack.is_blueprint_setup() == false or players[pindex].blueprint_reselecting == true)
       then
-         --Select blueprint
+         --Start or conclude blueprint selection
          local pex = players[pindex]
          if pex.bp_selecting ~= true then
             pex.bp_selecting = true
@@ -4808,7 +4808,7 @@ script.on_event("click-hand", function(event)
       elseif stack.is_blueprint_book then
          fa_blueprints.blueprint_book_menu_open(pindex, true)
       elseif stack.is_deconstruction_item then
-         --Mark deconstruction
+         --Start or conclude deconstruction selection
          local pex = players[pindex]
          if pex.bp_selecting ~= true then
             pex.bp_selecting = true
@@ -4840,7 +4840,7 @@ script.on_event("click-hand", function(event)
             printout(decon_counter .. " entities marked to be deconstructed.", pindex)
          end
       elseif stack.is_upgrade_item then
-         --Mark upgrade
+         --Start or conclude upgrade selection
          local pex = players[pindex]
          if pex.bp_selecting ~= true then
             pex.bp_selecting = true
@@ -4867,6 +4867,22 @@ script.on_event("click-hand", function(event)
                if ent.valid and ent.to_be_upgraded() then ent_counter = ent_counter + 1 end
             end
             printout(ent_counter .. " entities marked to be upgraded.", pindex)
+         end
+      elseif stack.name == "copy-paste-tool" then
+         --Start or conclude blueprint selection
+         local pex = players[pindex]
+         if pex.bp_selecting ~= true then
+            pex.bp_selecting = true
+            pex.bp_select_point_1 = pex.cursor_pos
+            printout(
+               "Started copy tool selection at " .. math.floor(pex.cursor_pos.x) .. "," .. math.floor(pex.cursor_pos.y),
+               pindex
+            )
+         else
+            pex.bp_selecting = false
+            pex.bp_select_point_2 = pex.cursor_pos
+            fa_blueprints.copy_selected_area_to_clipboard(pindex, pex.bp_select_point_1, pex.bp_select_point_2)
+            players[pindex].blueprint_reselecting = false
          end
       elseif stack.name == "red-wire" or stack.name == "green-wire" or stack.name == "copper-cable" then
          fa_circuits.drag_wire_and_read(pindex)

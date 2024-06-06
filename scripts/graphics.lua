@@ -377,8 +377,13 @@ function mod.sync_build_cursor_graphics(pindex)
          }
          mod.draw_large_cursor(left_top, right_bottom, pindex, { r = 0.25, b = 0.25, g = 1.0, a = 0.75 })
       elseif
-         (stack.is_blueprint or stack.is_deconstruction_item or stack.is_upgrade_item)
-         and (players[pindex].bp_selecting == true)
+         (
+            stack.is_blueprint
+            or stack.is_deconstruction_item
+            or stack.is_upgrade_item
+            or stack.prototype.type == "selection-tool"
+            or stack.prototype.type == "copy-paste-tool"
+         ) and (players[pindex].bp_selecting == true)
       then
          --Draw planner rectangles
          local top_left, bottom_right =

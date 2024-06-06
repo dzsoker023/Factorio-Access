@@ -1064,4 +1064,33 @@ function mod.blueprint_book_menu_down(pindex)
    mod.run_blueprint_book_menu(pindex, bpb_menu.index, bpb_menu.list_mode, false, false)
 end
 
+function mod.copy_selected_area_to_clipboard(pindex, point_1, point_2)
+   local top_left, bottom_right = fa_utils.get_top_left_and_bottom_right(point_1, point_2)
+   local p = game.get_player(pindex)
+   if p.cursor_stack == nil or p.cursor_stack.valid_for_read == false then return end
+   p.cursor_stack.set_stack({ name = "blueprint", count = 1 })
+   p.cursor_stack.create_blueprint({ surface = p.surface, force = p.force, area = { top_left, bottom_right } })
+   if
+      not (
+         p.cursor_stack
+         and p.cursor_stack.valid_for_read
+         and p.cursor_stack.is_blueprint
+         and p.cursor_stack.is_blueprint_setup()
+      )
+   then
+      p.clear_cursor()
+      p.cursor_stack.set_stack({ name = "copy-paste-tool", count = 1 })
+      printout("Copied nothing", pindex)
+      return
+   end
+   p.add_to_clipboard(p.cursor_stack)
+   p.clear_cursor()
+   p.activate_paste()
+
+   --Use this opportunity to update saved information about the blueprint's corners (used when drawing the footprint)
+   local width, height = mod.get_blueprint_width_and_height(pindex)
+   players[pindex].blueprint_width_in_hand = width + 1
+   players[pindex].blueprint_height_in_hand = height + 1
+end
+
 return mod

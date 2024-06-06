@@ -1652,6 +1652,7 @@ function mod.is_a_pipe_end(ent, pindex)
    end
 end
 
+--Runs through the inventory and deletes all empty planner tools.
 function mod.delete_empty_planners_in_inventory(pindex)
    local inv = game.get_player(pindex).get_main_inventory()
    local length = #inv
