@@ -1449,7 +1449,7 @@ data:extend({
    {
       type = "custom-input",
       name = "toggle-walk",
-      key_sequence = "CONTROL + W",
+      key_sequence = "ALT + W",
       consuming = "none",
    },
 
@@ -1611,7 +1611,7 @@ data:extend({
    {
       type = "custom-input",
       name = "open-structure-travel-menu",
-      key_sequence = "CONTROL + S",
+      key_sequence = "CONTROL + SHIFT + ALT + S",
       consuming = "none",
    },
 
