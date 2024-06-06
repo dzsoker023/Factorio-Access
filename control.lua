@@ -6995,18 +6995,50 @@ script.on_event("cursor-skip-east", function(event)
    cursor_skip(pindex, defines.direction.east)
 end)
 
---Runs the cursor skip iteration and reads out results
-function cursor_skip(pindex, direction, iteration_limit)
+script.on_event("cursor-roll-north", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
+   cursor_skip(pindex, defines.direction.north, 1000, true)
+end)
+
+script.on_event("cursor-roll-south", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
+   cursor_skip(pindex, defines.direction.south, 1000, true)
+end)
+
+script.on_event("cursor-roll-west", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
+   cursor_skip(pindex, defines.direction.west, 1000, true)
+end)
+
+script.on_event("cursor-roll-east", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
+   cursor_skip(pindex, defines.direction.east, 1000, true)
+end)
+
+--Runs the cursor skip actions and reads out results
+function cursor_skip(pindex, direction, iteration_limit, roll_instead)
    if players[pindex].cursor == false then return end
    local p = game.get_player(pindex)
    local limit = iteration_limit or 100
    local result = ""
+   local rolling = roll_instead or false
 
    --Run the iteration and play sound
-   local moved_count = cursor_skip_iteration(pindex, direction, limit)
+   local moved_count = 0
+   if rolling == true then
+      moved_count = cursor_roll_iteration(pindex, direction, limit)
+      result = "Rolled "
+   else
+      moved_count = cursor_skip_iteration(pindex, direction, limit)
+      result = "Skipped "
+   end
    if moved_count < 0 then
       --No change found within the limit
-      result = "Skipped " .. limit .. " tiles without a change, "
+      result = result .. limit .. " tiles without a change, "
       --Play Sound
       if players[pindex].remote_view then
          p.play_sound({ path = "inventory-wrap-around", position = players[pindex].cursor_pos, volume_modifier = 1 })
@@ -7115,35 +7147,6 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
 
    --Run checks and skip when needed
    while moved < limit do
-      --[[
-      --Check the moved count against the dimensions of the preview in hand
-      local stack = p.cursor_stack
-      if stack and stack.valid_for_read then
-         if stack.is_blueprint and stack.is_blueprint_setup() then
-            local width, height = fa_blueprints.get_blueprint_width_and_height(pindex)
-            if width and height and (width + height > 2) then
-               --For blueprints larger than 1x1, check if the height/width has been travelled.
-               if direction == dirs.east or direction == dirs.west then
-                  if moved >= width + 1 then return moved end
-               elseif direction == dirs.north or direction == dirs.south then
-                  if moved >= height + 1 then return moved end
-               end
-            end
-         elseif stack.prototype.place_result then
-            local width = stack.prototype.place_result.tile_width
-            local height = stack.prototype.place_result.tile_height
-            if width and height and (width + height > 2) then
-               --For entities larger than 1x1, check if the height/width has been travelled.
-               if direction == dirs.east or direction == dirs.west then
-                  if moved >= width then return moved end
-               elseif direction == dirs.north or direction == dirs.south then
-                  if moved >= height then return moved end
-               end
-            end
-         end
-      end
-      ]]
-
       --Check the current entity or tile against the starting one
       if current == nil or current.valid == false then
          if start == nil or start.valid == false then
@@ -7227,6 +7230,55 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
          i = i + 1
          current = get_selected_ent(pindex, i)
       end
+   end
+   --Reached limit
+   return -1
+end
+
+--Moves the cursor in the same direction multiple times until the reported entity changes. Change includes: new entity name or new direction for entites with the same name, or changing between nil and ent. Returns move count.
+function cursor_roll_iteration(pindex, direction, iteration_limit)
+   local p = game.get_player(pindex)
+   local limit = iteration_limit or 100
+   local moved = 1
+   local comment = ""
+
+   --If the hand is empty, just roll by the cursor size
+   --****todo
+
+   --Iterate first tile
+   players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, 1)
+
+   --Run checks and skip when needed
+   while moved < limit do
+      --Check the moved count against the dimensions of the preview in hand
+      local stack = p.cursor_stack
+      if stack and stack.valid_for_read then
+         if stack.is_blueprint and stack.is_blueprint_setup() then
+            local width, height = fa_blueprints.get_blueprint_width_and_height(pindex)
+            if width and height and (width + height > 2) then
+               --For blueprints larger than 1x1, check if the height/width has been travelled.
+               if direction == dirs.east or direction == dirs.west then
+                  if moved >= width + 1 then return moved end
+               elseif direction == dirs.north or direction == dirs.south then
+                  if moved >= height + 1 then return moved end
+               end
+            end
+         elseif stack.prototype.place_result then
+            local width = stack.prototype.place_result.tile_width
+            local height = stack.prototype.place_result.tile_height
+            if width and height and (width + height > 2) then
+               --For entities larger than 1x1, check if the height/width has been travelled.
+               if direction == dirs.east or direction == dirs.west then
+                  if moved >= width then return moved end
+               elseif direction == dirs.north or direction == dirs.south then
+                  if moved >= height then return moved end
+               end
+            end
+         end
+      end
+      --Skip case: Move 1 more tile
+      players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, 1)
+      moved = moved + 1
    end
    --Reached limit
    return -1
