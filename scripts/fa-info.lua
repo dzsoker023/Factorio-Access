@@ -178,9 +178,18 @@ function mod.ent_info(pindex, ent, description)
          return k1.count > k2.count
       end)
       if #fluids > 0 and fluids[1].count ~= nil then
-         result = result .. " with " .. fa_localising.get_fluid_from_name(fluids[1].name, pindex) --can check amount by opening the ent menu
+         result = result
+            .. " with "
+            .. fa_localising.get_fluid_from_name(fluids[1].name, pindex)
+            .. " times "
+            .. math.floor(fluids[1].count)
          if #fluids > 1 and fluids[2].count ~= nil then
-            result = result .. " and " .. fa_localising.get_fluid_from_name(fluids[2].name, pindex) --(this should not happen because it means different fluids mixed!)
+            --This normally should not happen because it means different fluids mixed!
+            result = result
+               .. " and "
+               .. fa_localising.get_fluid_from_name(fluids[2].name, pindex)
+               .. " times "
+               .. math.floor(fluids[2].count)
          end
          if #fluids > 2 then result = result .. ", and other fluids " end
       else

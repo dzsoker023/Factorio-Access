@@ -569,7 +569,7 @@ function center_player_character(pindex)
    if #ents > 0 and ents[1].valid then
       local ent = ents[1]
       --Ignore ents you can walk through, laterdo better collision checks**
-      can_port = can_port or all_ents_are_walkable(p.position)
+      can_port = can_port and all_ents_are_walkable(p.position)
    end
    if can_port then p.teleport(fa_utils.center_of_tile(p.position)) end
    players[pindex].position = p.position
