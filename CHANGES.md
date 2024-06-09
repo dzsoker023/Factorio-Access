@@ -1,3 +1,46 @@
+# Version 0.11.3 BETA
+Not yet released.
+
+## Summary
+- WIP
+
+## Features
+- You can now set the filters of infinity chests. Like for splitters, you do this by taking the set item in hand and pressing CONTROL + LEFT BRACKET. 
+
+## Changes
+- Improved accuracy of transport belt carried item assumptions such that the word "assumed" can be dropped.
+
+- Full transport belt lanes are no longer assumed to be stopped, since the mod cannot really tell whether a full belt is stopped or moving.
+
+- Tweaked later chapters of the tutorial thanks to community feedback.
+
+- Reading tutorial step summaries now also includes the current step and chapter count at the end.
+
+- Cursor skipping now ignores flying robots.
+
+- When an obstacle prevents building, it position is now revealed too along with its name.
+
+- When simple obstacles such as trees and rocks are preventing you from placing a blueprint, nearby ones are mined and now also the far away ones get marked for deconstruction, which allows placing ghosts over them.
+
+- A player inventory opened from inside a building can now be searched. Note that this has bug such that searching other menus after this requires re-opening the building's menu.
+
+- Flying text in multiplayer now has a shorter range so that you need to be standing within 10 tiles of someone else to hear their flying text.
+
+- Code cleanup. 
+  * Created some new Lua modules to help empty out "control.lua".
+  * Remove deprecated & redundant jump-to-scan feature since the scan list does this automatically now.
+
+## Bugfixes
+- Fixed a crash while selecting a new instance of the same scan list entry.
+
+- Fixed a server mode crash due to failed localizations.
+
+- Fixed cursor skip failing to distinguish connected ore patches.
+
+- Fixed missing sounds to indicate wrapping around the edge of a recipe list or a player inventory opened from within a building menu.
+
+- Fixed a Kruise Kontrol prediction crash related to rail ghosts.
+
 # Version 0.11.2 BETA
 Released on May 17th, 2024.
 
