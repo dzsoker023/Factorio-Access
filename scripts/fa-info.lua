@@ -153,7 +153,7 @@ function mod.ent_info(pindex, ent, description)
             end
          else
             local network_name = network.cells[1].owner.backer_name
-            result = result .. ", in network" .. network_name
+            result = result .. ", in network " .. network_name
          end
       end
    end
