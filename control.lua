@@ -8529,86 +8529,118 @@ function general_mod_menu_down(pindex, menu, upper_limit)
    end
 end
 
---Report total produced in last minute, last hour, last thousand hours for the selected item, either in hand or else selected from player inventory.
+--Report total produced and consumed in last minute, ten minutes,  hour,
+--thousand hours for the selected item.  The selected item comes from the item
+--in hand, the selected item in an inventory, or the crafting menu's current
+--selection, in that order.  Since the latter two are disjunct, this can also be
+--phrased as "in hand, otherwise examine menus".  Note that Factorio stores
+--fluids and items in different places, and that the complicated branching below
+--must also account for that.
+--
+-- Recipes may also produce items as well as fluids.  In vanilla, the example is
+-- barrels.  We can't do the right thing in all cases, but in vanilla it happens
+-- that the stats on barrels aren't super important and, additionally, there's a
+-- separate recipe one can check for that.  Since this only outputs one entry
+-- when selecting a recipe, we choose the first fluid if there is one, otherwise
+-- the first item.  Ultimately for mods, we're going to need a GUI for it: there
+-- are too many cases in the wild.
 function selected_item_production_stats_info(pindex)
    local p = game.get_player(pindex)
-   local result = ""
    local stats = p.force.item_production_statistics
-   local internal_name = nil
    local item_stack = nil
    local recipe = nil
 
-   --Select the cursor stack
+   -- Try the cursor stack
    item_stack = p.cursor_stack
-   if item_stack and item_stack.valid_for_read then internal_name = item_stack.prototype.name end
+   if item_stack and item_stack.valid_for_read then prototype = item_stack.prototype end
 
-   --Otherwise select the selected inventory stack
-   if internal_name == nil and players[pindex].menu == "inventory" then
+   --Otherwise try to get it from the inventory.
+   if prototype == nil and players[pindex].menu == "inventory" then
       item_stack = players[pindex].inventory.lua_inventory[players[pindex].inventory.index]
-      if item_stack and item_stack.valid_for_read then internal_name = item_stack.prototype.name end
+      if item_stack and item_stack.valid_for_read then prototype = item_stack.prototype end
    end
 
-   --Otherwise select the selected crafting recipe
+   --Try crafting menu.
    if internal_name == nil and players[pindex].menu == "crafting" then
       recipe = players[pindex].crafting.lua_recipes[players[pindex].crafting.category][players[pindex].crafting.index]
-      if recipe and recipe.valid and recipe.products and recipe.products[1] then
-         local prototype = nil
-         if recipe.products[1].type == "item" then
-            --Select product item #1
-            prototype = game.item_prototypes[recipe.products[1].name]
-            if prototype then
-               internal_name = prototype.name
-               result = fa_localising.get_item_from_name(recipe.products[1].name, pindex) .. " "
+      if recipe and recipe.valid and recipe.products then
+         local first_item, first_fluid
+         for i, prod in ipairs(recipe.products) do
+            if first_item and first_fluid then
+               break
+            elseif prod.type == "item" then
+               first_item = prod
+            elseif prod.type == "fluid" then
+               first_fluid = prod
             end
          end
-         if recipe.products[1].type == "fluid" then
+
+         local chosen = first_fluid or first_item
+
+         if not chosen then
+            -- do nothing
+         elseif chosen.type == "item" then
+            --Select product item #1
+            prototype = game.item_prototypes[chosen.name]
+         elseif chosen.type == "fluid" then
             --Select product fluid #1
             stats = p.force.fluid_production_statistics
-            prototype = game.fluid_prototypes[recipe.name]
-            if prototype then
-               internal_name = prototype.name
-               result = fa_localising.get_fluid_from_name(recipe.products[1].name, pindex) .. " "
-            end
-         end
-         if recipe.products[2] and recipe.products[2].type == "fluid" then
-            --Select product fluid #2 (instead)
-            stats = p.force.fluid_production_statistics
-            prototype = game.fluid_prototypes[recipe.products[2].name]
-            if prototype then
-               internal_name = prototype.name
-               result = fa_localising.get_fluid_from_name(recipe.products[2].name, pindex) .. " "
-            end
+            prototype = game.fluid_prototypes[chosen.name]
          end
       end
    end
 
-   if internal_name == nil then
-      result = "Error: No selected item or fluid"
-      return result
+   -- For now, we give up.
+   if not prototype then return "Error: No selected item or fluid" end
+
+   -- We need both inputs and outputs. That's the same code, with one boolean
+   -- changed.
+   local get_stats = function(is_input)
+      local name = prototype.name
+      local interval = defines.flow_precision_index
+      local last_minute =
+         stats.get_flow_count({ name = name, input = is_input, precision_index = interval.one_minute, count = true })
+      local last_10_minutes =
+         stats.get_flow_count({ name = name, input = is_input, precision_index = interval.ten_minutes, count = true })
+      local last_hour =
+         stats.get_flow_count({ name = name, input = is_input, precision_index = interval.one_hour, count = true })
+      local thousand_hours = stats.get_flow_count({
+         name = name,
+         input = is_input,
+         precision_index = interval.one_thousand_hours,
+         count = true,
+      })
+      last_minute = fa_utils.simplify_large_number(last_minute)
+      last_10_minutes = fa_utils.simplify_large_number(last_10_minutes)
+      last_hour = fa_utils.simplify_large_number(last_hour)
+      thousand_hours = fa_utils.simplify_large_number(thousand_hours)
+      return last_minute, last_10_minutes, last_hour, thousand_hours
    end
-   local interval = defines.flow_precision_index
-   local last_minute =
-      stats.get_flow_count({ name = internal_name, input = true, precision_index = interval.one_minute, count = true })
-   local last_10_minutes =
-      stats.get_flow_count({ name = internal_name, input = true, precision_index = interval.ten_minutes, count = true })
-   local last_hour =
-      stats.get_flow_count({ name = internal_name, input = true, precision_index = interval.one_hour, count = true })
-   local thousand_hours = stats.get_flow_count({
-      name = internal_name,
-      input = true,
-      precision_index = interval.one_thousand_hours,
-      count = true,
-   })
-   last_minute = fa_utils.simplify_large_number(last_minute)
-   last_10_minutes = fa_utils.simplify_large_number(last_10_minutes)
-   last_hour = fa_utils.simplify_large_number(last_hour)
-   thousand_hours = fa_utils.simplify_large_number(thousand_hours)
-   result = result .. " Produced "
-   result = result .. last_minute .. " in the last minute, "
-   result = result .. last_10_minutes .. " in the last 10 minutes, "
-   result = result .. last_hour .. " in the last hour, "
-   result = result .. thousand_hours .. " in the last one thousand hours, "
-   return result
+
+   local m1_in, m10_in, h1_in, h1000_in = get_stats(true)
+   local m1_out, m10_out, h1_out, h1000_out = get_stats(false)
+
+   return fa_utils.spacecat(
+      fa_localising.get(prototype, pindex) .. ".",
+      "Produced",
+      m1_in,
+      "last minute,",
+      m10_in,
+      "last ten min,",
+      h1_in,
+      "last hour,",
+      h1000_in,
+      "last 1k hours.",
+      "Consumed",
+      m1_out,
+      "last minute,",
+      m10_out,
+      "last ten min,",
+      h1_out,
+      "last hour,",
+      h1000_out,
+      "last 1k hours."
+   )
 end
 
 script.on_event("fa-pda-driving-assistant-info", function(event)

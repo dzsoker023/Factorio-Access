@@ -915,4 +915,20 @@ function mod.player_was_still_for_1_second(pindex)
    end
 end
 
+-- Given a list of items which may be stringified, concatenate them all together
+-- with a space between, efficiently.
+mod.spacecat = function(...)
+   local tab = table.pack(...)
+   local will_cat = {}
+
+   for i = 1, tab.n do
+      local ent = tab[i]
+      local stringified = tostring(ent)
+      if stringified == nil then stringified = "NIL!" end
+      table.insert(will_cat, stringified)
+   end
+
+   return table.concat(will_cat, " ")
+end
+
 return mod
