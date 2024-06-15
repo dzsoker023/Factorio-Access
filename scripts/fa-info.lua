@@ -182,14 +182,14 @@ function mod.ent_info(pindex, ent, description)
             .. " with "
             .. fa_localising.get_fluid_from_name(fluids[1].name, pindex)
             .. " times "
-            .. math.floor(fluids[1].count)
+            .. math.floor(0.5 + fluids[1].count)
          if #fluids > 1 and fluids[2].count ~= nil then
             --This normally should not happen because it means different fluids mixed!
             result = result
                .. " and "
                .. fa_localising.get_fluid_from_name(fluids[2].name, pindex)
                .. " times "
-               .. math.floor(fluids[2].count)
+               .. math.floor(0.5 + fluids[2].count)
          end
          if #fluids > 2 then result = result .. ", and other fluids " end
       else

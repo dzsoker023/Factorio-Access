@@ -7036,7 +7036,14 @@ function cursor_skip(pindex, direction, iteration_limit, roll_instead)
       moved_count = cursor_skip_iteration(pindex, direction, limit)
       result = "Skipped "
    end
-   if moved_count < 0 then
+   if rolling then
+      --Rolling always plays the regular moving sound
+      if players[pindex].remote_view then
+         p.play_sound({ path = "Close-Inventory-Sound", position = players[pindex].cursor_pos, volume_modifier = 1 })
+      else
+         p.play_sound({ path = "Close-Inventory-Sound", position = players[pindex].position, volume_modifier = 1 })
+      end
+   elseif moved_count < 0 then
       --No change found within the limit
       result = result .. limit .. " tiles without a change, "
       --Play Sound
@@ -7247,10 +7254,10 @@ function do_cursor_roll(pindex, direction)
          if width and height and (width + height > 2) then
             --For blueprints larger than 1x1, check if the height/width has been travelled.
             if direction == dirs.east or direction == dirs.west then
-               players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, width)
+               players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, width + 1)
                return width
             elseif direction == dirs.north or direction == dirs.south then
-               players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, height)
+               players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, height + 1)
                return height
             end
          end
