@@ -569,7 +569,7 @@ function center_player_character(pindex)
    if #ents > 0 and ents[1].valid then
       local ent = ents[1]
       --Ignore ents you can walk through, laterdo better collision checks**
-      can_port = can_port or all_ents_are_walkable(p.position)
+      can_port = can_port and all_ents_are_walkable(p.position)
    end
    if can_port then p.teleport(fa_utils.center_of_tile(p.position)) end
    players[pindex].position = p.position
@@ -4786,7 +4786,7 @@ script.on_event("click-hand", function(event)
       elseif
          stack.is_blueprint and (stack.is_blueprint_setup() == false or players[pindex].blueprint_reselecting == true)
       then
-         --Select blueprint
+         --Start or conclude blueprint selection
          local pex = players[pindex]
          if pex.bp_selecting ~= true then
             pex.bp_selecting = true
@@ -4808,7 +4808,7 @@ script.on_event("click-hand", function(event)
       elseif stack.is_blueprint_book then
          fa_blueprints.blueprint_book_menu_open(pindex, true)
       elseif stack.is_deconstruction_item then
-         --Mark deconstruction
+         --Start or conclude deconstruction selection
          local pex = players[pindex]
          if pex.bp_selecting ~= true then
             pex.bp_selecting = true
@@ -4840,7 +4840,7 @@ script.on_event("click-hand", function(event)
             printout(decon_counter .. " entities marked to be deconstructed.", pindex)
          end
       elseif stack.is_upgrade_item then
-         --Mark upgrade
+         --Start or conclude upgrade selection
          local pex = players[pindex]
          if pex.bp_selecting ~= true then
             pex.bp_selecting = true
@@ -4867,6 +4867,22 @@ script.on_event("click-hand", function(event)
                if ent.valid and ent.to_be_upgraded() then ent_counter = ent_counter + 1 end
             end
             printout(ent_counter .. " entities marked to be upgraded.", pindex)
+         end
+      elseif stack.name == "copy-paste-tool" then
+         --Start or conclude blueprint selection
+         local pex = players[pindex]
+         if pex.bp_selecting ~= true then
+            pex.bp_selecting = true
+            pex.bp_select_point_1 = pex.cursor_pos
+            printout(
+               "Started copy tool selection at " .. math.floor(pex.cursor_pos.x) .. "," .. math.floor(pex.cursor_pos.y),
+               pindex
+            )
+         else
+            pex.bp_selecting = false
+            pex.bp_select_point_2 = pex.cursor_pos
+            fa_blueprints.copy_selected_area_to_clipboard(pindex, pex.bp_select_point_1, pex.bp_select_point_2)
+            players[pindex].blueprint_reselecting = false
          end
       elseif stack.name == "red-wire" or stack.name == "green-wire" or stack.name == "copper-cable" then
          fa_circuits.drag_wire_and_read(pindex)
@@ -5675,225 +5691,8 @@ end)
 script.on_event("read-entity-status", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
-   if not ent then return end
-   local stack = game.get_player(pindex).cursor_stack
-   if players[pindex].in_menu then return end
-   --Print out the status of a machine, if it exists.
-   local result = { "" }
-   local ent_status_id = ent.status
-   local ent_status_text = ""
-   local status_lookup = fa_utils.into_lookup(defines.entity_status)
-   status_lookup[23] = "Full burnt result output" --weird exception
-   if ent.name == "cargo-wagon" then
-      --Instead of status, read contents
-      table.insert(result, fa_trains.cargo_wagon_top_contents_info(ent))
-   elseif ent.name == "fluid-wagon" then
-      --Instead of status, read contents
-      table.insert(result, fa_trains.fluid_contents_info(ent))
-   elseif ent_status_id ~= nil then
-      --Print status if it exists
-      ent_status_text = status_lookup[ent_status_id]
-      if ent_status_text == nil then
-         print("Weird no entity status lookup" .. ent.name .. "-" .. ent.type .. "-" .. ent.status)
-      end
-      table.insert(result, { "entity-status." .. ent_status_text:gsub("_", "-") })
-   else --There is no status
-      --When there is no status, for entities with fuel inventories, read that out instead. This is typical for vehicles.
-      if ent.get_fuel_inventory() ~= nil then
-         table.insert(result, fa_driving.fuel_inventory_info(ent))
-      elseif ent.type == "electric-pole" then
-         --For electric poles with no power flow, report the nearest electric pole with a power flow.
-         if fa_electrical.get_electricity_satisfaction(ent) > 0 then
-            table.insert(
-               result,
-               fa_electrical.get_electricity_satisfaction(ent)
-                  .. " percent network satisfaction, with "
-                  .. fa_electrical.get_electricity_flow_info(ent)
-            )
-         else
-            table.insert(result, "No power, " .. fa_electrical.report_nearest_supplied_electric_pole(ent))
-         end
-      else
-         table.insert(result, "No status.")
-      end
-   end
-   --For working or normal entities, give some extra info about specific entities.
-   if #result == 1 then table.insert(result, "result error") end
-
-   --For working or normal entities, give some extra info about specific entities in terms of speeds or bonuses.
-   local list = defines.entity_status
-   if
-      ent.status ~= nil
-      and ent.status ~= list.no_power
-      and ent.status ~= list.no_power
-      and ent.status ~= list.no_fuel
-   then
-      if ent.type == "inserter" then --items per minute based on rotation speed and the STATED hand capacity
-         local cap = ent.force.inserter_stack_size_bonus + 1
-         if ent.name == "stack-inserter" or ent.name == "stack-filter-inserter" then
-            cap = ent.force.stack_inserter_capacity_bonus + 1
-         end
-         local rate = string.format(" %.1f ", cap * ent.prototype.inserter_rotation_speed * 57.5)
-         table.insert(result, ", can move " .. rate .. " items per second, with a hand capacity of " .. cap)
-      end
-      if ent.prototype ~= nil and ent.prototype.belt_speed ~= nil and ent.prototype.belt_speed > 0 then --items per minute by simple reading
-         if ent.type == "splitter" then
-            table.insert(
-               result,
-               ", can process " .. math.floor(ent.prototype.belt_speed * 480 * 2) .. " items per second"
-            )
-         else
-            table.insert(result, ", can move " .. math.floor(ent.prototype.belt_speed * 480) .. " items per second")
-         end
-      end
-      if ent.type == "assembling-machine" or ent.type == "furnace" then --Crafting cycles per minute based on recipe time and the STATED craft speed ; laterdo maybe extend this to all "crafting machine" types?
-         local progress = ent.crafting_progress
-         local speed = ent.crafting_speed
-         local recipe_time = 0
-         local cycles = 0 -- crafting cycles completed per minute for this recipe
-         if ent.get_recipe() ~= nil and ent.get_recipe().valid then
-            recipe_time = ent.get_recipe().energy
-            cycles = 60 / recipe_time * speed
-         end
-         local cycles_string = string.format(" %.2f ", cycles)
-         if cycles == math.floor(cycles) then cycles_string = string.format(" %d ", cycles) end
-         local speed_string = string.format(" %.2f ", speed)
-         if speed == math.floor(speed) then speed_string = string.format(" %d ", cycles) end
-         if cycles < 10 then --more than 6 seconds to craft
-            table.insert(result, ", recipe progress " .. math.floor(progress * 100) .. " percent ")
-         end
-         if cycles > 0 then table.insert(result, ", can complete " .. cycles_string .. " recipe cycles per minute ") end
-         table.insert(
-            result,
-            ", with a crafting speed of "
-               .. speed_string
-               .. ", at "
-               .. math.floor(100 * (1 + ent.speed_bonus) + 0.5)
-               .. " percent "
-         )
-         if ent.productivity_bonus ~= 0 then
-            table.insert(
-               result,
-               ", with productivity bonus " .. math.floor(100 * (0 + ent.productivity_bonus) + 0.5) .. " percent "
-            )
-         end
-      elseif ent.type == "mining-drill" then
-         table.insert(
-            result,
-            ", producing "
-               .. string.format(" %.2f ", ent.prototype.mining_speed * 60 * (1 + ent.speed_bonus))
-               .. " items per minute "
-         )
-         if ent.speed_bonus ~= 0 then
-            table.insert(result, ", with speed " .. math.floor(100 * (1 + ent.speed_bonus) + 0.5) .. " percent ")
-         end
-         if ent.productivity_bonus ~= 0 then
-            table.insert(
-               result,
-               ", with productivity bonus " .. math.floor(100 * (0 + ent.productivity_bonus) + 0.5) .. " percent "
-            )
-         end
-      elseif ent.name == "lab" then
-         if ent.speed_bonus ~= 0 then
-            table.insert(
-               result,
-               ", with speed "
-                  .. math.floor(
-                     100
-                           * (1 + ent.force.laboratory_speed_modifier * (1 + (ent.speed_bonus - ent.force.laboratory_speed_modifier)))
-                        + 0.5
-                  )
-                  .. " percent "
-            ) --laterdo fix bug**
-            --game.get_player(pindex).print(result)
-         end
-         if ent.productivity_bonus ~= 0 then
-            table.insert(
-               result,
-               ", with productivity bonus "
-                  .. math.floor(100 * (0 + ent.productivity_bonus + ent.force.laboratory_productivity_bonus) + 0.5)
-                  .. " percent "
-            )
-         end
-      else --All other entities with the an applicable status
-         if ent.speed_bonus ~= 0 then
-            table.insert(result, ", with speed " .. math.floor(100 * (1 + ent.speed_bonus) + 0.5) .. " percent ")
-         end
-         if ent.productivity_bonus ~= 0 then
-            table.insert(
-               result,
-               ", with productivity bonus " .. math.floor(100 * (0 + ent.productivity_bonus) + 0.5) .. " percent "
-            )
-         end
-      end
-      --laterdo maybe pump speed?
-   end
-
-   --Entity power usage
-   local power_rate = (1 + ent.consumption_bonus)
-   local drain = ent.electric_drain
-   if drain ~= nil then
-      drain = drain * 60
-   else
-      drain = 0
-   end
-   local uses_energy = false
-   if
-      drain > 0
-      or (ent.prototype ~= nil and ent.prototype.max_energy_usage ~= nil and ent.prototype.max_energy_usage > 0)
-   then
-      uses_energy = true
-   end
-   if ent.status ~= nil and uses_energy and ent.status == list.working then
-      table.insert(
-         result,
-         ", consuming " .. fa_electrical.get_power_string(ent.prototype.max_energy_usage * 60 * power_rate + drain)
-      )
-   elseif ent.status ~= nil and uses_energy and ent.status == list.no_power or ent.status == list.low_power then
-      table.insert(
-         result,
-         ", consuming less than "
-            .. fa_electrical.get_power_string(ent.prototype.max_energy_usage * 60 * power_rate + drain)
-      )
-   elseif
-      ent.status ~= nil and uses_energy
-      or (ent.prototype ~= nil and ent.prototype.max_energy_usage ~= nil and ent.prototype.max_energy_usage > 0)
-   then
-      table.insert(result, ", idle and consuming " .. fa_electrical.get_power_string(drain))
-   end
-   if uses_energy and ent.prototype.burner_prototype ~= nil then table.insert(result, " as burner fuel ") end
-
-   --Entity Health
-   if ent.is_entity_with_health and ent.get_health_ratio() == 1 then
-      table.insert(result, { "access.full-health" })
-   elseif ent.is_entity_with_health then
-      table.insert(result, { "access.percent-health", math.floor(ent.get_health_ratio() * 100) })
-   end
-
-   -- Report nearest rail intersection position -- laterdo find better keybind
-   if ent.name == "straight-rail" then
-      local nearest, dist = fa_rails.find_nearest_intersection(ent, pindex)
-      if nearest == nil then
-         table.insert(result, ", no rail intersections within " .. dist .. " tiles ")
-      else
-         table.insert(
-            result,
-            ", nearest rail intersection at "
-               .. dist
-               .. " "
-               .. fa_utils.direction_lookup(fa_utils.get_direction_biased(nearest.position, ent.position))
-         )
-      end
-   end
-
-   --Spawners: Report evolution factor
-   if ent.type == "unit-spawner" then
-      table.insert(result, ", evolution factor " .. math.floor(1000 * ent.force.evolution_factor) / 1000)
-   end
-
+   local result = fa_info.read_selected_entity_status(pindex)
    printout(result, pindex)
-   --game.get_player(pindex).print(result)--**
 end)
 
 script.on_event("rotate-building", function(event)
@@ -6979,18 +6778,57 @@ script.on_event("cursor-skip-east", function(event)
    cursor_skip(pindex, defines.direction.east)
 end)
 
---Runs the cursor skip iteration and reads out results
-function cursor_skip(pindex, direction, iteration_limit)
+script.on_event("cursor-roll-north", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
+   cursor_skip(pindex, defines.direction.north, 1000, true)
+end)
+
+script.on_event("cursor-roll-south", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
+   cursor_skip(pindex, defines.direction.south, 1000, true)
+end)
+
+script.on_event("cursor-roll-west", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
+   cursor_skip(pindex, defines.direction.west, 1000, true)
+end)
+
+script.on_event("cursor-roll-east", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
+   cursor_skip(pindex, defines.direction.east, 1000, true)
+end)
+
+--Runs the cursor skip actions and reads out results
+function cursor_skip(pindex, direction, iteration_limit, use_preview_size)
    if players[pindex].cursor == false then return end
    local p = game.get_player(pindex)
    local limit = iteration_limit or 100
    local result = ""
+   local skip_by_preview_size = use_preview_size or false
 
    --Run the iteration and play sound
-   local moved_count = cursor_skip_iteration(pindex, direction, limit)
-   if moved_count < 0 then
+   local moved_count = 0
+   if skip_by_preview_size == true then
+      moved_count = apply_skip_by_preview_size(pindex, direction, limit)
+      result = "Rolled "
+   else
+      moved_count = cursor_skip_iteration(pindex, direction, limit)
+      result = "Skipped "
+   end
+   if skip_by_preview_size then
+      --Rolling always plays the regular moving sound
+      if players[pindex].remote_view then
+         p.play_sound({ path = "Close-Inventory-Sound", position = players[pindex].cursor_pos, volume_modifier = 1 })
+      else
+         p.play_sound({ path = "Close-Inventory-Sound", position = players[pindex].position, volume_modifier = 1 })
+      end
+   elseif moved_count < 0 then
       --No change found within the limit
-      result = "Skipped " .. limit .. " tiles without a change, "
+      result = result .. limit .. " tiles without a change, "
       --Play Sound
       if players[pindex].remote_view then
          p.play_sound({ path = "inventory-wrap-around", position = players[pindex].cursor_pos, volume_modifier = 1 })
@@ -7099,33 +6937,6 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
 
    --Run checks and skip when needed
    while moved < limit do
-      --Check the moved count against the dimensions of the preview in hand
-      local stack = p.cursor_stack
-      if stack and stack.valid_for_read then
-         if stack.is_blueprint and stack.is_blueprint_setup() then
-            local width, height = fa_blueprints.get_blueprint_width_and_height(pindex)
-            if width and height and (width + height > 2) then
-               --For blueprints larger than 1x1, check if the height/width has been travelled.
-               if direction == dirs.east or direction == dirs.west then
-                  if moved >= width + 1 then return moved end
-               elseif direction == dirs.north or direction == dirs.south then
-                  if moved >= height + 1 then return moved end
-               end
-            end
-         elseif stack.prototype.place_result then
-            local width = stack.prototype.place_result.tile_width
-            local height = stack.prototype.place_result.tile_height
-            if width and height and (width + height > 2) then
-               --For entities larger than 1x1, check if the height/width has been travelled.
-               if direction == dirs.east or direction == dirs.west then
-                  if moved >= width then return moved end
-               elseif direction == dirs.north or direction == dirs.south then
-                  if moved >= height then return moved end
-               end
-            end
-         end
-      end
-
       --Check the current entity or tile against the starting one
       if current == nil or current.valid == false then
          if start == nil or start.valid == false then
@@ -7212,6 +7023,47 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
    end
    --Reached limit
    return -1
+end
+
+--Shift the cursor by the size of the preview in hand or otherwise by the size of the cursor.
+function apply_skip_by_preview_size(pindex, direction)
+   local p = game.get_player(pindex)
+
+   --Check the moved count against the dimensions of the preview in hand
+   local stack = p.cursor_stack
+   if stack and stack.valid_for_read then
+      if stack.is_blueprint and stack.is_blueprint_setup() then
+         local width, height = fa_blueprints.get_blueprint_width_and_height(pindex)
+         if width and height and (width + height > 2) then
+            --For blueprints larger than 1x1, check if the height/width has been travelled.
+            if direction == dirs.east or direction == dirs.west then
+               players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, width + 1)
+               return width
+            elseif direction == dirs.north or direction == dirs.south then
+               players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, height + 1)
+               return height
+            end
+         end
+      elseif stack.prototype.place_result then
+         local width = stack.prototype.place_result.tile_width
+         local height = stack.prototype.place_result.tile_height
+         if width and height and (width + height > 2) then
+            --For entities larger than 1x1, check if the height/width has been travelled.
+            if direction == dirs.east or direction == dirs.west then
+               players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, width)
+               return width
+            elseif direction == dirs.north or direction == dirs.south then
+               players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, height)
+               return height
+            end
+         end
+      end
+   end
+
+   --Offset by cursor size if not something else
+   local shift = players[pindex].cursor_size
+   players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, shift)
+   return shift
 end
 
 script.on_event("nudge-up", function(event)
@@ -8529,86 +8381,118 @@ function general_mod_menu_down(pindex, menu, upper_limit)
    end
 end
 
---Report total produced in last minute, last hour, last thousand hours for the selected item, either in hand or else selected from player inventory.
+--Report total produced and consumed in last minute, ten minutes,  hour,
+--thousand hours for the selected item.  The selected item comes from the item
+--in hand, the selected item in an inventory, or the crafting menu's current
+--selection, in that order.  Since the latter two are disjunct, this can also be
+--phrased as "in hand, otherwise examine menus".  Note that Factorio stores
+--fluids and items in different places, and that the complicated branching below
+--must also account for that.
+--
+-- Recipes may also produce items as well as fluids.  In vanilla, the example is
+-- barrels.  We can't do the right thing in all cases, but in vanilla it happens
+-- that the stats on barrels aren't super important and, additionally, there's a
+-- separate recipe one can check for that.  Since this only outputs one entry
+-- when selecting a recipe, we choose the first fluid if there is one, otherwise
+-- the first item.  Ultimately for mods, we're going to need a GUI for it: there
+-- are too many cases in the wild.
 function selected_item_production_stats_info(pindex)
    local p = game.get_player(pindex)
-   local result = ""
    local stats = p.force.item_production_statistics
-   local internal_name = nil
    local item_stack = nil
    local recipe = nil
 
-   --Select the cursor stack
+   -- Try the cursor stack
    item_stack = p.cursor_stack
-   if item_stack and item_stack.valid_for_read then internal_name = item_stack.prototype.name end
+   if item_stack and item_stack.valid_for_read then prototype = item_stack.prototype end
 
-   --Otherwise select the selected inventory stack
-   if internal_name == nil and players[pindex].menu == "inventory" then
+   --Otherwise try to get it from the inventory.
+   if prototype == nil and players[pindex].menu == "inventory" then
       item_stack = players[pindex].inventory.lua_inventory[players[pindex].inventory.index]
-      if item_stack and item_stack.valid_for_read then internal_name = item_stack.prototype.name end
+      if item_stack and item_stack.valid_for_read then prototype = item_stack.prototype end
    end
 
-   --Otherwise select the selected crafting recipe
+   --Try crafting menu.
    if internal_name == nil and players[pindex].menu == "crafting" then
       recipe = players[pindex].crafting.lua_recipes[players[pindex].crafting.category][players[pindex].crafting.index]
-      if recipe and recipe.valid and recipe.products and recipe.products[1] then
-         local prototype = nil
-         if recipe.products[1].type == "item" then
-            --Select product item #1
-            prototype = game.item_prototypes[recipe.products[1].name]
-            if prototype then
-               internal_name = prototype.name
-               result = fa_localising.get_item_from_name(recipe.products[1].name, pindex) .. " "
+      if recipe and recipe.valid and recipe.products then
+         local first_item, first_fluid
+         for i, prod in ipairs(recipe.products) do
+            if first_item and first_fluid then
+               break
+            elseif prod.type == "item" then
+               first_item = prod
+            elseif prod.type == "fluid" then
+               first_fluid = prod
             end
          end
-         if recipe.products[1].type == "fluid" then
+
+         local chosen = first_fluid or first_item
+
+         if not chosen then
+            -- do nothing
+         elseif chosen.type == "item" then
+            --Select product item #1
+            prototype = game.item_prototypes[chosen.name]
+         elseif chosen.type == "fluid" then
             --Select product fluid #1
             stats = p.force.fluid_production_statistics
-            prototype = game.fluid_prototypes[recipe.name]
-            if prototype then
-               internal_name = prototype.name
-               result = fa_localising.get_fluid_from_name(recipe.products[1].name, pindex) .. " "
-            end
-         end
-         if recipe.products[2] and recipe.products[2].type == "fluid" then
-            --Select product fluid #2 (instead)
-            stats = p.force.fluid_production_statistics
-            prototype = game.fluid_prototypes[recipe.products[2].name]
-            if prototype then
-               internal_name = prototype.name
-               result = fa_localising.get_fluid_from_name(recipe.products[2].name, pindex) .. " "
-            end
+            prototype = game.fluid_prototypes[chosen.name]
          end
       end
    end
 
-   if internal_name == nil then
-      result = "Error: No selected item or fluid"
-      return result
+   -- For now, we give up.
+   if not prototype then return "Error: No selected item or fluid" end
+
+   -- We need both inputs and outputs. That's the same code, with one boolean
+   -- changed.
+   local get_stats = function(is_input)
+      local name = prototype.name
+      local interval = defines.flow_precision_index
+      local last_minute =
+         stats.get_flow_count({ name = name, input = is_input, precision_index = interval.one_minute, count = true })
+      local last_10_minutes =
+         stats.get_flow_count({ name = name, input = is_input, precision_index = interval.ten_minutes, count = true })
+      local last_hour =
+         stats.get_flow_count({ name = name, input = is_input, precision_index = interval.one_hour, count = true })
+      local thousand_hours = stats.get_flow_count({
+         name = name,
+         input = is_input,
+         precision_index = interval.one_thousand_hours,
+         count = true,
+      })
+      last_minute = fa_utils.simplify_large_number(last_minute)
+      last_10_minutes = fa_utils.simplify_large_number(last_10_minutes)
+      last_hour = fa_utils.simplify_large_number(last_hour)
+      thousand_hours = fa_utils.simplify_large_number(thousand_hours)
+      return last_minute, last_10_minutes, last_hour, thousand_hours
    end
-   local interval = defines.flow_precision_index
-   local last_minute =
-      stats.get_flow_count({ name = internal_name, input = true, precision_index = interval.one_minute, count = true })
-   local last_10_minutes =
-      stats.get_flow_count({ name = internal_name, input = true, precision_index = interval.ten_minutes, count = true })
-   local last_hour =
-      stats.get_flow_count({ name = internal_name, input = true, precision_index = interval.one_hour, count = true })
-   local thousand_hours = stats.get_flow_count({
-      name = internal_name,
-      input = true,
-      precision_index = interval.one_thousand_hours,
-      count = true,
-   })
-   last_minute = fa_utils.simplify_large_number(last_minute)
-   last_10_minutes = fa_utils.simplify_large_number(last_10_minutes)
-   last_hour = fa_utils.simplify_large_number(last_hour)
-   thousand_hours = fa_utils.simplify_large_number(thousand_hours)
-   result = result .. " Produced "
-   result = result .. last_minute .. " in the last minute, "
-   result = result .. last_10_minutes .. " in the last 10 minutes, "
-   result = result .. last_hour .. " in the last hour, "
-   result = result .. thousand_hours .. " in the last one thousand hours, "
-   return result
+
+   local m1_in, m10_in, h1_in, h1000_in = get_stats(true)
+   local m1_out, m10_out, h1_out, h1000_out = get_stats(false)
+
+   return fa_utils.spacecat(
+      fa_localising.get(prototype, pindex) .. ".",
+      "Produced",
+      m1_in,
+      "last minute,",
+      m10_in,
+      "last ten min,",
+      h1_in,
+      "last hour,",
+      h1000_in,
+      "last 1k hours.",
+      "Consumed",
+      m1_out,
+      "last minute,",
+      m10_out,
+      "last ten min,",
+      h1_out,
+      "last hour,",
+      h1000_out,
+      "last 1k hours."
+   )
 end
 
 script.on_event("fa-pda-driving-assistant-info", function(event)

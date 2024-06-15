@@ -543,6 +543,31 @@ data:extend({
 
    {
       type = "custom-input",
+      name = "cursor-roll-north",
+      key_sequence = "CONTROL + W",
+      consuming = "none",
+   },
+   {
+      type = "custom-input",
+      name = "cursor-roll-south",
+      key_sequence = "CONTROL + S",
+      consuming = "none",
+   },
+   {
+      type = "custom-input",
+      name = "cursor-roll-west",
+      key_sequence = "CONTROL + A",
+      consuming = "none",
+   },
+   {
+      type = "custom-input",
+      name = "cursor-roll-east",
+      key_sequence = "CONTROL + D",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
       name = "nudge-up",
       key_sequence = "CONTROL + SHIFT + W",
       consuming = "none",
@@ -1449,7 +1474,7 @@ data:extend({
    {
       type = "custom-input",
       name = "toggle-walk",
-      key_sequence = "CONTROL + W",
+      key_sequence = "ALT + W",
       consuming = "none",
    },
 
@@ -1611,7 +1636,7 @@ data:extend({
    {
       type = "custom-input",
       name = "open-structure-travel-menu",
-      key_sequence = "CONTROL + S",
+      key_sequence = "CONTROL + SHIFT + ALT + S",
       consuming = "none",
    },
 

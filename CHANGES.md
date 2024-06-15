@@ -1,3 +1,68 @@
+# Version 0.11.3 BETA
+Not yet released.
+
+## Summary
+- WIP
+
+## Features
+- Added support for the copy-paste tool, which is activated with `CONTROL + C`.
+  * If you select an area with the copy-paste tool, you get a nameless temporary blueprint that is deleted when you let go of it, unless you add a name or description to it.
+  * Selecting nothing will keep the blank copy tool in hand.
+  * If you press `CONTROL + V` you can get back the last temporary blueprint into hand.
+  * This system uses the player clipboard so if you `hold CONTROL and scroll the mouse wheel` it will load older clipboard blueprints but detailed info about this is not supported.
+
+- You can now set the filters of infinity chests. Like for splitters, you do this by taking the set item in hand and pressing CONTROL + LEFT BRACKET. 
+
+- Added a new type of curser jumping called "move by preview size".
+  * When you have a blueprint or building preview in hand, press `SHIFT + W/A/S/D` to jump by the respective preview size.
+  * If the hand is empty or does not have a preview, then the jump is equal to the cursor size.
+
+## Changes
+- Changed two keybinds;
+  * Toggling the walking mode is now done with `ALT + W` instead of `CONTROL + W`.
+
+- Improved accuracy of transport belt carried item assumptions such that the word "assumed" can be dropped.
+
+- Full transport belt lanes are no longer assumed to be stopped, since the mod cannot really tell whether a full belt is stopped or moving.
+
+- Tweaked later chapters of the tutorial thanks to community feedback.
+
+- Reading tutorial step summaries now also includes the current step and chapter count at the end.
+
+- Cursor skipping now ignores flying robots.
+
+- When an obstacle prevents building, it position is now revealed too along with its name.
+
+- When simple obstacles such as trees and rocks are preventing you from placing a blueprint, nearby ones are mined and now also the far away ones get marked for deconstruction, which allows placing ghosts over them.
+
+- A player inventory opened from inside a building can now be searched. Note that this has bug such that searching other menus after this requires re-opening the building's menu.
+
+- Pipes and storage tanks now report their fluid counts immediately when selected.
+
+- Flying text in multiplayer now has a shorter range so that you need to be standing within 10 tiles of someone else to hear their flying text.
+
+- When build lock is enabled, building over the player no longer teleports the player out of the way, and plays an extra alert beep instead.
+
+- Any case of building over a player who is walking no longer teleports them out of the way.
+
+- Code cleanup. 
+  * Created some new Lua modules to help empty out "control.lua".
+  * Remove deprecated & redundant jump-to-scan feature since the scan list does this automatically now.
+  * Improved comments about many of the shape drawing functions.
+
+## Bugfixes
+- Fixed a crash while selecting a new instance of the same scan list entry.
+
+- Fixed a server mode crash due to failed localizations.
+
+- Fixed a crash when reading technology descriptions when there are too many rewards for localization to handle.
+
+- Fixed cursor skip failing to distinguish connected ore patches.
+
+- Fixed missing sounds to indicate wrapping around the edge of a recipe list or a player inventory opened from within a building menu.
+
+- Fixed a Kruise Kontrol prediction crash related to rail ghosts.
+
 # Version 0.11.2 BETA
 Released on May 17th, 2024.
 
