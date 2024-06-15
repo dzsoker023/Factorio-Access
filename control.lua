@@ -7020,23 +7020,23 @@ script.on_event("cursor-roll-east", function(event)
 end)
 
 --Runs the cursor skip actions and reads out results
-function cursor_skip(pindex, direction, iteration_limit, roll_instead)
+function cursor_skip(pindex, direction, iteration_limit, use_preview_size)
    if players[pindex].cursor == false then return end
    local p = game.get_player(pindex)
    local limit = iteration_limit or 100
    local result = ""
-   local rolling = roll_instead or false
+   local skip_by_preview_size = use_preview_size or false
 
    --Run the iteration and play sound
    local moved_count = 0
-   if rolling == true then
-      moved_count = do_cursor_roll(pindex, direction, limit)
+   if skip_by_preview_size == true then
+      moved_count = apply_skip_by_preview_size(pindex, direction, limit)
       result = "Rolled "
    else
       moved_count = cursor_skip_iteration(pindex, direction, limit)
       result = "Skipped "
    end
-   if rolling then
+   if skip_by_preview_size then
       --Rolling always plays the regular moving sound
       if players[pindex].remote_view then
          p.play_sound({ path = "Close-Inventory-Sound", position = players[pindex].cursor_pos, volume_modifier = 1 })
@@ -7243,7 +7243,7 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
 end
 
 --Shift the cursor by the size of the preview in hand or otherwise by the size of the cursor.
-function do_cursor_roll(pindex, direction)
+function apply_skip_by_preview_size(pindex, direction)
    local p = game.get_player(pindex)
 
    --Check the moved count against the dimensions of the preview in hand
