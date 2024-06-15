@@ -18,33 +18,33 @@ The game can be purchased from Factorio.com or from Steam. We recommend installi
 
 ## Windows Zip Version / Standalone Version (recommended for easy install and troubleshooting)
 1. Go to https://www.factorio.com/download
-2. If needed, login using your Factorio account or Steam account.
-3. Among the install options, find the stable releases at the top half of the page. 
-4. Go to the section with "Other download options" and select "Download full game for Windows (ZIP package)". This will download a zip file that is about 1.5 gigabytes in size. It might also be called the manual install. Note that this is different from the regular Windows version, which downloads an exe file.
-5. Create a folder where you want to keep the game. Extract the zip file into this folder.
-6. If you want, create a desktop shortcut for your Factorio folder.
-7. All done! You need to install the mod next.
+1. If needed, login using your Factorio account or Steam account.
+1. Among the install options, find the stable releases at the top half of the page. 
+1. Go to the section with "Other download options" and select "Download full game for Windows (ZIP package)". This will download a zip file that is about 1.5 gigabytes in size. It might also be called the manual install. Note that this is different from the regular Windows version, which downloads an exe file.
+1. Create a folder where you want to keep the game. Extract the zip file into this folder.
+1. If you want, create a desktop shortcut for your Factorio folder.
+1. All done! You need to install the mod next.
 
 ## Steam Version (recommended for easy multiplayer setup)
 1. Install Factorio using Steam settings, like any other game on Steam.
-2. That is it, pretty much. You next need to install the mod next and then configure Steam settings.
+1. That is it, pretty much. You next need to install the mod next and then configure Steam settings.
 
 ## Regular Windows Version (not recommended)
 1. Go to https://www.factorio.com/download
-2. If needed, login using your Factorio account or Steam account.
-3. Among the install options, find the stable releases at the top half of the page.
-4. Select "Download full game for Windows". This will download an exe file which is the setup application.
-5. Run the exe file and follow the instructions.
-6. All done! You need to install the mod next.
+1. If needed, login using your Factorio account or Steam account.
+1. Among the install options, find the stable releases at the top half of the page.
+1. Select "Download full game for Windows". This will download an exe file which is the setup application.
+1. Run the exe file and follow the instructions.
+1. All done! You need to install the mod next.
 
 ## Linux Version
 1. Go to https://www.factorio.com/download
-2. If needed, login using your Factorio account or Steam account.
-3. Among the install options, find the stable releases at the top half of the page.
-4. Go to the section with "Other download options" and select "Download full game for Linux". This will download a tar.xz file.
-5. Move the file to the directory where you want to install the game.
-6. Extract the game from the file using a program such as 7zip.
-7. All done! You need to install the mod next.
+1. If needed, login using your Factorio account or Steam account.
+1. Among the install options, find the stable releases at the top half of the page.
+1. Go to the section with "Other download options" and select "Download full game for Linux". This will download a tar.xz file.
+1. Move the file to the directory where you want to install the game.
+1. Extract the game from the file using a program such as 7zip.
+1. All done! You need to install the mod next.
 
 # Installing Factorio Access (Windows)
 
@@ -52,40 +52,40 @@ To install a mod release, follow the instructions below:
 
 ## Mod release install for Factorio Windows Zip version
 1. Download the latest release zip file such as "Factorio_Access_Beta_0_X_X.zip" from the releases page here: https://github.com/Factorio-Access/FactorioAccess/releases. There are other files that you can download there but you need only the one mentioned. You may get a security warning about downloading an unlicensed application, which is true for the mod launcher. For safety reasons, please do not download the mod launcher from anywhere else.
-2. Put the zip file in an empty folder and extract its contents. You should find a folder named "Factorio_Access_Beta_content". You need to open it and copy everything inside of it. These contents should include the mod's own launcher called "launcher.exe" as well as a "mods" folder and a "Factorio.jkm" file.
-3. Navigate to your Factorio standalone folder, with a name such as "Factorio_1.1.101". This is your Factorio game data folder.
-4. Make sure you copied all of the contents in Step 2 and paste them into the Factorio game data folder you found in Step 3.
-5. The mod is now installed, but you need to configure it. Note that the game is both configured and played using "launcher.exe", which is necessary for the mod to read out the game. If you want, you can create a shortcut for this launcher.
-6. If you are a jaws user for screen reading, you may want to copy Factorio.jkm file into your JAWS settings folder, which is found in the AppData folder. An example file path is `C:\Users\Your_User_Name_Here\AppData\Roaming\Freedom Scientific\JAWS\2022\Settings\enu\`
-7. You can run the mod launcher directly or in administrator mode if needed. Running it the first time will generate a Windows security warning because you are running an unlicensed application.
-8. Follow the mod launcher instructions while the game is configured. This may involve launching the game itself temporarily.
-9. The game is ready to play from the launcher when the main menu appears.
+1. Put the zip file in an empty folder and extract its contents. You should find a folder named "Factorio_Access_Beta_content". You need to open it and copy everything inside of it. These contents should include the mod's own launcher called "launcher.exe" as well as a "mods" folder and a "Factorio.jkm" file.
+1. Navigate to your Factorio standalone folder, with a name such as "Factorio_1.1.101". This is your Factorio game data folder.
+1. Make sure you copied all of the contents in Step 2 and paste them into the Factorio game data folder you found in Step 3.
+1. The mod is now installed, but you need to configure it. Note that the game is both configured and played using "launcher.exe", which is necessary for the mod to read out the game. If you want, you can create a shortcut for this launcher.
+1. If you are a jaws user for screen reading, you may want to copy Factorio.jkm file into your JAWS settings folder, which is found in the AppData folder. An example file path is `C:\Users\Your_User_Name_Here\AppData\Roaming\Freedom Scientific\JAWS\2022\Settings\enu\`
+1. You can run the mod launcher directly or in administrator mode if needed. Running it the first time will generate a Windows security warning because you are running an unlicensed application.
+1. Follow the mod launcher instructions while the game is configured. This may involve launching the game itself temporarily.
+1. The game is ready to play from the launcher when the main menu appears.
 
 
 ## Mod release install for Factorio Steam version or regular Windows version
 1. Download the latest release zip file such as "Factorio_Access_Beta_0_X_X.zip" from the releases page here: https://github.com/Factorio-Access/FactorioAccess/releases. There are other files that you can download there but you need only the one mentioned. You may get a security warning about downloading an unlicensed application, which is true for the mod launcher. For safety reasons, please do not download the mod launcher from anywhere else.
-2. Put the zip file in an empty folder and extract its contents. You should find a folder named "Factorio_Access_Beta_content". You need to open it and copy everything inside of it. These contents should include the mod's own launcher called "launcher.exe" as well as a "mods" folder and a "Factorio.jkm" file.
-3. Run the game at least once if you have not, and then exit it. This is necessary in order to create the folder for the next step.
-4. Navigate to your Factorio game data folder. This is inside a special Windows folder called "AppData". There are two ways to access the AppData folder, you either enter its short name using % signs, or you use the full path name. If you use the short name with the signs, the path is called `%AppData%/Factorio`. If you use the full path, the path depends on your windows user name and it is something like `C/Users/Your_User_Name_Here/AppData/Roaming/Factorio`.
-5. Make sure you copied all of the contents in Step 2 and paste them into the Factorio game data folder you found in Step 3.
-6. The mod is now installed, but you still need to configure Steam and also the mod itself. Note that the game is both configured and played using "launcher.exe", which is necessary for the mod to read out the game. If you want, you can create a shortcut for this launcher.
-7. If you are a jaws screen reader user, you may want to copy the Factorio.jkm file into your JAWS settings folder, which is found in the AppData folder. An example file path is `C:\Users\Your_User_Name_Here\AppData\Roaming\Freedom Scientific\JAWS\2022\Settings\enu\`
-8. You can run the mod launcher directly or in administrator mode if needed. Running it the first time will generate a Windows security warning because you are running an unlicensed application.
-9. The first time you run the launcher, it will ask you to configure Steam launch settings. It will ask you to copy a setup text string. This string should include the path location of the mod launcher application in quotation marks, and also the string "%command%". For example, the setup text string in total could be ` "C:\Users\Your_User_Name_Here\AppData\Roaming\Factorio\launcher.exe" %command% `.
-10. Open your Steam Library and find the Factorio page.
-11. Find the Properties menu for Factorio. On the Steam Library, the Properties menu for a game can be opened by finding the game's name in the library list, and then right clicking it to open the context menu, and then selecting the last option called "Properties...". Alternatively, you can open the game's page in the Steam Library and open the "Manage" menu, which is denoted by a gear symbol that you can left click. From the "Manage" menu you can select the last option called "Properties..."
-12. When the Properties menu is open, you should be immediately at the "General" section. At the bottom of this section is the part called "Launch Options" with a text field that you can type in. Here, you need paste the mod launcher setup text string that you copied earlier.
-13. Try launching the game from Steam. This should now run the mod launcher instead, and say "Hello Factorio". If not setup correctly, the game might launch directly and you will hear music.
-14. Follow the mod launcher instructions while the game is configured. This may involve launching the game itself temporarily.
-15. The game is ready to play from the launcher when the main menu appears.
+1. Put the zip file in an empty folder and extract its contents. You should find a folder named "Factorio_Access_Beta_content". You need to open it and copy everything inside of it. These contents should include the mod's own launcher called "launcher.exe" as well as a "mods" folder and a "Factorio.jkm" file.
+1. Run the game at least once if you have not, and then exit it. This is necessary in order to create the folder for the next step.
+1. Navigate to your Factorio game data folder. This is inside a special Windows folder called "AppData". There are two ways to access the AppData folder, you either enter its short name using % signs, or you use the full path name. If you use the short name with the signs, the path is called `%AppData%/Factorio`. If you use the full path, the path depends on your windows user name and it is something like `C/Users/Your_User_Name_Here/AppData/Roaming/Factorio`.
+1. Make sure you copied all of the contents in Step 2 and paste them into the Factorio game data folder you found in Step 3.
+1. The mod is now installed, but you still need to configure Steam and also the mod itself. Note that the game is both configured and played using "launcher.exe", which is necessary for the mod to read out the game. If you want, you can create a shortcut for this launcher.
+1. If you are a jaws screen reader user, you may want to copy the Factorio.jkm file into your JAWS settings folder, which is found in the AppData folder. An example file path is `C:\Users\Your_User_Name_Here\AppData\Roaming\Freedom Scientific\JAWS\2022\Settings\enu\`
+1. You can run the mod launcher directly or in administrator mode if needed. Running it the first time will generate a Windows security warning because you are running an unlicensed application.
+1. The first time you run the launcher, it will ask you to configure Steam launch settings. It will ask you to copy a setup text string. This string should include the path location of the mod launcher application in quotation marks, and also the string "%command%". For example, the setup text string in total could be ` "C:\Users\Your_User_Name_Here\AppData\Roaming\Factorio\launcher.exe" %command% `.
+1. Open your Steam Library and find the Factorio page.
+1. Find the Properties menu for Factorio. On the Steam Library, the Properties menu for a game can be opened by finding the game's name in the library list, and then right clicking it to open the context menu, and then selecting the last option called "Properties...". Alternatively, you can open the game's page in the Steam Library and open the "Manage" menu, which is denoted by a gear symbol that you can left click. From the "Manage" menu you can select the last option called "Properties..."
+1. When the Properties menu is open, you should be immediately at the "General" section. At the bottom of this section is the part called "Launch Options" with a text field that you can type in. Here, you need paste the mod launcher setup text string that you copied earlier.
+1. Try launching the game from Steam. This should now run the mod launcher instead, and say "Hello Factorio". If not setup correctly, the game might launch directly and you will hear music.
+1. Follow the mod launcher instructions while the game is configured. This may involve launching the game itself temporarily.
+1. The game is ready to play from the launcher when the main menu appears.
 
 # Installing Factorio Access (Linux)
 1. Install speechd and python 3 through your distribution. Note that Instructions vary by distribution.
-2. Clone the launcher mod from GitHub.
-3. CD into the folder.
-4. If you want to use a virtual python environment, or an executable, run build_main.py. If not, run pip to install requirements.txt by:  "pip install -r requirements.txt"
-5. Run the executable or main.py
-6. If it complains it can't find your Factorio installation then add the path to the Factorio executable as an argument when launching.
+1. Clone the launcher mod from GitHub.
+1. CD into the folder.
+1. If you want to use a virtual python environment, or an executable, run build_main.py. If not, run pip to install requirements.txt by:  "pip install -r requirements.txt"
+1. Run the executable or main.py
+1. If it complains it can't find your Factorio installation then add the path to the Factorio executable as an argument when launching.
 
 # Factorio Access Controls
 
