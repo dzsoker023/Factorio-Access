@@ -6945,12 +6945,17 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
    refresh_player_tile(pindex)
    current = get_selected_ent(pindex)
 
-   --Ignore flying robots (first tile)
+   --Ignore flying robots and remnants (first tile)
    local i = 1
    while
       current ~= nil
       and current.valid
-      and (current.type == "logistic-robot" or current.type == "construction-robot" or current.type == "combat-robot")
+      and (
+         current.type == "logistic-robot"
+         or current.type == "construction-robot"
+         or current.type == "combat-robot"
+         or current.type == "corpse"
+      )
    do
       i = i + 1
       current = get_selected_ent(pindex, i)
@@ -7027,7 +7032,7 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
       refresh_player_tile(pindex)
       current = get_selected_ent(pindex)
       moved = moved + 1
-      --Ignore flying robots
+      --Ignore flying robots and remnants
       local i = 1
       while
          current ~= nil
@@ -7036,6 +7041,7 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
             current.type == "logistic-robot"
             or current.type == "construction-robot"
             or current.type == "combat-robot"
+            or current.type == "corpse"
          )
       do
          i = i + 1
