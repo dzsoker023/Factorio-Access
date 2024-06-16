@@ -6778,25 +6778,25 @@ script.on_event("cursor-skip-east", function(event)
    cursor_skip(pindex, defines.direction.east)
 end)
 
-script.on_event("cursor-roll-north", function(event)
+script.on_event("cursor-skip-by-preview-north", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
    cursor_skip(pindex, defines.direction.north, 1000, true)
 end)
 
-script.on_event("cursor-roll-south", function(event)
+script.on_event("cursor-skip-by-preview-south", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
    cursor_skip(pindex, defines.direction.south, 1000, true)
 end)
 
-script.on_event("cursor-roll-west", function(event)
+script.on_event("cursor-skip-by-preview-west", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
    cursor_skip(pindex, defines.direction.west, 1000, true)
 end)
 
-script.on_event("cursor-roll-east", function(event)
+script.on_event("cursor-skip-by-preview-east", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
    cursor_skip(pindex, defines.direction.east, 1000, true)
@@ -6813,8 +6813,8 @@ function cursor_skip(pindex, direction, iteration_limit, use_preview_size)
    --Run the iteration and play sound
    local moved_count = 0
    if skip_by_preview_size == true then
-      moved_count = apply_skip_by_preview_size(pindex, direction, limit)
-      result = "Rolled "
+      moved_count = apply_skip_by_preview_size(pindex, direction)
+      result = "Skipped by preview size "
    else
       moved_count = cursor_skip_iteration(pindex, direction, limit)
       result = "Skipped "
@@ -6844,7 +6844,7 @@ function cursor_skip(pindex, direction, iteration_limit, use_preview_size)
       end
    elseif moved_count > 1 then
       --Change found, with more than 1 tile moved
-      result = "Skipped " .. moved_count .. " tiles, "
+      result = result .. moved_count .. " tiles, "
       --Play Sound
       if players[pindex].remote_view then
          p.play_sound({ path = "inventory-wrap-around", position = players[pindex].cursor_pos, volume_modifier = 1 })
