@@ -29,7 +29,7 @@ function mod.teleport_to_closest(pindex, pos, muted, ignore_enemies)
    if first_player.vehicle ~= nil and first_player.vehicle.valid then
       printout("Cannot teleport while in a vehicle.", pindex)
       return false
-   elseif util.distance(game.get_player(pindex).position, pos) <= 1.5 then
+   elseif util.distance(game.get_player(pindex).position, pos) < 0.6 then
       printout("Already at target", pindex)
       return false
    elseif
