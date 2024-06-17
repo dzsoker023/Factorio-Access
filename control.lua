@@ -115,8 +115,13 @@ function call_to_check_ghost_rails(pindex)
    fa_rails.check_ghost_rail_planning_results(pindex)
 end
 
---Returns the entity at this player's cursor selected tile
-function get_selected_ent(pindex, ent_no)
+-- Deprecated. Do not use.
+--
+-- This function used to be called get_selected_ent and implied that it would
+-- simply read entities off a tile.  What it actually did was try to shuffle
+-- entities round to remove players from a cache permanently, with emphasis on
+-- try.  The code below has a large number of failure conditions.
+function get_selected_ent_deprecated(pindex, ent_no)
    local tile = players[pindex].tile
    local ent
    local ent_no = ent_no or 1
@@ -131,6 +136,34 @@ function get_selected_ent(pindex, ent_no)
       if ent_no <= 0 then return ent end
       table.remove(tile.ents, tile.index)
    end
+end
+
+--- Produce an iterator over all valid entities for a player's selected tile,
+--  filtering out the player themselves.
+local function iterate_selected_ents(pindex)
+   local tile = players[pindex].tile
+   local ents = tile.ents
+   local i = 1
+
+   local next_fn
+   next_fn = function()
+      -- Ignore all entities that are a character belonging to this player. It
+      -- should only be one, but we don't mutate so we don't know.
+      while i <= #ents do
+         local ent = ents[i]
+         i = i + 1
+
+         if not ent.valid then goto continue end
+
+         if ent.type ~= "character" or ent.player ~= pindex then return ent end
+
+         ::continue::
+      end
+
+      return nil
+   end
+
+   return next_fn, nil, nil
 end
 
 --???
@@ -429,7 +462,7 @@ end
 --If there is an entity to select, moves the mouse pointer to it, else moves to the cursor tile.
 function target(pindex)
    if players[pindex].vanilla_mode then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if ent then
       fa_mouse.move_mouse_pointer(ent.position, pindex)
    else
@@ -442,7 +475,7 @@ function tile_cycle(pindex)
    local tile = players[pindex].tile
    tile.index = tile.index + 1
    if tile.index > #tile.ents then tile.index = 0 end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if ent then
       printout(fa_info.ent_info(pindex, ent, ""), pindex)
    else
@@ -517,7 +550,7 @@ function toggle_cursor_mode(pindex)
    end
    if players[pindex].cursor_size < 2 then
       --Update cursor highlight
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       if ent and ent.valid then
          fa_graphics.draw_cursor_highlight(pindex, ent, nil)
       else
@@ -600,7 +633,7 @@ end
 
 function return_cursor_to_character(pindex)
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if not players[pindex].in_menu then
       if players[pindex].cursor then jump_to_player(pindex) end
    end
@@ -653,7 +686,7 @@ function read_tile(pindex, start_text)
       printout(result .. "Tile uncharted and out of range", pindex)
       return
    end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if not (ent and ent.valid) then
       --If there is no ent, read the tile instead
       players[pindex].tile.previous = nil
@@ -698,7 +731,7 @@ function read_tile(pindex, start_text)
          game.get_player(pindex).play_sound({ path = "player-mine" })
          if fa_mining_tools.try_to_mine_with_soun(ent, pindex) then result = result .. name .. " mined, " end
          --Second round, in case two entities are there. While loops do not work!
-         ent = get_selected_ent(pindex)
+         ent = get_selected_ent_deprecated(pindex)
          if ent and ent.valid and players[pindex].walk ~= 2 then --not while
             local name = ent.name
             game.get_player(pindex).play_sound({ path = "player-mine" })
@@ -1298,7 +1331,7 @@ script.on_event(defines.events.on_player_changed_position, function(event)
 
       --Name a detected entity that you can or cannot walk on, or a tile you cannot walk on, and play a sound to indicate multiple consecutive detections
       refresh_player_tile(pindex)
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       if
          not players[pindex].vanilla_mode
          and (
@@ -2476,7 +2509,7 @@ function move(direction, pindex)
          read_tile(pindex)
       elseif players[pindex].walk == 2 then
          refresh_player_tile(pindex)
-         local ent = get_selected_ent(pindex)
+         local ent = get_selected_ent_deprecated(pindex)
          if
             not players[pindex].vanilla_mode
             and (
@@ -2505,7 +2538,7 @@ function move(direction, pindex)
    end
 
    --Update cursor highlight
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if ent and ent.valid then
       fa_graphics.draw_cursor_highlight(pindex, ent, nil)
    else
@@ -2595,7 +2628,7 @@ function cursor_mode_move(direction, pindex, single_only)
       if players[pindex].build_lock then fa_building_tools.build_item_in_hand(pindex) end
 
       --Update cursor highlight
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       if ent and ent.valid then
          fa_graphics.draw_cursor_highlight(pindex, ent, nil)
       else
@@ -3002,7 +3035,7 @@ script.on_event("increase-inventory-bar-by-1", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Increase
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       local result = fa_sectors.add_to_inventory_bar(ent, 1)
       printout(result, pindex)
    end
@@ -3013,7 +3046,7 @@ script.on_event("increase-inventory-bar-by-5", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Increase
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       local result = fa_sectors.add_to_inventory_bar(ent, 5)
       printout(result, pindex)
    end
@@ -3024,7 +3057,7 @@ script.on_event("increase-inventory-bar-by-100", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Increase
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       local result = fa_sectors.add_to_inventory_bar(ent, 100)
       printout(result, pindex)
    end
@@ -3035,7 +3068,7 @@ script.on_event("decrease-inventory-bar-by-1", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Decrease
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       local result = fa_sectors.add_to_inventory_bar(ent, -1)
       printout(result, pindex)
    end
@@ -3046,7 +3079,7 @@ script.on_event("decrease-inventory-bar-by-5", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Decrease
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       local result = fa_sectors.add_to_inventory_bar(ent, -5)
       printout(result, pindex)
    end
@@ -3057,7 +3090,7 @@ script.on_event("decrease-inventory-bar-by-100", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Decrease
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       local result = fa_sectors.add_to_inventory_bar(ent, -100)
       printout(result, pindex)
    end
@@ -3108,7 +3141,7 @@ script.on_event("inserter-hand-stack-size-up", function(event)
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
    if p.opened and p.opened.type == "inserter" then
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       if ent.type == "inserter" then
          local result = fa_sectors.inserter_hand_stack_size_up(ent)
          printout(result, pindex)
@@ -3121,7 +3154,7 @@ script.on_event("inserter-hand-stack-size-down", function(event)
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
    if p.opened and p.opened.type == "inserter" then
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       if ent.type == "inserter" then
          local result = fa_sectors.inserter_hand_stack_size_down(ent)
          printout(result, pindex)
@@ -3132,7 +3165,7 @@ end)
 script.on_event("read-rail-structure-ahead", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if game.get_player(pindex).driving and game.get_player(pindex).vehicle.train ~= nil then
       fa_trains.train_read_next_rail_entity_ahead(pindex, false)
    elseif ent ~= nil and ent.valid and (ent.name == "straight-rail" or ent.name == "curved-rail") then
@@ -3166,7 +3199,7 @@ end)
 script.on_event("read-rail-structure-behind", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if game.get_player(pindex).driving and game.get_player(pindex).vehicle.train ~= nil then
       fa_trains.train_read_next_rail_entity_ahead(pindex, true)
    elseif ent ~= nil and ent.valid and (ent.name == "straight-rail" or ent.name == "curved-rail") then
@@ -3260,7 +3293,7 @@ script.on_event("scan-sort-by-distance", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    if not players[pindex].in_menu then
-      local ent = game.get_player(pindex).selected or get_selected_ent(pindex)
+      local ent = game.get_player(pindex).selected or get_selected_ent_deprecated(pindex)
       if ent ~= nil and ent.valid == true and (ent.get_control_behavior() ~= nil or ent.type == "electric-pole") then
          --Open the circuit network menu for the selected ent instead.
          return
@@ -4005,7 +4038,7 @@ script.on_event("mine-access-sounds", function(event)
    if not check_for_player(pindex) then return end
    if not players[pindex].in_menu and not players[pindex].vanilla_mode then
       target(pindex)
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       if ent and ent.valid and (ent.prototype.mineable_properties.products ~= nil) and ent.type ~= "resource" then
          game.get_player(pindex).selected = ent
          game.get_player(pindex).play_sound({ path = "player-mine" })
@@ -4081,7 +4114,7 @@ script.on_event("mine-area", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu then return end
    local p = game.get_player(pindex)
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    local cleared_count = 0
    local cleared_total = 0
    local comment = ""
@@ -4675,7 +4708,7 @@ script.on_event("click-menu", function(event)
          end
 
          --Update cursor highlight
-         local ent = get_selected_ent(pindex)
+         local ent = get_selected_ent_deprecated(pindex)
          if ent and ent.valid then
             fa_graphics.draw_cursor_highlight(pindex, ent, nil)
          else
@@ -4750,7 +4783,7 @@ script.on_event("click-hand", function(event)
       --Not in a menu
       local stack = game.get_player(pindex).cursor_stack
       local cursor_ghost = game.get_player(pindex).cursor_ghost
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
 
       if stack and stack.valid_for_read and stack.valid then
          players[pindex].last_click_tick = event.tick
@@ -4926,7 +4959,7 @@ script.on_event("click-hand-right", function(event)
    else
       --Not in a menu
       local stack = game.get_player(pindex).cursor_stack
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
 
       if stack and stack.valid_for_read and stack.valid then
          players[pindex].last_click_tick = event.tick
@@ -5014,7 +5047,7 @@ script.on_event("click-entity", function(event)
       --Not in a menu
       local stack = game.get_player(pindex).cursor_stack
       local ghost = game.get_player(pindex).cursor_ghost
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
 
       if ghost or (stack and stack.valid_for_read and stack.valid) then
          return
@@ -5153,7 +5186,7 @@ script.on_event("open-circuit-menu", function(event)
       --Open the menu
       fa_circuits.circuit_network_menu_open(pindex, ent)
    elseif players[pindex].in_menu == false then
-      local ent = p.selected or get_selected_ent(pindex)
+      local ent = p.selected or get_selected_ent_deprecated(pindex)
       if ent == nil or ent.valid == false or (ent.get_control_behavior() == nil and ent.type ~= "electric-pole") then
          --Sort scan results instead
          return
@@ -5192,7 +5225,7 @@ script.on_event("repair-area", function(event)
    else
       --Not in a menu
       local stack = game.get_player(pindex).cursor_stack
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
 
       if stack and stack.valid_for_read and stack.valid then
          players[pindex].last_click_tick = event.tick
@@ -5374,7 +5407,7 @@ script.on_event("open-rail-builder", function(event)
       fa_rails.end_ghost_rail_planning(pindex)
    else
       --Not in a menu
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       local stack = game.get_player(pindex).cursor_stack
       if ent then
          if ent.name == "straight-rail" then
@@ -5401,7 +5434,7 @@ end)
 script.on_event("quick-build-rail-left-turn", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if not ent then return end
    --Build left turns on end rails
    if ent.name == "straight-rail" then fa_rail_builder.build_rail_turn_left_45_degrees(ent, pindex) end
@@ -5410,7 +5443,7 @@ end)
 script.on_event("quick-build-rail-right-turn", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if not ent then return end
    --Build left turns on end rails
    if ent.name == "straight-rail" then fa_rail_builder.build_rail_turn_right_45_degrees(ent, pindex) end
@@ -5441,7 +5474,7 @@ script.on_event("fa-alternate-build", function(event)
    else
       --Not in a menu
       local stack = game.get_player(pindex).cursor_stack
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       if stack == nil or stack.valid_for_read == false or stack.valid == false then
          return
       elseif stack.name == "rail" then
@@ -5607,7 +5640,7 @@ end
 script.on_event("crafting-5", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    local stack = game.get_player(pindex).cursor_stack
    if players[pindex].in_menu then
       if players[pindex].menu == "crafting" then
@@ -5652,7 +5685,7 @@ end)
 script.on_event("menu-clear-filter", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    local stack = game.get_player(pindex).cursor_stack
    if players[pindex].in_menu then
       if players[pindex].menu == "building" or players[pindex].menu == "vehicle" then
@@ -5771,7 +5804,7 @@ script.on_event("item-info", function(event)
       offset = 1
    end
    if not players[pindex].in_menu then
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       if ent and ent.valid then
          game.get_player(pindex).selected = ent
          local str = ent.localised_description
@@ -6318,7 +6351,7 @@ end)
 script.on_event("pipette-tool-info", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    local p = game.get_player(pindex)
    if ent and ent.valid then
       p.selected = ent
@@ -6335,7 +6368,7 @@ end)
 script.on_event("copy-entity-settings-info", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    local p = game.get_player(pindex)
    if ent and ent.valid then p.selected = ent end
 end)
@@ -6343,7 +6376,7 @@ end)
 script.on_event("paste-entity-settings-info", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    local p = game.get_player(pindex)
    if ent and ent.valid then p.selected = ent end
 end)
@@ -6351,7 +6384,7 @@ end)
 script.on_event("fast-entity-transfer-info", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    local p = game.get_player(pindex)
    if ent and ent.valid then p.selected = ent end
 end)
@@ -6359,7 +6392,7 @@ end)
 script.on_event("fast-entity-split-info", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    local p = game.get_player(pindex)
    if ent and ent.valid then p.selected = ent end
 end)
@@ -6367,7 +6400,7 @@ end)
 script.on_event("drop-cursor-info", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    local p = game.get_player(pindex)
    if ent and ent.valid then p.selected = ent end
 end)
@@ -6706,7 +6739,7 @@ script.on_event("open-structure-travel-menu", function(event)
       players[pindex].in_menu = true
       players[pindex].move_queue = {}
       players[pindex].structure_travel.direction = "none"
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       local initial_scan_radius = 50
       if ent ~= nil and ent.valid and ent.unit_number ~= nil and building_types[ent.type] then
          players[pindex].structure_travel.current = ent.unit_number
@@ -6861,12 +6894,30 @@ end
 --Moves the cursor in the same direction multiple times until the reported entity changes. Change includes: new entity name or new direction for entites with the same name, or changing between nil and ent. Returns move count.
 function cursor_skip_iteration(pindex, direction, iteration_limit)
    local p = game.get_player(pindex)
-   local start = get_selected_ent(pindex)
+   local start = nil
    local start_tile_is_water = fa_utils.tile_is_water(p.surface, players[pindex].cursor_pos)
    local current = nil
    local limit = iteration_limit or 100
    local moved = 1
    local comment = ""
+
+   -- Returns a new value for current or nil, ignoring a list of entities.
+   --
+   ---@returns LuaEntity?
+   local function compute_current()
+      refresh_player_tile(pindex)
+      for ent in iterate_selected_ents(pindex) do
+         local bad = ent.type == "logistic-robot"
+            or ent.type == "construction-robot"
+            or ent.type == "combat-robot"
+            or ent.type == "corpse"
+         if not bad then return ent end
+      end
+
+      return nil
+   end
+
+   start = compute_current()
 
    --For pipes to ground, apply a special case where you jump to the underground neighbour
    if start ~= nil and start.valid and start.type == "pipe-to-ground" then
@@ -6878,7 +6929,7 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
             if con.connection_type == "underground" and dir_neighbor == direction then
                players[pindex].cursor_pos = con.target.get_pipe_connections(1)[1].position
                refresh_player_tile(pindex)
-               current = get_selected_ent(pindex)
+               current = get_selected_ent_deprecated(pindex)
                return dist
             end
          end
@@ -6893,7 +6944,7 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
          if dir_neighbor == direction then
             players[pindex].cursor_pos = other_end.position
             refresh_player_tile(pindex)
-            current = get_selected_ent(pindex)
+            current = get_selected_ent_deprecated(pindex)
             return dist
          end
       end
@@ -6921,30 +6972,14 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
    end
    --Iterate first tile
    players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, 1)
-   refresh_player_tile(pindex)
-   current = get_selected_ent(pindex)
 
-   --Ignore flying robots and remnants (first tile)
-   local i = 1
-   while
-      current ~= nil
-      and current.valid
-      and (
-         current.type == "logistic-robot"
-         or current.type == "construction-robot"
-         or current.type == "combat-robot"
-         or current.type == "corpse"
-      )
-   do
-      i = i + 1
-      current = get_selected_ent(pindex, i)
-   end
+   current = compute_current()
 
    --Run checks and skip when needed
    while moved < limit do
       --Check the current entity or tile against the starting one
-      if current == nil or current.valid == false then
-         if start == nil or start.valid == false then
+      if current == nil then
+         if start == nil then
             --Both are nil: check if water, else skip
             local selected_tile_is_water = fa_utils.tile_is_water(p.surface, players[pindex].cursor_pos)
             if selected_tile_is_water then
@@ -7008,24 +7043,8 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
       end
       --Skip case: Move 1 more tile
       players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, 1)
-      refresh_player_tile(pindex)
-      current = get_selected_ent(pindex)
       moved = moved + 1
-      --Ignore flying robots and remnants
-      local i = 1
-      while
-         current ~= nil
-         and current.valid
-         and (
-            current.type == "logistic-robot"
-            or current.type == "construction-robot"
-            or current.type == "combat-robot"
-            or current.type == "corpse"
-         )
-      do
-         i = i + 1
-         current = get_selected_ent(pindex, i)
-      end
+      current = compute_current()
    end
    --Reached limit
    return -1
@@ -7147,7 +7166,7 @@ end)
 script.on_event("set-splitter-input-priority-left", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if not ent then
       return
    elseif ent.valid and ent.type == "splitter" then
@@ -7159,7 +7178,7 @@ end)
 script.on_event("set-splitter-input-priority-right", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if not ent then
       return
    elseif ent.valid and ent.type == "splitter" then
@@ -7171,7 +7190,7 @@ end)
 script.on_event("set-splitter-output-priority-left", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if not ent then return end
    if ent.valid and ent.type == "splitter" then
       local result = fa_belts.set_splitter_priority(ent, false, true, nil)
@@ -7182,7 +7201,7 @@ end)
 script.on_event("set-splitter-output-priority-right", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if not ent then return end
    --Build left turns on end rails
    if ent.valid and ent.type == "splitter" then
@@ -7201,7 +7220,7 @@ script.on_event("set-entity-filter-from-hand", function(event)
    else
       --Not in a menu
       local stack = game.get_player(pindex).cursor_stack
-      local ent = get_selected_ent(pindex)
+      local ent = get_selected_ent_deprecated(pindex)
       if ent == nil or ent.valid == false then return end
       if stack == nil or not stack.valid_for_read or not stack.valid then
          if ent.type == "splitter" then
@@ -7246,7 +7265,7 @@ script.on_event("connect-rail-vehicles", function(event)
    local pindex = event.player_index
    local vehicle = nil
    if not check_for_player(pindex) or players[pindex].in_menu then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if game.get_player(pindex).vehicle ~= nil and game.get_player(pindex).vehicle.train ~= nil then
       vehicle = game.get_player(pindex).vehicle
    elseif ent ~= nil and ent.valid and ent.train ~= nil then
@@ -7278,7 +7297,7 @@ script.on_event("disconnect-rail-vehicles", function(event)
    local pindex = event.player_index
    local vehicle = nil
    if not check_for_player(pindex) or players[pindex].in_menu then return end
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if game.get_player(pindex).vehicle ~= nil and game.get_player(pindex).vehicle.train ~= nil then
       vehicle = game.get_player(pindex).vehicle
    elseif ent ~= nil and ent.train ~= nil then
@@ -7358,7 +7377,7 @@ end)
 --Attempt to launch a rocket
 script.on_event("launch-rocket", function(event)
    local pindex = event.player_index
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if not check_for_player(pindex) then return end
    --For rocket entities, return the silo instead
    if ent and (ent.name == "rocket-silo-rocket-shadow" or ent.name == "rocket-silo-rocket") then
@@ -7427,7 +7446,7 @@ script.on_event("debug-test-key", function(event)
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
    local pex = players[pindex]
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    local stack = game.get_player(pindex).cursor_stack
 
    game.print(ent.prototype.group.name)
@@ -8208,7 +8227,7 @@ function check_and_play_bump_alert_sound(pindex, this_tick)
    local bump_was_tile = false
 
    --Check if there is an ent in front of the player
-   local found_ent = get_selected_ent(pindex)
+   local found_ent = get_selected_ent_deprecated(pindex)
    local ent = nil
    if
       found_ent

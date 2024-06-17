@@ -1204,7 +1204,7 @@ end
 
 --Report the status of the selected entity as well as additional dynamic info depending on the entity type
 function mod.read_selected_entity_status(pindex)
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if not ent then return end
    local stack = game.get_player(pindex).cursor_stack
    if players[pindex].in_menu then return end
