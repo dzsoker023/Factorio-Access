@@ -543,25 +543,25 @@ data:extend({
 
    {
       type = "custom-input",
-      name = "cursor-roll-north",
+      name = "cursor-skip-by-preview-north",
       key_sequence = "CONTROL + W",
       consuming = "none",
    },
    {
       type = "custom-input",
-      name = "cursor-roll-south",
+      name = "cursor-skip-by-preview-south",
       key_sequence = "CONTROL + S",
       consuming = "none",
    },
    {
       type = "custom-input",
-      name = "cursor-roll-west",
+      name = "cursor-skip-by-preview-west",
       key_sequence = "CONTROL + A",
       consuming = "none",
    },
    {
       type = "custom-input",
-      name = "cursor-roll-east",
+      name = "cursor-skip-by-preview-east",
       key_sequence = "CONTROL + D",
       consuming = "none",
    },
