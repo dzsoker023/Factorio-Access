@@ -959,7 +959,7 @@ function mod.logistics_info_key_handler(pindex)
          if prototype then mod.player_logistic_request_read(prototype, pindex, true) end
       else
          --Logistic chest in front
-         local ent = get_selected_ent(pindex)
+         local ent = get_selected_ent_deprecated(pindex)
          if mod.can_make_logistic_requests(ent) then
             mod.read_entity_requests_summary(ent, pindex)
             return
@@ -1914,7 +1914,7 @@ end
 function mod.run_roboport_menu(menu_index, pindex, clicked)
    local index = menu_index
    local port = nil
-   local ent = get_selected_ent(pindex)
+   local ent = get_selected_ent_deprecated(pindex)
    if game.get_player(pindex).opened ~= nil and game.get_player(pindex).opened.name == "roboport" then
       port = game.get_player(pindex).opened
       players[pindex].roboport_menu.port = port
