@@ -653,7 +653,6 @@ function read_tile(pindex, start_text)
       printout(result .. "Tile uncharted and out of range", pindex)
       return
    end
-   local p = game.get_player(pindex)
    local ent = get_selected_ent(pindex)
    if not (ent and ent.valid) then
       --If there is no ent, read the tile instead
@@ -673,56 +672,36 @@ function read_tile(pindex, start_text)
          result = result .. fa_utils.identify_water_shores(pindex)
       end
       fa_graphics.draw_cursor_highlight(pindex, nil, nil)
-      p.selected = nil
-   else
-      --If the entity is a flying robot or a remnant, and there is at least one more entity on this tile
-      --then switch to the other entity
-      local i = 2
-      local current_ent = ent
-      local next_ent = get_selected_ent(pindex, i)
-      while
-         next_ent ~= nil
-         and next_ent.valid
-         and (
-            current_ent.type == "logistic-robot"
-            or current_ent.type == "construction-robot"
-            or current_ent.type == "combat-robot"
-            or current_ent.type == "corpse"
-         )
-      do
-         i = i + 1
-         current_ent = next_ent
-         next_ent = get_selected_ent(pindex, i)
-      end
-
-      --Add info, draw the highlight, save the entity
+      game.get_player(pindex).selected = nil
+   else --laterdo tackle the issue here where entities such as tree stumps block preview info
       result = result .. fa_info.ent_info(pindex, ent)
       fa_graphics.draw_cursor_highlight(pindex, ent, nil)
-      p.selected = ent
+      game.get_player(pindex).selected = ent
+
+      --game.get_player(pindex).print(result)--
       players[pindex].tile.previous = ent
    end
-
-   --If there is no structure, add build preview checks info
    if not ent or ent.type == "resource" then --possible bug here with the h box being a new tile ent
       local stack = game.get_player(pindex).cursor_stack
       --Run build preview checks
       if stack and stack.valid_for_read and stack.valid and stack.prototype.place_result ~= nil then
          result = result .. fa_building_tools.build_preview_checks_info(stack, pindex)
+         --game.get_player(pindex).print(result)--
       end
    end
 
    --If the player is holding a cut-paste tool, every entity being read gets mined as soon as you read a new tile.
-   local stack = p.cursor_stack
+   local stack = game.get_player(pindex).cursor_stack
    if stack and stack.valid_for_read and stack.name == "cut-paste-tool" and not players[pindex].vanilla_mode then
       if ent and ent.valid then --not while loop, because it causes crashes
          local name = ent.name
-         p.play_sound({ path = "player-mine" })
+         game.get_player(pindex).play_sound({ path = "player-mine" })
          if fa_mining_tools.try_to_mine_with_soun(ent, pindex) then result = result .. name .. " mined, " end
          --Second round, in case two entities are there. While loops do not work!
          ent = get_selected_ent(pindex)
          if ent and ent.valid and players[pindex].walk ~= 2 then --not while
             local name = ent.name
-            p.play_sound({ path = "player-mine" })
+            game.get_player(pindex).play_sound({ path = "player-mine" })
             if fa_mining_tools.try_to_mine_with_soun(ent, pindex) then result = result .. name .. " mined, " end
          end
       end
