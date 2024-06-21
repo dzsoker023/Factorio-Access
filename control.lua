@@ -459,12 +459,14 @@ function locate_hand_in_crafting_menu(pindex)
    fa_menu_search.fetch_next(pindex, item_name, nil)
 end
 
---If there is an entity to select, moves the mouse pointer to it, else moves to the cursor tile.
-function target(pindex)
+--If there is an entity at the cursor, moves the mouse pointer to it, else moves to the cursor tile.
+--TODO: remove this, by calling the appropriate mouse module functions instead.
+function target_mouse_pointer_deprecated(pindex)
    if players[pindex].vanilla_mode then return end
-   local ent = get_selected_ent_deprecated(pindex)
-   if ent then
-      fa_mouse.move_mouse_pointer(ent.position, pindex)
+   local surf = game.get_player(pindex).surface
+   local ents = surf.find_entities_filtered({ position = players[pindex].cursor_pos })
+   if ents and ents[1] and ents[1].valid then
+      fa_mouse.move_mouse_pointer(ents[1].position, pindex)
    else
       fa_mouse.move_mouse_pointer(players[pindex].cursor_pos, pindex)
    end
@@ -538,7 +540,6 @@ function toggle_cursor_mode(pindex)
       players[pindex].cursor_pos = fa_utils.center_of_tile(players[pindex].cursor_pos)
       fa_mouse.move_mouse_pointer(players[pindex].cursor_pos, pindex)
       fa_graphics.sync_build_cursor_graphics(pindex)
-      target(pindex)
       players[pindex].player_direction = p.character.direction
       players[pindex].build_lock = false
       if p.driving and p.vehicle then p.vehicle.active = true end
@@ -2500,7 +2501,7 @@ function move(direction, pindex)
       end
 
       if game.get_player(pindex).driving then
-         target(pindex)
+         target_mouse_pointer_deprecated(pindex)
          return
       end
 
@@ -2518,7 +2519,7 @@ function move(direction, pindex)
                   .can_place_entity({ name = "character", position = players[pindex].cursor_pos })
             )
          then
-            target(pindex)
+            target_mouse_pointer_deprecated(pindex)
             read_tile(pindex)
          end
       end
@@ -4036,7 +4037,6 @@ script.on_event("mine-access-sounds", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    if not players[pindex].in_menu and not players[pindex].vanilla_mode then
-      target(pindex)
       local ent = game.get_player(pindex).selected
       if ent and ent.valid and (ent.prototype.mineable_properties.products ~= nil) and ent.type ~= "resource" then
          game.get_player(pindex).selected = ent
