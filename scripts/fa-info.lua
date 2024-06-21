@@ -1140,6 +1140,7 @@ function mod.selected_item_production_stats_info(pindex)
    local stats = p.force.item_production_statistics
    local item_stack = nil
    local recipe = nil
+   local prototype = nil
 
    -- Try the cursor stack
    item_stack = p.cursor_stack
@@ -1212,7 +1213,7 @@ function mod.selected_item_production_stats_info(pindex)
    local m1_out, m10_out, h1_out, h1000_out = get_stats(false)
 
    return fa_utils.spacecat(
-      fa_localising.get(prototype, pindex) .. ".",
+      fa_localising.get(prototype, pindex) .. ",",
       "Produced",
       m1_in,
       "last minute,",
