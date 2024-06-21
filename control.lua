@@ -7166,7 +7166,7 @@ end)
 script.on_event("set-splitter-input-priority-left", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = game.get_player(pindex).selected
    if not ent then
       return
    elseif ent.valid and ent.type == "splitter" then
@@ -7178,7 +7178,7 @@ end)
 script.on_event("set-splitter-input-priority-right", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = game.get_player(pindex).selected
    if not ent then
       return
    elseif ent.valid and ent.type == "splitter" then
@@ -7190,7 +7190,7 @@ end)
 script.on_event("set-splitter-output-priority-left", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = game.get_player(pindex).selected
    if not ent then return end
    if ent.valid and ent.type == "splitter" then
       local result = fa_belts.set_splitter_priority(ent, false, true, nil)
@@ -7201,7 +7201,7 @@ end)
 script.on_event("set-splitter-output-priority-right", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = game.get_player(pindex).selected
    if not ent then return end
    --Build left turns on end rails
    if ent.valid and ent.type == "splitter" then
@@ -7220,7 +7220,7 @@ script.on_event("set-entity-filter-from-hand", function(event)
    else
       --Not in a menu
       local stack = game.get_player(pindex).cursor_stack
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = game.get_player(pindex).selected
       if ent == nil or ent.valid == false then return end
       if stack == nil or not stack.valid_for_read or not stack.valid then
          if ent.type == "splitter" then
@@ -7265,7 +7265,7 @@ script.on_event("connect-rail-vehicles", function(event)
    local pindex = event.player_index
    local vehicle = nil
    if not check_for_player(pindex) or players[pindex].in_menu then return end
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = game.get_player(pindex).selected
    if game.get_player(pindex).vehicle ~= nil and game.get_player(pindex).vehicle.train ~= nil then
       vehicle = game.get_player(pindex).vehicle
    elseif ent ~= nil and ent.valid and ent.train ~= nil then
@@ -7297,7 +7297,7 @@ script.on_event("disconnect-rail-vehicles", function(event)
    local pindex = event.player_index
    local vehicle = nil
    if not check_for_player(pindex) or players[pindex].in_menu then return end
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = game.get_player(pindex).selected
    if game.get_player(pindex).vehicle ~= nil and game.get_player(pindex).vehicle.train ~= nil then
       vehicle = game.get_player(pindex).vehicle
    elseif ent ~= nil and ent.train ~= nil then
@@ -7377,7 +7377,7 @@ end)
 --Attempt to launch a rocket
 script.on_event("launch-rocket", function(event)
    local pindex = event.player_index
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = game.get_player(pindex).selected
    if not check_for_player(pindex) then return end
    --For rocket entities, return the silo instead
    if ent and (ent.name == "rocket-silo-rocket-shadow" or ent.name == "rocket-silo-rocket") then
@@ -7446,7 +7446,7 @@ script.on_event("debug-test-key", function(event)
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
    local pex = players[pindex]
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = p.selected
    local stack = game.get_player(pindex).cursor_stack
 
    game.print(ent.prototype.group.name)
@@ -8227,7 +8227,7 @@ function check_and_play_bump_alert_sound(pindex, this_tick)
    local bump_was_tile = false
 
    --Check if there is an ent in front of the player
-   local found_ent = get_selected_ent_deprecated(pindex)
+   local found_ent = p.selected
    local ent = nil
    if
       found_ent
