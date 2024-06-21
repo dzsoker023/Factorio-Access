@@ -531,6 +531,8 @@ function toggle_cursor_mode(pindex)
 
       --Teleport to the center of the nearest tile to align
       center_player_character(pindex)
+
+      --Finally, read the new tile
       read_tile(pindex, "Cursor mode enabled, ")
    else
       --Disable
@@ -543,11 +545,13 @@ function toggle_cursor_mode(pindex)
       players[pindex].player_direction = p.character.direction
       players[pindex].build_lock = false
       if p.driving and p.vehicle then p.vehicle.active = true end
-      read_tile(pindex, "Cursor mode disabled, ")
 
       --Close Remote view
       toggle_remote_view(pindex, false, true)
       p.close_map()
+
+      --Finally, read the new tile
+      read_tile(pindex, "Cursor mode disabled, ")
    end
    if players[pindex].cursor_size < 2 then
       --Update cursor highlight
@@ -577,12 +581,11 @@ function toggle_remote_view(pindex, force_true, force_false)
       players[pindex].cursor = true
       players[pindex].build_lock = false
       center_player_character(pindex)
-      printout("Remote view opened", pindex)
+      read_tile(pindex, "Remote view opened, ")
    else
       players[pindex].remote_view = false
-      players[pindex].cursor = false
       players[pindex].build_lock = false
-      printout("Remote view closed", pindex)
+      read_tile(pindex, "Remote view closed, ")
       game.get_player(pindex).close_map()
    end
 
