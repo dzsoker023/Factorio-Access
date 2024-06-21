@@ -8438,7 +8438,7 @@ function selected_item_production_stats_info(pindex)
    end
 
    --Try crafting menu.
-   if internal_name == nil and players[pindex].menu == "crafting" then
+   if prototype == nil and players[pindex].menu == "crafting" then
       recipe = players[pindex].crafting.lua_recipes[players[pindex].crafting.category][players[pindex].crafting.index]
       if recipe and recipe.valid and recipe.products then
          local first_item, first_fluid
