@@ -3034,7 +3034,7 @@ script.on_event("increase-inventory-bar-by-1", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Increase
-      local ent = game.get_player(pindex).selected
+      local ent = game.get_player(pindex).opened
       local result = fa_sectors.add_to_inventory_bar(ent, 1)
       printout(result, pindex)
    end
@@ -3045,7 +3045,7 @@ script.on_event("increase-inventory-bar-by-5", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Increase
-      local ent = game.get_player(pindex).selected
+      local ent = game.get_player(pindex).opened
       local result = fa_sectors.add_to_inventory_bar(ent, 5)
       printout(result, pindex)
    end
@@ -3056,7 +3056,7 @@ script.on_event("increase-inventory-bar-by-100", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Increase
-      local ent = game.get_player(pindex).selected
+      local ent = game.get_player(pindex).opened
       local result = fa_sectors.add_to_inventory_bar(ent, 100)
       printout(result, pindex)
    end
@@ -3067,7 +3067,7 @@ script.on_event("decrease-inventory-bar-by-1", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Decrease
-      local ent = game.get_player(pindex).selected
+      local ent = game.get_player(pindex).opened
       local result = fa_sectors.add_to_inventory_bar(ent, -1)
       printout(result, pindex)
    end
@@ -3078,7 +3078,7 @@ script.on_event("decrease-inventory-bar-by-5", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Decrease
-      local ent = game.get_player(pindex).selected
+      local ent = game.get_player(pindex).opened
       local result = fa_sectors.add_to_inventory_bar(ent, -5)
       printout(result, pindex)
    end
@@ -3089,7 +3089,7 @@ script.on_event("decrease-inventory-bar-by-100", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Decrease
-      local ent = game.get_player(pindex).selected
+      local ent = game.get_player(pindex).opened
       local result = fa_sectors.add_to_inventory_bar(ent, -100)
       printout(result, pindex)
    end
@@ -3140,7 +3140,7 @@ script.on_event("inserter-hand-stack-size-up", function(event)
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
    if p.opened and p.opened.type == "inserter" then
-      local ent = game.get_player(pindex).selected
+      local ent = game.get_player(pindex).opened
       if ent.type == "inserter" then
          local result = fa_sectors.inserter_hand_stack_size_up(ent)
          printout(result, pindex)
@@ -3153,7 +3153,7 @@ script.on_event("inserter-hand-stack-size-down", function(event)
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
    if p.opened and p.opened.type == "inserter" then
-      local ent = game.get_player(pindex).selected
+      local ent = game.get_player(pindex).opened
       if ent.type == "inserter" then
          local result = fa_sectors.inserter_hand_stack_size_down(ent)
          printout(result, pindex)
