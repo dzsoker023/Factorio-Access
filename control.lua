@@ -6367,42 +6367,22 @@ end)
 
 script.on_event("copy-entity-settings-info", function(event)
    local pindex = event.player_index
-   if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
-   local p = game.get_player(pindex)
-   if ent and ent.valid then p.selected = ent end
 end)
 
 script.on_event("paste-entity-settings-info", function(event)
    local pindex = event.player_index
-   if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
-   local p = game.get_player(pindex)
-   if ent and ent.valid then p.selected = ent end
 end)
 
 script.on_event("fast-entity-transfer-info", function(event)
    local pindex = event.player_index
-   if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
-   local p = game.get_player(pindex)
-   if ent and ent.valid then p.selected = ent end
 end)
 
 script.on_event("fast-entity-split-info", function(event)
    local pindex = event.player_index
-   if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
-   local p = game.get_player(pindex)
-   if ent and ent.valid then p.selected = ent end
 end)
 
 script.on_event("drop-cursor-info", function(event)
    local pindex = event.player_index
-   if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
-   local p = game.get_player(pindex)
-   if ent and ent.valid then p.selected = ent end
 end)
 
 script.on_event("read-hand", function(event)
@@ -6739,7 +6719,7 @@ script.on_event("open-structure-travel-menu", function(event)
       players[pindex].in_menu = true
       players[pindex].move_queue = {}
       players[pindex].structure_travel.direction = "none"
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = game.get_player(pindex).selected
       local initial_scan_radius = 50
       if ent ~= nil and ent.valid and ent.unit_number ~= nil and building_types[ent.type] then
          players[pindex].structure_travel.current = ent.unit_number
