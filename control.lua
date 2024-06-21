@@ -633,7 +633,6 @@ end
 
 function return_cursor_to_character(pindex)
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
    if not players[pindex].in_menu then
       if players[pindex].cursor then jump_to_player(pindex) end
    end
@@ -4959,7 +4958,6 @@ script.on_event("click-hand-right", function(event)
    else
       --Not in a menu
       local stack = game.get_player(pindex).cursor_stack
-      local ent = get_selected_ent_deprecated(pindex)
 
       if stack and stack.valid_for_read and stack.valid then
          players[pindex].last_click_tick = event.tick
@@ -5225,7 +5223,6 @@ script.on_event("repair-area", function(event)
    else
       --Not in a menu
       local stack = game.get_player(pindex).cursor_stack
-      local ent = get_selected_ent_deprecated(pindex)
 
       if stack and stack.valid_for_read and stack.valid then
          players[pindex].last_click_tick = event.tick
@@ -5407,7 +5404,7 @@ script.on_event("open-rail-builder", function(event)
       fa_rails.end_ghost_rail_planning(pindex)
    else
       --Not in a menu
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = game.get_player(pindex).selected
       local stack = game.get_player(pindex).cursor_stack
       if ent then
          if ent.name == "straight-rail" then
@@ -5434,7 +5431,7 @@ end)
 script.on_event("quick-build-rail-left-turn", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = game.get_player(pindex).selected
    if not ent then return end
    --Build left turns on end rails
    if ent.name == "straight-rail" then fa_rail_builder.build_rail_turn_left_45_degrees(ent, pindex) end
@@ -5443,7 +5440,7 @@ end)
 script.on_event("quick-build-rail-right-turn", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = game.get_player(pindex).selected
    if not ent then return end
    --Build left turns on end rails
    if ent.name == "straight-rail" then fa_rail_builder.build_rail_turn_right_45_degrees(ent, pindex) end
@@ -5474,7 +5471,6 @@ script.on_event("fa-alternate-build", function(event)
    else
       --Not in a menu
       local stack = game.get_player(pindex).cursor_stack
-      local ent = get_selected_ent_deprecated(pindex)
       if stack == nil or stack.valid_for_read == false or stack.valid == false then
          return
       elseif stack.name == "rail" then
@@ -5640,8 +5636,6 @@ end
 script.on_event("crafting-5", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
-   local stack = game.get_player(pindex).cursor_stack
    if players[pindex].in_menu then
       if players[pindex].menu == "crafting" then
          local recipe =
@@ -5685,8 +5679,6 @@ end)
 script.on_event("menu-clear-filter", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
-   local stack = game.get_player(pindex).cursor_stack
    if players[pindex].in_menu then
       if players[pindex].menu == "building" or players[pindex].menu == "vehicle" then
          local stack = game.get_player(pindex).cursor_stack
@@ -5804,9 +5796,8 @@ script.on_event("item-info", function(event)
       offset = 1
    end
    if not players[pindex].in_menu then
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = game.get_player(pindex).selected
       if ent and ent.valid then
-         game.get_player(pindex).selected = ent
          local str = ent.localised_description
          if str == nil or str == "" then str = "No description for this entity" end
          printout(str, pindex)
@@ -6351,10 +6342,9 @@ end)
 script.on_event("pipette-tool-info", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
    local p = game.get_player(pindex)
+   local ent = p.selected
    if ent and ent.valid then
-      p.selected = ent
       if ent.supports_direction then
          players[pindex].building_direction = ent.direction
          players[pindex].cursor_rotation_offset = 0
