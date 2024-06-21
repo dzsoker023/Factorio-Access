@@ -6839,6 +6839,7 @@ function cursor_skip(pindex, direction, iteration_limit, use_preview_size)
          p.play_sound({ path = "inventory-wrap-around", position = players[pindex].position, volume_modifier = 1 })
       end
    elseif moved_count == 1 then
+      result = ""
       --Play Sound
       if players[pindex].remote_view then
          p.play_sound({ path = "Close-Inventory-Sound", position = players[pindex].cursor_pos, volume_modifier = 1 })
