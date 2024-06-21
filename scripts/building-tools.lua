@@ -305,7 +305,7 @@ function mod.build_item_in_hand(pindex, free_place_straight_rail)
    end
 
    --Update cursor highlight (end)
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = game.get_player(pindex).selected
    if ent and ent.valid then
       fa_graphics.draw_cursor_highlight(pindex, ent, nil)
    else
@@ -363,11 +363,12 @@ end
 --Reads the result of trying to rotate a building, which is a vanilla action.
 function mod.rotate_building_info_read(event, forward)
    pindex = event.player_index
+   local p = game.get_player(pindex)
    if not check_for_player(pindex) then return end
    local mult = 1
    if forward == false then mult = -1 end
    if players[pindex].in_menu == false or players[pindex].menu == "blueprint_menu" then
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = p.selected
       local stack = game.get_player(pindex).cursor_stack
       local build_dir = players[pindex].building_direction
       if stack and stack.valid_for_read and stack.valid and stack.prototype.place_result ~= nil then
@@ -482,7 +483,7 @@ function mod.nudge_key(direction, event)
    local pindex = event.player_index
    local p = game.get_player(pindex)
    if not check_for_player(pindex) or players[pindex].menu == "prompt" then return end
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = p.selected
    if ent and ent.valid then
       if ent.force == game.get_player(pindex).force then
          local old_pos = ent.position
