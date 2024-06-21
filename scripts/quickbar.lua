@@ -67,7 +67,7 @@ function mod.set_quick_bar_slot(index, pindex)
    local page = game.get_player(pindex).get_active_quick_bar_page(1) - 1
    local stack_cur = game.get_player(pindex).cursor_stack
    local stack_inv = players[pindex].inventory.lua_inventory[players[pindex].inventory.index]
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = p.selected
    if stack_cur and stack_cur.valid_for_read and stack_cur.valid == true then
       game.get_player(pindex).set_quick_bar_slot(index + 10 * page, stack_cur)
       printout("Quickbar assigned " .. index .. " " .. fa_localising.get(stack_cur, pindex), pindex)
