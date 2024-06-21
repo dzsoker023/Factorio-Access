@@ -3034,7 +3034,7 @@ script.on_event("increase-inventory-bar-by-1", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Increase
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = game.get_player(pindex).selected
       local result = fa_sectors.add_to_inventory_bar(ent, 1)
       printout(result, pindex)
    end
@@ -3045,7 +3045,7 @@ script.on_event("increase-inventory-bar-by-5", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Increase
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = game.get_player(pindex).selected
       local result = fa_sectors.add_to_inventory_bar(ent, 5)
       printout(result, pindex)
    end
@@ -3056,7 +3056,7 @@ script.on_event("increase-inventory-bar-by-100", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Increase
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = game.get_player(pindex).selected
       local result = fa_sectors.add_to_inventory_bar(ent, 100)
       printout(result, pindex)
    end
@@ -3067,7 +3067,7 @@ script.on_event("decrease-inventory-bar-by-1", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Decrease
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = game.get_player(pindex).selected
       local result = fa_sectors.add_to_inventory_bar(ent, -1)
       printout(result, pindex)
    end
@@ -3078,7 +3078,7 @@ script.on_event("decrease-inventory-bar-by-5", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Decrease
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = game.get_player(pindex).selected
       local result = fa_sectors.add_to_inventory_bar(ent, -5)
       printout(result, pindex)
    end
@@ -3089,7 +3089,7 @@ script.on_event("decrease-inventory-bar-by-100", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and (players[pindex].menu == "building" or players[pindex].menu == "vehicle") then
       --Chest bar setting: Decrease
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = game.get_player(pindex).selected
       local result = fa_sectors.add_to_inventory_bar(ent, -100)
       printout(result, pindex)
    end
@@ -3140,7 +3140,7 @@ script.on_event("inserter-hand-stack-size-up", function(event)
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
    if p.opened and p.opened.type == "inserter" then
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = game.get_player(pindex).selected
       if ent.type == "inserter" then
          local result = fa_sectors.inserter_hand_stack_size_up(ent)
          printout(result, pindex)
@@ -3153,7 +3153,7 @@ script.on_event("inserter-hand-stack-size-down", function(event)
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
    if p.opened and p.opened.type == "inserter" then
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = game.get_player(pindex).selected
       if ent.type == "inserter" then
          local result = fa_sectors.inserter_hand_stack_size_down(ent)
          printout(result, pindex)
@@ -3164,7 +3164,7 @@ end)
 script.on_event("read-rail-structure-ahead", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = game.get_player(pindex).selected
    if game.get_player(pindex).driving and game.get_player(pindex).vehicle.train ~= nil then
       fa_trains.train_read_next_rail_entity_ahead(pindex, false)
    elseif ent ~= nil and ent.valid and (ent.name == "straight-rail" or ent.name == "curved-rail") then
@@ -3198,7 +3198,7 @@ end)
 script.on_event("read-rail-structure-behind", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = game.get_player(pindex).selected
    if game.get_player(pindex).driving and game.get_player(pindex).vehicle.train ~= nil then
       fa_trains.train_read_next_rail_entity_ahead(pindex, true)
    elseif ent ~= nil and ent.valid and (ent.name == "straight-rail" or ent.name == "curved-rail") then
@@ -3292,7 +3292,7 @@ script.on_event("scan-sort-by-distance", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    if not players[pindex].in_menu then
-      local ent = game.get_player(pindex).selected or get_selected_ent_deprecated(pindex)
+      local ent = game.get_player(pindex).selected
       if ent ~= nil and ent.valid == true and (ent.get_control_behavior() ~= nil or ent.type == "electric-pole") then
          --Open the circuit network menu for the selected ent instead.
          return
@@ -4037,7 +4037,7 @@ script.on_event("mine-access-sounds", function(event)
    if not check_for_player(pindex) then return end
    if not players[pindex].in_menu and not players[pindex].vanilla_mode then
       target(pindex)
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = game.get_player(pindex).selected
       if ent and ent.valid and (ent.prototype.mineable_properties.products ~= nil) and ent.type ~= "resource" then
          game.get_player(pindex).selected = ent
          game.get_player(pindex).play_sound({ path = "player-mine" })
@@ -4113,7 +4113,7 @@ script.on_event("mine-area", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu then return end
    local p = game.get_player(pindex)
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = game.get_player(pindex).selected
    local cleared_count = 0
    local cleared_total = 0
    local comment = ""
