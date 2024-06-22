@@ -417,7 +417,7 @@ function mod.run_train_menu(menu_index, pindex, clicked, other_input)
    local index = menu_index
    local other = other_input or -1
    local locomotive = nil
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = game.get_player(pindex).selected
    if game.get_player(pindex).vehicle ~= nil and game.get_player(pindex).vehicle.name == "locomotive" then
       locomotive = game.get_player(pindex).vehicle
       players[pindex].train_menu.locomotive = locomotive

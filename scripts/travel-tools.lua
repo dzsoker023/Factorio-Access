@@ -442,7 +442,7 @@ function mod.fast_travel_menu_click(pindex)
       end
 
       --Update cursor highlight
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = game.get_player(pindex).selected
       if ent and ent.valid then
          fa_graphics.draw_cursor_highlight(pindex, ent, nil)
       else

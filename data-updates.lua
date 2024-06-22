@@ -6,6 +6,9 @@ end
 ---Apply universal belt immunity
 data.raw.character.character.has_belt_immunity = true
 
+---Make the character unlikely to be selected by the mouse pointer when overlapping with entities
+data.raw.character.character.selection_priority = 2
+
 for _, item in pairs(vanilla_tip_and_tricks_item_table) do
    remove_tip_and_tricks_item(item)
 end
