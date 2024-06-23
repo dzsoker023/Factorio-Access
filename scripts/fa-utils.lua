@@ -306,6 +306,8 @@ function mod.is_ent_inside_area(ent_name, area_left_top, area_right_bottom, pind
 end
 
 --Returns the map position of the northwest corner of an entity.
+--NOTE: If the calculation result gives a tile that does not touch the ent, then the ent's own position is returned instead.
+--TODO fix the calculation (several attempts have failed so far because fixing it for one group of ents breaks it for others).
 function mod.get_ent_northwest_corner_position(ent)
    if ent.valid == false or ent.tile_width == nil then return ent.position end
    local width = ent.tile_width
@@ -314,12 +316,25 @@ function mod.get_ent_northwest_corner_position(ent)
       width = ent.tile_height
       height = ent.tile_width
    end
-   local pos =
-      mod.center_of_tile({ x = ent.position.x - math.floor(width / 2), y = ent.position.y - math.floor(height / 2) })
-   --Mark the northwest corner
-   --rendering.draw_rectangle{color = {0.75,1,1,0.75}, surface = ent.surface, draw_on_ground = true,
-   --players = nil, width = 2,
-   --left_top = {math.floor(pos.x)+0.05,math.floor(pos.y)+0.05}, right_bottom = {math.ceil(pos.x)-0.05,math.ceil(pos.y)-0.05}, time_to_live = 30}
+   local pos = mod.center_of_tile({
+      x = ent.position.x - math.floor(width / 2),
+      y = ent.position.y - math.floor(height / 2),
+   })
+   --Error correction:
+   --When the northwest corner selection has missed the ent for some reason, the ent position is used instead.
+   local surf = ent.surface
+   local pos_contains_ent = false
+   local pos_ents = surf.find_entities_filtered({ position = pos })
+   if pos_ents == nil or #pos_ents == 0 then
+      pos_contains_ent = false
+   else
+      for i, e in ipairs(pos_ents) do
+         if e.unit_number == ent.unit_number then pos_contains_ent = true end
+      end
+   end
+   if pos_contains_ent == false then pos = mod.center_of_tile(ent.position) end
+
+   --Return the pos
    return pos
 end
 
