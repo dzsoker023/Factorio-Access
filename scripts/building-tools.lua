@@ -444,8 +444,6 @@ function mod.rotate_building_info_read(event, forward)
          --Call graphics update
          fa_graphics.sync_build_cursor_graphics(pindex)
       elseif ent and ent.valid then
-         game.get_player(pindex).selected = ent
-
          if ent.supports_direction then
             --Assuming that the vanilla rotate event will now rotate the ent
             local new_dir = (ent.direction + dirs.east * mult) % (2 * dirs.south)

@@ -445,6 +445,8 @@ function mod.draw_cursor_highlight(pindex, ent, box_type, skip_mouse_movement)
          h_box.highlight_box_type = "entity"
       end
 
+      --Select the entity at the cursor position
+      --TODO maybe clean this up with get_selected_ent_deprecated
       if players[pindex].cursor or (p.character ~= nil and ent.unit_number ~= p.character.unit_number) then
          p.selected = ent
       end

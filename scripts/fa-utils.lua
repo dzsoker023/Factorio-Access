@@ -352,6 +352,7 @@ function mod.get_entity_part_at_cursor(pindex)
          if ent.valid and ent.type ~= "resource" then preferred_ent = ent end
       end
       p.selected = preferred_ent
+      --TODO cleanup here with get_selected_ent_deprecated or the such
 
       --Report which part of the entity the cursor covers.
       rendering.draw_circle({

@@ -4042,7 +4042,6 @@ script.on_event("mine-access-sounds", function(event)
    if not players[pindex].in_menu and not players[pindex].vanilla_mode then
       local ent = game.get_player(pindex).selected
       if ent and ent.valid and (ent.prototype.mineable_properties.products ~= nil) and ent.type ~= "resource" then
-         game.get_player(pindex).selected = ent
          game.get_player(pindex).play_sound({ path = "player-mine" })
       elseif ent and ent.valid and ent.name == "character-corpse" then
          printout("Collecting items ", pindex)
