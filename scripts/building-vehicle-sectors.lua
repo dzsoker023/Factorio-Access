@@ -81,7 +81,6 @@ function mod.open_operable_building(ent, pindex)
       then
          game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
          printout("Building is out of player reach", pindex)
-         game.get_player(pindex).selected = nil
          game.get_player(pindex).opened = nil
          return
       end
@@ -271,7 +270,6 @@ function mod.open_operable_vehicle(ent, pindex)
          > game.get_player(pindex).reach_distance
       then
          game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
-         game.get_player(pindex).selected = nil
          game.get_player(pindex).opened = nil
          printout("Vehicle is out of player reach", pindex)
          return
