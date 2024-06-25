@@ -486,20 +486,25 @@ end
 
 --Sort scanner list entries by distance from the reference position, or by total count
 function mod.list_sort(pindex)
+   --First check for invalid entries in the list. If there are any, then rescan.
    for i, name in ipairs(players[pindex].nearby.ents) do
-      local i1 = 1
-      while i1 <= #name.ents do --this appears to be removing invalid ents within a set.
-         if name.ents[i1] == nil or (name.ents[i1].valid == false and name.aggregate == false) then
-            table.remove(name.ents, i1)
-         else
-            i1 = i1 + 1
+      for j, ent_j in ipairs(name.ents) do --this appears to be removing invalid ents within a set.
+         if ent_j == nil or ent_j.valid == false or (ent_j.valid == nil and ent_j.aggregate == false) then
+            --Just rescan
+            mod.run_scanner_effects(pindex)
+            mod.run_scan(pindex, nil, true)
+            return
          end
       end
-      if #name.ents == 0 then --this appears to be removing a set that has become empty.
-         table.remove(players[pindex].nearby.ents, i)
+      if #name.ents == 0 then
+         --Just rescan
+         mod.run_scanner_effects(pindex)
+         mod.run_scan(pindex, nil, true)
+         return
       end
    end
 
+   --Check sorting type (count or distance)
    if players[pindex].nearby.count == false then
       --Sort by distance to player position
       table.sort(players[pindex].nearby.ents, function(k1, k2)
@@ -716,6 +721,7 @@ function mod.list_index(pindex)
          if a ~= nil then players[pindex].cursor_pos = ent.position end
          --Select curved rails from the center because of their irregular shapes
          if ent.name == "curved-rail" then players[pindex].cursor_pos = ent.position end
+         --Select splitters from the center because for some reason their northwest corner is off center
          --Select vehicles from the center because they have orientation rather than direction and so the northwest corner does not apply
          if ent.type == "car" or ent.type == "spider-vehicle" or ent.train ~= nil then
             players[pindex].cursor_pos = ent.position
