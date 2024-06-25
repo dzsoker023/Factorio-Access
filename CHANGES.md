@@ -1,9 +1,8 @@
-Version 0.12 BETA
-
+# Version 0.12 BETA
 Not yet released.
 
 ## Summary
-- WIP
+- After a detailed writeup by @ahicks and several community discussions, this update covers many topics. Most siginificantly, it adds support for the copy paste tool. Among other things, it enhances cursor skipping and improves building functions and various info tools. The update also fixes several crashes and bugs.
 
 ## Features
 - Added support for the copy-paste tool, which is activated with `CONTROL + C`.
@@ -21,6 +20,7 @@ Not yet released.
 ## Changes
 - Changed two keybinds:
   * Toggling the walking mode is now done with `ALT + W` instead of `CONTROL + W`.
+  * Structure travel is now activated using `ALT + CONTROL + SHIFT + S`. 
   
 - Revised the opening and closing behavior of remote view to make it properly act as an extension of cursor mode:
   * Whether you open or close cursor mode or remote view, the selected tile is read.
@@ -43,15 +43,15 @@ Not yet released.
 
 - When simple obstacles such as trees and rocks are preventing you from placing a blueprint, nearby ones are mined and now also the far away ones get marked for deconstruction, which allows placing ghosts over them.
 
+- When build lock is enabled, building over the player no longer teleports the player out of the way, and plays an extra alert beep instead.
+
+- Any case of building over a player who is walking no longer teleports them out of the way.
+
 - A player inventory opened from inside a building can now be searched. Note that this has bug such that searching other menus after this requires re-opening the building's menu.
 
 - Pipes and storage tanks now report their fluid counts immediately when selected, rounded to the nearest whole number.
 
 - Flying text in multiplayer now has a shorter range so that you need to be standing within 10 tiles of someone else to hear their flying text.
-
-- When build lock is enabled, building over the player no longer teleports the player out of the way, and plays an extra alert beep instead.
-
-- Any case of building over a player who is walking no longer teleports them out of the way.
 
 - Improved item production stats info so that it also mentions consumption counts.
 
@@ -77,7 +77,7 @@ Not yet released.
 
 - Fixed a crash when reading technology descriptions when there are too many rewards for localization to handle.
 
-- Fixed cursor skip failing to distinguish connected ore patches.
+- Fixed cursor skip failing to distinguish between connected ore patches.
 
 - Fixed missing sounds to indicate wrapping around the edge of a recipe list or a player inventory opened from within a building menu.
 
