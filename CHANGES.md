@@ -1,4 +1,5 @@
-# Version 0.11.3 BETA
+Version 0.12 BETA
+
 Not yet released.
 
 ## Summary
@@ -11,15 +12,22 @@ Not yet released.
   * If you press `CONTROL + V` you can get back the last temporary blueprint into hand.
   * This system uses the player clipboard so if you `hold CONTROL and scroll the mouse wheel` it will load older clipboard blueprints but detailed info about this is not supported.
 
-- You can now set the filters of infinity chests. Like for splitters, you do this by taking the set item in hand and pressing CONTROL + LEFT BRACKET. 
+- You can now set the filters of infinity chests. Like for splitters, you do this by taking the set item in hand and pressing CONTROL + LEFT BRACKET.
 
 - Added a new type of curser jumping called "move by preview size".
   * When you have a blueprint or building preview in hand, press `SHIFT + W/A/S/D` to jump by the respective preview size.
   * If the hand is empty or does not have a preview, then the jump is equal to the cursor size.
 
 ## Changes
-- Changed two keybinds;
+- Changed two keybinds:
   * Toggling the walking mode is now done with `ALT + W` instead of `CONTROL + W`.
+  
+- Revised the opening and closing behavior of remote view to make it properly act as an extension of cursor mode:
+  * Whether you open or close cursor mode or remote view, the selected tile is read.
+  * Opening cursor mode has no effect on remote view, because it is an additional system.
+  * Opening remote view always opens cursor mode, because it is a dependency, and keeps the cursor in place.
+  * Closing remote view restores the usual cursor mode, and keeps the cursor in place.
+  * Closing cursor mode returns the cursor to the player and forces the closing of remote view, which depends on cursor mode.
 
 - Improved accuracy of transport belt carried item assumptions such that the word "assumed" can be dropped.
 
@@ -29,7 +37,7 @@ Not yet released.
 
 - Reading tutorial step summaries now also includes the current step and chapter count at the end.
 
-- Cursor skipping now ignores flying robots.
+- Cursor skipping now ignores flying robots and remnants such as tree stumps and destroyed objects.
 
 - When an obstacle prevents building, it position is now revealed too along with its name.
 
@@ -37,7 +45,7 @@ Not yet released.
 
 - A player inventory opened from inside a building can now be searched. Note that this has bug such that searching other menus after this requires re-opening the building's menu.
 
-- Pipes and storage tanks now report their fluid counts immediately when selected.
+- Pipes and storage tanks now report their fluid counts immediately when selected, rounded to the nearest whole number.
 
 - Flying text in multiplayer now has a shorter range so that you need to be standing within 10 tiles of someone else to hear their flying text.
 
@@ -45,12 +53,24 @@ Not yet released.
 
 - Any case of building over a player who is walking no longer teleports them out of the way.
 
-- Code cleanup. 
+- Improved item production stats info so that it also mentions consumption counts.
+
+- Modified teleporting restrictions such that you can now teleport as close as 1 tile away.
+
+- Improved the descriptions of some items like planner tools.
+
+- Code cleanup.
   * Created some new Lua modules to help empty out "control.lua".
   * Remove deprecated & redundant jump-to-scan feature since the scan list does this automatically now.
   * Improved comments about many of the shape drawing functions.
+  * The information for contributors document has been moved to a wiki page.
+  * Moved some data stage modifications to a later part of the stage.
 
 ## Bugfixes
+- Fixed an old crash while sorting the scan list without running a new scan. The game now forces a rescan if anything on the last is invalid.
+
+- Fixed a bug where selecting an entity from the scan list would land the cursor slightly outside of the entity's covered area.
+
 - Fixed a crash while selecting a new instance of the same scan list entry.
 
 - Fixed a server mode crash due to failed localizations.
@@ -62,6 +82,7 @@ Not yet released.
 - Fixed missing sounds to indicate wrapping around the edge of a recipe list or a player inventory opened from within a building menu.
 
 - Fixed a Kruise Kontrol prediction crash related to rail ghosts.
+
 
 # Version 0.11.2 BETA
 Released on May 17th, 2024.
