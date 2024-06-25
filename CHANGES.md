@@ -21,6 +21,10 @@ Not yet released.
 - Changed two keybinds:
   * Toggling the walking mode is now done with `ALT + W` instead of `CONTROL + W`.
   * Structure travel is now activated using `ALT + CONTROL + SHIFT + S`. 
+
+- Launcher changes:
+  * Cliffs can now be disabled properly.
+  * Lots of progress made under the hood towards better mod support.
   
 - Revised the opening and closing behavior of remote view to make it properly act as an extension of cursor mode:
   * Whether you open or close cursor mode or remote view, the selected tile is read.
