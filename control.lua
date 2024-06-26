@@ -5718,8 +5718,9 @@ end)
 script.on_event("read-entity-status", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
+   if players[pindex].menu == "crafting" or players[pindex].menu == "crafting_queue" then return end
    local result = fa_info.read_selected_entity_status(pindex)
-   printout(result, pindex)
+   if result ~= nil and result ~= "" then printout(result, pindex) end
 end)
 
 script.on_event("rotate-building", function(event)
