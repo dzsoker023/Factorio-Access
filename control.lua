@@ -2393,8 +2393,10 @@ function move_characters(event)
                or stack.is_blueprint
                or stack.is_deconstruction_item
                or stack.is_upgrade_item
+               or stack.prototype.type == "selection-tool"
+               or stack.prototype.type == "copy-paste-tool"
             then
-               --Force the pointer to the build preview location
+               --Force the pointer to the build preview location (and draw selection tool boxes)
                fa_graphics.sync_build_cursor_graphics(pindex)
             else
                --Force the pointer to the cursor location (if on screen)
