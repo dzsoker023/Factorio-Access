@@ -87,6 +87,10 @@ Released on June 28th, 2024.
 
 - Fixed a Kruise Kontrol prediction crash related to rail ghosts.
 
+- Fixed a bug that made temporary items such as empty blueprints leak into the inventory when swapping stacks around.
+
+- Corrected the cursor to jump to the player when they respawn.
+
 
 # Version 0.11.2 BETA
 Released on May 17th, 2024.

@@ -88,6 +88,10 @@ Date: 2024.06.28
 
     - Fixed a Kruise Kontrol prediction crash related to rail ghosts.
 
+    - Fixed a bug that made temporary items such as empty blueprints leak into the inventory when swapping stacks around.
+
+    - Corrected the cursor to jump to the player when they respawn.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.11.2
 Date: 2024.05.17
