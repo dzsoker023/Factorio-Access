@@ -8088,6 +8088,12 @@ end)
 
 script.on_event(defines.events.on_string_translated, fa_localising.handler)
 
+script.on_event(defines.events.on_player_respawned, function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   players[pindex].cursor_pos = game.get_player(pindex).position
+end)
+
 --If the player has unexpected lateral movement while smooth running in a cardinal direction, like from bumping into an entity or being at the edge of water, play a sound.
 function check_and_play_bump_alert_sound(pindex, this_tick)
    if not check_for_player(pindex) or players[pindex].menu == "prompt" then return end
