@@ -6825,7 +6825,7 @@ function cursor_skip(pindex, direction, iteration_limit, use_preview_size)
    local moved_count = 0
    if skip_by_preview_size == true then
       moved_count = apply_skip_by_preview_size(pindex, direction)
-      result = "Skipped by preview size "
+      result = "Skipped by preview size " .. moved_count .. ", "
    else
       moved_count = cursor_skip_iteration(pindex, direction, limit)
       result = "Skipped "
@@ -7065,7 +7065,7 @@ function apply_skip_by_preview_size(pindex, direction)
    end
 
    --Offset by cursor size if not something else
-   local shift = players[pindex].cursor_size
+   local shift = (players[pindex].cursor_size * 2 + 1)
    players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, shift)
    return shift
 end
