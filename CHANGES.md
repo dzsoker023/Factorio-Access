@@ -9,12 +9,12 @@ Not yet released.
   * If you select an area with the copy-paste tool, you get a nameless temporary blueprint that is deleted when you let go of it, unless you add a name or description to it.
   * Selecting nothing will keep the blank copy tool in hand.
   * If you press `CONTROL + V` you can get back the last temporary blueprint into hand.
-  * This system uses the player clipboard so if you `hold CONTROL and scroll the mouse wheel` it will load older clipboard blueprints but detailed info about this is not supported.
+  * This system uses the player clipboard so if you `hold SHIFT and scroll the mouse wheel` it will load older or newer clipboard blueprints but detailed info about this is not supported.
 
 - You can now set the filters of infinity chests. Like for splitters, you do this by taking the set item in hand and pressing CONTROL + LEFT BRACKET.
 
 - Added a new type of curser jumping called "move by preview size".
-  * When you have a blueprint or building preview in hand, press `SHIFT + W/A/S/D` to jump by the respective preview size.
+  * When you have a blueprint or building preview in hand, press `CONTROL + W/A/S/D` to jump by the respective preview size.
   * If the hand is empty or does not have a preview, then the jump is equal to the cursor size.
 
 ## Changes

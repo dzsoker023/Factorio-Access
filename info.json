@@ -1,10 +1,15 @@
 {
      "name": "FactorioAccess",
-     "version": "0.11.2",
+     "version": "0.12.0",
      "title": "Factorio Access Mod",
      "author": "Crimso, SirFendi, Gweneph",
      "homepage": "https://github.com/Factorio-Access/FactorioAccess",
-     "description":"This mod makes the game accessible to the blind and visually impaired, by converting visual features into audio features. Note that running this mod fully requires some config changes, as well as the mod's own launcher from the GitHub releases.",
+     "description": "This mod makes the game accessible to the blind and visually impaired, by converting visual features into audio features. Note that running this mod fully requires some config changes, as well as the mod's own launcher from the GitHub releases.",
      "factorio_version": "1.1",
-     "dependencies": ["? stop-on-red", "? VehicleSnap", "? PavementDriveAssistContinued", "? Kruise_Kontrol_Updated"]
+     "dependencies": [
+          "? stop-on-red",
+          "? VehicleSnap",
+          "? PavementDriveAssistContinued",
+          "? Kruise_Kontrol_Updated"
+     ]
 }
