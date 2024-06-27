@@ -273,6 +273,7 @@ function mod.ent_info(pindex, ent, description)
          end
          --check contents
          --Ignore multiple input belts, ghosts, circuit connected transport belts, and belts with inserters near them
+         --Also do not assume this belt if the next belt is a stopping end (has no exits)
          if
             next_belt ~= nil
             and next_belt.valid
@@ -285,6 +286,7 @@ function mod.ent_info(pindex, ent, description)
                   and next_belt.get_circuit_network(defines.wire_type.green) == nil
                )
             )
+            and #next_belt.belt_neighbours["outputs"] > 0
             and ent.get_circuit_network(defines.wire_type.red) == nil
             and ent.get_circuit_network(defines.wire_type.green) == nil
             and (next_belt_nearby_inserters == nil or #next_belt_nearby_inserters == 0)
