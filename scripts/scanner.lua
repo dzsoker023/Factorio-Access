@@ -2,6 +2,7 @@
 --Does not include event handlers directly, but can have functions called by them.
 local util = require("util")
 local fa_utils = require("scripts.fa-utils")
+local fa_mouse = require("scripts.mouse")
 local localising = require("scripts.localising")
 local dirs = defines.direction
 local fa_graphics = require("scripts.graphics")
@@ -196,7 +197,7 @@ function mod.scan_area(x, y, w, h, pindex, filter_direction, start_with_existing
             --If it is a forest, check density
             if name == "forest" then
                local forest_pos = nearest_edge
-               forest_density = mod.classify_forest(forest_pos, pindex, false)
+               forest_density = mod.classify_forest(forest_pos, pindex, false, false)
             else
                forest_density = nil
             end
@@ -485,20 +486,25 @@ end
 
 --Sort scanner list entries by distance from the reference position, or by total count
 function mod.list_sort(pindex)
+   --First check for invalid entries in the list. If there are any, then rescan.
    for i, name in ipairs(players[pindex].nearby.ents) do
-      local i1 = 1
-      while i1 <= #name.ents do --this appears to be removing invalid ents within a set.
-         if name.ents[i1] == nil or (name.ents[i1].valid == false and name.aggregate == false) then
-            table.remove(name.ents, i1)
-         else
-            i1 = i1 + 1
+      for j, ent_j in ipairs(name.ents) do --this appears to be removing invalid ents within a set.
+         if ent_j == nil or ent_j.valid == false or (ent_j.valid == nil and ent_j.aggregate == false) then
+            --Just rescan
+            mod.run_scanner_effects(pindex)
+            mod.run_scan(pindex, nil, true)
+            return
          end
       end
-      if #name.ents == 0 then --this appears to be removing a set that has become empty.
-         table.remove(players[pindex].nearby.ents, i)
+      if #name.ents == 0 then
+         --Just rescan
+         mod.run_scanner_effects(pindex)
+         mod.run_scan(pindex, nil, true)
+         return
       end
    end
 
+   --Check sorting type (count or distance)
    if players[pindex].nearby.count == false then
       --Sort by distance to player position
       table.sort(players[pindex].nearby.ents, function(k1, k2)
@@ -707,13 +713,21 @@ function mod.list_index(pindex)
             printout("Error: This object is no longer valid. Try rescanning.", pindex)
             return
          end
-         --Select northwest corner unless it is a spaceship wreck or curved rail
+         --Select the northwest corner of the entity
          players[pindex].cursor_pos = fa_utils.get_ent_northwest_corner_position(ent)
+         --Select spaceship wreck pieces from the center because of their irregular shapes
          local check = ent.name
          local a = string.find(check, "spaceship")
          if a ~= nil then players[pindex].cursor_pos = ent.position end
+         --Select curved rails from the center because of their irregular shapes
          if ent.name == "curved-rail" then players[pindex].cursor_pos = ent.position end
-         fa_graphics.draw_cursor_highlight(pindex, ent, "train-visualization") --focus on scanned item
+         --Select splitters from the center because for some reason their northwest corner is off center
+         --Select vehicles from the center because they have orientation rather than direction and so the northwest corner does not apply
+         if ent.type == "car" or ent.type == "spider-vehicle" or ent.train ~= nil then
+            players[pindex].cursor_pos = ent.position
+         end
+         --Update cursor graphics
+         fa_graphics.draw_cursor_highlight(pindex, ent, "train-visualization")
          fa_graphics.sync_build_cursor_graphics(pindex)
          players[pindex].last_indexed_ent = ent
       else
@@ -774,7 +788,7 @@ function mod.list_index(pindex)
          local final_result = { "" }
          table.insert(final_result, result)
          table.insert(final_result, ", ")
-         table.insert(final_result, cursor_visibility_info(pindex))
+         table.insert(final_result, fa_mouse.cursor_visibility_info(pindex))
          printout(final_result, pindex)
       else
          --Read the entity in terms of count, and give the direction and distance of an example
@@ -786,7 +800,7 @@ function mod.list_index(pindex)
          local final_result = { "" }
          table.insert(final_result, result)
          table.insert(final_result, ", ")
-         table.insert(final_result, cursor_visibility_info(pindex))
+         table.insert(final_result, fa_mouse.cursor_visibility_info(pindex))
          printout(final_result, pindex)
       end
    end
@@ -846,6 +860,37 @@ function mod.list_current(pindex)
    end)) then
       table.remove(ents, players[pindex].nearby.index)
       mod.list_current(pindex)
+   end
+end
+
+--Switch to the previous instance of this scanner list entry
+function mod.selection_up(pindex)
+   if not players[pindex].in_menu then
+      if players[pindex].nearby.selection > 1 then
+         players[pindex].nearby.selection = players[pindex].nearby.selection - 1
+      else
+         game.get_player(pindex).play_sound({ path = "inventory-edge" })
+         players[pindex].nearby.selection = 1
+      end
+      mod.list_index(pindex)
+   end
+end
+
+--Switch to the next instance of this scanner list entry
+function mod.selection_down(pindex)
+   if not players[pindex].in_menu then
+      local ents = get_ents_of_scanner_category(players[pindex].nearby.category)
+      if next(ents) == nil then
+         printout("No entities found.  Try refreshing with end key.", pindex)
+      else
+         if players[pindex].nearby.selection < #ents[players[pindex].nearby.index].ents then
+            players[pindex].nearby.selection = players[pindex].nearby.selection + 1
+         else
+            game.get_player(pindex).play_sound({ path = "inventory-edge" })
+            players[pindex].nearby.selection = #ents[players[pindex].nearby.index].ents
+         end
+      end
+      mod.list_index(pindex)
    end
 end
 
@@ -1110,7 +1155,7 @@ function mod.ent_extra_list_info(ent, pindex, info_comes_after_indexing)
       result = result .. " " .. ent.backer_name
    elseif ent.name == "forest" then
       --Forest type by density
-      result = result .. mod.classify_forest(ent.position, pindex, true)
+      result = result .. mod.classify_forest(ent.position, pindex, true, false)
    elseif ent.name == "roboport" then
       --Roboport network name
       result = result .. " of network " .. fa_bot_logistics.get_network_name(ent)
@@ -1142,12 +1187,13 @@ function mod.ent_extra_list_info(ent, pindex, info_comes_after_indexing)
 end
 
 --Examines a forest position and classifies it by tree density. Used for the scanner list.
-function mod.classify_forest(position, pindex, drawing)
+function mod.classify_forest(position, pindex, drawing_forest, drawing_trees)
    local tree_count = 0
    local tree_group = game
       .get_player(pindex).surface
       .find_entities_filtered({ type = "tree", position = position, radius = 16, limit = 15 })
-   if drawing then
+   if drawing_forest == true then
+      --Draw the forest checking boundaries
       rendering.draw_circle({
          color = { 0, 1, 0.25 },
          radius = 16,
@@ -1158,9 +1204,10 @@ function mod.classify_forest(position, pindex, drawing)
          draw_on_ground = true,
       })
    end
-   for i, tree in ipairs(tree_group) do
-      tree_count = tree_count + 1
-      if drawing then
+   if tree_group then tree_count = #tree_group end
+   if drawing_trees == true then
+      for i, tree in ipairs(tree_group) do
+         --Draw the trees identified
          rendering.draw_circle({
             color = { 0, 1, 0.5 },
             radius = 1,

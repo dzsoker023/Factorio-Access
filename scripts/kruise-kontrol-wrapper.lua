@@ -163,7 +163,20 @@ function mod.status_update(pindex)
          local ghost_count = #ghosts
          local ignore_count = 0
          for i, ghost in ipairs(ghosts) do
-            if p.get_main_inventory().get_item_count(ghost.ghost_name) == 0 then
+            local amount_required = 1
+            local inv_query = ghost.ghost_name
+
+            -- Address Special cases where item name not equals entity name, like for rails and curved rails
+            --NOTE: A ghost that requires more than one item to build (never in vanilla) is not fully checked
+            if
+               ghost.ghost_prototype.items_to_place_this
+               and ghost.ghost_prototype.items_to_place_this[1].name ~= inv_query
+            then
+               inv_query = ghost.ghost_prototype.items_to_place_this[1].name
+               amount_required = ghost.ghost_prototype.items_to_place_this[1].count
+            end
+
+            if p.get_main_inventory().get_item_count(inv_query) < amount_required then
                ignore_count = ignore_count + 1
             else
                --Still going to build it

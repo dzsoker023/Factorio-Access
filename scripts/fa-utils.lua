@@ -306,6 +306,8 @@ function mod.is_ent_inside_area(ent_name, area_left_top, area_right_bottom, pind
 end
 
 --Returns the map position of the northwest corner of an entity.
+--NOTE: If the calculation result gives a tile that does not touch the ent, then the ent's own position is returned instead.
+--TODO fix the calculation (several attempts have failed so far because fixing it for one group of ents breaks it for others).
 function mod.get_ent_northwest_corner_position(ent)
    if ent.valid == false or ent.tile_width == nil then return ent.position end
    local width = ent.tile_width
@@ -314,9 +316,25 @@ function mod.get_ent_northwest_corner_position(ent)
       width = ent.tile_height
       height = ent.tile_width
    end
-   local pos =
-      mod.center_of_tile({ x = ent.position.x - math.floor(width / 2), y = ent.position.y - math.floor(height / 2) })
-   --rendering.draw_rectangle{color = {0.75,1,1,0.75}, surface = ent.surface, draw_on_ground = true, players = nil, width = 2, left_top = {math.floor(pos.x)+0.05,math.floor(pos.y)+0.05}, right_bottom = {math.ceil(pos.x)-0.05,math.ceil(pos.y)-0.05}, time_to_live = 30}
+   local pos = mod.center_of_tile({
+      x = ent.position.x - math.floor(width / 2),
+      y = ent.position.y - math.floor(height / 2),
+   })
+   --Error correction:
+   --When the northwest corner selection has missed the ent for some reason, the ent position is used instead.
+   local surf = ent.surface
+   local pos_contains_ent = false
+   local pos_ents = surf.find_entities_filtered({ position = pos })
+   if pos_ents == nil or #pos_ents == 0 then
+      pos_contains_ent = false
+   else
+      for i, e in ipairs(pos_ents) do
+         if e.unit_number == ent.unit_number then pos_contains_ent = true end
+      end
+   end
+   if pos_contains_ent == false then pos = mod.center_of_tile(ent.position) end
+
+   --Return the pos
    return pos
 end
 
@@ -349,6 +367,7 @@ function mod.get_entity_part_at_cursor(pindex)
          if ent.valid and ent.type ~= "resource" then preferred_ent = ent end
       end
       p.selected = preferred_ent
+      --TODO cleanup here with get_selected_ent_deprecated or the such
 
       --Report which part of the entity the cursor covers.
       rendering.draw_circle({
@@ -488,6 +507,16 @@ function mod.nearest_edge(edges, pos, name)
       result.y = result.y * 8 - 4
    end
    return result
+end
+
+--Checks whether a rectangle defined by the two points falls fully within the rectangular range value
+function mod.is_rectangle_fully_within_player_range(pindex, left_top, right_bottom, range)
+   local pos = game.get_player(pindex).position
+   if math.abs(left_top.x - pos.x) > range then return false end
+   if math.abs(left_top.y - pos.y) > range then return false end
+   if math.abs(right_bottom.x - pos.x) > range then return false end
+   if math.abs(right_bottom.y - pos.y) > range then return false end
+   return true
 end
 
 function mod.scale_area(area, factor)
@@ -685,8 +714,20 @@ function mod.ent_name_locale(ent)
       print("todo: forest isn't an entity")
       return { "access.forest" }
    end
-   if not game.entity_prototypes[ent.name] then error(ent.name .. " is not an entity") end
-   return ent.localised_name or game.entity_prototypes[ent.name].localised_name
+   local entity_prototype = game.entity_prototypes[ent.name]
+   local resource_prototype = game.resource_category_prototypes[ent.name]
+   local name = nil
+   if ent.localised_name == nil and entity_prototype == nil and resource_prototype == nil then
+      print("todo: " .. ent.name .. " is not an entity")
+      name = ent.name .. " (localising error)"
+   elseif ent.localised_name then
+      name = ent.localised_name
+   elseif entity_prototype then
+      name = entity_prototype.localised_name
+   elseif resource_prototype then
+      name = resource_prototype.localised_name
+   end
+   return name
 end
 
 --small utility function for getting the index of a named object from an array of objects.
@@ -888,6 +929,22 @@ function mod.player_was_still_for_1_second(pindex)
       --Confirmed some movement in the past 60 ticks
       return false
    end
+end
+
+-- Given a list of items which may be stringified, concatenate them all together
+-- with a space between, efficiently.
+mod.spacecat = function(...)
+   local tab = table.pack(...)
+   local will_cat = {}
+
+   for i = 1, tab.n do
+      local ent = tab[i]
+      local stringified = tostring(ent)
+      if stringified == nil then stringified = "NIL!" end
+      table.insert(will_cat, stringified)
+   end
+
+   return table.concat(will_cat, " ")
 end
 
 return mod

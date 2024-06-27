@@ -81,7 +81,6 @@ function mod.open_operable_building(ent, pindex)
       then
          game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
          printout("Building is out of player reach", pindex)
-         game.get_player(pindex).selected = nil
          game.get_player(pindex).opened = nil
          return
       end
@@ -211,6 +210,8 @@ function mod.open_operable_building(ent, pindex)
          players[pindex].move_queue = {}
          players[pindex].inventory.index = 1
          players[pindex].building.index = 1
+         local pb = players[pindex].building
+         players[pindex].building.sector_name = pb.sectors[pb.sector].name
 
          --For assembling machine types with no recipe, open recipe building sector directly
          local recipe = players[pindex].building.recipe
@@ -223,6 +224,7 @@ function mod.open_operable_building(ent, pindex)
             players[pindex].building.index = 1
             players[pindex].building.category = 1
             players[pindex].building.recipe_selection = false
+            players[pindex].building.sector_name = "unloaded recipe selection"
 
             players[pindex].building.item_selection = false
             players[pindex].item_selection = false
@@ -268,7 +270,6 @@ function mod.open_operable_vehicle(ent, pindex)
          > game.get_player(pindex).reach_distance
       then
          game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
-         game.get_player(pindex).selected = nil
          game.get_player(pindex).opened = nil
          printout("Vehicle is out of player reach", pindex)
          return
@@ -361,6 +362,8 @@ function mod.open_operable_vehicle(ent, pindex)
          players[pindex].move_queue = {}
          players[pindex].inventory.index = 1
          players[pindex].building.index = 1
+         local pb = players[pindex].building
+         players[pindex].building.sector_name = pb.sectors[pb.sector].name
 
          mod.read_sector_slot(pindex, true)
       else

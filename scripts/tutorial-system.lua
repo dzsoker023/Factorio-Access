@@ -18,13 +18,13 @@ function mod.load_tutorial(pindex)
    local CHAPTER_4_LENGTH = 36
    local CHAPTER_5_LENGTH = 34
    local CHAPTER_6_LENGTH = 24
-   local CHAPTER_7_LENGTH = 45
+   local CHAPTER_7_LENGTH = 47
    local CHAPTER_8_LENGTH = 26
    local CHAPTER_9_LENGTH = 37
    local CHAPTER_10_LENGTH = 37
    local CHAPTER_11_LENGTH = 37
    local CHAPTER_12_LENGTH = 14
-   local CHAPTER_13_LENGTH = 25
+   local CHAPTER_13_LENGTH = 26
 
    tutorial.chapter_lengths = {
       CHAPTER_1_LENGTH,
@@ -256,21 +256,16 @@ function mod.next_chapter(pindex)
    mod.run_tutorial_menu(pindex, players[pindex].tutorial.reading_the_header, players[pindex].tutorial.clicked)
 end
 
+--Read the header part of a step, which inlcudes its header text (summary) and its step count.
 function mod.read_current_header(pindex)
    local tutorial = players[pindex].tutorial
    local i = tutorial.chapter_index
    local j = tutorial.step_index
    local str = tutorial.step_headers[i][j]
+   local str2 = ", tutorial step " .. j .. " of " .. tutorial.chapter_lengths[i] .. " in chapter " .. i
+   str = { "", str, str2 }
    printout(str, pindex)
-   game.get_player(pindex).print(
-      "Tutorial message summary, chapter "
-         .. players[pindex].tutorial.chapter_index
-         .. " , step "
-         .. players[pindex].tutorial.step_index
-         .. ": ",
-      { volume_modifier = 0 }
-   ) --
-   game.get_player(pindex).print(str, { volume_modifier = 0 }) --
+   game.get_player(pindex).print(str, { volume_modifier = 0 })
 end
 
 function mod.read_current_detail(pindex)
@@ -310,7 +305,7 @@ function mod.run_tutorial_menu(pindex, reading_the_header, clicked)
          game.get_player(pindex).print(tutorial.chapter_0_headers[step], { volume_modifier = 0 })
       end
 
-      --Give rocket fuel
+      --Give starting fuel
       if players[pindex].tutorial.starting_fuel_provided ~= true then p.insert({ name = "coal", count = 50 }) end
 
       --Reload tutorial

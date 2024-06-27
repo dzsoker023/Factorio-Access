@@ -30,7 +30,7 @@ function mod.try_to_mine_with_soun(ent, pindex)
    end
 end
 
---Mines all trees and rocks and ground items in a selected circular area. Useful when placing structures. Forces mining. laterdo add deleting stumps maybe but they do fade away eventually
+--Mines all simple obstacles selected the selected area. This includes trees, rocks, remnants, and ground items. Useful when placing structures. Forces mining.
 function mod.clear_obstacles_in_circle(position, radius, pindex)
    local surf = game.get_player(pindex).surface
    local comment = ""
@@ -122,6 +122,7 @@ function mod.clear_obstacles_in_circle(position, radius, pindex)
          .. ground_items_cleared
          .. " ground items "
    end
+   --Draw the area being cleared
    rendering.draw_circle({
       color = { 0, 1, 0 },
       radius = radius,
@@ -133,14 +134,19 @@ function mod.clear_obstacles_in_circle(position, radius, pindex)
    return (trees_cleared + rocks_cleared + remnants_cleared + ground_items_cleared), comment
 end
 
---Same as function above for a circle, but the area is defined differently
-function mod.clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
-   local surf = game.get_player(pindex).surface
+--Mines all simple obstacles in the selected area. This includes trees, rocks, remnants, and ground items.
+--Useful when placing structures. Forces mining.
+--If an obstacle is beyond the mining_range (default is 99), the object gets marked for deconstruction instead.
+function mod.clear_obstacles_in_rectangle(left_top, right_bottom, pindex, mining_range_in)
+   local p = game.get_player(pindex)
+   local surf = p.surface
+   local mining_range = mining_range_in or 99
    local comment = ""
    local trees_cleared = 0
    local rocks_cleared = 0
    local remnants_cleared = 0
    local ground_items_cleared = 0
+   local deconstruction_counter = 0
    players[pindex].allow_reading_flying_text = false
 
    --Check for valid positions
@@ -157,8 +163,13 @@ function mod.clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
          surface = tree_ent.surface,
          time_to_live = 60,
       })
-      game.get_player(pindex).mine_entity(tree_ent, true)
-      trees_cleared = trees_cleared + 1
+      if util.distance(p.position, tree_ent.position) < mining_range then
+         p.mine_entity(tree_ent, true)
+         trees_cleared = trees_cleared + 1
+      else
+         tree_ent.order_deconstruction(p.force, p)
+         deconstruction_counter = deconstruction_counter + 1
+      end
    end
 
    --Find and mine rocks. Note that they are resource entities with specific names
@@ -176,12 +187,17 @@ function mod.clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
             surface = resource_ent.surface,
             time_to_live = 60,
          })
-         game.get_player(pindex).mine_entity(resource_ent, true)
-         rocks_cleared = rocks_cleared + 1
+         if util.distance(p.position, resource_ent.position) < mining_range then
+            p.mine_entity(resource_ent, true)
+            rocks_cleared = rocks_cleared + 1
+         else
+            resource_ent.order_deconstruction(p.force, p)
+            deconstruction_counter = deconstruction_counter + 1
+         end
       end
    end
 
-   --Find and mine corpse entities such as building remnants
+   --Find and destroy corpse entities such as building remnants
    local remnant_ents =
       surf.find_entities_filtered({ area = { left_top, right_bottom }, name = ENT_NAMES_CLEARED_AS_OBSTACLES })
    for i, remnant_ent in ipairs(remnant_ents) do
@@ -211,8 +227,13 @@ function mod.clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
          surface = surf,
          time_to_live = 60,
       })
-      game.get_player(pindex).mine_entity(ground_item, true)
-      ground_items_cleared = ground_items_cleared + 1
+      if util.distance(p.position, ground_item.position) < mining_range then
+         p.mine_entity(ground_item, true)
+         ground_items_cleared = ground_items_cleared + 1
+      else
+         ground_item.order_deconstruction(p.force, p)
+         deconstruction_counter = deconstruction_counter + 1
+      end
    end
 
    if trees_cleared + rocks_cleared + ground_items_cleared + remnants_cleared > 0 then
@@ -224,9 +245,14 @@ function mod.clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
          .. remnants_cleared
          .. " remnants and "
          .. ground_items_cleared
-         .. " ground items "
+         .. " ground items"
+   end
+   if deconstruction_counter > 0 then
+      if comment ~= "" then comment = comment .. ", " end
+      comment = comment .. deconstruction_counter .. " objects marked for deconstruction"
    end
    if not players[pindex].hide_cursor then
+      --Uncomment here to draw the area being cleared
       --rendering.draw_rectangle{color = {0, 1, 0, 0.5}, left_top = left_top, right_bottom = right_bottom, width = 4, surface = surf, time_to_live = 60, draw_on_ground = true}
    end
    return (trees_cleared + rocks_cleared + remnants_cleared + ground_items_cleared), comment

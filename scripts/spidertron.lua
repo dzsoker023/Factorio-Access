@@ -8,7 +8,7 @@ function mod.run_spider_menu(menu_index, pindex, spiderin, clicked, other_input)
    local spider
    local remote = game.get_player(pindex).cursor_stack
    local other = other_input or -1
-   local cursortarget = get_selected_ent(pindex)
+   local cursortarget = game.get_player(pindex).selected
    local spidertron = game.get_player(pindex).cursor_stack.connected_entity
    if spiderin ~= nil then spider = spiderin end
    if index == 0 then

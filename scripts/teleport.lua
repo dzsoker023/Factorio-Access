@@ -29,7 +29,7 @@ function mod.teleport_to_closest(pindex, pos, muted, ignore_enemies)
    if first_player.vehicle ~= nil and first_player.vehicle.valid then
       printout("Cannot teleport while in a vehicle.", pindex)
       return false
-   elseif util.distance(game.get_player(pindex).position, pos) <= 1.5 then
+   elseif util.distance(game.get_player(pindex).position, pos) < 0.6 then
       printout("Already at target", pindex)
       return false
    elseif
@@ -57,7 +57,7 @@ function mod.teleport_to_closest(pindex, pos, muted, ignore_enemies)
    if can_port then
       local old_pos = table.deepcopy(first_player.position)
       if not muted then
-         --Teleporting visuals at origin
+         --Draw teleporting visuals at origin
          rendering.draw_circle({
             color = { 0.8, 0.2, 0.0 },
             radius = 0.5,
@@ -107,7 +107,7 @@ function mod.teleport_to_closest(pindex, pos, muted, ignore_enemies)
          players[pindex].position = table.deepcopy(new_pos)
          reset_bump_stats(pindex)
          if not muted then
-            --Teleporting visuals at target
+            --Draw teleporting visuals at target
             rendering.draw_circle({
                color = { 0.3, 0.3, 0.9 },
                radius = 0.5,

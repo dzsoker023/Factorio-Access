@@ -2,8 +2,8 @@
 --Does not include event handlers
 
 local fa_utils = require("scripts.fa-utils")
+local fa_building_tools = require("scripts.building-tools")
 local fa_mining_tools = require("scripts.mining-tools")
-local localising = require("scripts.localising")
 local dirs = defines.direction
 
 local mod = {}
@@ -111,10 +111,8 @@ function mod.paste_blueprint(pindex)
    --Get the offset blueprint positions
    local left_top, right_bottom, build_pos = mod.get_blueprint_corners(pindex, false)
 
-   --Clear build area (if not far away)
-   if util.distance(p.position, build_pos) < 2 * p.reach_distance then
-      fa_mining_tools.clear_obstacles_in_rectangle(left_top, right_bottom, pindex)
-   end
+   --Clear build area for objects up to a certain range, while others are marked for deconstruction
+   fa_mining_tools.clear_obstacles_in_rectangle(left_top, right_bottom, pindex, 99)
 
    --Build it and check if successful
    local dir = players[pindex].blueprint_hand_direction
@@ -129,36 +127,8 @@ function mod.paste_blueprint(pindex)
    if result == nil or #result == 0 then
       p.play_sound({ path = "utility/cannot_build" })
       --Explain build error
-      local result = "Cannot place there "
       local build_area = { left_top, right_bottom }
-      local ents_in_area =
-         p.surface.find_entities_filtered({ area = build_area, invert = true, type = ENT_TYPES_YOU_CAN_BUILD_OVER })
-      local tiles_in_area = p.surface.find_tiles_filtered({
-         area = build_area,
-         invert = false,
-         name = { "water", "deepwater", "water-green", "deepwater-green", "water-shallow", "water-mud", "water-wube" },
-      })
-      local obstacle_ent_name = nil
-      local obstacle_tile_name = nil
-      --Check for an entity in the way
-      for i, area_ent in ipairs(ents_in_area) do
-         if
-            area_ent.valid
-            and area_ent.prototype.tile_width
-            and area_ent.prototype.tile_width > 0
-            and area_ent.prototype.tile_height
-            and area_ent.prototype.tile_height > 0
-         then
-            obstacle_ent_name = localising.get(area_ent, pindex)
-         end
-      end
-
-      --Report obstacles
-      if obstacle_ent_name ~= nil then
-         result = result .. ", " .. obstacle_ent_name .. " in the way."
-      elseif #tiles_in_area > 0 then
-         result = result .. ", water is in the way."
-      end
+      local result = fa_building_tools.identify_building_obstacle(pindex, build_area, nil)
       printout(result, pindex)
       return false
    else
@@ -168,7 +138,7 @@ function mod.paste_blueprint(pindex)
    end
 end
 
---Returns the left top and right bottom corners of the blueprint
+--Returns the left top and right bottom corners of the blueprint, as well as the center position
 function mod.get_blueprint_corners(pindex, draw_rect)
    local p = game.get_player(pindex)
    local bp = p.cursor_stack
@@ -180,11 +150,10 @@ function mod.get_blueprint_corners(pindex, draw_rect)
    local north_most_y = 0
    local south_most_y = 0
    local first_ent = true
-   --Empty blueprint: Just circle the cursor
+   --Empty blueprint: Just report the tile of the cursor
    if bp.is_blueprint_setup() == false then
       local left_top = { x = math.floor(pos.x), y = math.floor(pos.y) }
       local right_bottom = { x = math.ceil(pos.x), y = math.ceil(pos.y) }
-      --local rect = rendering.draw_rectangle{left_top = left_top, right_bottom = right_bottom, color = {r = 0.25, b = 0.25, g = 1.0, a = 0.75}, draw_on_ground = true, surface = game.get_player(pindex).surface, players = nil }
       return left_top, right_bottom, pos
    end
 
@@ -252,6 +221,7 @@ function mod.get_blueprint_corners(pindex, draw_rect)
    return left_top, right_bottom, mouse_pos
 end
 
+--Returns: bp_width, bp_height
 function mod.get_blueprint_width_and_height(pindex)
    local p = game.get_player(pindex)
    local bp = p.cursor_stack
@@ -1092,6 +1062,35 @@ function mod.blueprint_book_menu_down(pindex)
    --Load menu
    local bpb_menu = players[pindex].blueprint_book_menu
    mod.run_blueprint_book_menu(pindex, bpb_menu.index, bpb_menu.list_mode, false, false)
+end
+
+function mod.copy_selected_area_to_clipboard(pindex, point_1, point_2)
+   local top_left, bottom_right = fa_utils.get_top_left_and_bottom_right(point_1, point_2)
+   local p = game.get_player(pindex)
+   if p.cursor_stack == nil or p.cursor_stack.valid_for_read == false then return end
+   p.cursor_stack.set_stack({ name = "blueprint", count = 1 })
+   p.cursor_stack.create_blueprint({ surface = p.surface, force = p.force, area = { top_left, bottom_right } })
+   if
+      not (
+         p.cursor_stack
+         and p.cursor_stack.valid_for_read
+         and p.cursor_stack.is_blueprint
+         and p.cursor_stack.is_blueprint_setup()
+      )
+   then
+      p.clear_cursor()
+      p.cursor_stack.set_stack({ name = "copy-paste-tool", count = 1 })
+      printout("Copied nothing", pindex)
+      return
+   end
+   p.add_to_clipboard(p.cursor_stack)
+   p.clear_cursor()
+   p.activate_paste()
+
+   --Use this opportunity to update saved information about the blueprint's corners (used when drawing the footprint)
+   local width, height = mod.get_blueprint_width_and_height(pindex)
+   players[pindex].blueprint_width_in_hand = width + 1
+   players[pindex].blueprint_height_in_hand = height + 1
 end
 
 return mod

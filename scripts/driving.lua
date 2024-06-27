@@ -204,6 +204,7 @@ function mod.check_and_play_driving_alert_sound(pindex, tick, mode_in)
       return true
    end
    local edge_dist = util.distance(v.position, nearest.position) - 1 / 4 * (nearest.tile_width + nearest.tile_height)
+   --Draw a circle around the nearest potentially beeping entity
    rendering.draw_circle({
       color = { 0.8, 0.8, 0.8 },
       radius = 2,
@@ -218,6 +219,7 @@ function mod.check_and_play_driving_alert_sound(pindex, tick, mode_in)
       p.play_sound({ path = "player-bump-stuck-alert" })
       players[pindex].last_driving_alert_tick = last_driving_alert_tick
       players[pindex].last_driving_alert_ent = nearest
+      --Draw a circle around the nearest confirmed beeping entity
       rendering.draw_circle({
          color = { 1.0, 0.4, 0.2 },
          radius = 2,
