@@ -4335,6 +4335,9 @@ script.on_event("click-menu", function(event)
    local p = game.get_player(pindex)
    if players[pindex].in_menu then
       players[pindex].last_click_tick = event.tick
+      --Clear temporary cursor items instead of swapping them in
+      if p.cursor_stack_temporary then p.clear_cursor() end
+      --Act according to the type of menu open
       if players[pindex].menu == "inventory" then
          --Swap stacks
          game.get_player(pindex).play_sound({ path = "utility/inventory_click" })
