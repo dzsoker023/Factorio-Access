@@ -6609,7 +6609,7 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
          --Renaming selected point
          players[pindex].travel.renaming = false
          players[pindex].travel[players[pindex].travel.index.y].name = result
-         fa_travel.read_travel_slot(pindex)
+         fa_travel.read_fast_travel_slot(pindex)
       elseif players[pindex].travel.describing then
          --Save the new description
          players[pindex].travel.describing = false
