@@ -2,7 +2,7 @@
 Released on June 28th, 2024.
 
 ## Summary
-- After a detailed writeup by @ahicks and several community discussions, this update covers many topics. Most siginificantly, it adds support for the copy paste tool. Among other things, it enhances cursor skipping and improves building functions and various info tools. The update also fixes several crashes and bugs.
+- After a detailed write-up by @ahicks and several community discussions, this update covers many topics. Most significantly, it adds support for the copy paste tool. Among other things, it enhances cursor skipping and improves building functions and various info tools. The update also fixes several crashes and bugs.
 
 ## Features
 - Added support for the copy-paste tool, which is activated with `CONTROL + C`.
