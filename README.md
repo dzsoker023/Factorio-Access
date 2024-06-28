@@ -120,7 +120,7 @@ Recalibrate zoom: CONTROL + END. This is rarely needed for resolving bugs relate
 
 Read current step: H
 
-Read current summary: ALT + H
+Read current summary and step number: ALT + H
 
 Read next step: CONTROL + H
 
@@ -142,7 +142,7 @@ Movement: W, A, S, D
 
 Note: When you change direction in the default (telestep) walking mode, for the first key press, your character turns but does not take a step in that direction.
 
-Change movement mode: CONTROL + W
+Toggle walking mode: ALT + W
 
 Note the 3 movement types are as follows:
 
@@ -459,9 +459,11 @@ Confirm a new name: ENTER
 
 ## Structure travel
 
-Travel freely from building to building as if they were laid out in a grid pattern.
+Travel freely from building to building as if they were laid out in a grid pattern. Also known as B-Stride. 
 
-Open the BStride menu with CONTROL + S, and explore your factory with the following controls:
+Warning: This feature has some bugs and is currently deprecated.
+
+Open it with ALT + CONTROL + SHIFT + S, and explore your factory with the following controls:
 
 First, select a direction using WASD
 
