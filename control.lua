@@ -7189,7 +7189,7 @@ script.on_event("set-splitter-output-priority-right", function(event)
    end
 end)
 
---Sets splitter filter and also contant combinator signals
+--Sets entity filters for splitters, inserters, contant combinators, infinity chests
 script.on_event("set-entity-filter-from-hand", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7238,6 +7238,75 @@ script.on_event("set-entity-filter-from-hand", function(event)
       end
    end
 end)
+
+--Sets inventory slot filters
+script.on_event("toggle-inventory-slot-filter", function(event)
+   pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   set_selected_inventory_slot_filter(pindex)
+end)
+
+--Sets inventory slot filters
+function set_selected_inventory_slot_filter(pindex)
+   local p = game.get_player(pindex)
+   --Determine the inventory selected
+   local inv, index = get_selected_inventory_and_slot(pindex)
+   --Check if it supports filters
+   if inv == nil or (inv.valid and not inv.supports_filters()) then
+      printout("This menu or sector does not support slot filters", pindex)
+      return
+   end
+   --Act according to the situation defined by the filter slot, slot item, and hand item.
+   local filter = inv.get_filter(index)
+   local slot_item = inv[index]
+   local hand_item = p.cursor_stack
+
+   --1. If a  filter is set then clear it
+   if filter ~= nil then
+      printout("Filter cleared", pindex)
+      return
+   --2. If no filter is set and both the slot and hand are full, then choose the slot item (because otherwise it needs to be moved)
+   elseif slot_item and slot_item.valid_for_read and hand_item and hand_item.valid_for_read then
+      if inv.can_set_filter(index, slot_item.name) then
+         inv.set_filter(index, slot_item.name)
+      else
+         printout("Error: Unable to set the slot filter for this item", pindex)
+      end
+      return
+   --3. If no filter is set and the slot is full and the hand is empty (implied), then set the slot item as the filter
+   elseif slot_item and slot_item.valid_for_read then
+      if inv.can_set_filter(index, slot_item.name) then
+         inv.set_filter(index, slot_item.name)
+      else
+         printout("Error: Unable to set the slot filter for this item", pindex)
+      end
+      return
+   --4. If no filter is set and the slot is empty (implied) and the hand is full, then set the hand item as the filter
+   elseif hand_item and hand_item.valid_for_read then
+      if inv.can_set_filter(index, hand_item.name) then
+         inv.set_filter(index, hand_item.name)
+      else
+         printout("Error: Unable to set the slot filter for this item", pindex)
+      end
+      return
+   --5. If no filter is set and the hand is empty and the slot is empty, then open the filter selector to set the filter
+   else --(implied)
+      printout("Error: Item selector support haas not been added for this feature", pindex)
+      return
+   end
+end
+
+--Returns the currently selected entity inventory based on the current mod menu and mod sector. TODO
+function get_selected_inventory_and_slot(pindex)
+   local inv = nil
+   if players[pindex].menu == "inventory" then
+      --TODO
+   elseif players[pindex].menu == "building" then
+      --TODO
+   elseif players[pindex].menu == "vehicle" then
+      --TODO
+   end
+end
 
 -- G is used to connect rolling stock
 script.on_event("connect-rail-vehicles", function(event)
