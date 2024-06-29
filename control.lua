@@ -7263,12 +7263,14 @@ function set_selected_inventory_slot_filter(pindex)
 
    --1. If a  filter is set then clear it
    if filter ~= nil then
-      printout("Filter cleared", pindex)
+      inv.set_filter(index, nil)
+      read_inventory_slot(pindex, "Slot filter cleared, ")
       return
    --2. If no filter is set and both the slot and hand are full, then choose the slot item (because otherwise it needs to be moved)
    elseif slot_item and slot_item.valid_for_read and hand_item and hand_item.valid_for_read then
       if inv.can_set_filter(index, slot_item.name) then
          inv.set_filter(index, slot_item.name)
+         read_inventory_slot(pindex, "Slot filter set, ")
       else
          printout("Error: Unable to set the slot filter for this item", pindex)
       end
@@ -7277,6 +7279,7 @@ function set_selected_inventory_slot_filter(pindex)
    elseif slot_item and slot_item.valid_for_read then
       if inv.can_set_filter(index, slot_item.name) then
          inv.set_filter(index, slot_item.name)
+         read_inventory_slot(pindex, "Slot filter set, ")
       else
          printout("Error: Unable to set the slot filter for this item", pindex)
       end
@@ -7285,6 +7288,7 @@ function set_selected_inventory_slot_filter(pindex)
    elseif hand_item and hand_item.valid_for_read then
       if inv.can_set_filter(index, hand_item.name) then
          inv.set_filter(index, hand_item.name)
+         read_inventory_slot(pindex, "Slot filter set, ")
       else
          printout("Error: Unable to set the slot filter for this item", pindex)
       end
@@ -7296,17 +7300,29 @@ function set_selected_inventory_slot_filter(pindex)
    end
 end
 
---Returns the currently selected entity inventory based on the current mod menu and mod sector. TODO
+--Returns the currently selected entity inventory based on the current mod menu and mod sector.
 function get_selected_inventory_and_slot(pindex)
+   local p = game.get_player(pindex)
    local inv = nil
-   if players[pindex].menu == "inventory" then
-      --TODO
-   elseif players[pindex].menu == "building" then
-      --TODO
-   elseif players[pindex].menu == "vehicle" then
-      --TODO
+   local index = nil
+   local menu = players[pindex].menu
+   if menu == "inventory" then
+      inv = p.get_main_inventory()
+      index = players[pindex].inventory.index
+   elseif menu == "player_trash" then
+      inv = p.get_inventory(defines.inventory.player_trash)
+      index = players[pindex].inventory.index
+   elseif menu == "building" then
+      local sector_name = players[pindex].building.sector_name
+      index = players[pindex].building.index
+   elseif menu == "vehicle" then
+      local sector_name = players[pindex].building.sector_name
+      index = players[pindex].building.index
    end
+   return inv, index
 end
+
+function read_inv_slot_filter() end
 
 -- G is used to connect rolling stock
 script.on_event("connect-rail-vehicles", function(event)
