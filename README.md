@@ -284,9 +284,15 @@ Move cursor freely in cursor mode, by cursor size distance: W A S D
 
 Move cursor freely in cursor mode, by always one tile distance: ARROW KEYS
 
-Skip the cursor over repeating entities and across underground sections: SHIFT +  W A S D
+Skip the cursor over repeating entities and across underground sections: SHIFT + W A S D
+
+Move the cursor by the size of the blueprint or preview in hand: CONTROL + W A S D
 
 Return the cursor to the character: J
+
+Toggle remote view: ALT + I. 
+
+Note: Remote View is an extension of Cursor Mode where the camera focuses on the cursor instead of the player character. It is required for a few actions and it allows you to hear the goingson at the cursor location.
 
 Teleport character to cursor: SHIFT + T
 
@@ -303,6 +309,17 @@ Save cursor bookmark coordinates: SHIFT + B
 Load cursor bookmark coordinates: B
 
 Type in cursor coordinates to jump to: ALT + T
+
+
+## Kruise Kontrol
+
+Run Kruise Kontrol at the cursor location: CONTROL + ALT + RIGHT BRACKET
+
+Note: Kruise Kontrol is a different mod but we use it extensively. When you use it on an empty tile, the character walks there automatically. It requires using Remote View.
+* Press "CONTROL + ALT + RIGHT BRACKET" twice, to first open the cursor location in remote view, and then to instruct an action.
+* Usually the action is to walk or drive to that spot. Special cases include selecting a resource to start mining it, selecting a ghost to start building them, selected a descontruction marked building to start removing them, selecting trees to start chopping them, and selecting enemies to start fighting them.
+* Press "ENTER" to cancel ongoing actions. Some actions may be unclear at times so this is recommended if things are taking to long.
+* The character cuts trees along their automatic walking paths.
 
 ## Item in hand
 
@@ -362,6 +379,10 @@ Grab a new upgrade planner: ALT + U
 Grab a new deconstruction planner: ALT + D
 
 Grab a new blueprint planner: ALT + B
+
+Grab the copy-paste tool: CONTROL + C. Note: This creates a temporary blueprint in hand.
+
+Grab the last copied area: CONTROL + V
 
 Start and end planner area selection: LEFT BRACKET
 
@@ -515,10 +536,6 @@ Note: When you have a building inventory open, pressing CONTROL + LEFT BRACKET f
 
 Note 2: When you have a building inventory open and select an empty slot, pressing CONTROL + LEFT BRACKET will cause an attempt to transfer the full contents of the selected inventory into the other inventory. This is useful for easily filling up labs and assembling machines with everything applicable from your own inventory instead of searching for items individually. Non-transferred items will remain in their original inventory. Similarly, pressing CONTROL + RIGHT BRACKET on an empty slot will try to transfer half of the entire supply of every item.
 
-Modify chest inventory slot limits: PAGE UP or PAGE DOWN. 
-
-Note: You can hold SHIFT to modify limits by increments of 5 instead of 1 and you can hold CONTROL to set the limit to maximum or zero.
-
 Open menu search: CONTROL + F. This works for player inventories, building output inventories, building recipe selection, the crafting menu, and the technology menu.
 
 Run menu search forward: SHIFT + ENTER
@@ -526,6 +543,16 @@ Run menu search forward: SHIFT + ENTER
 Run menu search backward: CONTROL + ENTER, only for inventories.
 
 Flush away a selected fluid: X
+
+## Special controls for some building menus
+
+For chests, modify inventory slot limits: PAGE UP or PAGE DOWN. Alternatively: ALT + UP or ALT + DOWN.
+
+Note: You can hold SHIFT to modify slot limits by increments of 5 instead of 1, and you can hold CONTROL to set the limit to maximum or zero.
+
+For inserters, modify the hand stack size: PAGE UP or PAGE DOWN. Alternatively: ALT + UP or ALT + DOWN.
+
+For buildings that can use the circuit network system, open the circuit network menu: N
 
 ## Crafting menu
 
@@ -636,11 +663,11 @@ Move down: DOWN ARROW KEY
 
 Click or select: LEFT BRACKET
 
-Increase station waiting times by 5 seconds: PAGE UP
+Increase station waiting times by 5 seconds: PAGE UP. Alternatively: ALT + UP.
 
 Increase station waiting times by 60 seconds: CONTROL + PAGE UP
 
-Decrease station waiting times by 5 seconds: PAGE DOWN
+Decrease station waiting times by 5 seconds: PAGE DOWN. Alternatively: ALT + DOWN.
 
 Decrease station waiting times by 60 seconds: CONTROL + PAGE DOWN
 
@@ -746,7 +773,7 @@ For the selected item, send it to logistic trash: O
 
 For the selected item in logistic trash, take it back into inventory: LEFT BRACKET and then Q
 
-For personal logistics, pause or unpause all requests: CONTROL + SHIFT + L
+For personal logistics, pause or unpause all requests: CONTROL + SHIFT + L. Alternatively: ALT + L.
 
 For a logistic storage chest, set or unset the filter to the selected item: SHIFT + L
 
