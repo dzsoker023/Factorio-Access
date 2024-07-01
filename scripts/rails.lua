@@ -1164,41 +1164,26 @@ function mod.check_and_play_train_track_alert_sounds(step)
    for pindex, player in pairs(players) do
       --Check if the player is standing on a rail
       local p = game.get_player(pindex)
-      local floor_ent = p.surface.find_entities_filtered({ position = p.position, limit = 1 })[1]
-      local facing_ent = players[p.index].tile.ents[1]
+      local floor_ents =
+         p.surface.find_entities_filtered({ position = p.position, name = { "straight-rail", "curved-rail" } })
+      local nearby_ents =
+         p.surface.find_entities_filtered({ position = p.position, radius = 4, name = { "curved-rail" } })
       local found_rail = nil
-      local skip = false
-      if p.driving then
-         skip = true
-      elseif
-         floor_ent ~= nil
-         and floor_ent.valid
-         and (floor_ent.name == "straight-rail" or floor_ent.name == "curved-rail")
-      then
-         found_rail = floor_ent
-      elseif
-         facing_ent ~= nil
-         and facing_ent.valid
-         and (facing_ent.name == "straight-rail" or facing_ent.name == "curved-rail")
-      then
-         found_rail = facing_ent
+      if #floor_ents > 0 then
+         found_rail = floor_ents[1]
+      elseif #nearby_ents > 0 then
+         found_rail = nearby_ents[1]
       else
-         --Check further around the player because the other scans do not cover the back
-         local floor_ent_2 = p.surface.find_entities_filtered({
-            name = { "straight-rail", "curved-rail" },
-            position = p.position,
-            radius = 1,
-            limit = 1,
-         })[1]
-         if floor_ent_2 ~= nil and floor_ent_2.valid then
-            found_rail = floor_ent_2
-         else
-            skip = true
-         end
+         --The player is not on rails.
+         return
       end
 
+      --Cancel if the player is in a spidertron or train
+      local v = p.vehicle
+      if v ~= nil and v.valid and (v.type == "spider-vehicle" or v.train ~= nil) then return end
+
       --Condition for step 1: Any moving trains nearby (within 400 tiles)
-      if not skip and step == 1 then
+      if step == 1 then
          local trains = p.surface.get_trains()
          for i, train in ipairs(trains) do
             if
@@ -1220,7 +1205,7 @@ function mod.check_and_play_train_track_alert_sounds(step)
             end
          end
       --Condition for step 2: Any moving trains nearby (within 200 tiles), and heading towards the player
-      elseif not skip and step == 2 then
+      elseif step == 2 then
          local trains = p.surface.get_trains()
          for i, train in ipairs(trains) do
             if
@@ -1254,7 +1239,7 @@ function mod.check_and_play_train_track_alert_sounds(step)
             end
          end
       --Condition for step 3: Any moving trains in the same rail block, and heading towards the player OR if the block inbound signals are yellow. More urgent sound if also within 200 distance of the player
-      elseif not skip and step == 3 then
+      elseif step == 3 then
          local trains = p.surface.get_trains()
          for i, train in ipairs(trains) do
             if
