@@ -1790,6 +1790,14 @@ data:extend({
 
    {
       type = "custom-input",
+      name = "toggle-auto-launch-with-cargo",
+      key_sequence = "CONTROL + SPACE",
+      alternative_key_sequence = "SHIFT + SPACE",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
       name = "help-read",
       key_sequence = "H",
       consuming = "none",

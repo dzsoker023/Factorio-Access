@@ -7356,8 +7356,10 @@ end)
 --Attempt to launch a rocket
 script.on_event("launch-rocket", function(event)
    local pindex = event.player_index
-   local ent = game.get_player(pindex).selected
    if not check_for_player(pindex) then return end
+   local p = game.get_player(pindex)
+   local ent = p.selected
+   if p.selected == nil or p.selected.valid == false then ent = p.opened end
    --For rocket entities, return the silo instead
    if ent and (ent.name == "rocket-silo-rocket-shadow" or ent.name == "rocket-silo-rocket") then
       local ents = ent.surface.find_entities_filtered({ position = ent.position, radius = 20, name = "rocket-silo" })
@@ -7372,6 +7374,31 @@ script.on_event("launch-rocket", function(event)
          printout("Launch successful!", pindex)
       else
          printout("Not ready to launch!", pindex)
+      end
+   end
+end)
+
+--Toggle whether rockets are launched automatically when they have cargo
+script.on_event("toggle-auto-launch-with-cargo", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   local p = game.get_player(pindex)
+   local ent = p.selected
+   if p.selected == nil or p.selected.valid == false then ent = p.opened end
+   --For rocket entities, return the silo instead
+   if ent and (ent.name == "rocket-silo-rocket-shadow" or ent.name == "rocket-silo-rocket") then
+      local ents = ent.surface.find_entities_filtered({ position = ent.position, radius = 20, name = "rocket-silo" })
+      for i, silo in ipairs(ents) do
+         ent = silo
+      end
+   end
+   --Try to launch from the silo
+   if ent ~= nil and ent.valid and ent.name == "rocket-silo" then
+      ent.auto_launch = not ent.auto_launch
+      if ent.auto_launch then
+         printout("Enabled auto launch with cargo", pindex)
+      else
+         printout("Disabled auto launch with cargo", pindex)
       end
    end
 end)
