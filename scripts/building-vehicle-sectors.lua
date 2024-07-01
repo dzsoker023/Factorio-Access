@@ -413,12 +413,14 @@ function mod.read_building_recipe(pindex, start_phrase)
 end
 
 --Building sectors: Read the item or fluid at the selected slot.
-function mod.read_sector_slot(pindex, prefix_inventory_size_and_name)
+function mod.read_sector_slot(pindex, prefix_inventory_size_and_name, start_phrase_in)
    local building_sector = players[pindex].building.sectors[players[pindex].building.sector]
+   local start_phrase = start_phrase_in or ""
    if building_sector.name == "Filters" then
       local inventory = building_sector.inventory
-      local start_phrase = #inventory .. " " .. building_sector.name .. ", "
-      if not prefix_inventory_size_and_name then start_phrase = "" end
+      if prefix_inventory_size_and_name then
+         start_phrase = start_phrase .. #inventory .. " " .. building_sector.name .. ", "
+      end
       printout(
          start_phrase
             .. players[pindex].building.index
@@ -448,8 +450,9 @@ function mod.read_sector_slot(pindex, prefix_inventory_size_and_name)
       local type = box.get_prototype(players[pindex].building.index).production_type
       local fluid = box[players[pindex].building.index]
       local len = #box
-      local start_phrase = len .. " " .. building_sector.name .. ", "
-      if not prefix_inventory_size_and_name then start_phrase = "" end
+      if prefix_inventory_size_and_name then
+         start_phrase = start_phrase .. len .. " " .. building_sector.name .. ", "
+      end
       --fluid = {name = "water", amount = 1}
       local name = "Any"
       local amount = 0
@@ -511,14 +514,15 @@ function mod.read_sector_slot(pindex, prefix_inventory_size_and_name)
    elseif #building_sector.inventory > 0 then
       --Item inventories
       local inventory = building_sector.inventory
-      local start_phrase = #inventory .. " " .. building_sector.name .. ", "
-      if inventory.supports_bar() and #inventory > inventory.get_bar() - 1 then
-         --local unlocked = inventory.supports_bar() and inventory.get_bar() - 1 or nil
-         local unlocked = inventory.get_bar() - 1
-         start_phrase = start_phrase .. ", " .. unlocked .. " unlocked, "
+      if prefix_inventory_size_and_name then
+         start_phrase = start_phrase .. #inventory .. " " .. building_sector.name .. ", "
+         if inventory.supports_bar() and #inventory > inventory.get_bar() - 1 then
+            --local unlocked = inventory.supports_bar() and inventory.get_bar() - 1 or nil
+            local unlocked = inventory.get_bar() - 1
+            start_phrase = start_phrase .. ", " .. unlocked .. " unlocked, "
+         end
       end
-      if not prefix_inventory_size_and_name then start_phrase = "" end
-      --Mention if a slot is locked
+      --Mention if the selected slot is locked
       if inventory.supports_bar() and players[pindex].building.index > inventory.get_bar() - 1 then
          start_phrase = start_phrase .. " locked "
       end
