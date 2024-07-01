@@ -7256,7 +7256,9 @@ function set_selected_inventory_slot_filter(pindex)
       printout("This menu or sector does not support slot filters", pindex)
       return
    end
+   index = index or 1
    --Act according to the situation defined by the filter slot, slot item, and hand item.
+   local menu = players[pindex].menu
    local filter = inv.get_filter(index)
    local slot_item = inv[index]
    local hand_item = p.cursor_stack
@@ -7264,13 +7266,13 @@ function set_selected_inventory_slot_filter(pindex)
    --1. If a  filter is set then clear it
    if filter ~= nil then
       inv.set_filter(index, nil)
-      read_inventory_slot(pindex, "Slot filter cleared, ")
+      read_selected_inventory_and_slot(pindex, "Slot filter cleared, ")
       return
    --2. If no filter is set and both the slot and hand are full, then choose the slot item (because otherwise it needs to be moved)
    elseif slot_item and slot_item.valid_for_read and hand_item and hand_item.valid_for_read then
       if inv.can_set_filter(index, slot_item.name) then
          inv.set_filter(index, slot_item.name)
-         read_inventory_slot(pindex, "Slot filter set, ")
+         read_selected_inventory_and_slot(pindex, "Slot filter set, ")
       else
          printout("Error: Unable to set the slot filter for this item", pindex)
       end
@@ -7279,7 +7281,7 @@ function set_selected_inventory_slot_filter(pindex)
    elseif slot_item and slot_item.valid_for_read then
       if inv.can_set_filter(index, slot_item.name) then
          inv.set_filter(index, slot_item.name)
-         read_inventory_slot(pindex, "Slot filter set, ")
+         read_selected_inventory_and_slot(pindex, "Slot filter set, ")
       else
          printout("Error: Unable to set the slot filter for this item", pindex)
       end
@@ -7288,14 +7290,14 @@ function set_selected_inventory_slot_filter(pindex)
    elseif hand_item and hand_item.valid_for_read then
       if inv.can_set_filter(index, hand_item.name) then
          inv.set_filter(index, hand_item.name)
-         read_inventory_slot(pindex, "Slot filter set, ")
+         read_selected_inventory_and_slot(pindex, "Slot filter set, ")
       else
          printout("Error: Unable to set the slot filter for this item", pindex)
       end
       return
    --5. If no filter is set and the hand is empty and the slot is empty, then open the filter selector to set the filter
    else --(implied)
-      printout("Error: Item selector support haas not been added for this feature", pindex)
+      printout("Error: No item specified for setting a slot filter", pindex)
       return
    end
 end
@@ -7312,17 +7314,36 @@ function get_selected_inventory_and_slot(pindex)
    elseif menu == "player_trash" then
       inv = p.get_inventory(defines.inventory.player_trash)
       index = players[pindex].inventory.index
-   elseif menu == "building" then
+   elseif menu == "building" or menu == "vehicle" then
       local sector_name = players[pindex].building.sector_name
-      index = players[pindex].building.index
-   elseif menu == "vehicle" then
-      local sector_name = players[pindex].building.sector_name
-      index = players[pindex].building.index
+      if sector_name == "player inventory from building" then
+         inv = p.get_main_inventory()
+         index = players[pindex].inventory.index
+      else
+         inv = players[pindex].building.sectors[players[pindex].building.sector].inventory
+         index = players[pindex].building.index
+      end
    end
    return inv, index
 end
 
-function read_inv_slot_filter() end
+--Read the correct inventory slot based on the current menu, optionally with a start phrase in
+function read_selected_inventory_and_slot(pindex, start_phrase_in)
+   local start_phrase_in = start_phrase_in or ""
+   local menu = players[pindex].menu
+   if menu == "inventory" then
+      read_inventory_slot(pindex, start_phrase_in)
+   elseif menu == "building" or menu == "vehicle" then
+      local sector_name = players[pindex].building.sector_name
+      if sector_name == "player inventory from building" then
+         read_inventory_slot(pindex, start_phrase_in)
+      else
+         fa_sectors.read_sector_slot(pindex, false, start_phrase_in)
+      end
+   else
+      printout(start_phrase_in, pindex)
+   end
+end
 
 -- G is used to connect rolling stock
 script.on_event("connect-rail-vehicles", function(event)
