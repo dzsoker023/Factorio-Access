@@ -204,7 +204,8 @@ end
 
 --Reads the selected player inventory's selected menu slot. Default is to read the main inventory.
 function read_inventory_slot(pindex, start_phrase_in, inv_in)
-   local start_phrase = start_phrase_in or ""
+   local p = game.get_player(pindex)
+   local result = start_phrase_in or ""
    local index = players[pindex].inventory.index
    local inv = inv_in or players[pindex].inventory.lua_inventory
    if index < 1 then
@@ -215,20 +216,22 @@ function read_inventory_slot(pindex, start_phrase_in, inv_in)
    players[pindex].inventory.index = index
    local stack = inv[index]
    if stack == nil or not stack.valid_for_read then
-      printout(start_phrase .. "Empty Slot", pindex)
+      --Label it as an empty slot
+      result = result .. "Empty Slot"
+      --Check if the empty slot has a filter set
+      local filter_name = p.get_main_inventory().get_filter(index)
+      if filter_name ~= nil then
+         result = result .. " filtered for " .. filter_name --laterdo localise this name
+      end
+      printout(result, pindex)
       return
    end
    if stack.is_blueprint then
       printout(fa_blueprints.get_blueprint_info(stack, false), pindex)
    elseif stack.valid_for_read then
-      if stack.health < 1 then start_phrase = start_phrase .. " damaged " end
+      if stack.health < 1 then result = result .. " damaged " end
       printout(
-         start_phrase
-            .. fa_localising.get(stack, pindex)
-            .. " x "
-            .. stack.count
-            .. " "
-            .. stack.prototype.subgroup.name,
+         result .. fa_localising.get(stack, pindex) .. " x " .. stack.count .. " " .. stack.prototype.subgroup.name,
          pindex
       )
    end
