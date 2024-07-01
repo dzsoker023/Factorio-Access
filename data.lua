@@ -1726,6 +1726,13 @@ data:extend({
 
    {
       type = "custom-input",
+      name = "toggle-inventory-slot-filter",
+      key_sequence = "ALT + LEFTBRACKET",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
       name = "set-entity-filter-from-hand",
       key_sequence = "CONTROL + LEFTBRACKET",
       consuming = "none",

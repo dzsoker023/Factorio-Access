@@ -204,7 +204,8 @@ end
 
 --Reads the selected player inventory's selected menu slot. Default is to read the main inventory.
 function read_inventory_slot(pindex, start_phrase_in, inv_in)
-   local start_phrase = start_phrase_in or ""
+   local p = game.get_player(pindex)
+   local result = start_phrase_in or ""
    local index = players[pindex].inventory.index
    local inv = inv_in or players[pindex].inventory.lua_inventory
    if index < 1 then
@@ -215,20 +216,22 @@ function read_inventory_slot(pindex, start_phrase_in, inv_in)
    players[pindex].inventory.index = index
    local stack = inv[index]
    if stack == nil or not stack.valid_for_read then
-      printout(start_phrase .. "Empty Slot", pindex)
+      --Label it as an empty slot
+      result = result .. "Empty Slot"
+      --Check if the empty slot has a filter set
+      local filter_name = p.get_main_inventory().get_filter(index)
+      if filter_name ~= nil then
+         result = result .. " filtered for " .. filter_name --laterdo localise this name
+      end
+      printout(result, pindex)
       return
    end
    if stack.is_blueprint then
       printout(fa_blueprints.get_blueprint_info(stack, false), pindex)
    elseif stack.valid_for_read then
-      if stack.health < 1 then start_phrase = start_phrase .. " damaged " end
+      if stack.health < 1 then result = result .. " damaged " end
       printout(
-         start_phrase
-            .. fa_localising.get(stack, pindex)
-            .. " x "
-            .. stack.count
-            .. " "
-            .. stack.prototype.subgroup.name,
+         result .. fa_localising.get(stack, pindex) .. " x " .. stack.count .. " " .. stack.prototype.subgroup.name,
          pindex
       )
    end
@@ -7189,7 +7192,7 @@ script.on_event("set-splitter-output-priority-right", function(event)
    end
 end)
 
---Sets splitter filter and also contant combinator signals
+--Sets entity filters for splitters, inserters, contant combinators, infinity chests
 script.on_event("set-entity-filter-from-hand", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7238,6 +7241,112 @@ script.on_event("set-entity-filter-from-hand", function(event)
       end
    end
 end)
+
+--Sets inventory slot filters
+script.on_event("toggle-inventory-slot-filter", function(event)
+   pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   set_selected_inventory_slot_filter(pindex)
+end)
+
+--Sets inventory slot filters
+function set_selected_inventory_slot_filter(pindex)
+   local p = game.get_player(pindex)
+   --Determine the inventory selected
+   local inv, index = get_selected_inventory_and_slot(pindex)
+   --Check if it supports filters
+   if inv == nil or (inv.valid and not inv.supports_filters()) then
+      printout("This menu or sector does not support slot filters", pindex)
+      return
+   end
+   index = index or 1
+   --Act according to the situation defined by the filter slot, slot item, and hand item.
+   local menu = players[pindex].menu
+   local filter = inv.get_filter(index)
+   local slot_item = inv[index]
+   local hand_item = p.cursor_stack
+
+   --1. If a  filter is set then clear it
+   if filter ~= nil then
+      inv.set_filter(index, nil)
+      read_selected_inventory_and_slot(pindex, "Slot filter cleared, ")
+      return
+   --2. If no filter is set and both the slot and hand are full, then choose the slot item (because otherwise it needs to be moved)
+   elseif slot_item and slot_item.valid_for_read and hand_item and hand_item.valid_for_read then
+      if inv.can_set_filter(index, slot_item.name) then
+         inv.set_filter(index, slot_item.name)
+         read_selected_inventory_and_slot(pindex, "Slot filter set, ")
+      else
+         printout("Error: Unable to set the slot filter for this item", pindex)
+      end
+      return
+   --3. If no filter is set and the slot is full and the hand is empty (implied), then set the slot item as the filter
+   elseif slot_item and slot_item.valid_for_read then
+      if inv.can_set_filter(index, slot_item.name) then
+         inv.set_filter(index, slot_item.name)
+         read_selected_inventory_and_slot(pindex, "Slot filter set, ")
+      else
+         printout("Error: Unable to set the slot filter for this item", pindex)
+      end
+      return
+   --4. If no filter is set and the slot is empty (implied) and the hand is full, then set the hand item as the filter
+   elseif hand_item and hand_item.valid_for_read then
+      if inv.can_set_filter(index, hand_item.name) then
+         inv.set_filter(index, hand_item.name)
+         read_selected_inventory_and_slot(pindex, "Slot filter set, ")
+      else
+         printout("Error: Unable to set the slot filter for this item", pindex)
+      end
+      return
+   --5. If no filter is set and the hand is empty and the slot is empty, then open the filter selector to set the filter
+   else --(implied)
+      printout("Error: No item specified for setting a slot filter", pindex)
+      return
+   end
+end
+
+--Returns the currently selected entity inventory based on the current mod menu and mod sector.
+function get_selected_inventory_and_slot(pindex)
+   local p = game.get_player(pindex)
+   local inv = nil
+   local index = nil
+   local menu = players[pindex].menu
+   if menu == "inventory" then
+      inv = p.get_main_inventory()
+      index = players[pindex].inventory.index
+   elseif menu == "player_trash" then
+      inv = p.get_inventory(defines.inventory.player_trash)
+      index = players[pindex].inventory.index
+   elseif menu == "building" or menu == "vehicle" then
+      local sector_name = players[pindex].building.sector_name
+      if sector_name == "player inventory from building" then
+         inv = p.get_main_inventory()
+         index = players[pindex].inventory.index
+      else
+         inv = players[pindex].building.sectors[players[pindex].building.sector].inventory
+         index = players[pindex].building.index
+      end
+   end
+   return inv, index
+end
+
+--Read the correct inventory slot based on the current menu, optionally with a start phrase in
+function read_selected_inventory_and_slot(pindex, start_phrase_in)
+   local start_phrase_in = start_phrase_in or ""
+   local menu = players[pindex].menu
+   if menu == "inventory" then
+      read_inventory_slot(pindex, start_phrase_in)
+   elseif menu == "building" or menu == "vehicle" then
+      local sector_name = players[pindex].building.sector_name
+      if sector_name == "player inventory from building" then
+         read_inventory_slot(pindex, start_phrase_in)
+      else
+         fa_sectors.read_sector_slot(pindex, false, start_phrase_in)
+      end
+   else
+      printout(start_phrase_in, pindex)
+   end
+end
 
 -- G is used to connect rolling stock
 script.on_event("connect-rail-vehicles", function(event)
