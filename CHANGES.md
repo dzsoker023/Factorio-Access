@@ -1,3 +1,13 @@
+# Version 0.12.2 BETA
+Released on July 2nd, 2024.
+
+## Summary
+- This is a quick patch update that fixes an old menu switching bug that affected both menu search, and the recently added inventory slot filter setting.
+
+## Bugfixes
+- Fixed an old bug in forward menu switching that was breaking menu search and inventory slot filter setting by passing these features the incorrect inventories.
+
+
 # Version 0.12.1 BETA
 Released on July 2nd, 2024.
 
