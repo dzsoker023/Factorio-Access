@@ -229,11 +229,18 @@ function read_inventory_slot(pindex, start_phrase_in, inv_in)
    if stack.is_blueprint then
       printout(fa_blueprints.get_blueprint_info(stack, false), pindex)
    elseif stack.valid_for_read then
+      --Check if the slot is filtered
+      local filter_name = p.get_main_inventory().get_filter(index)
+      if filter_name ~= nil then result = result .. " filtered " end
+      --Check if the stack has damage
       if stack.health < 1 then result = result .. " damaged " end
-      printout(
-         result .. fa_localising.get(stack, pindex) .. " x " .. stack.count .. " " .. stack.prototype.subgroup.name,
-         pindex
-      )
+      result = result
+         .. fa_localising.get(stack, pindex)
+         .. " x "
+         .. stack.count
+         .. " "
+         .. stack.prototype.subgroup.name
+      printout(result, pindex)
    end
 end
 

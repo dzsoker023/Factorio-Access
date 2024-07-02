@@ -532,6 +532,11 @@ function mod.read_sector_slot(pindex, prefix_inventory_size_and_name, start_phra
          if stack.is_blueprint then
             printout(fa_blueprints.get_blueprint_info(stack, false), pindex)
          else
+            --Check if the slot is filtered
+            local index = players[pindex].building.index
+            local filter_name = building_sector.inventory.get_filter(index)
+            if filter_name ~= nil then start_phrase = start_phrase .. " filtered " end
+            --Check if the stack has damage
             if stack.health < 1 then start_phrase = start_phrase .. " damaged " end
             local remote_info = ""
             if stack.name == "spidertron-remote" then
