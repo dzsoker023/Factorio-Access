@@ -15,6 +15,8 @@ Released on July 2nd, 2024.
 - Added support for toggling whether rocket silos launch automatically when the rocket is ready and any cargo has been added.
   * Press "SHIFT + SPACE" or press "CONTROL + SPACE" to toggle this.
 
+- Added support for checking character shield and health levels, by pressing "ALT + RIGHT BRACKET".
+
 ## Changes
   - Modified the activation of the rail crossing alert.
     * The alert now only checks for the player position and not the cursor position.

@@ -5734,6 +5734,12 @@ script.on_event("read-entity-status", function(event)
    if result ~= nil and result ~= "" then printout(result, pindex) end
 end)
 
+script.on_event("read-character-status", function(event)
+   pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   fa_info.read_character_status(pindex)
+end)
+
 script.on_event("rotate-building", function(event)
    fa_building_tools.rotate_building_info_read(event, true)
 end)
@@ -7467,6 +7473,7 @@ end)
 
 --Attempt to launch a rocket
 script.on_event("launch-rocket", function(event)
+   ---@diagnostic disable: cast-local-type
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
@@ -7492,6 +7499,7 @@ end)
 
 --Toggle whether rockets are launched automatically when they have cargo
 script.on_event("toggle-auto-launch-with-cargo", function(event)
+   ---@diagnostic disable: cast-local-type
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
