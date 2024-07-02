@@ -1378,6 +1378,13 @@ data:extend({
 
    {
       type = "custom-input",
+      name = "read-character-status",
+      key_sequence = "ALT + RIGHTBRACKET",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
       name = "rotate-building",
       key_sequence = "R",
       linked_game_control = "rotate",

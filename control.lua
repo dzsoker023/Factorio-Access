@@ -4336,10 +4336,13 @@ script.on_event("click-menu", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].last_click_tick == event.tick then return end
    local p = game.get_player(pindex)
+   local menu = players[pindex].menu
    if players[pindex].in_menu then
       players[pindex].last_click_tick = event.tick
       --Clear temporary cursor items instead of swapping them in
-      if p.cursor_stack_temporary then p.clear_cursor() end
+      if p.cursor_stack_temporary and menu ~= "blueprint_menu" and menu ~= "blueprint_book_menu" then
+         p.clear_cursor()
+      end
       --Act according to the type of menu open
       if players[pindex].menu == "inventory" then
          --Swap stacks
@@ -5729,6 +5732,12 @@ script.on_event("read-entity-status", function(event)
    if players[pindex].menu == "crafting" or players[pindex].menu == "crafting_queue" then return end
    local result = fa_info.read_selected_entity_status(pindex)
    if result ~= nil and result ~= "" then printout(result, pindex) end
+end)
+
+script.on_event("read-character-status", function(event)
+   pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   fa_info.read_character_status(pindex)
 end)
 
 script.on_event("rotate-building", function(event)
@@ -7464,6 +7473,7 @@ end)
 
 --Attempt to launch a rocket
 script.on_event("launch-rocket", function(event)
+   ---@diagnostic disable: cast-local-type
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
@@ -7489,6 +7499,7 @@ end)
 
 --Toggle whether rockets are launched automatically when they have cargo
 script.on_event("toggle-auto-launch-with-cargo", function(event)
+   ---@diagnostic disable: cast-local-type
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
