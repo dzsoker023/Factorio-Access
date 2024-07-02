@@ -4336,10 +4336,13 @@ script.on_event("click-menu", function(event)
    if not check_for_player(pindex) then return end
    if players[pindex].last_click_tick == event.tick then return end
    local p = game.get_player(pindex)
+   local menu = players[pindex].menu
    if players[pindex].in_menu then
       players[pindex].last_click_tick = event.tick
       --Clear temporary cursor items instead of swapping them in
-      if p.cursor_stack_temporary then p.clear_cursor() end
+      if p.cursor_stack_temporary and menu ~= "blueprint_menu" and menu ~= "blueprint_book_menu" then
+         p.clear_cursor()
+      end
       --Act according to the type of menu open
       if players[pindex].menu == "inventory" then
          --Swap stacks

@@ -23,6 +23,7 @@ Released on July 2nd, 2024.
 ## Bugfixes
   - Fixed a launcher bug that made the game freeze after successfully generating the config file when it is launched for the first time.
 
+  - Fixed a recently introduced crash of the blueprint menu.
 
 # Version 0.12.0 BETA
 Released on June 28th, 2024.
@@ -36,6 +37,7 @@ Released on June 28th, 2024.
   * Selecting nothing will keep the blank copy tool in hand.
   * If you press `CONTROL + V` you can get back the last temporary blueprint into hand.
   * This system uses the player clipboard so if you `hold SHIFT and scroll the mouse wheel` it will load older or newer clipboard blueprints but detailed info about this is not supported.
+  * A temporary blueprint in hand can become permanent if you add a name or description to it.
 
 - You can now set the filters of infinity chests. Like for splitters, you do this by taking the set item in hand and pressing CONTROL + LEFT BRACKET.
 
