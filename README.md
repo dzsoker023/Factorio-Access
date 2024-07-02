@@ -106,6 +106,8 @@ Pause or unpause the game with the visual pause menu: ESC
 
 Time of day and current research and total mission time: T
 
+Check character health and shield level: ALT + RIGHT BRACKET
+
 Toggle Vanilla Mode: CONTROL + ALT + V. Note that this will mute the narrator until you toggle back out.
 
 Toggle Cursor Drawing: CONTROL + ALT + C. Note: This is enabled by Vanilla Mode by default, but it can be toggled separately for those who want it.
@@ -253,6 +255,8 @@ Get selected item description: Y
 Get selected item logistic requests info: L
 
 Get selected item production info: U
+
+Set or unset inventory slot filter: ALT + LEFT BRACKET. Note: This applies for player and vehicle cargo inventories. The item in the slot or otherwise the item in hand is used to set the filter.
 
 Pick an item from quickbar: NUMBER KEY, for keys 1 to 9 and 0.
 
@@ -553,6 +557,10 @@ Note: You can hold SHIFT to modify slot limits by increments of 5 instead of 1, 
 For inserters, modify the hand stack size: PAGE UP or PAGE DOWN. Alternatively: ALT + UP or ALT + DOWN.
 
 For buildings that can use the circuit network system, open the circuit network menu: N
+
+For rocket silos, launch the rocket: SPACEBAR
+
+For rocket silo, toggle automatic launching when there is any cargo: SHIFT + SPACEBAR. Alternatively: CONTROL + SPACEBAR.
 
 ## Crafting menu
 
