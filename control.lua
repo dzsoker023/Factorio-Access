@@ -7483,6 +7483,7 @@ end)
 --Attempt to launch a rocket
 script.on_event("launch-rocket", function(event)
    ---@diagnostic disable: cast-local-type
+   ---@diagnostic disable: assign-type-mismatch
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
@@ -7509,6 +7510,7 @@ end)
 --Toggle whether rockets are launched automatically when they have cargo
 script.on_event("toggle-auto-launch-with-cargo", function(event)
    ---@diagnostic disable: cast-local-type
+   ---@diagnostic disable: assign-type-mismatch
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
