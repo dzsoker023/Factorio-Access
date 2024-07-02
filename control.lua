@@ -3693,12 +3693,14 @@ script.on_event("switch-menu-or-gun", function(event)
             local pb = players[pindex].building
             players[pindex].building.sector_name = pb.sectors[pb.sector].name
          elseif players[pindex].building.recipe_list == nil then
-            if players[pindex].building.sector == (#players[pindex].building.sectors + 1) then
+            if players[pindex].building.sector == (#players[pindex].building.sectors + 1) then --Player inventory sector
                read_inventory_slot(pindex, "Player Inventory, ")
                players[pindex].building.sector_name = "player inventory from building"
             else
                players[pindex].building.sector = 1
                fa_sectors.read_sector_slot(pindex, true)
+               local pb = players[pindex].building
+               players[pindex].building.sector_name = pb.sectors[pb.sector].name
             end
          else
             if players[pindex].building.sector == #players[pindex].building.sectors + 1 then --Recipe selection sector
