@@ -325,6 +325,7 @@ function mod.get_blueprint_info(stack, in_hand)
 
    --Use this opportunity to update saved information about the blueprint's corners (used when drawing the footprint)
    local width, height = mod.get_blueprint_width_and_height(pindex)
+   if width == nil or height == nil then return result end
    players[pindex].blueprint_width_in_hand = width + 1
    players[pindex].blueprint_height_in_hand = height + 1
    return result
