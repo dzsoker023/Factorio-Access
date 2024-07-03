@@ -1,3 +1,15 @@
+# Version 0.12.3 BETA
+Released on July 4th, 2024.
+
+## Summary
+- This is another quick patch update that fixes a crash introduced in 0.12.1 and a much older crash related to blueprints in chests.
+
+## Bugfixes
+- Fixed a crash due to trying to read filter slots of buildings that do not support inventory filtering.
+
+- Fixed a crash when reading blueprints inside chests due to relying on incomplete data about their dimensions.
+
+
 # Version 0.12.2 BETA
 Released on July 2nd, 2024.
 
