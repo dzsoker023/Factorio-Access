@@ -177,6 +177,7 @@ function mod.open_operable_building(ent, pindex)
             name = "Filters",
             inventory = {},
          })
+         --Add inserter filter info
          for i = 1, ent.filter_slot_count do
             local filter = ent.get_filter(i)
             if filter == nil then filter = "No filter selected." end
@@ -534,8 +535,10 @@ function mod.read_sector_slot(pindex, prefix_inventory_size_and_name, start_phra
          else
             --Check if the slot is filtered
             local index = players[pindex].building.index
-            local filter_name = building_sector.inventory.get_filter(index)
-            if filter_name ~= nil then start_phrase = start_phrase .. " filtered " end
+            if building_sector.inventory.supports_filters() then
+               local filter_name = building_sector.inventory.get_filter(index)
+               if filter_name ~= nil then start_phrase = start_phrase .. " filtered " end
+            end
             --Check if the stack has damage
             if stack.health < 1 then start_phrase = start_phrase .. " damaged " end
             local remote_info = ""
