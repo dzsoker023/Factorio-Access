@@ -2,7 +2,7 @@
 Released on July 4th, 2024.
 
 ## Summary
-- This is another quick patch update that fixes a crash introduced in 0.12.1 and a much older crash related to blueprints in chests.
+  - This is another quick patch update that fixes a crash introduced in 0.12.1 and some older bugs.
 
 ## Bugfixes
 - Fixed a crash due to trying to read filter slots of buildings that do not support inventory filtering.
