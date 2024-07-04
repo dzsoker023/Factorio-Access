@@ -25,7 +25,6 @@ function mod.load_tutorial(pindex)
    local CHAPTER_11_LENGTH = 37
    local CHAPTER_12_LENGTH = 14
    local CHAPTER_13_LENGTH = 26
-   local CHAPTER_14_LENGTH = 0
 
    tutorial.chapter_lengths = {
       CHAPTER_1_LENGTH,
@@ -41,7 +40,6 @@ function mod.load_tutorial(pindex)
       CHAPTER_11_LENGTH,
       CHAPTER_12_LENGTH,
       CHAPTER_13_LENGTH,
-      CHAPTER_14_LENGTH,
    }
 
    local str_count = 0
@@ -218,7 +216,7 @@ function mod.next_step(pindex)
       then
          --End of the entire list
          tutorial.chapter_index = tutorial.chapter_index - 1
-         tutorial.step_index = tutorial.step_index - 1
+         tutorial.step_index = tutorial.chapter_lengths[#tutorial.chapter_lengths]
          game.get_player(pindex).play_sound({ path = "inventory-edge" })
       else
          --start of the next chapter

@@ -9,6 +9,10 @@ Released on July 4th, 2024.
 
 - Fixed a crash when reading blueprints inside chests due to relying on incomplete data about their dimensions.
 
+- Fixed a typo when reading logistic network names.
+
+- Fixed a tutorial reader bug that was not reading the last step of the last chapter.
+
 
 # Version 0.12.2 BETA
 Released on July 2nd, 2024.
