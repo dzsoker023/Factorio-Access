@@ -1275,7 +1275,7 @@ function mod.build_preview_checks_info(stack, pindex)
          end
       else
          local network_name = network.cells[1].owner.backer_name
-         result = result .. ", in network" .. network_name
+         result = result .. ", in network " .. network_name
       end
    end
 
