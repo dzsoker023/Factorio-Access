@@ -6521,23 +6521,7 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
       --Jump the cursor
       players[pindex].cursor_jumping = false
       local result = event.element.text
-      if result ~= nil and result ~= "" then
-         local new_x = tonumber(fa_utils.get_substring_before_space(result))
-         local new_y = tonumber(fa_utils.get_substring_after_space(result))
-         --Check if valid numbers
-         local valid_coords = new_x ~= nil and new_y ~= nil
-         --Change cursor position or return error
-         if valid_coords then
-            players[pindex].cursor_pos = { x = new_x, y = new_y }
-            printout("Cursor jumped to " .. new_x .. ", " .. new_y, pindex)
-            fa_graphics.draw_cursor_highlight(pindex)
-            fa_graphics.sync_build_cursor_graphics(pindex)
-         else
-            printout("Invalid input", pindex)
-         end
-      else
-         printout("Invalid input", pindex)
-      end
+      jump_cursor_to_typed_coordinates(result, pindex)
       event.element.destroy()
       --Set the player menu tracker to none
       players[pindex].menu = "none"
@@ -8089,6 +8073,27 @@ function type_cursor_position(pindex)
    frame.focus()
    local input = frame.add({ type = "textfield", name = "input" })
    input.focus()
+end
+
+--Result is a string of two numbers separated by a space
+function jump_cursor_to_typed_coordinates(result, pindex)
+   if result ~= nil and result ~= "" then
+      local new_x = tonumber(fa_utils.get_substring_before_space(result))
+      local new_y = tonumber(fa_utils.get_substring_after_space(result))
+      --Check if valid numbers
+      local valid_coords = new_x ~= nil and new_y ~= nil
+      --Change cursor position or return error
+      if valid_coords then
+         players[pindex].cursor_pos = fa_utils.center_of_tile({ x = new_x + 0.01, y = new_y + 0.01 })
+         printout("Cursor jumped to " .. new_x .. ", " .. new_y, pindex)
+         fa_graphics.draw_cursor_highlight(pindex)
+         fa_graphics.sync_build_cursor_graphics(pindex)
+      else
+         printout("Invalid input", pindex)
+      end
+   else
+      printout("Invalid input", pindex)
+   end
 end
 
 --Alerts a force's players when their structures are destroyed. 300 ticks of cooldown.
