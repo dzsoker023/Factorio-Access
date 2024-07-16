@@ -4138,6 +4138,7 @@ script.on_event("mine-area", function(event)
    if
       ent ~= nil
          and ent.valid
+         and ent.name ~= "entity-ghost"
          and util.distance(game.get_player(pindex).position, ent.position) > game.get_player(pindex).reach_distance
       or util.distance(game.get_player(pindex).position, players[pindex].cursor_pos)
          > game.get_player(pindex).reach_distance
