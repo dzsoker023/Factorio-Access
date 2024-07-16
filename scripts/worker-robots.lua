@@ -371,7 +371,7 @@ local function player_logistic_request_increment_max(item_stack, pindex)
    end
 
    --Find the correct request slot for this item
-   local correct_slot_id = get_personal_logistic_slot_index(item_stack, pindex)
+   correct_slot_id = get_personal_logistic_slot_index(item_stack, pindex)
 
    if correct_slot_id == -1 then
       printout("Error: No empty slots available for this request", pindex)
@@ -422,7 +422,7 @@ local function player_logistic_request_decrement_max(item_stack, pindex)
    end
 
    --Find the correct request slot for this item
-   local correct_slot_id = get_personal_logistic_slot_index(item_stack, pindex)
+   correct_slot_id = get_personal_logistic_slot_index(item_stack, pindex)
 
    if correct_slot_id == -1 then
       printout("Error: No empty slots available for this request", pindex)
@@ -475,7 +475,7 @@ local function player_logistic_request_clear(item_stack, pindex)
    end
 
    --Find the correct request slot for this item
-   local correct_slot_id = get_personal_logistic_slot_index(item_stack, pindex)
+   correct_slot_id = get_personal_logistic_slot_index(item_stack, pindex)
 
    if correct_slot_id == -1 then
       printout("Error: No empty slots available for this request", pindex)
@@ -488,12 +488,6 @@ local function player_logistic_request_clear(item_stack, pindex)
    --Read the correct slot id value, increment it, set it
    current_slot = p.get_personal_logistic_slot(correct_slot_id)
 
-   local stack_size = 1
-   if item_stack.object_name == "LuaItemStack" then
-      stack_size = item_stack.prototype.stack_size
-   elseif item_stack.object_name == "LuaItemPrototype" then
-      stack_size = item_stack.stack_size
-   end
    if current_slot == nil or current_slot.name == nil then
       --(done)
    else
@@ -562,7 +556,7 @@ local function chest_logistic_request_increment_min(item_stack, chest, pindex)
    end
 
    --Find the correct request slot for this item
-   local correct_slot_id = get_entity_logistic_slot_index(item_stack, chest)
+   correct_slot_id = get_entity_logistic_slot_index(item_stack, chest)
 
    if correct_slot_id == -1 then
       printout("Error: No empty slots available for this request", pindex)
@@ -608,7 +602,7 @@ local function chest_logistic_request_decrement_min(item_stack, chest, pindex)
    end
 
    --Find the correct request slot for this item
-   local correct_slot_id = get_entity_logistic_slot_index(item_stack, chest)
+   correct_slot_id = get_entity_logistic_slot_index(item_stack, chest)
 
    if correct_slot_id == -1 then
       printout("Error: No empty slots available for this request", pindex)
@@ -658,7 +652,7 @@ local function chest_logistic_request_clear(item_stack, chest, pindex)
    end
 
    --Find the correct request slot for this item
-   local correct_slot_id = get_entity_logistic_slot_index(item_stack, chest)
+   correct_slot_id = get_entity_logistic_slot_index(item_stack, chest)
 
    if correct_slot_id == -1 then
       printout("Error: No empty slots available for this request", pindex)
@@ -670,12 +664,6 @@ local function chest_logistic_request_clear(item_stack, chest, pindex)
 
    --Read the correct slot id value, increment it, set it
    current_slot = chest.get_request_slot(correct_slot_id)
-   local stack_size = 1
-   if item_stack.object_name == "LuaItemStack" then
-      stack_size = item_stack.prototype.stack_size
-   elseif item_stack.object_name == "LuaItemPrototype" then
-      stack_size = item_stack.stack_size
-   end
    if current_slot == nil or current_slot.name == nil then
       --(done))
    else
@@ -700,7 +688,7 @@ local function spidertron_logistic_request_increment_min(item_stack, spidertron,
    end
 
    --Find the correct request slot for this item
-   local correct_slot_id = get_entity_logistic_slot_index(item_stack, spidertron)
+   correct_slot_id = get_entity_logistic_slot_index(item_stack, spidertron)
 
    if correct_slot_id == -1 then
       printout("Error: No empty slots available for this request", pindex)
@@ -750,7 +738,7 @@ local function spidertron_logistic_request_decrement_min(item_stack, spidertron,
    end
 
    --Find the correct request slot for this item
-   local correct_slot_id = get_entity_logistic_slot_index(item_stack, spidertron)
+   correct_slot_id = get_entity_logistic_slot_index(item_stack, spidertron)
 
    if correct_slot_id == -1 then
       printout("Error: No empty slots available for this request", pindex)
@@ -800,7 +788,7 @@ local function spidertron_logistic_request_increment_max(item_stack, spidertron,
    end
 
    --Find the correct request slot for this item
-   local correct_slot_id = get_entity_logistic_slot_index(item_stack, spidertron)
+   correct_slot_id = get_entity_logistic_slot_index(item_stack, spidertron)
 
    if correct_slot_id == -1 then
       printout("Error: No empty slots available for this request", pindex)
@@ -850,7 +838,7 @@ local function spidertron_logistic_request_decrement_max(item_stack, spidertron,
    end
 
    --Find the correct request slot for this item
-   local correct_slot_id = get_entity_logistic_slot_index(item_stack, spidertron)
+   correct_slot_id = get_entity_logistic_slot_index(item_stack, spidertron)
 
    if correct_slot_id == -1 then
       printout("Error: No empty slots available for this request", pindex)
@@ -901,7 +889,7 @@ local function spidertron_logistic_request_clear(item_stack, spidertron, pindex)
    end
 
    --Find the correct request slot for this item
-   local correct_slot_id = get_entity_logistic_slot_index(item_stack, spidertron)
+   correct_slot_id = get_entity_logistic_slot_index(item_stack, spidertron)
 
    if correct_slot_id == -1 then
       printout("Error: No empty slots available for this request", pindex)
@@ -913,12 +901,6 @@ local function spidertron_logistic_request_clear(item_stack, spidertron, pindex)
 
    --Read the correct slot id value, increment it, set it
    current_slot = spidertron.get_vehicle_logistic_slot(correct_slot_id)
-   local stack_size = 1
-   if item_stack.object_name == "LuaItemStack" then
-      stack_size = item_stack.prototype.stack_size
-   elseif item_stack.object_name == "LuaItemPrototype" then
-      stack_size = item_stack.stack_size
-   end
    if current_slot == nil or current_slot.name == nil then
       --(done)
    else
@@ -932,7 +914,10 @@ end
 
 --Calls the appropriate function after a keypress for logistic info
 function mod.logistics_info_key_handler(pindex)
-   if
+   if game.get_player(pindex).character == nil then
+      printout("No logistic information available at the moment.", pindex)
+      return
+   elseif
       players[pindex].in_menu == false
       or players[pindex].menu == "inventory"
       or players[pindex].menu == "player_trash"
@@ -1420,8 +1405,6 @@ end
 --Returns summary info string
 function mod.player_logistic_requests_summary_info(pindex)
    local p = game.get_player(pindex)
-   local current_slot = nil
-   local correct_slot_id = nil
    local result = ""
 
    --1. Check if logistics have been researched
