@@ -947,4 +947,51 @@ mod.spacecat = function(...)
    return table.concat(will_cat, " ")
 end
 
+--Checks the alignment and the distance of the cursor with respect to the cursor bookmark position
+function mod.play_bookmark_alignment_sounds(pindex)
+   local p = game.get_player(pindex)
+   local bookmark_pos = players[pindex].cursor_bookmark
+   local cursor_pos = players[pindex].cursor_pos
+   if bookmark_pos == nil then return end
+   local diff_x = (math.floor(bookmark_pos.x) - math.floor(cursor_pos.x))
+   local diff_y = (math.floor(bookmark_pos.y) - math.floor(cursor_pos.y))
+   local dist = util.distance(bookmark_pos, cursor_pos)
+
+   --Print diffs for debug
+   --p.print("diff_x: " .. diff_x .. " | diff_y: " .. diff_y .. " | dist: " .. dist, { volume_modifier = 0 })
+
+   --Bookmark proximity
+   if diff_x == 0 and diff_y == 0 then
+      --Play sound 1
+      p.play_sound({ path = "audio-ruler-close-1" })
+      --elseif math.abs(diff_x) < 2 and math.abs(diff_y) < 2 then
+      --   --Play sound 2
+      --   p.play_sound({ path = "audio-ruler-close-2" })
+   end
+   --Horizontal alignment
+   if diff_x == 0 then
+      --Play sound 1
+      p.play_sound({ path = "audio-ruler-horizontal-1" })
+   elseif math.abs(diff_x) == 1 then
+      --Play sound 2
+      p.play_sound({ path = "audio-ruler-horizontal-2" })
+   end
+   --Vertical alignment
+   if diff_y == 0 then
+      --Play sound 1
+      p.play_sound({ path = "audio-ruler-vertical-1" })
+   elseif math.abs(diff_y) == 1 then
+      --Play sound 2
+      p.play_sound({ path = "audio-ruler-vertical-2" })
+   end
+   --Diagonal alignment
+   if diff_x ~= 0 and math.abs(diff_x) == math.abs(diff_y) then
+      --Play sound 1
+      p.play_sound({ path = "audio-ruler-diagonal-1" })
+   elseif diff_x ~= 0 and math.abs(math.abs(diff_x) - math.abs(diff_y)) == 1 then
+      --Play sound 2
+      p.play_sound({ path = "audio-ruler-diagonal-2" })
+   end
+end
+
 return mod

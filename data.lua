@@ -257,6 +257,78 @@ data:extend({
 
    {
       type = "sound",
+      name = "audio-ruler-close-1",
+      category = "gui-effect",
+      filename = "__base__/sound/programmable-speaker/vibraphone-21.ogg",
+      volume = 1,
+      preload = true,
+   },
+
+   {
+      type = "sound",
+      name = "audio-ruler-close-2",
+      category = "gui-effect",
+      filename = "__base__/sound/programmable-speaker/vibraphone-19.ogg",
+      volume = 1,
+      preload = true,
+   },
+
+   {
+      type = "sound",
+      name = "audio-ruler-diagonal-1",
+      category = "gui-effect",
+      filename = "__base__/sound/programmable-speaker/bass-14.ogg",
+      volume = 1,
+      preload = true,
+   },
+
+   {
+      type = "sound",
+      name = "audio-ruler-diagonal-2",
+      category = "gui-effect",
+      filename = "__base__/sound/programmable-speaker/bass-12.ogg",
+      volume = 1,
+      preload = true,
+   },
+
+   {
+      type = "sound",
+      name = "audio-ruler-horizontal-1",
+      category = "gui-effect",
+      filename = "__base__/sound/programmable-speaker//vibraphone-14.ogg",
+      volume = 1,
+      preload = true,
+   },
+
+   {
+      type = "sound",
+      name = "audio-ruler-horizontal-2",
+      category = "gui-effect",
+      filename = "__base__/sound/programmable-speaker/vibraphone-12.ogg",
+      volume = 1,
+      preload = true,
+   },
+
+   {
+      type = "sound",
+      name = "audio-ruler-vertical-1",
+      category = "gui-effect",
+      filename = "__base__/sound/programmable-speaker/vibraphone-14.ogg",
+      volume = 1,
+      preload = true,
+   },
+
+   {
+      type = "sound",
+      name = "audio-ruler-vertical-2",
+      category = "gui-effect",
+      filename = "__base__/sound/programmable-speaker/vibraphone-12.ogg",
+      volume = 1,
+      preload = true,
+   },
+
+   {
+      type = "sound",
       name = "Open-Inventory-Sound",
       category = "gui-effect",
       filename = "__core__/sound/gui-green-button.ogg",
@@ -668,6 +740,13 @@ data:extend({
       type = "custom-input",
       name = "cursor-bookmark-load",
       key_sequence = "B",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
+      name = "cursor-bookmark-clear",
+      key_sequence = "CONTROL + SHIFT + B",
       consuming = "none",
    },
 

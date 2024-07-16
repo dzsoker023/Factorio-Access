@@ -1373,6 +1373,8 @@ script.on_event(defines.events.on_player_changed_position, function(event)
          fa_graphics.draw_cursor_highlight(pindex, nil, nil)
          p.selected = nil
       end
+      --Play a sound for audio ruler alignment (smooth walk)
+      if players[pindex].in_menu == false then fa_utils.play_bookmark_alignment_sounds(pindex) end
    end
 end)
 
@@ -2498,6 +2500,9 @@ function move(direction, pindex)
       else
          printout("Tile Occupied", pindex)
       end
+
+      --Play a sound for audio ruler alignment (telestep moved)
+      if players[pindex].in_menu == false then fa_utils.play_bookmark_alignment_sounds(pindex) end
    else
       --New direction: Turn character: --turn
       if players[pindex].walk == 0 then
@@ -2550,6 +2555,9 @@ function move(direction, pindex)
       then
          players[pindex].building_direction = players[pindex].player_direction
       end
+
+      --Play a sound for audio ruler alignment (telestep turned)
+      if players[pindex].in_menu == false then fa_utils.play_bookmark_alignment_sounds(pindex) end
    end
 
    --Update cursor highlight
@@ -2600,6 +2608,11 @@ function move_key(direction, event, force_single_tile)
    --Play a sound to indicate ongoing ghost rail planner
    if pex.ghost_rail_planning then
       game.get_player(pindex).play_sound({ path = "utility/upgrade_selection_started" })
+   end
+
+   --Play a sound for audio ruler alignment (cursor mode moved)
+   if players[pindex].in_menu == false and players[pindex].cursor then
+      fa_utils.play_bookmark_alignment_sounds(pindex)
    end
 
    --If driving a spidertron in telestep mode, suggest using smooth walking
@@ -2912,6 +2925,14 @@ script.on_event("cursor-bookmark-load", function(event)
    fa_graphics.draw_cursor_highlight(pindex, nil, nil)
    fa_graphics.sync_build_cursor_graphics(pindex)
    printout("Loaded cursor bookmark at " .. math.floor(pos.x) .. ", " .. math.floor(pos.y), pindex)
+   game.get_player(pindex).play_sound({ path = "Close-Inventory-Sound" })
+end)
+
+script.on_event("cursor-bookmark-clear", function(event)
+   pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   players[pindex].cursor_bookmark = nil
+   printout("Cleared cursor bookmark", pindex)
    game.get_player(pindex).play_sound({ path = "Close-Inventory-Sound" })
 end)
 
