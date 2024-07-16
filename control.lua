@@ -4268,6 +4268,41 @@ script.on_event("mine-area", function(event)
    printout(result, pindex)
 end)
 
+--Long range area mining. Includes only ghosts for now.
+script.on_event("super-mine-area", function(event)
+   pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   if players[pindex].in_menu then return end
+   local ent = game.get_player(pindex).selected
+   local cleared_count = 0
+
+   --Begin clearing
+   if ent and ent.valid then
+      local surf = ent.surface
+      local pos = ent.position
+      if ent.name == "entity-ghost" then
+         --Ghosts within 100 tiles
+         local ghosts = surf.find_entities_filtered({ position = pos, radius = 100, name = { "entity-ghost" } })
+         for i, ghost in ipairs(ghosts) do
+            game.get_player(pindex).mine_entity(ghost, true)
+            cleared_count = cleared_count + 1
+         end
+         game.get_player(pindex).play_sound({ path = "utility/item_deleted" })
+         --Draw the clearing range
+         rendering.draw_circle({
+            color = { 0, 1, 0 },
+            radius = 100,
+            width = 10,
+            target = pos,
+            surface = surf,
+            time_to_live = 60,
+         })
+         printout(" Cleared away " .. cleared_count .. " entity ghosts within 100 tiles. ", pindex)
+         return
+      end
+   end
+end)
+
 --Cut-paste-tool. NOTE: This keybind needs to be the same as that for the cut paste tool (default CONTROL + X). laterdo maybe keybind to game control somehow
 script.on_event("cut-paste-tool-comment", function(event)
    local pindex = event.player_index

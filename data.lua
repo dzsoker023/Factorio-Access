@@ -1230,6 +1230,13 @@ data:extend({
 
    {
       type = "custom-input",
+      name = "super-mine-area",
+      key_sequence = "CONTROL + SHIFT + X",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
       name = "leftbracket-key-id",
       key_sequence = "LEFTBRACKET",
       consuming = "none",
