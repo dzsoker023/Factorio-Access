@@ -14,9 +14,9 @@ Factorio also has an [official wiki](https://wiki.factorio.com/).
 Please check the [Factorio Access Wiki main page](https://github.com/Factorio-Access/FactorioAccess/wiki) for frequently asked questions section.
 
 # Installing Factorio
-The game can be purchased from Factorio.com or from Steam. We recommend installing it using ONLY one of the three options below.
+The game can be purchased from Factorio.com or from Steam. Any purchase gives access to all versions. We recommend installing it using ONLY one of the options below. The zip or standalone versions are recommended for being easy to install the mod. The Steam versions are harder to configure but they are more reliable for multiplayer, while Steam Achievements are not available for modded gameplay.
 
-## Windows Zip Version / Standalone Version (recommended for easy install and troubleshooting)
+## Windows Zip Version / Standalone Version (recommended for easy mod install and troubleshooting)
 1. Go to https://www.factorio.com/download
 1. If needed, login using your Factorio account or Steam account.
 1. Among the install options, find the stable releases at the top half of the page. 
@@ -25,7 +25,7 @@ The game can be purchased from Factorio.com or from Steam. We recommend installi
 1. If you want, create a desktop shortcut for your Factorio folder.
 1. All done! You need to install the mod next.
 
-## Steam Version (recommended for easy multiplayer setup)
+## Steam Version (harder to configure the mod, better for multiplayer setup)
 1. Install Factorio using Steam settings, like any other game on Steam.
 1. That is it, pretty much. You next need to install the mod next and then configure Steam settings.
 
