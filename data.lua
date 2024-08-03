@@ -718,7 +718,7 @@ data:extend({
 
    {
       type = "custom-input",
-      name = "cursor-bookmark-clear",
+      name = "cursor-bookmark-toggle-ruler",
       key_sequence = "CONTROL + SHIFT + B",
       consuming = "none",
    },

@@ -2936,11 +2936,14 @@ script.on_event("cursor-bookmark-load", function(event)
    game.get_player(pindex).play_sound({ path = "Close-Inventory-Sound" })
 end)
 
-script.on_event("cursor-bookmark-clear", function(event)
+script.on_event("cursor-bookmark-toggle-ruler", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   players[pindex].cursor_bookmark = nil
-   printout("Cleared cursor bookmark", pindex)
+   if players[pindex].audio_ruler_enabled ~= true then
+      players[pindex].audio_ruler_enabled = true
+   else
+      players[pindex].audio_ruler_enabled = false
+   end
    game.get_player(pindex).play_sound({ path = "Close-Inventory-Sound" })
 end)
 

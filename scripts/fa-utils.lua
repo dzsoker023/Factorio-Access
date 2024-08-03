@@ -953,6 +953,7 @@ function mod.play_bookmark_alignment_sounds(pindex)
    local bookmark_pos = players[pindex].cursor_bookmark
    local cursor_pos = players[pindex].cursor_pos
    if bookmark_pos == nil then return end
+   if players[pindex].audio_ruler_enabled ~= true then return end
    local diff_x = (math.floor(bookmark_pos.x) - math.floor(cursor_pos.x))
    local diff_y = (math.floor(bookmark_pos.y) - math.floor(cursor_pos.y))
    local dist = util.distance(bookmark_pos, cursor_pos)
