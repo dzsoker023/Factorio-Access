@@ -808,6 +808,8 @@ For the selected item, increase maximum request value: ALT + SHIFT + L, availabl
 
 For the selected item, decrease maximum request value: ALT + CONTROL + L, available for personal requests only
 
+For the selected item, clear the logistic request entirely: ALT + CONTROL + SHIFT + L
+
 For the selected item, send it to logistic trash: O
 
 For the selected item in logistic trash, take it back into inventory: LEFT BRACKET and then Q
