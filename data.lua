@@ -700,13 +700,6 @@ data:extend({
 
    {
       type = "custom-input",
-      name = "cursor-bookmark-toggle-ruler",
-      key_sequence = "CONTROL + SHIFT + B",
-      consuming = "none",
-   },
-
-   {
-      type = "custom-input",
       name = "ruler-save",
       key_sequence = "CONTROL + ALT + B",
       consuming = "none",

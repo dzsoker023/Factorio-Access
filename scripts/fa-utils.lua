@@ -947,32 +947,4 @@ mod.spacecat = function(...)
    return table.concat(will_cat, " ")
 end
 
---Checks the alignment and the distance of the cursor with respect to the cursor bookmark position
-function mod.play_bookmark_alignment_sounds(pindex)
-   local p = game.get_player(pindex)
-   local bookmark_pos = players[pindex].cursor_bookmark
-   local cursor_pos = players[pindex].cursor_pos
-   if bookmark_pos == nil then return end
-   if players[pindex].audio_ruler_enabled ~= true then return end
-   local diff_x = (math.floor(bookmark_pos.x) - math.floor(cursor_pos.x))
-   local diff_y = (math.floor(bookmark_pos.y) - math.floor(cursor_pos.y))
-   local dist = util.distance(bookmark_pos, cursor_pos)
-
-   --The cursor is at the bookmark.
-   if diff_x == 0 and diff_y == 0 then
-      p.play_sound({ path = "audio-ruler-at-bookmark" })
-   -- The cursor is horizontally aligned.
-   elseif diff_x == 0 then
-      p.play_sound({ path = "audio-ruler-horizontal-aligned" })
-   elseif math.abs(diff_x) == 1 and diff_y ~= 0 then
-      p.play_sound({ path = "audio-ruler-horizontal-close" })
-   --Vertical alignment
-   elseif diff_y == 0 then
-      --Play sound 1
-      p.play_sound({ path = "audio-ruler-vertical-aligned" })
-   elseif math.abs(diff_y) == 1 then
-      p.play_sound({ path = "audio-ruler-vertical-close" })
-   end
-end
-
 return mod
