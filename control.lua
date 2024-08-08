@@ -121,31 +121,114 @@ function call_to_check_ghost_rails(pindex)
    fa_rails.check_ghost_rail_planning_results(pindex)
 end
 
--- Deprecated. Do not use.
---
--- This function used to be called get_selected_ent and implied that it would
--- simply read entities off a tile.  What it actually did was try to shuffle
--- entities round to remove players from a cache permanently, with emphasis on
--- try.  The code below has a large number of failure conditions.
-function get_selected_ent_deprecated(pindex, ent_no)
-   local tile = players[pindex].tile
-   local ent
-   local ent_no = ent_no or 1
-   while true do
-      if tile.index > #tile.ents then tile.index = #tile.ents end
-      if tile.index == 0 then return nil end
-      ent = tile.ents[tile.index]
-      if not ent then print(serpent.line(tile.ents), tile.index, ent) end
-      if ent.valid and (ent.type ~= "character" or players[pindex].cursor or ent.player ~= pindex) then
-         ent_no = ent_no - 1
+--Define primary ents, which are ents that show up first when reading tiles.
+--Notably, the definition is done by listing which types count as secondary.
+function ent_is_primary(ent, pindex)
+   return ent.type ~= "logistic-robot"
+      and ent.type ~= "construction-robot"
+      and ent.type ~= "combat-robot"
+      and ent.type ~= "corpse"
+      and ent.type ~= "rocket-silo-rocket-shadow"
+      and ent.type ~= "resource"
+      and (ent.type ~= "character" or ent.player ~= pindex)
+end
+
+-- Sorts a list of entities by bringing primary entities to the start
+function sort_ents_by_primary_first(ents)
+   table.sort(ents, function(a, b)
+      -- Return false if either are invalid
+      if a == nil or a.valid == false then return false end
+      if b == nil or b.valid == false then return false end
+
+      -- Check if primary
+      local a_is_primary = ent_is_primary(a, pindex)
+      local b_is_primary = ent_is_primary(b, pindex)
+
+      -- Both or none are primary
+      if a_is_primary == b_is_primary then return false end
+
+      -- a is primary while b is not
+      if a_is_primary then return true end
+
+      -- b is primary while a is not
+      return false
+   end)
+end
+
+--Get the first entity at a tile
+--The entity list is sorted to have primary entities first, so a primary entity is expected.
+function get_first_ent_at_tile(pindex)
+   local ents = players[pindex].tile.ents
+
+   --Return nil for an empty ents list
+   if ents == nil or #ents == 0 then return nil end
+
+   --Attempt to find the next ent (init to end)
+   for i = 1, #ents, 1 do
+      current = ents[i]
+      if current and current.valid then
+         players[pindex].tile.ent_index = i
+         players[pindex].tile.last_returned_index = i
+         return current
       end
-      if ent_no <= 0 then return ent end
-      table.remove(tile.ents, tile.index)
    end
+
+   --By this point there are no valid ents
+   return nil
+end
+
+--Get the next entity at this tile and note its index.
+--The tile entity list is already sorted such that primary ents are listed first.
+function get_next_ent_at_tile(pindex)
+   local ents = players[pindex].tile.ents
+   local init_index = players[pindex].tile.ent_index
+   local last_returned_index = players[pindex].tile.last_returned_index
+   local current = ents[init_index]
+
+   --Return nil for an empty ents list
+   if ents == nil or #ents == 0 then return nil end
+
+   --Attempt to find the next ent (init to end)
+   for i = init_index, #ents, 1 do
+      current = ents[i]
+      if current and current.valid then
+         --If this is not a repeat then return it
+         if last_returned_index == 0 or last_returned_index ~= i then
+            players[pindex].tile.ent_index = i
+            players[pindex].tile.last_returned_index = i
+            return current
+         end
+      end
+   end
+
+   --Return nil to get the tile info instead
+   if last_returned_index ~= 0 then
+      players[pindex].tile.ent_index = 0
+      players[pindex].tile.last_returned_index = 0
+      return nil
+   end
+
+   --Attempt to find the next ent (start to init)
+   for i = 1, init_index - 1, 1 do
+      current = ents[i]
+      if current and current.valid then
+         --If this is not a repeat then return it
+         if last_returned_index == 0 or last_returned_index ~= i then
+            players[pindex].tile.ent_index = i
+            players[pindex].tile.last_returned_index = i
+            return current
+         end
+      end
+   end
+
+   --By this point there are no valid ents
+   players[pindex].tile.ent_index = 0
+   players[pindex].tile.last_returned_index = 0
+   return nil
 end
 
 --- Produce an iterator over all valid entities for a player's selected tile,
---  filtering out the player themselves.
+--  while filtering out the player themselves.
 local function iterate_selected_ents(pindex)
    local tile = players[pindex].tile
    local ents = tile.ents
@@ -159,11 +242,9 @@ local function iterate_selected_ents(pindex)
          local ent = ents[i]
          i = i + 1
 
-         if not ent.valid then goto continue end
-
-         if ent.type ~= "character" or ent.player ~= pindex then return ent end
-
-         ::continue::
+         if ent and ent.valid then
+            if ent.type ~= "character" or ent.player ~= pindex then return ent end
+         end
       end
 
       return nil
@@ -488,16 +569,14 @@ function target_mouse_pointer_deprecated(pindex)
    end
 end
 
---Checks the cursor tile for a new entity and reads out ent info. Used when a tile has multiple overlapping entities.
+--Used when a tile has multiple overlapping entities. Reads out the next entity.
 function tile_cycle(pindex)
-   local tile = players[pindex].tile
-   tile.index = tile.index + 1
-   if tile.index > #tile.ents then tile.index = 0 end
-   local ent = get_selected_ent_deprecated(pindex)
-   if ent then
+   local ent = get_next_ent_at_tile(pindex)
+   if ent and ent.valid then
       printout(fa_info.ent_info(pindex, ent, ""), pindex)
+      game.get_player(pindex).selected = ent
    else
-      printout(tile.tile, pindex)
+      printout(players[pindex].tile.tile, pindex)
    end
 end
 
@@ -577,7 +656,7 @@ function toggle_cursor_mode(pindex, muted)
    end
    if players[pindex].cursor_size < 2 then
       --Update cursor highlight
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = get_first_ent_at_tile(pindex)
       if ent and ent.valid then
          fa_graphics.draw_cursor_highlight(pindex, ent, nil)
       else
@@ -667,10 +746,6 @@ end
 --Re-checks the cursor tile and indexes the entities on it, returns a boolean on whether it is successful.
 function refresh_player_tile(pindex)
    local surf = game.get_player(pindex).surface
-   --local search_area = {{x=-0.5,y=-0.5},{x=0.29,y=0.29}}
-   --local search_center = players[pindex].cursor_pos
-   --search_area[1]=add_position(search_area[1],search_center)
-   --search_area[2]=add_position(search_area[2],search_center)
    local c_pos = players[pindex].cursor_pos
    if math.floor(c_pos.x) == math.ceil(c_pos.x) then c_pos.x = c_pos.x - 0.01 end
    if math.floor(c_pos.y) == math.ceil(c_pos.y) then c_pos.y = c_pos.y - 0.01 end
@@ -680,6 +755,7 @@ function refresh_player_tile(pindex)
    }
    local excluded_names = { "highlight-box", "flying-text" }
    players[pindex].tile.ents = surf.find_entities_filtered({ area = search_area, name = excluded_names, invert = true })
+   sort_ents_by_primary_first(players[pindex].tile.ents)
    --Draw the tile
    --rendering.draw_rectangle{left_top = search_area[1], right_bottom = search_area[2], color = {1,0,1}, surface = surf, time_to_live = 100}--
    local wide_area = {
@@ -690,7 +766,9 @@ function refresh_player_tile(pindex)
    for i, remnant in ipairs(remnants) do
       table.insert(players[pindex].tile.ents, remnant)
    end
-   players[pindex].tile.index = #players[pindex].tile.ents == 0 and 0 or 1
+   players[pindex].tile.ent_index = 1
+   if #players[pindex].tile.ents == 0 then players[pindex].tile.ent_index = 0 end
+   players[pindex].tile.last_returned_index = 0
    if
       not (
          pcall(function()
@@ -711,7 +789,7 @@ function read_tile(pindex, start_text)
       printout(result .. "Tile uncharted and out of range", pindex)
       return
    end
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = get_first_ent_at_tile(pindex)
    if not (ent and ent.valid) then
       --If there is no ent, read the tile instead
       players[pindex].tile.previous = nil
@@ -756,7 +834,7 @@ function read_tile(pindex, start_text)
          game.get_player(pindex).play_sound({ path = "player-mine" })
          if fa_mining_tools.try_to_mine_with_soun(ent, pindex) then result = result .. name .. " mined, " end
          --Second round, in case two entities are there. While loops do not work!
-         ent = get_selected_ent_deprecated(pindex)
+         ent = get_first_ent_at_tile(pindex)
          if ent and ent.valid and players[pindex].walk ~= WALKING.SMOOTH then --not while
             local name = ent.name
             game.get_player(pindex).play_sound({ path = "player-mine" })
@@ -1356,7 +1434,7 @@ script.on_event(defines.events.on_player_changed_position, function(event)
 
       --Name a detected entity that you can or cannot walk on, or a tile you cannot walk on, and play a sound to indicate multiple consecutive detections
       refresh_player_tile(pindex)
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = get_first_ent_at_tile(pindex)
       if
          not players[pindex].vanilla_mode
          and (
@@ -2537,8 +2615,9 @@ function move(direction, pindex)
       if players[pindex].walk ~= WALKING.SMOOTH then
          read_tile(pindex)
       elseif players[pindex].walk == WALKING.SMOOTH then
+         --Read the new entity or unwalkable surface found upon turning
          refresh_player_tile(pindex)
-         local ent = get_selected_ent_deprecated(pindex)
+         local ent = get_first_ent_at_tile(pindex)
          if
             not players[pindex].vanilla_mode
             and (
@@ -2570,7 +2649,7 @@ function move(direction, pindex)
    end
 
    --Update cursor highlight
-   local ent = get_selected_ent_deprecated(pindex)
+   local ent = get_first_ent_at_tile(pindex)
    if ent and ent.valid then
       fa_graphics.draw_cursor_highlight(pindex, ent, nil)
    else
@@ -2663,7 +2742,7 @@ function cursor_mode_move(direction, pindex, single_only)
       if players[pindex].build_lock then fa_building_tools.build_item_in_hand(pindex) end
 
       --Update cursor highlight
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = get_first_ent_at_tile(pindex)
       if ent and ent.valid then
          fa_graphics.draw_cursor_highlight(pindex, ent, nil)
       else
@@ -4801,7 +4880,7 @@ script.on_event("click-menu", function(event)
          end
 
          --Update cursor highlight
-         local ent = get_selected_ent_deprecated(pindex)
+         local ent = get_first_ent_at_tile(pindex)
          if ent and ent.valid then
             fa_graphics.draw_cursor_highlight(pindex, ent, nil)
          else
@@ -4876,7 +4955,7 @@ script.on_event("click-hand", function(event)
       --Not in a menu
       local stack = game.get_player(pindex).cursor_stack
       local cursor_ghost = game.get_player(pindex).cursor_ghost
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = get_first_ent_at_tile(pindex)
 
       if stack and stack.valid_for_read and stack.valid then
          players[pindex].last_click_tick = event.tick
@@ -5139,7 +5218,7 @@ script.on_event("click-entity", function(event)
       --Not in a menu
       local stack = game.get_player(pindex).cursor_stack
       local ghost = game.get_player(pindex).cursor_ghost
-      local ent = get_selected_ent_deprecated(pindex)
+      local ent = get_first_ent_at_tile(pindex)
 
       if ghost or (stack and stack.valid_for_read and stack.valid) then
          return
@@ -5278,7 +5357,7 @@ script.on_event("open-circuit-menu", function(event)
       --Open the menu
       fa_circuits.circuit_network_menu_open(pindex, ent)
    elseif players[pindex].in_menu == false then
-      local ent = p.selected or get_selected_ent_deprecated(pindex)
+      local ent = p.selected or get_first_ent_at_tile(pindex)
       if ent == nil or ent.valid == false or (ent.get_control_behavior() == nil and ent.type ~= "electric-pole") then
          --Sort scan results instead
          return
@@ -5643,7 +5722,7 @@ function do_multi_stack_transfer(ratio, pindex)
       local offset = 1
       if players[pindex].building.recipe_list ~= nil then offset = offset + 1 end
       if players[pindex].building.sector_name == "player inventory from building" then
-         game.print("path 3b")
+         game.get_player(pindex).print("(inventory transfer issue?)", { volume_modifier = 0 })
          --This is the section where we move from the player to the building.
          local item_name = ""
          local stack = players[pindex].inventory.lua_inventory[players[pindex].inventory.index]
@@ -5656,10 +5735,11 @@ function do_multi_stack_transfer(ratio, pindex)
             ratio = ratio,
          })
 
-         if full then table.insert(result, "Inventory full or not applicable, ") end
          if table_size(moved) == 0 then
+            if full then table.insert(result, "Inventory full or not applicable, ") end
             table.insert(result, { "access.placed-nothing" })
          else
+            if full then table.insert(result, "Partial success, ") end
             game.get_player(pindex).play_sound({ path = "utility/inventory_move" })
             local item_list = { "" }
             local other_items = 0
@@ -6990,7 +7070,7 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
             if con.connection_type == "underground" and dir_neighbor == direction then
                players[pindex].cursor_pos = con.target.get_pipe_connections(1)[1].position
                refresh_player_tile(pindex)
-               current = get_selected_ent_deprecated(pindex)
+               current = get_first_ent_at_tile(pindex)
                return dist
             end
          end
@@ -7005,7 +7085,7 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
          if dir_neighbor == direction then
             players[pindex].cursor_pos = other_end.position
             refresh_player_tile(pindex)
-            current = get_selected_ent_deprecated(pindex)
+            current = get_first_ent_at_tile(pindex)
             return dist
          end
       end
