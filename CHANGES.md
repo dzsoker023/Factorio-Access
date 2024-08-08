@@ -7,22 +7,23 @@ Release pending.
 ## Features
   - Added a prototype version of the audio ruler system.
     * Audio rulers are tools to help align the cursor without needing to count. 
-    * Press `CONTROL + ALT + B` to setup an audio ruler at the cursor position and press `SHIFT + ALT + B` to clear it.
-    * When you setup a point for audio rulers, straight ruler lines are extend in all 4 cardinal directions from the point. When the cursor lands on a ruler line it plays a sound note. 
+    * Press `CONTROL + ALT + B` to setup an audio ruler at the cursor position and press `SHIFT + ALT + B` to clear it.---
+    * When you setup a point for audio rulers, straight ruler lines are extend in all 4 cardinal directions from the point. 
+    * When the cursor lands on a ruler line it plays a sound note. 
     * A different note is played when the cursor is placed 1 tile away from the ruler line.
     * More features are being planned for audio rulers, such as cursor skipping or build lock being interrupted when crossing over them.
 
-  - Added super ghost mining. Press `CONTROL + SHIFT + X` on a ghost to clear all ghosts within 100 tiles.
+  - Added super ghost mining. Press `CONTROL + SHIFT + X` on a ghost to clear all ghosts within 100 tiles instead of the default of 10 tiles.
 
 ## Changes
   - Greatly improved Kruise Kontrol functionality.
     * Kruise Kontrol now works with only one press of the keybind (`CONTROL + ALT RIGHT BRACKET`) because you no longer have to open Remote View. 
     * Kruise kontrol state reporting is now fully accurate.
     * Some KK behaviors are now smarter under the hood.
-    * All this is thanks to Factorio Access now using its own custom fork of the Kruise Kontrol by our developer @ahicks92. It can be found on the mod portal as "Kruise Kontrol Remote".
+    * All this is thanks to Factorio Access now using its own custom fork of the Kruise Kontrol by our developer ahicks. It can be found on the mod portal as "Kruise Kontrol Remote".
     * Factorio Access is from now optionally dependent on Kruise Kontrol Remote while it is no longer compatible with other versions of Kruise Kontrol, which players need to disable or delete. Otherwise Factorio Access will not run.
   
-  - Clearing ghosts via area mining is no longer limited by the player reach.
+  - Clearing ghosts via area mining is no longer limited by the player reach. This applies to super ghost mining too.
 
   - Cleaned up entity selection code so that it is more predictable and useful.
     * Several entities such as flying robots or ore tiles are now considered as secondary entities and they will not be selected first when reading a tile. Other entities will count as primary entities.
