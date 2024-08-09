@@ -7234,19 +7234,19 @@ function apply_skip_by_preview_size(pindex, direction)
    return shift
 end
 
-script.on_event("nudge-up", function(event)
+script.on_event("nudge-building-up", function(event)
    fa_building_tools.nudge_key(defines.direction.north, event)
 end)
 
-script.on_event("nudge-down", function(event)
+script.on_event("nudge-building-down", function(event)
    fa_building_tools.nudge_key(defines.direction.south, event)
 end)
 
-script.on_event("nudge-left", function(event)
+script.on_event("nudge-building-left", function(event)
    fa_building_tools.nudge_key(defines.direction.west, event)
 end)
 
-script.on_event("nudge-right", function(event)
+script.on_event("nudge-building-right", function(event)
    fa_building_tools.nudge_key(defines.direction.east, event)
 end)
 
