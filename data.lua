@@ -659,6 +659,31 @@ data:extend({
 
    {
       type = "custom-input",
+      name = "nudge-character-up",
+      key_sequence = "CONTROL + UP",
+      consuming = "none",
+   },
+   {
+      type = "custom-input",
+      name = "nudge-character-down",
+      key_sequence = "CONTROL + DOWN",
+      consuming = "none",
+   },
+   {
+      type = "custom-input",
+      name = "nudge-character-left",
+      key_sequence = "CONTROL + LEFT",
+      consuming = "none",
+   },
+   {
+      type = "custom-input",
+      name = "nudge-character-right",
+      key_sequence = "CONTROL + RIGHT",
+      consuming = "none",
+   },
+ 
+   {
+      type = "custom-input",
       name = "read-cursor-coords",
       key_sequence = "K",
       consuming = "none",

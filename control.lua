@@ -2537,8 +2537,8 @@ function move_characters(event)
    end
 end
 
---Move player character (and adapt the cursor to smooth walking)
-function move(direction, pindex)
+--Move the player character (or adapt the cursor to smooth walking)
+function move(direction, pindex, nudged)
    local p = game.get_player(pindex)
    if p.driving then return end
    local first_player = game.get_player(pindex)
@@ -2546,15 +2546,16 @@ function move(direction, pindex)
    local new_pos = fa_utils.offset_position(pos, direction, 1)
 
    --Compare the input direction and facing direction
-   if players[pindex].player_direction == direction then
-      --Same direction: Move character:
-      if players[pindex].walk == WALKING.SMOOTH then return end
+   if players[pindex].player_direction == direction or nudged == true then
+      --Same direction or nudging: Move character (unless smooth walking):
+      if players[pindex].walk == WALKING.SMOOTH and nudged ~= true then return end
       new_pos = fa_utils.center_of_tile(new_pos)
       can_port = first_player.surface.can_place_entity({ name = "character", position = new_pos })
       if can_port then
-         if players[pindex].walk == WALKING.STEP_BY_WALK then
+         if players[pindex].walk == WALKING.STEP_BY_WALK and nudged ~= true then
             table.insert(players[pindex].move_queue, { direction = direction, dest = new_pos })
          else
+            --If telestep or nudged then teleport now
             teleported = first_player.teleport(new_pos)
             if not teleported then printout("Teleport Failed", pindex) end
          end
@@ -2576,7 +2577,7 @@ function move(direction, pindex)
                game.get_player(pindex).play_sound({ path = "player-walk", volume_modifier = 1 })
             end
          end
-         if not game.get_player(pindex).driving then read_tile(pindex) end
+         if nudged ~= true then read_tile(pindex) end
 
          local stack = first_player.cursor_stack
          if stack and stack.valid_for_read and stack.valid and stack.prototype.place_result ~= nil then
@@ -7248,6 +7249,22 @@ end)
 
 script.on_event("nudge-building-right", function(event)
    fa_building_tools.nudge_key(defines.direction.east, event)
+end)
+
+script.on_event("nudge-character-up", function(event)
+   move(defines.direction.north, pindex, true)
+end)
+
+script.on_event("nudge-character-down", function(event)
+   move(defines.direction.south, pindex, true)
+end)
+
+script.on_event("nudge-character-left", function(event)
+   move(defines.direction.west, pindex, true)
+end)
+
+script.on_event("nudge-character-right", function(event)
+   move(defines.direction.east, pindex, true)
 end)
 
 script.on_event("alternative-menu-up", function(event)
