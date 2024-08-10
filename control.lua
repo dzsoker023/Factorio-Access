@@ -1165,7 +1165,6 @@ function initialize(player)
    faplayer.last_click_tick = faplayer.last_click_tick or 1
    faplayer.last_damage_alert_tick = faplayer.last_damage_alert_tick or 1
    faplayer.last_damage_alert_pos = faplayer.last_damage_alert_pos or nil
-   faplayer.last_pg_key_tick = faplayer.last_pg_key_tick or 1
    faplayer.last_honk_tick = faplayer.last_honk_tick or 1
    faplayer.last_pickup_tick = faplayer.last_pickup_tick or 1
    faplayer.last_item_picked_up = faplayer.last_item_picked_up or nil
@@ -3371,44 +3370,16 @@ script.on_event("scan-facing-direction", function(event)
    end
 end)
 
-script.on_event("a-scan-list-main-up-key", function(event)
-   --laterdo: find a more elegant scan list solution here. It depends on hardcoded keybindings and alphabetically named event handling
-   pindex = event.player_index
-   if not check_for_player(pindex) then return end
-   players[pindex].last_pg_key_tick = event.tick
-end)
-
-script.on_event("a-scan-list-main-down-key", function(event)
-   --laterdo: find a more elegant scan list solution here. It depends on hardcoded keybindings and alphabetically named event handling
-   pindex = event.player_index
-   if not check_for_player(pindex) then return end
-   players[pindex].last_pg_key_tick = event.tick
-end)
-
 script.on_event("scan-list-up", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if not players[pindex].in_menu and not players[pindex].cursor then fa_scanner.list_up(pindex) end
-   if
-      players[pindex].cursor
-      and players[pindex].last_pg_key_tick ~= nil
-      and event.tick - players[pindex].last_pg_key_tick < 10
-   then
-      fa_scanner.list_up(pindex)
-   end
+   if not players[pindex].in_menu then fa_scanner.list_up(pindex) end
 end)
 
 script.on_event("scan-list-down", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if not players[pindex].in_menu and not players[pindex].cursor then fa_scanner.list_down(pindex) end
-   if
-      players[pindex].cursor
-      and players[pindex].last_pg_key_tick ~= nil
-      and event.tick - players[pindex].last_pg_key_tick < 10
-   then
-      fa_scanner.list_down(pindex)
-   end
+   if not players[pindex].in_menu then fa_scanner.list_down(pindex) end
 end)
 
 script.on_event("scan-list-middle", function(event)
