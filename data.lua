@@ -1822,28 +1822,28 @@ data:extend({
    {
       type = "custom-input",
       name = "set-splitter-input-priority-left",
-      key_sequence = "ALT + SHIFT + LEFT",
+      key_sequence = "SHIFT + ALT + LEFT",
       consuming = "none",
    },
 
    {
       type = "custom-input",
       name = "set-splitter-input-priority-right",
-      key_sequence = "ALT + SHIFT + RIGHT",
+      key_sequence = "SHIFT + ALT + RIGHT",
       consuming = "none",
    },
 
    {
       type = "custom-input",
       name = "set-splitter-output-priority-left",
-      key_sequence = "ALT + CONTROL + LEFT",
+      key_sequence = "CONTROL + ALT + LEFT",
       consuming = "none",
    },
 
    {
       type = "custom-input",
       name = "set-splitter-output-priority-right",
-      key_sequence = "ALT + CONTROL + RIGHT",
+      key_sequence = "CONTROL + ALT + RIGHT",
       consuming = "none",
    },
 
