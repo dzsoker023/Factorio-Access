@@ -2538,12 +2538,14 @@ function move_characters(event)
 end
 
 --Move the player character (or adapt the cursor to smooth walking)
+--Returns false if failed to move
 function move(direction, pindex, nudged)
    local p = game.get_player(pindex)
-   if p.driving then return end
+   if p.driving then return false end
    local first_player = game.get_player(pindex)
    local pos = players[pindex].position
    local new_pos = fa_utils.offset_position(pos, direction, 1)
+   local moved_success = false
 
    --Compare the input direction and facing direction
    if players[pindex].player_direction == direction or nudged == true then
@@ -2554,13 +2556,21 @@ function move(direction, pindex, nudged)
       if can_port then
          if players[pindex].walk == WALKING.STEP_BY_WALK and nudged ~= true then
             table.insert(players[pindex].move_queue, { direction = direction, dest = new_pos })
+            moved_success = true
          else
             --If telestep or nudged then teleport now
             teleported = first_player.teleport(new_pos)
-            if not teleported then printout("Teleport Failed", pindex) end
+            if not teleported then
+               printout("Teleport Failed", pindex)
+               moved_success = false
+            else
+               moved_success = true
+            end
          end
          players[pindex].position = new_pos
-         players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].position, direction, 1)
+         if nudged ~= true then
+            players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].position, direction, 1)
+         end
          --Telestep walking sounds
          if
             players[pindex].tile.previous ~= nil
@@ -2587,6 +2597,7 @@ function move(direction, pindex, nudged)
          if players[pindex].build_lock then fa_building_tools.build_item_in_hand(pindex) end
       else
          printout("Tile Occupied", pindex)
+         moved_success = false
       end
 
       --Play a sound for audio ruler alignment (telestep moved)
@@ -2602,15 +2613,11 @@ function move(direction, pindex, nudged)
       end
       players[pindex].player_direction = direction
       players[pindex].cursor_pos = new_pos
+      moved_success = true
 
       local stack = first_player.cursor_stack
       if stack and stack.valid_for_read and stack.valid and stack.prototype.place_result ~= nil then
          fa_graphics.sync_build_cursor_graphics(pindex)
-      end
-
-      if game.get_player(pindex).driving then
-         target_mouse_pointer_deprecated(pindex)
-         return
       end
 
       if players[pindex].walk ~= WALKING.SMOOTH then
@@ -2662,6 +2669,8 @@ function move(direction, pindex, nudged)
    if not (stack and stack.valid_for_read and stack.name == "cut-paste-tool") then
       players[pindex].allow_reading_flying_text = true
    end
+
+   return moved_success
 end
 
 --Chooses the function to call after a movement keypress, according to the current mode.
@@ -7252,19 +7261,43 @@ script.on_event("nudge-building-right", function(event)
 end)
 
 script.on_event("nudge-character-up", function(event)
-   move(defines.direction.north, pindex, true)
+   local pindex = event.player_index
+   if move(defines.direction.north, pindex, true) then
+      printout("Nudged self north", pindex)
+      turn_to_cursor_direction_precise(pindex)
+   else
+      printout("Failed to nudge self", pindex)
+   end
 end)
 
 script.on_event("nudge-character-down", function(event)
-   move(defines.direction.south, pindex, true)
+   local pindex = event.player_index
+   if move(defines.direction.south, pindex, true) then
+      printout("Nudged self south", pindex)
+      turn_to_cursor_direction_precise(pindex)
+   else
+      printout("Failed to nudge self", pindex)
+   end
 end)
 
 script.on_event("nudge-character-left", function(event)
-   move(defines.direction.west, pindex, true)
+   local pindex = event.player_index
+   if move(defines.direction.west, pindex, true) then
+      printout("Nudged self west", pindex)
+      turn_to_cursor_direction_precise(pindex)
+   else
+      printout("Failed to nudge self", pindex)
+   end
 end)
 
 script.on_event("nudge-character-right", function(event)
-   move(defines.direction.east, pindex, true)
+   local pindex = event.player_index
+   if move(defines.direction.east, pindex, true) then
+      printout("Nudged self east", pindex)
+      turn_to_cursor_direction_precise(pindex)
+   else
+      printout("Failed to nudge self", pindex)
+   end
 end)
 
 script.on_event("alternative-menu-up", function(event)
