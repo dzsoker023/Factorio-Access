@@ -1,5 +1,5 @@
 # Version 0.13.0 BETA
-Released on August 8th, 2024.
+Released on August 11th, 2024.
 
 ## Summary
 - This update introduces a prototype for audio rulers and greatly improves Kruise Kontrol functionality thanks to our transition to Kruise Kontrol Remote, a fork created by our developer @ahicks92. It also remaps some keys and improves nudging. There are other small changes such as better ghost mining and better entity selection and some tutorial corrections by @danielw97.
@@ -9,7 +9,7 @@ Released on August 8th, 2024.
   - Added a prototype version of the audio ruler system.
     * Audio rulers are tools to help align the cursor without needing to count. 
     * Press `CONTROL + ALT + B` to setup an audio ruler at the cursor position and press `ALT + SHIFT + B` to clear it.
-    * When you setup a point for audio rulers, straight ruler lines are extend in all 4 cardinal directions from the point. 
+    * When you setup a point for audio rulers, straight ruler lines are extended in all 4 cardinal directions from the point. 
     * When the cursor lands on a ruler line it plays a sound note. 
     * A different note is played when the cursor is placed 1 tile away from the ruler line.
     * More features are being planned for audio rulers, such as cursor skipping or build lock being interrupted when crossing over them.
@@ -20,7 +20,7 @@ Released on August 8th, 2024.
   - Greatly improved Kruise Kontrol functionality.
     * Kruise Kontrol now works with only one press of the keybind (`CONTROL + ALT + RIGHT BRACKET`) and does not open remote view.
     * The mod reports Kruise Kontrol state with full accuracy.
-    * All this is thanks to Factorio Access now using its own custom fork of the Kruise Kontrol by our developer ahicks. It can be found on the mod portal as "Kruise Kontrol Remote".
+    * All this is thanks to Factorio Access now using its own custom fork of Kruise Kontrol by our developer ahicks. It can be found on the mod portal as "Kruise Kontrol Remote".
     * For those upgrading, Factorio Access is now optionally dependent on Kruise Kontrol Remote and is not compatible  with other versions of Kruise Kontrol, which players need to disable or delete. Otherwise Factorio Access will not run.
 
   - Revised and improved mod controls relating to movement, cursor skipping, and nudging. The new scheme is:
@@ -43,7 +43,7 @@ Released on August 8th, 2024.
     * `ALT + CONTROL + UP / DOWN` as alternatives for the scan list category up and down (remapped).
     * `NUMPAD DIGITS` as alternatives to cursor skipping (new). This will later include diagonal directions.
     * `SHIFT + NUMPAD DIGITS` unused because the operating system has special rules for keybinds with SHIFT and numpad digits.
-    * `CONTROL + NUMPAD DIGITS` as alternatives to cursor skip by the length of the preview in hand (new). This will later include diagonal directions.
+    * `CONTROL + NUMPAD DIGITS` as alternatives to cursor skip by preview length (new). This will later include diagonal directions.
 
   - Clearing ghosts via area mining is no longer limited by the player reach. This applies to super ghost mining too.
 
@@ -54,14 +54,14 @@ Released on August 8th, 2024.
 
   - Fixed some spelling errors and links in the tutorial. Thank you @danielw97 on GitHub!
 
-  - Mod sounds now have categories so that they are modified according to the context more appropriately. For example menu sounds should no longer be muffled in Remote View.
+  - Mod sounds now have categories so that they are modified according to the context. For example menu sounds should no longer be muffled in Remote View.
 
 ## Bugfixes
   - Fixed a bug that caused rounding errors when entering in a new cursor position by typing.
   
   - Fixed a crash that occured when reading or writing logistic request info while waiting to respawn.
 
-  - Fixed an information bug so that partially successful inventory transfers now say that they did something rather than falsely claiming the destination is full.
+  - Fixed an information bug so that partially successful inventory transfers now report partial success rather than falsely claiming the destination is full.
 
 ## Info
   - Internal code changes
