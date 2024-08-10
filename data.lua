@@ -681,7 +681,7 @@ data:extend({
       key_sequence = "CONTROL + RIGHT",
       consuming = "none",
    },
- 
+
    {
       type = "custom-input",
       name = "read-cursor-coords",
