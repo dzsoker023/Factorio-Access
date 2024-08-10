@@ -976,7 +976,7 @@ data:extend({
       type = "custom-input",
       name = "scan-category-up",
       key_sequence = "CONTROL + PAGEUP",
-      alternative_key_sequence = "ALT + CONTROL + UP",
+      alternative_key_sequence = "CONTROL + ALT + UP",
       consuming = "none",
    },
 
@@ -984,7 +984,7 @@ data:extend({
       type = "custom-input",
       name = "scan-category-down",
       key_sequence = "CONTROL + PAGEDOWN",
-      alternative_key_sequence = "ALT + CONTROL + DOWN",
+      alternative_key_sequence = "CONTROL + ALT + DOWN",
       consuming = "none",
    },
 
@@ -1006,7 +1006,7 @@ data:extend({
       type = "custom-input",
       name = "scan-selection-up",
       key_sequence = "SHIFT + PAGEUP",
-      alternative_key_sequence = "ALT + SHIFT + UP",
+      alternative_key_sequence = "SHIFT + ALT + UP",
       consuming = "none",
    },
 
@@ -1014,7 +1014,7 @@ data:extend({
       type = "custom-input",
       name = "scan-selection-down",
       key_sequence = "SHIFT + PAGEDOWN",
-      alternative_key_sequence = "ALT + SHIFT + DOWN",
+      alternative_key_sequence = "SHIFT + ALT + DOWN",
       consuming = "none",
    },
 
