@@ -3,12 +3,12 @@ Released on August 8th, 2024.
 
 ## Summary
 - This update introduces a prototype for audio rulers and greatly improves Kruise Kontrol functionality thanks to our transition to Kruise Kontrol Remote, a fork created by our developer @ahicks92. It also remaps some keys and improves nudging. There are other small changes such as better ghost mining and better entity selection and some tutorial corrections by @danielw97.
-- Note that Factorio Access is from now optionally dependent on Kruise Kontrol Remote while it is no longer compatible with other versions of Kruise Kontrol, which players need to disable or delete. Otherwise Factorio Access will not run.
+- Note that Factorio Access is from now optionally dependent on Kruise Kontrol Remote while it is no longer compatible with other versions of Kruise Kontrol, which players need to disable or delete. Otherwise Factorio Access will not run.  This only applies if you are upgrading.  New installs don't need to worry about it.
 
 ## Features
   - Added a prototype version of the audio ruler system.
     * Audio rulers are tools to help align the cursor without needing to count. 
-    * Press `CONTROL + ALT + B` to setup an audio ruler at the cursor position and press `SHIFT + ALT + B` to clear it.---
+    * Press `CONTROL + ALT + B` to setup an audio ruler at the cursor position and press `ALT + SHIFT + B` to clear it.
     * When you setup a point for audio rulers, straight ruler lines are extend in all 4 cardinal directions from the point. 
     * When the cursor lands on a ruler line it plays a sound note. 
     * A different note is played when the cursor is placed 1 tile away from the ruler line.
@@ -18,12 +18,11 @@ Released on August 8th, 2024.
 
 ## Changes
   - Greatly improved Kruise Kontrol functionality.
-    * Kruise Kontrol now works with only one press of the keybind (`CONTROL + ALT RIGHT BRACKET`) because you no longer have to open Remote View. 
-    * Kruise kontrol state reporting is now fully accurate.
-    * Some KK behaviors are now smarter under the hood.
+    * Kruise Kontrol now works with only one press of the keybind (`CONTROL + ALT + RIGHT BRACKET`) and does not open remote view.
+    * The mod reports Kruise Kontrol state with full accuracy.
     * All this is thanks to Factorio Access now using its own custom fork of the Kruise Kontrol by our developer ahicks. It can be found on the mod portal as "Kruise Kontrol Remote".
-    * Factorio Access is from now optionally dependent on Kruise Kontrol Remote while it is no longer compatible with other versions of Kruise Kontrol, which players need to disable or delete. Otherwise Factorio Access will not run.
-  
+    * For those upgrading, Factorio Access is now optionally dependent on Kruise Kontrol Remote and is not compatible  with other versions of Kruise Kontrol, which players need to disable or delete. Otherwise Factorio Access will not run.
+
   - Revised and improved mod controls relating to movement, cursor skipping, and nudging. The new scheme is:
     * `WASD` to walk or to move the cursor by its own size in cursor mode (same as before).
     * `SHIFT + WASD` to cursor skip according to changes on the ground (same as before).
@@ -62,11 +61,11 @@ Released on August 8th, 2024.
   
   - Fixed a crash that occured when reading or writing logistic request info while waiting to respawn.
 
-  - Fixed an information bug so that partially successful inventory transfers now say that instead of saying the destination is full.
+  - Fixed an information bug so that partially successful inventory transfers now say that they did something rather than falsely claiming the destination is full.
 
 ## Info
   - Internal code changes
-    * Added a new global state management module and unique ID setting module.
+    * Added a new global state management module and unique ID generation module.
     * Named walking modes explicitly.
     * The strings for KK are now localized.
 
