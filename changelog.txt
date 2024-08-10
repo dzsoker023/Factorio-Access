@@ -116,27 +116,35 @@ Version: 0.12.2
 Date: 2024.07.02
 
   Summary:
-    - This is a quick patch update that fixes an old menu switching bug that affected both menu search, and the recently added inventory slot filter setting.
+    - This is a quick patch update that fixes an old menu switching bug that affected 
+      both menu search, and the recently added inventory slot filter setting.
 
   Bugfixes:
-    - Fixed an old bug in forward menu switching that was breaking menu search and inventory slot filter setting by passing these features the incorrect inventories.
+    - Fixed an old bug in forward menu switching that was breaking menu search 
+      and inventory slot filter setting by passing these features the incorrect inventories.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.12.1
 Date: 2024.07.02
 
   Summary:
-    - This intermediate update adds support setting item filters for player and vehicle cargo inventory slots. It also allows automating rocket silo launches and tunes the rail crossing alert. Finally, it fixes a launcher bug that makes the game freeze after configuring it successfully.
+    - This intermediate update adds support setting item filters for player and vehicle cargo 
+      inventory slots. It also allows automating rocket silo launches and tunes the rail crossing alert. 
+      Finally, it fixes a launcher bug that makes the game freeze after configuring it successfully.
 
   Features:
-    - Added support for reading and setting item filters for slots in the player inventory and in vehicle cargo inventories.
+    - Added support for reading and setting item filters for slots in the player inventory 
+      and in vehicle cargo inventories.
       * Press ALT + LEFT BRACKET to set or unset the item filter for the selected inventory slot. 
       * When setting the filter, the mod prefers to use the item that is in the slot. 
       * Otherwise, it uses the item in hand. 
-      * If the slot is empty and the hand is empty, then no actions are taken, but in the future there will be support added for using the filter selector menu here.
-      * If any filter is already set, pressing the keybind will unset it, regardless of the item in hand or in the slot.
+      * If the slot is empty and the hand is empty, then no actions are taken, 
+        but in the future there will be support added for using the filter selector menu here.
+      * If any filter is already set, pressing the keybind will unset it, regardless of the item 
+        in hand or in the slot.
 
-    - Added support for toggling whether rocket silos launch automatically when the rocket is ready and any cargo has been added.
+    - Added support for toggling whether rocket silos launch automatically when the rocket is ready 
+      and any cargo has been added.
       * Press "SHIFT + SPACE" or press "CONTROL + SPACE" to toggle this.
 
     - Added support for checking character shield and health levels, by pressing "ALT + RIGHT BRACKET".
@@ -147,7 +155,8 @@ Date: 2024.07.02
       * The alert now also accounts for when the player is driving a car or tank across rails.
 
   Bugfixes:
-    - Fixed a launcher bug that made the game freeze after successfully generating the config file when it is launched for the first time.
+    - Fixed a launcher bug that made the game freeze after successfully generating the config file 
+      when it is launched for the first time.
 
     - Fixed a recently introduced crash of the blueprint menu.
 
@@ -156,17 +165,22 @@ Version: 0.12.0
 Date: 2024.06.28
 
   Summary:
-    - After a detailed write-up by @ahicks and several community discussions, this update covers many topics. Most significantly, it adds support for the copy paste tool. Among other things, it enhances cursor skipping and improves building functions and various info tools. The update also fixes several crashes and bugs.
+    - After a detailed write-up by @ahicks and several community discussions, this update covers many topics. 
+      Most significantly, it adds support for the copy paste tool. Among other things, it enhances 
+      cursor skipping and improves building functions and various info tools. The update also fixes several crashes and bugs.
 
   Features:
     - Added support for the copy-paste tool, which is activated with `CONTROL + C`.
-      * If you select an area with the copy-paste tool, you get a nameless temporary blueprint that is deleted when you let go of it, unless you add a name or description to it.
+      * If you select an area with the copy-paste tool, you get a nameless temporary blueprint that 
+        is deleted when you let go of it, unless you add a name or description to it.
       * Selecting nothing will keep the blank copy tool in hand.
       * If you press `CONTROL + V` you can get back the last temporary blueprint into hand.
-      * This system uses the player clipboard so if you `hold SHIFT and scroll the mouse wheel` it will load older or newer clipboard blueprints but detailed info about this is not supported.
+      * This system uses the player clipboard so if you `hold SHIFT and scroll the mouse wheel` it 
+        will load older or newer clipboard blueprints but detailed info about this is not supported.
       * A temporary blueprint in hand can become permanent if you add a name or description to it.
 
-    - You can now set the filters of infinity chests. Like for splitters, you do this by taking the set item in hand and pressing CONTROL + LEFT BRACKET.
+    - You can now set the filters of infinity chests. Like for splitters, you do this by taking 
+      the set item in hand and pressing CONTROL + LEFT BRACKET.
 
     - Added a new type of curser jumping called "move by preview size".
       * When you have a blueprint or building preview in hand, press `CONTROL + W/A/S/D` to jump by the respective preview size.
@@ -200,13 +214,15 @@ Date: 2024.06.28
 
     - When an obstacle prevents building, it position is now revealed too along with its name.
 
-    - When simple obstacles such as trees and rocks are preventing you from placing a blueprint, nearby ones are mined and now also the far away ones get marked for deconstruction, which allows placing ghosts over them.
+    - When simple obstacles such as trees and rocks are preventing you from placing a blueprint, 
+      nearby ones are mined and now also the far away ones get marked for deconstruction, which allows placing ghosts over them.
 
     - When build lock is enabled, building over the player no longer teleports the player out of the way, and plays an extra alert beep instead.
 
     - Any case of building over a player who is walking no longer teleports them out of the way.
 
-    - A player inventory opened from inside a building can now be searched. Note that this has bug such that searching other menus after this requires re-opening the building's menu.
+    - A player inventory opened from inside a building can now be searched. 
+      Note that this has bug such that searching other menus after this requires re-opening the building's menu.
 
     - Pipes and storage tanks now report their fluid counts immediately when selected, rounded to the nearest whole number.
 
@@ -251,7 +267,10 @@ Version: 0.11.2
 Date: 2024.05.17
 
   Summary:
-    - This minor update brings several small new features, tweaks, and bugfixes across the board based on recent feedback, with special thanks this week to @ahicks. Improvements include better info and controls regarding personal logistics, rail signals, the scanner list, and the Kruise Kontrol feature.
+    - This minor update brings several small new features, tweaks, and bugfixes across the board 
+      based on recent feedback, with special thanks this week to @ahicks. Improvements include 
+      better info and controls regarding personal logistics, rail signals, the scanner list, 
+      and the Kruise Kontrol feature.
 
   Features:
     - Added inserter hand stack size tuning from their menus.
@@ -332,10 +351,11 @@ Version: 0.11.1
 Date: 2024.05.13
 
   Summary:
-    - This update features the second phase of the refactoring of the codebase into modules, making it easier to follow and maintain. 
-      It is also accompanied by some small additions, changes, and bugfixes. Improved systems include the launcher, Remote View, 
-      Kruise Kontrol, fast travel, and the rail builder. While a fair amount of testing has been done, new bugs may still emerge due 
-      to the refactor.
+    - This update features the second phase of the refactoring of the codebase into modules, 
+      making it easier to follow and maintain. It is also accompanied by some small additions, 
+      changes, and bugfixes. Improved systems include the launcher, Remote View, Kruise Kontrol, 
+      fast travel, and the rail builder. While a fair amount of testing has been done, new bugs may 
+      still emerge due to the refactor.
 
   Info:
     - The second part of the refactoring into modules was completed.
@@ -414,7 +434,11 @@ Version: 0.11.0
 Date: 2024.04.27
 
   Summary:
-    - This update is mostly about changes under the hood while the mod codebase is being refactored so that the code is easier to follow and maintain, for contributors both new and old. The update also includes some bug fixes and small improvements, but the refactor has caused new bugs. Extensive testing is needed to find and fix the new bugs. Therefore this release is labeled as "experimental" and is recommended only to players who are interested in bug hunting.
+    - This update is mostly about changes under the hood while the mod codebase is being refactored 
+      so that the code is easier to follow and maintain, for contributors both new and old. 
+      The update also includes some bug fixes and small improvements, but the refactor has caused new bugs. 
+      Extensive testing is needed to find and fix the new bugs. Therefore this release is labeled 
+      as "experimental" and is recommended only to players who are interested in bug hunting.
 
   Info:
     - Started to significantly refactor the mod codebase, with huge help from @eph and @ahicks.
@@ -446,7 +470,11 @@ Version: 0.10.1
 Date: 2024.04.13
 
   Summary:
-    - This update comes after some restructuring of the mod repository and joining the official Factorio Mod Portal. Note that releases still need to be installed from the GitHub page because of the launcher and config changes required to run the mod properly. The update itself includes tweaks, additions, and bugfixes across the board thanks to community feedback. Notably, several blueprint bugs have been fixed and Remote View has been added.
+    - This update comes after some restructuring of the mod repository and joining the official 
+      Factorio Mod Portal. Note that releases still need to be installed from the GitHub page 
+      because of the launcher and config changes required to run the mod properly. 
+      The update itself includes tweaks, additions, and bugfixes across the board thanks to 
+      community feedback. Notably, several blueprint bugs have been fixed and Remote View has been added.
 
   Info:
     - The mod's GitHub repository has been moved to a new address to make contributions easier: https://github.com/Factorio-Access/FactorioAccess. Hyperlinks to it have been automatically updated.
@@ -515,7 +543,11 @@ Version: 0.10.0
 Date: 2024.04.06
 
   Summary:
-    - This update features a full rewrite of the mod tutorial to include new chapters and details. Please note that the new tutorial may need more tweaking despite being reviewed, so feel free to get in touch about issues or suggestions. The update also has some launcher improvements such as mod management, as well as small additions and changes to improve the early game, and some changes thanks to community feedback.
+    - This update features a full rewrite of the mod tutorial to include new chapters and details. 
+      Please note that the new tutorial may need more tweaking despite being reviewed, so feel free 
+      to get in touch about issues or suggestions. The update also has some launcher improvements 
+      such as mod management, as well as small additions and changes to improve the early game, 
+      and some changes thanks to community feedback.
     - Note: Earlier changelog entries use a different format and thus are not automatically loaded.
 
   Features:
