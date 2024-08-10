@@ -7779,36 +7779,42 @@ end)
 script.on_event("logistic-request-read", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
+   if game.get_player(pindex).character == nil then return end
    if game.get_player(pindex).driving == false then fa_bot_logistics.logistics_info_key_handler(pindex) end
 end)
 
 script.on_event("logistic-request-increment-min", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
+   if game.get_player(pindex).character == nil then return end
    fa_bot_logistics.logistics_request_increment_min_handler(pindex)
 end)
 
 script.on_event("logistic-request-decrement-min", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
+   if game.get_player(pindex).character == nil then return end
    fa_bot_logistics.logistics_request_decrement_min_handler(pindex)
 end)
 
 script.on_event("logistic-request-increment-max", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
+   if game.get_player(pindex).character == nil then return end
    fa_bot_logistics.logistics_request_increment_max_handler(pindex)
 end)
 
 script.on_event("logistic-request-decrement-max", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
+   if game.get_player(pindex).character == nil then return end
    fa_bot_logistics.logistics_request_decrement_max_handler(pindex)
 end)
 
 script.on_event("logistic-request-clear", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
+   if game.get_player(pindex).character == nil then return end
    fa_bot_logistics.logistics_request_clear_handler(pindex)
 end)
 
@@ -7825,6 +7831,7 @@ end)
 script.on_event("logistic-request-toggle-personal-logistics", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
+   if game.get_player(pindex).character == nil then return end
    fa_bot_logistics.logistics_request_toggle_handler(pindex)
 end)
 
