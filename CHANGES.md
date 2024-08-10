@@ -41,8 +41,8 @@ Released on August 8th, 2024.
     * `ALT + UP / DOWN` as alternatives for the scan list entry up and down (remapped).
     * `ALT + SHIFT + UP / DOWN` as alternatives for the scan list selection up and down (remapped).
     * `ALT + CONTROL + UP / DOWN` as alternatives for the scan list category up and down (remapped).
-    * `NUMPAD DIGITS` as alternatives to move the cursor by 1 tile for any size (new). This will later include diagonal directions.
-    * `SHIFT + NUMPAD DIGITS` as alternatives to cursor skip according to changes on the ground (new). This will later include diagonal directions.
+    * `NUMPAD DIGITS` as alternatives to cursor skipping (new). This will later include diagonal directions.
+    * `SHIFT + NUMPAD DIGITS` unused because the operating system has special rules for keybinds with SHIFT and numpad digits.
     * `CONTROL + NUMPAD DIGITS` as alternatives to cursor skip by the length of the preview in hand (new). This will later include diagonal directions.
 
   - Clearing ghosts via area mining is no longer limited by the player reach. This applies to super ghost mining too.

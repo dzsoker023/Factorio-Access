@@ -578,28 +578,28 @@ data:extend({
       type = "custom-input",
       name = "cursor-skip-north",
       key_sequence = "SHIFT + W",
-      alternative_key_sequence = "SHIFT + KP_8",
+      alternative_key_sequence = "KP_8",
       consuming = "none",
    },
    {
       type = "custom-input",
       name = "cursor-skip-south",
       key_sequence = "SHIFT + S",
-      alternative_key_sequence = "SHIFT + KP_2",
+      alternative_key_sequence = "KP_2",
       consuming = "none",
    },
    {
       type = "custom-input",
       name = "cursor-skip-west",
       key_sequence = "SHIFT + A",
-      alternative_key_sequence = "SHIFT + KP_4",
+      alternative_key_sequence = "KP_4",
       consuming = "none",
    },
    {
       type = "custom-input",
       name = "cursor-skip-east",
       key_sequence = "SHIFT + D",
-      alternative_key_sequence = "SHIFT + KP_6",
+      alternative_key_sequence = "KP_6",
       consuming = "none",
    },
 
@@ -1777,7 +1777,6 @@ data:extend({
       type = "custom-input",
       name = "cursor-one-tile-north",
       key_sequence = "UP",
-      alternative_key_sequence = "KP_8",
       consuming = "none",
    },
 
@@ -1785,7 +1784,6 @@ data:extend({
       type = "custom-input",
       name = "cursor-one-tile-south",
       key_sequence = "DOWN",
-      alternative_key_sequence = "KP_2",
       consuming = "none",
    },
 
@@ -1793,7 +1791,6 @@ data:extend({
       type = "custom-input",
       name = "cursor-one-tile-east",
       key_sequence = "RIGHT",
-      alternative_key_sequence = "KP_6",
       consuming = "none",
    },
 
@@ -1801,7 +1798,6 @@ data:extend({
       type = "custom-input",
       name = "cursor-one-tile-west",
       key_sequence = "LEFT",
-      alternative_key_sequence = "KP_4",
       consuming = "none",
    },
 
