@@ -61,6 +61,8 @@ Released on August 11th, 2024.
   
   - Fixed a crash that occured when reading or writing logistic request info while waiting to respawn.
 
+  - Fixed several other crashes that occur when trying to do things while waiting to respawn.
+
   - Fixed an information bug so that partially successful inventory transfers now report partial success rather than falsely claiming the destination is full.
 
 ## Info

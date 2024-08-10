@@ -2540,7 +2540,7 @@ end
 --Returns false if failed to move
 function move(direction, pindex, nudged)
    local p = game.get_player(pindex)
-   if p.driving then return false end
+   if p.driving or p.character == nil then return false end
    local first_player = game.get_player(pindex)
    local pos = players[pindex].position
    local new_pos = fa_utils.offset_position(pos, direction, 1)
@@ -6398,6 +6398,7 @@ script.on_event("toggle-walk", function(event)
    if not check_for_player(pindex) then return end
    reset_bump_stats(pindex)
    players[pindex].move_queue = {}
+   if p.character == nil then return end
    if players[pindex].walk == WALKING.TELESTEP then
       players[pindex].walk = WALKING.SMOOTH
       p.character_running_speed_modifier = 0 -- 100% + 0 = 100%
@@ -6442,17 +6443,18 @@ end)
 script.on_event("toggle-vanilla-mode", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   game.get_player(pindex).play_sound({ path = "utility/confirm" })
+   local p = game.get_player(pindex)
+   p.play_sound({ path = "utility/confirm" })
    if players[pindex].vanilla_mode == false then
-      game.get_player(pindex).print("Vanilla mode : ON")
+      p.print("Vanilla mode : ON")
       players[pindex].cursor = false
       players[pindex].walk = 2
-      game.get_player(pindex).character_running_speed_modifier = 0
+      if p.character then p.character_running_speed_modifier = 0 end
       players[pindex].hide_cursor = true
       printout("Vanilla mode enabled", pindex)
       players[pindex].vanilla_mode = true
    else
-      game.get_player(pindex).print("Vanilla mode : OFF")
+      p.print("Vanilla mode : OFF")
       players[pindex].hide_cursor = false
       players[pindex].vanilla_mode = false
       printout("Vanilla mode disabled", pindex)
@@ -8454,6 +8456,7 @@ script.on_event(defines.events.on_string_translated, fa_localising.handler)
 script.on_event(defines.events.on_player_respawned, function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
+   players[pindex].position = game.get_player(pindex).position
    players[pindex].cursor_pos = game.get_player(pindex).position
 end)
 
