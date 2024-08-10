@@ -7042,6 +7042,19 @@ function cursor_skip(pindex, direction, iteration_limit, use_preview_size)
    --Read the tile reached
    read_tile(pindex, result)
    fa_graphics.sync_build_cursor_graphics(pindex)
+
+   --Draw large cursor boxes if present
+   if players[pindex].cursor_size > 0 then
+      local left_top = {
+         math.floor(players[pindex].cursor_pos.x) - players[pindex].cursor_size,
+         math.floor(players[pindex].cursor_pos.y) - players[pindex].cursor_size,
+      }
+      local right_bottom = {
+         math.floor(players[pindex].cursor_pos.x) + players[pindex].cursor_size + 1,
+         math.floor(players[pindex].cursor_pos.y) + players[pindex].cursor_size + 1,
+      }
+      fa_graphics.draw_large_cursor(left_top, right_bottom, pindex)
+   end
 end
 
 --Moves the cursor in the same direction multiple times until the reported entity changes. Change includes: new entity name or new direction for entites with the same name, or changing between nil and ent. Returns move count.
