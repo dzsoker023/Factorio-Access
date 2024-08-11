@@ -40,6 +40,11 @@ Date: 2024.08.11
       * From any menu, you can read the current research queue by pressing `ALT + Q`.
       * From any menu, you can clear the current research queue by pressing `CONTROL + SHIFT + ALT + Q`.
 
+    - Added fast travel option to broadcast a travel point on your list.
+      * When you broadcast a point, every other player in your team (your force) will have a copy of that point added to their list.
+      * Added a small check to prevent broadcasting the same point twice in a row, but the check only remembers your last broadcast.
+      * Other than this small check, if other players already have this point, the repeated addition is not prevented.
+
     - Added super ghost mining. Press `CONTROL + SHIFT + X` on a ghost to clear all ghosts within 100 tiles instead of the default of 10 tiles.
 
     - Furnaces when selected will now report how many output units they have ready for collection, if more than 0.
