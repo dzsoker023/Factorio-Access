@@ -14,9 +14,11 @@ Released on August 11th, 2024.
     * A different note is played when the cursor is placed 1 tile away from the ruler line.
     * More features are being planned for audio rulers, such as cursor skipping or build lock being interrupted when crossing over them.
 
-  - New launcher features (v0.1.3)
+  - New launcher features (v0.1.4)
     * Fixed a bug relating to enabling and disabling sub menus. Specifically, sometimes cliffs would say they were disabled when in fact they were not.
     * Added versioning so one can tell which version is running through the "About" menu, or the exe file property details.
+    * Fixed a bug that broke singleplayer preset descriptions.
+    * Info: First launcher app built using GitHub actions.
 
 - Added basic support for research queues in the technology menu.
   * If you select a researchable technology and press `SHIFT + LEFTBRACKET` then it is added to the start of the queue.

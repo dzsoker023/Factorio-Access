@@ -30,6 +30,8 @@ Date: 2024.08.11
         would say they were disabled when in fact they were not.
       * Added versioning so one can tell which version is running through the "About" menu, 
         or the exe file property details.
+      * Fixed a bug that broke singleplayer preset descriptions.
+      * Info: First launcher app built using GitHub actions.
 
     - Added basic support for research queues in the technology menu.
       * If you select a researchable technology and press `SHIFT + LEFTBRACKET` then it is added to the start of the queue.
