@@ -1,25 +1,95 @@
 # Version 0.13.0 BETA
-Release pending.
+Released on August 11th, 2024.
 
 ## Summary
-- Not written yet.
+- This update introduces a prototype for audio rulers and greatly improves Kruise Kontrol functionality thanks to our transition to Kruise Kontrol Remote, a fork created by our developer @ahicks92. It also remaps some keys and improves nudging. There are other small changes such as better ghost mining and better entity selection and some tutorial corrections by @danielw97.
+- Note that Factorio Access is from now optionally dependent on Kruise Kontrol Remote while it is no longer compatible with other versions of Kruise Kontrol, which players need to disable or delete. Otherwise Factorio Access will not run.  This only applies if you are upgrading.  New installs don't need to worry about it.
 
 ## Features
-  - Added the first version of audio rulers, as a feature attached to the cursor bookmark.
-    * Audio rulers straight lines that extend in all 4 cardinal directions from the bookmark position. When the cursor is 1 tile away from a ruler it plays a sound note. Another note is played when directly on the ruler. This helps with aliging the cursor with the boomark without having to count.
-    * Press CONTROL + SHIFT + B to toggle the ruler on or off for the bookmark.
+  - Added a prototype version of the audio ruler system.
+    * Audio rulers are tools to help align the cursor without needing to count. 
+    * Press `CONTROL + ALT + B` to setup an audio ruler at the cursor position and press `ALT + SHIFT + B` to clear it.
+    * When you setup a point for audio rulers, straight ruler lines are extended in all 4 cardinal directions from the point. 
+    * When the cursor lands on a ruler line it plays a sound note. 
+    * A different note is played when the cursor is placed 1 tile away from the ruler line.
+    * More features are being planned for audio rulers, such as cursor skipping or build lock being interrupted when crossing over them.
 
-  - Added super ghost mining. Press "CONTROL + SHIFT + X" on a ghost to clear all ghosts within 100 tiles.
+  - New launcher features (v0.1.4)
+    * Fixed a bug relating to enabling and disabling sub menus. Specifically, sometimes cliffs would say they were disabled when in fact they were not.
+    * Added versioning so one can tell which version is running through the "About" menu, or the exe file property details.
+    * Fixed a bug that broke singleplayer preset descriptions.
+    * Info: First launcher app built using GitHub actions.
+
+- Added basic support for research queues in the technology menu.
+  * If you select a researchable technology and press `SHIFT + LEFTBRACKET` then it is added to the start of the queue.
+  * Similarly, if you press `CONTROL + LEFTBRACKET` then it is added to the end of the queue.
+  * While there is a queue, if you select a new technology with only `LEFTBRACKET`, then the queue is cleared and this tech is selected for research by itself.
+  * From any menu, you can read the current research queue by pressing `ALT + Q`.
+  * From any menu, you can clear the current research queue by pressing `CONTROL + SHIFT + ALT + Q`.
+
+- Added fast travel option to broadcast a travel point on your list.
+  * When you broadcast a point, every other player in your team (your force) will have a copy of that point added to their list.
+  * Added a small check to prevent broadcasting the same point twice in a row, but the check only remembers your last broadcast.
+  * Other than this small check, if other players already have this point, the repeated addition is not prevented.
+
+- Added super ghost mining. Press `CONTROL + SHIFT + X` on a ghost to clear all ghosts within 100 tiles instead of the default of 10 tiles.
+
+- Furnaces when selected will now report how many output units they have ready for collection, if more than 0.
 
 ## Changes
-  - Kruise Kontrol now works with only one press of the keybind (CONTROL + ALT ^RIGHT BRACKET) and with much greater accuracy. This is thanks to Factorio Access now using its own version of Kruise Kontrol that can now be found on the mod portal.
-  
-  - Clearing ghosts via area mining is no longer limited by the player reach.
+  - Greatly improved Kruise Kontrol functionality.
+    * Kruise Kontrol now works with only one press of the keybind (`CONTROL + ALT + RIGHT BRACKET`) and does not open remote view.
+    * The mod reports Kruise Kontrol state with full accuracy.
+    * All this is thanks to Factorio Access now using its own custom fork of Kruise Kontrol by our developer ahicks. It can be found on the mod portal as "Kruise Kontrol Remote".
+    * For those upgrading, Factorio Access is now optionally dependent on Kruise Kontrol Remote and is not compatible  with other versions of Kruise Kontrol, which players need to disable or delete. Otherwise Factorio Access will not run.
+
+  - Revised and improved mod controls relating to movement, cursor skipping, and nudging. The new scheme is:
+    * `WASD` to walk or to move the cursor by its own size in cursor mode (same as before).
+    * `SHIFT + WASD` to cursor skip according to changes on the ground (same as before).
+    * `CONTROL + WASD` to cursor skip by the length of the preview in hand (same as before).
+    * `CONTROL + SHIFT + WASD` unused for now (reserved for new stuff later).
+    * `ALT + WASD` for various individual shortcuts as before (`ALT + W` to toggle walking type, `ALT + D` to grab deconstruction planner, others reserved).
+    * `ALT + SHIFT + WASD` unused for now (reserved for new stuff later).
+    * `ALT + CONTROL + WASD` unused for now (reserved for new stuff later).
+    * `ARROW KEYS` to move the cursor by 1 tile for any size (as before).
+    * `SHIFT + ARROW KEYS` to nudge buildings by 1 tile (remapped).
+    * `CONTROL + ARROW KEYS` to nudge the character by 1 tile (new).
+    * `CONTROL + SHIFT + ARROW KEYS` unused for now (reserved for new stuff later).
+    * `ALT + LEFT / RIGHT` to quickly add 45 degree turns to end rails (remapped).
+    * `ALT + SHIFT + LEFT / RIGHT` to edit splitter input priorities (remapped).
+    * `ALT + CONTROL + LEFT / RIGHT` to edit splitter output priorities (remapped).
+    * `ALT + UP / DOWN` as alternatives for the scan list entry up and down (remapped).
+    * `ALT + SHIFT + UP / DOWN` as alternatives for the scan list selection up and down (remapped).
+    * `ALT + CONTROL + UP / DOWN` as alternatives for the scan list category up and down (remapped).
+    * `NUMPAD DIGITS` as alternatives to cursor skipping (new). This will later include diagonal directions.
+    * `SHIFT + NUMPAD DIGITS` unused because the operating system has special rules for keybinds with SHIFT and numpad digits.
+    * `CONTROL + NUMPAD DIGITS` as alternatives to cursor skip by preview length (new). This will later include diagonal directions.
+
+  - Clearing ghosts via area mining is no longer limited by the player reach. This applies to super ghost mining too.
+
+  - Cleaned up entity selection code so that it is more predictable and useful.
+    * Several entities such as flying robots or ore tiles are now considered as secondary entities and they will not be selected first when reading a tile. Other entities will count as primary entities.
+    * Tile cycling with `SHIFT + F` has been rewrittem to go through primary entities first, secondary entities next, and the terrain itself last, before circling back to the start.
+    * Entity part reading when you press `K` now checks the currently selected entity instead of the topmost one.
+
+  - Fixed some spelling errors and links in the tutorial. Thank you @danielw97 on GitHub!
+
+  - Mod sounds now have categories so that they are modified according to the context. For example menu sounds should no longer be muffled in Remote View.
 
 ## Bugfixes
   - Fixed a bug that caused rounding errors when entering in a new cursor position by typing.
   
   - Fixed a crash that occured when reading or writing logistic request info while waiting to respawn.
+
+  - Fixed several other crashes that occur when trying to do things while waiting to respawn.
+
+  - Fixed an information bug so that partially successful inventory transfers now report partial success rather than falsely claiming the destination is full.
+
+## Info
+  - Internal code changes
+    * Added a new global state management module and unique ID generation module.
+    * Named walking modes explicitly.
+    * The strings for KK are now localized.
 
 
 # Version 0.12.3 BETA
@@ -56,16 +126,16 @@ Released on July 2nd, 2024.
 
 ## Features
 - Added support for reading and setting item filters for slots in the player inventory and in vehicle cargo inventories.
-  * Press ALT + LEFT BRACKET to set or unset the item filter for the selected inventory slot. 
+  * Press `ALT + LEFT BRACKET` to set or unset the item filter for the selected inventory slot. 
   * When setting the filter, the mod prefers to use the item that is in the slot. 
   * Otherwise, it uses the item in hand. 
   * If the slot is empty and the hand is empty, then no actions are taken, but in the future there will be support added for using the filter selector menu here.
   * If any filter is already set, pressing the keybind will unset it, regardless of the item in hand or in the slot.
 
 - Added support for toggling whether rocket silos launch automatically when the rocket is ready and any cargo has been added.
-  * Press "SHIFT + SPACE" or press "CONTROL + SPACE" to toggle this.
+  * Press `SHIFT + SPACE` or press `CONTROL + SPACE` to toggle this.
 
-- Added support for checking character shield and health levels, by pressing "ALT + RIGHT BRACKET".
+- Added support for checking character shield and health levels, by pressing `ALT + RIGHT BRACKET`.
 
 ## Changes
   - Modified the activation of the rail crossing alert.

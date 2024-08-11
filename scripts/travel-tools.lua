@@ -493,12 +493,44 @@ function mod.fast_travel_menu_click(pindex)
       )
       players[pindex].cursor_pos = players[pindex].position
       fa_graphics.draw_cursor_highlight(pindex)
-   elseif players[pindex].travel.index.x == 6 then --Delete
+   elseif players[pindex].travel.index.x == 6 then --Broadcast
+      --Prevent duplicating by checking if this point was last broadcasted
+      local this_point = players[pindex].travel[players[pindex].travel.index.y]
+      if
+         this_point.name == players[pindex].travel.last_broadcasted_name
+         and this_point.description == players[pindex].travel.last_broadcasted_description
+         and this_point.position == players[pindex].travel.last_broadcasted_position
+      then
+         printout("Error: Cancelled repeated broadcast. ", pindex)
+         return
+      end
+      --Broadcast it by adding a copy of it to all players in the same force (except for repeating this player)
+      local players = global.players
+      for other_pindex, player in pairs(players) do
+         if
+            game.get_player(pindex).force.name == game.get_player(other_pindex).force.name and pindex ~= other_pindex
+         then
+            table.insert(players[other_pindex].travel, {
+               name = this_point.name,
+               position = this_point.position,
+               description = this_point.description,
+            })
+            table.sort(players[other_pindex].travel, function(k1, k2)
+               return k1.name < k2.name
+            end)
+         end
+      end
+      --Report the action and note the last broadcasted point
+      printout("Broadcasted point " .. this_point.name, pindex)
+      players[pindex].travel.last_broadcasted_name = this_point.name
+      players[pindex].travel.last_broadcasted_description = this_point.description
+      players[pindex].travel.last_broadcasted_position = this_point.position
+   elseif players[pindex].travel.index.x == 7 then --Delete
       printout("Deleted " .. global.players[pindex].travel[players[pindex].travel.index.y].name, pindex)
       table.remove(global.players[pindex].travel, players[pindex].travel.index.y)
       players[pindex].travel.x = 1
       players[pindex].travel.index.y = players[pindex].travel.index.y - 1
-   elseif players[pindex].travel.index.x == 7 then --Create new
+   elseif players[pindex].travel.index.x == 8 then --Create new
       printout(
          "Type in a name for this fast travel point, then press 'ENTER' to confirm, or press 'ESC' to cancel.",
          pindex
@@ -511,7 +543,7 @@ function mod.fast_travel_menu_click(pindex)
       input.select(1, 0)
    end
 end
-TRAVEL_MENU_LENGTH = 7
+TRAVEL_MENU_LENGTH = 8
 
 function mod.fast_travel_menu_up(pindex)
    if players[pindex].travel.index.y > 1 then
@@ -555,8 +587,10 @@ function mod.fast_travel_menu_right(pindex)
    elseif players[pindex].travel.index.x == 5 then
       printout("Relocate to current character position", pindex)
    elseif players[pindex].travel.index.x == 6 then
-      printout("Delete", pindex)
+      printout("Broadcast to team players", pindex)
    elseif players[pindex].travel.index.x == 7 then
+      printout("Delete", pindex)
+   elseif players[pindex].travel.index.x == 8 then
       printout("Create New", pindex)
    end
 end
@@ -579,8 +613,10 @@ function mod.fast_travel_menu_left(pindex)
    elseif players[pindex].travel.index.x == 5 then
       printout("Relocate to current character position", pindex)
    elseif players[pindex].travel.index.x == 6 then
-      printout("Delete", pindex)
+      printout("Broadcast to team players", pindex)
    elseif players[pindex].travel.index.x == 7 then
+      printout("Delete", pindex)
+   elseif players[pindex].travel.index.x == 8 then
       printout("Create New", pindex)
    end
 end

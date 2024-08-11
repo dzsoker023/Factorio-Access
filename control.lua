@@ -1165,7 +1165,6 @@ function initialize(player)
    faplayer.last_click_tick = faplayer.last_click_tick or 1
    faplayer.last_damage_alert_tick = faplayer.last_damage_alert_tick or 1
    faplayer.last_damage_alert_pos = faplayer.last_damage_alert_pos or nil
-   faplayer.last_pg_key_tick = faplayer.last_pg_key_tick or 1
    faplayer.last_honk_tick = faplayer.last_honk_tick or 1
    faplayer.last_pickup_tick = faplayer.last_pickup_tick or 1
    faplayer.last_item_picked_up = faplayer.last_item_picked_up or nil
@@ -2537,29 +2536,40 @@ function move_characters(event)
    end
 end
 
---Move player character (and adapt the cursor to smooth walking)
-function move(direction, pindex)
+--Move the player character (or adapt the cursor to smooth walking)
+--Returns false if failed to move
+function move(direction, pindex, nudged)
    local p = game.get_player(pindex)
-   if p.driving then return end
+   if p.driving or p.character == nil then return false end
    local first_player = game.get_player(pindex)
    local pos = players[pindex].position
    local new_pos = fa_utils.offset_position(pos, direction, 1)
+   local moved_success = false
 
    --Compare the input direction and facing direction
-   if players[pindex].player_direction == direction then
-      --Same direction: Move character:
-      if players[pindex].walk == WALKING.SMOOTH then return end
+   if players[pindex].player_direction == direction or nudged == true then
+      --Same direction or nudging: Move character (unless smooth walking):
+      if players[pindex].walk == WALKING.SMOOTH and nudged ~= true then return end
       new_pos = fa_utils.center_of_tile(new_pos)
       can_port = first_player.surface.can_place_entity({ name = "character", position = new_pos })
       if can_port then
-         if players[pindex].walk == WALKING.STEP_BY_WALK then
+         if players[pindex].walk == WALKING.STEP_BY_WALK and nudged ~= true then
             table.insert(players[pindex].move_queue, { direction = direction, dest = new_pos })
+            moved_success = true
          else
+            --If telestep or nudged then teleport now
             teleported = first_player.teleport(new_pos)
-            if not teleported then printout("Teleport Failed", pindex) end
+            if not teleported then
+               printout("Teleport Failed", pindex)
+               moved_success = false
+            else
+               moved_success = true
+            end
          end
          players[pindex].position = new_pos
-         players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].position, direction, 1)
+         if nudged ~= true then
+            players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].position, direction, 1)
+         end
          --Telestep walking sounds
          if
             players[pindex].tile.previous ~= nil
@@ -2576,7 +2586,7 @@ function move(direction, pindex)
                game.get_player(pindex).play_sound({ path = "player-walk", volume_modifier = 1 })
             end
          end
-         if not game.get_player(pindex).driving then read_tile(pindex) end
+         if nudged ~= true then read_tile(pindex) end
 
          local stack = first_player.cursor_stack
          if stack and stack.valid_for_read and stack.valid and stack.prototype.place_result ~= nil then
@@ -2586,6 +2596,7 @@ function move(direction, pindex)
          if players[pindex].build_lock then fa_building_tools.build_item_in_hand(pindex) end
       else
          printout("Tile Occupied", pindex)
+         moved_success = false
       end
 
       --Play a sound for audio ruler alignment (telestep moved)
@@ -2601,15 +2612,11 @@ function move(direction, pindex)
       end
       players[pindex].player_direction = direction
       players[pindex].cursor_pos = new_pos
+      moved_success = true
 
       local stack = first_player.cursor_stack
       if stack and stack.valid_for_read and stack.valid and stack.prototype.place_result ~= nil then
          fa_graphics.sync_build_cursor_graphics(pindex)
-      end
-
-      if game.get_player(pindex).driving then
-         target_mouse_pointer_deprecated(pindex)
-         return
       end
 
       if players[pindex].walk ~= WALKING.SMOOTH then
@@ -2661,6 +2668,8 @@ function move(direction, pindex)
    if not (stack and stack.valid_for_read and stack.name == "cut-paste-tool") then
       players[pindex].allow_reading_flying_text = true
    end
+
+   return moved_success
 end
 
 --Chooses the function to call after a movement keypress, according to the current mode.
@@ -3361,44 +3370,16 @@ script.on_event("scan-facing-direction", function(event)
    end
 end)
 
-script.on_event("a-scan-list-main-up-key", function(event)
-   --laterdo: find a more elegant scan list solution here. It depends on hardcoded keybindings and alphabetically named event handling
-   pindex = event.player_index
-   if not check_for_player(pindex) then return end
-   players[pindex].last_pg_key_tick = event.tick
-end)
-
-script.on_event("a-scan-list-main-down-key", function(event)
-   --laterdo: find a more elegant scan list solution here. It depends on hardcoded keybindings and alphabetically named event handling
-   pindex = event.player_index
-   if not check_for_player(pindex) then return end
-   players[pindex].last_pg_key_tick = event.tick
-end)
-
 script.on_event("scan-list-up", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if not players[pindex].in_menu and not players[pindex].cursor then fa_scanner.list_up(pindex) end
-   if
-      players[pindex].cursor
-      and players[pindex].last_pg_key_tick ~= nil
-      and event.tick - players[pindex].last_pg_key_tick < 10
-   then
-      fa_scanner.list_up(pindex)
-   end
+   if not players[pindex].in_menu then fa_scanner.list_up(pindex) end
 end)
 
 script.on_event("scan-list-down", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if not players[pindex].in_menu and not players[pindex].cursor then fa_scanner.list_down(pindex) end
-   if
-      players[pindex].cursor
-      and players[pindex].last_pg_key_tick ~= nil
-      and event.tick - players[pindex].last_pg_key_tick < 10
-   then
-      fa_scanner.list_down(pindex)
-   end
+   if not players[pindex].in_menu then fa_scanner.list_down(pindex) end
 end)
 
 script.on_event("scan-list-middle", function(event)
@@ -4249,14 +4230,16 @@ script.on_event("mine-area", function(event)
    local cleared_total = 0
    local comment = ""
 
-   --Check if within reach
+   --Check if the is within reach or the applicable entity is within reach
    if
       ent ~= nil
-         and ent.valid
-         and ent.name ~= "entity-ghost"
-         and util.distance(game.get_player(pindex).position, ent.position) > game.get_player(pindex).reach_distance
-      or util.distance(game.get_player(pindex).position, players[pindex].cursor_pos)
-         > game.get_player(pindex).reach_distance
+      and ent.valid
+      and ent.name ~= "entity-ghost"
+      and (
+         util.distance(game.get_player(pindex).position, ent.position) > game.get_player(pindex).reach_distance
+         or util.distance(game.get_player(pindex).position, players[pindex].cursor_pos)
+            > game.get_player(pindex).reach_distance
+      )
    then
       game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
       printout("This area is out of player reach", pindex)
@@ -4796,7 +4779,14 @@ script.on_event("click-menu", function(event)
             and players[pindex].technology.index <= #techs
          then
             if game.get_player(pindex).force.add_research(techs[players[pindex].technology.index]) then
-               printout("Research started.", pindex)
+               local q = game.get_player(pindex).force.research_queue
+               if #q >= 1 then
+                  game.get_player(pindex).force.research_queue = nil
+                  game.get_player(pindex).force.add_research(techs[players[pindex].technology.index])
+                  printout("Research started, research queue cleared.", pindex)
+               else
+                  printout("Research started.", pindex)
+               end
             else
                printout("Research locked, first complete the prerequisites.", pindex)
             end
@@ -6180,9 +6170,91 @@ script.on_event("read-time-and-research-progress", function(event)
 
    printout(time_string .. progress_string .. total_time_string, pindex)
    if players[pindex].vanilla_mode then game.get_player(pindex).open_technology_gui() end
+end)
 
-   --Temporarily disable research queue, add it as a feature laterdo**
-   game.get_player(pindex).force.research_queue_enabled = false
+--Add the selected technology to the start of the research queue instead of switching directly to it
+script.on_event("add-to-research-queue-start", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   add_selected_tech_to_research_queue(pindex, true)
+   printout("Added to the start of the research queue.", pindex)
+end)
+
+--Add the selected technology to the end of the research queue instead of switching directly to it
+script.on_event("add-to-research-queue-end", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   add_selected_tech_to_research_queue(pindex, false)
+   printout("Added to the end of the research queue.", pindex)
+end)
+
+--Adds the currently selected researchable technology to the research queue.
+--If the param at_start is true, then added to the start, else to the end
+function add_selected_tech_to_research_queue(pindex, at_start)
+   if players[pindex].menu ~= "technology" or players[pindex].technology.category ~= 1 then return end
+   local p = game.get_player(pindex)
+   if p == nil or p.force == nil then return end
+   p.force.research_queue_enabled = true
+   local q = p.force.research_queue
+   local techs = players[pindex].technology.lua_researchable
+   local selected_tech_name = techs[players[pindex].technology.index].name
+   if at_start then
+      table.insert(q, 1, selected_tech_name)
+   else
+      table.insert(q, selected_tech_name)
+   end
+   p.force.research_queue = q
+end
+
+--Read the research queue (first 10 items)
+script.on_event("read-research-queue", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   local p = game.get_player(pindex)
+   if p == nil or p.force == nil then return end
+   p.force.research_queue_enabled = true
+   local q = p.force.research_queue
+   if q == nil or #q == 0 then
+      printout("Research queue empty.", pindex)
+      return
+   end
+   --Read the queue elements
+   local result = "Research queue contains "
+   local i = 0
+   for i = 1, #q, 1 do
+      local tech = q[i]
+      if i > 10 then
+         result = result
+      elseif type(tech) == "string" then
+         result = result .. tech .. ", "
+      elseif tech.name then
+         if tech.level < 2 then
+            result = result .. tech.name .. ", "
+         else
+            result = result .. tech.name .. " level " .. tech.level .. ", "
+         end
+      else
+         result = result .. "tech" .. ", "
+      end
+   end
+   printout(result, pindex)
+end)
+
+--Clear the research queue
+script.on_event("clear-research-queue", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   local p = game.get_player(pindex)
+   if p == nil or p.force == nil then return end
+   p.force.research_queue_enabled = true
+   local q = p.force.research_queue
+   if q == nil or #q == 0 then
+      printout("Research queue empty.", pindex)
+      return
+   end
+   --Clear the queue
+   p.force.research_queue = nil
+   printout("Research queue cleared.", pindex)
 end)
 
 --When the item in hand changes
@@ -6415,6 +6487,7 @@ script.on_event("toggle-walk", function(event)
    if not check_for_player(pindex) then return end
    reset_bump_stats(pindex)
    players[pindex].move_queue = {}
+   if p.character == nil then return end
    if players[pindex].walk == WALKING.TELESTEP then
       players[pindex].walk = WALKING.SMOOTH
       p.character_running_speed_modifier = 0 -- 100% + 0 = 100%
@@ -6459,17 +6532,18 @@ end)
 script.on_event("toggle-vanilla-mode", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   game.get_player(pindex).play_sound({ path = "utility/confirm" })
+   local p = game.get_player(pindex)
+   p.play_sound({ path = "utility/confirm" })
    if players[pindex].vanilla_mode == false then
-      game.get_player(pindex).print("Vanilla mode : ON")
+      p.print("Vanilla mode : ON")
       players[pindex].cursor = false
       players[pindex].walk = 2
-      game.get_player(pindex).character_running_speed_modifier = 0
+      if p.character then p.character_running_speed_modifier = 0 end
       players[pindex].hide_cursor = true
       printout("Vanilla mode enabled", pindex)
       players[pindex].vanilla_mode = true
    else
-      game.get_player(pindex).print("Vanilla mode : OFF")
+      p.print("Vanilla mode : OFF")
       players[pindex].hide_cursor = false
       players[pindex].vanilla_mode = false
       printout("Vanilla mode disabled", pindex)
@@ -7030,6 +7104,19 @@ function cursor_skip(pindex, direction, iteration_limit, use_preview_size)
    --Read the tile reached
    read_tile(pindex, result)
    fa_graphics.sync_build_cursor_graphics(pindex)
+
+   --Draw large cursor boxes if present
+   if players[pindex].cursor_size > 0 then
+      local left_top = {
+         math.floor(players[pindex].cursor_pos.x) - players[pindex].cursor_size,
+         math.floor(players[pindex].cursor_pos.y) - players[pindex].cursor_size,
+      }
+      local right_bottom = {
+         math.floor(players[pindex].cursor_pos.x) + players[pindex].cursor_size + 1,
+         math.floor(players[pindex].cursor_pos.y) + players[pindex].cursor_size + 1,
+      }
+      fa_graphics.draw_large_cursor(left_top, right_bottom, pindex)
+   end
 end
 
 --Moves the cursor in the same direction multiple times until the reported entity changes. Change includes: new entity name or new direction for entites with the same name, or changing between nil and ent. Returns move count.
@@ -7232,20 +7319,60 @@ function apply_skip_by_preview_size(pindex, direction)
    return shift
 end
 
-script.on_event("nudge-up", function(event)
+script.on_event("nudge-building-up", function(event)
    fa_building_tools.nudge_key(defines.direction.north, event)
 end)
 
-script.on_event("nudge-down", function(event)
+script.on_event("nudge-building-down", function(event)
    fa_building_tools.nudge_key(defines.direction.south, event)
 end)
 
-script.on_event("nudge-left", function(event)
+script.on_event("nudge-building-left", function(event)
    fa_building_tools.nudge_key(defines.direction.west, event)
 end)
 
-script.on_event("nudge-right", function(event)
+script.on_event("nudge-building-right", function(event)
    fa_building_tools.nudge_key(defines.direction.east, event)
+end)
+
+script.on_event("nudge-character-up", function(event)
+   local pindex = event.player_index
+   if move(defines.direction.north, pindex, true) then
+      printout("Nudged self north", pindex)
+      turn_to_cursor_direction_precise(pindex)
+   else
+      printout("Failed to nudge self", pindex)
+   end
+end)
+
+script.on_event("nudge-character-down", function(event)
+   local pindex = event.player_index
+   if move(defines.direction.south, pindex, true) then
+      printout("Nudged self south", pindex)
+      turn_to_cursor_direction_precise(pindex)
+   else
+      printout("Failed to nudge self", pindex)
+   end
+end)
+
+script.on_event("nudge-character-left", function(event)
+   local pindex = event.player_index
+   if move(defines.direction.west, pindex, true) then
+      printout("Nudged self west", pindex)
+      turn_to_cursor_direction_precise(pindex)
+   else
+      printout("Failed to nudge self", pindex)
+   end
+end)
+
+script.on_event("nudge-character-right", function(event)
+   local pindex = event.player_index
+   if move(defines.direction.east, pindex, true) then
+      printout("Nudged self east", pindex)
+      turn_to_cursor_direction_precise(pindex)
+   else
+      printout("Failed to nudge self", pindex)
+   end
 end)
 
 script.on_event("alternative-menu-up", function(event)
@@ -7743,36 +7870,42 @@ end)
 script.on_event("logistic-request-read", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
+   if game.get_player(pindex).character == nil then return end
    if game.get_player(pindex).driving == false then fa_bot_logistics.logistics_info_key_handler(pindex) end
 end)
 
 script.on_event("logistic-request-increment-min", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
+   if game.get_player(pindex).character == nil then return end
    fa_bot_logistics.logistics_request_increment_min_handler(pindex)
 end)
 
 script.on_event("logistic-request-decrement-min", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
+   if game.get_player(pindex).character == nil then return end
    fa_bot_logistics.logistics_request_decrement_min_handler(pindex)
 end)
 
 script.on_event("logistic-request-increment-max", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
+   if game.get_player(pindex).character == nil then return end
    fa_bot_logistics.logistics_request_increment_max_handler(pindex)
 end)
 
 script.on_event("logistic-request-decrement-max", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
+   if game.get_player(pindex).character == nil then return end
    fa_bot_logistics.logistics_request_decrement_max_handler(pindex)
 end)
 
 script.on_event("logistic-request-clear", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
+   if game.get_player(pindex).character == nil then return end
    fa_bot_logistics.logistics_request_clear_handler(pindex)
 end)
 
@@ -7789,6 +7922,7 @@ end)
 script.on_event("logistic-request-toggle-personal-logistics", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
+   if game.get_player(pindex).character == nil then return end
    fa_bot_logistics.logistics_request_toggle_handler(pindex)
 end)
 
@@ -8411,6 +8545,7 @@ script.on_event(defines.events.on_string_translated, fa_localising.handler)
 script.on_event(defines.events.on_player_respawned, function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
+   players[pindex].position = game.get_player(pindex).position
    players[pindex].cursor_pos = game.get_player(pindex).position
 end)
 

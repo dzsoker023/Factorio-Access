@@ -387,6 +387,13 @@ function mod.ent_info(pindex, ent, description)
          result = result .. " producing " .. fa_localising.get_recipe_from_name(ent.get_recipe().name, pindex)
       end
    end)
+   --For furnaces (which produce only 1 output item type at a time) state how many output units are ready
+   if ent.type == "furnace" then
+      local output_stack = ent.get_output_inventory()[1]
+      if output_stack and output_stack.valid_for_read then
+         result = result .. ", " .. output_stack.count .. " ready, "
+      end
+   end
    --State the name of a train stop
    if ent.name == "train-stop" then
       result = result .. " " .. ent.backer_name .. " "

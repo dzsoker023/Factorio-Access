@@ -578,24 +578,28 @@ data:extend({
       type = "custom-input",
       name = "cursor-skip-north",
       key_sequence = "SHIFT + W",
+      alternative_key_sequence = "KP_8",
       consuming = "none",
    },
    {
       type = "custom-input",
       name = "cursor-skip-south",
       key_sequence = "SHIFT + S",
+      alternative_key_sequence = "KP_2",
       consuming = "none",
    },
    {
       type = "custom-input",
       name = "cursor-skip-west",
       key_sequence = "SHIFT + A",
+      alternative_key_sequence = "KP_4",
       consuming = "none",
    },
    {
       type = "custom-input",
       name = "cursor-skip-east",
       key_sequence = "SHIFT + D",
+      alternative_key_sequence = "KP_6",
       consuming = "none",
    },
 
@@ -603,49 +607,78 @@ data:extend({
       type = "custom-input",
       name = "cursor-skip-by-preview-north",
       key_sequence = "CONTROL + W",
+      alternative_key_sequence = "CONTROL + KP_8",
       consuming = "none",
    },
    {
       type = "custom-input",
       name = "cursor-skip-by-preview-south",
       key_sequence = "CONTROL + S",
+      alternative_key_sequence = "CONTROL + KP_2",
       consuming = "none",
    },
    {
       type = "custom-input",
       name = "cursor-skip-by-preview-west",
       key_sequence = "CONTROL + A",
+      alternative_key_sequence = "CONTROL + KP_4",
       consuming = "none",
    },
    {
       type = "custom-input",
       name = "cursor-skip-by-preview-east",
       key_sequence = "CONTROL + D",
+      alternative_key_sequence = "CONTROL + KP_6",
       consuming = "none",
    },
 
    {
       type = "custom-input",
-      name = "nudge-up",
-      key_sequence = "CONTROL + SHIFT + W",
+      name = "nudge-building-up",
+      key_sequence = "SHIFT + UP",
       consuming = "none",
    },
    {
       type = "custom-input",
-      name = "nudge-down",
-      key_sequence = "CONTROL + SHIFT + S",
+      name = "nudge-building-down",
+      key_sequence = "SHIFT + DOWN",
       consuming = "none",
    },
    {
       type = "custom-input",
-      name = "nudge-left",
-      key_sequence = "CONTROL + SHIFT + A",
+      name = "nudge-building-left",
+      key_sequence = "SHIFT + LEFT",
       consuming = "none",
    },
    {
       type = "custom-input",
-      name = "nudge-right",
-      key_sequence = "CONTROL + SHIFT + D",
+      name = "nudge-building-right",
+      key_sequence = "SHIFT + RIGHT",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
+      name = "nudge-character-up",
+      key_sequence = "CONTROL + UP",
+      consuming = "none",
+   },
+   {
+      type = "custom-input",
+      name = "nudge-character-down",
+      key_sequence = "CONTROL + DOWN",
+      consuming = "none",
+   },
+   {
+      type = "custom-input",
+      name = "nudge-character-left",
+      key_sequence = "CONTROL + LEFT",
+      consuming = "none",
+   },
+   {
+      type = "custom-input",
+      name = "nudge-character-right",
+      key_sequence = "CONTROL + RIGHT",
       consuming = "none",
    },
 
@@ -903,20 +936,6 @@ data:extend({
 
    {
       type = "custom-input",
-      name = "a-scan-list-main-up-key",
-      key_sequence = "PAGEUP",
-      consuming = "none",
-   },
-
-   {
-      type = "custom-input",
-      name = "a-scan-list-main-down-key",
-      key_sequence = "PAGEDOWN",
-      consuming = "none",
-   },
-
-   {
-      type = "custom-input",
       name = "scan-list-up",
       key_sequence = "PAGEUP",
       alternative_key_sequence = "ALT + UP",
@@ -943,7 +962,7 @@ data:extend({
       type = "custom-input",
       name = "scan-category-up",
       key_sequence = "CONTROL + PAGEUP",
-      alternative_key_sequence = "CONTROL + UP",
+      alternative_key_sequence = "CONTROL + ALT + UP",
       consuming = "none",
    },
 
@@ -951,7 +970,7 @@ data:extend({
       type = "custom-input",
       name = "scan-category-down",
       key_sequence = "CONTROL + PAGEDOWN",
-      alternative_key_sequence = "CONTROL + DOWN",
+      alternative_key_sequence = "CONTROL + ALT + DOWN",
       consuming = "none",
    },
 
@@ -973,7 +992,7 @@ data:extend({
       type = "custom-input",
       name = "scan-selection-up",
       key_sequence = "SHIFT + PAGEUP",
-      alternative_key_sequence = "SHIFT + UP",
+      alternative_key_sequence = "SHIFT + ALT + UP",
       consuming = "none",
    },
 
@@ -981,7 +1000,7 @@ data:extend({
       type = "custom-input",
       name = "scan-selection-down",
       key_sequence = "SHIFT + PAGEDOWN",
-      alternative_key_sequence = "SHIFT + DOWN",
+      alternative_key_sequence = "SHIFT + ALT + DOWN",
       consuming = "none",
    },
 
@@ -1402,14 +1421,14 @@ data:extend({
    {
       type = "custom-input",
       name = "quick-build-rail-left-turn",
-      key_sequence = "CONTROL + LEFT",
+      key_sequence = "ALT + LEFT",
       consuming = "none",
    },
 
    {
       type = "custom-input",
       name = "quick-build-rail-right-turn",
-      key_sequence = "CONTROL + RIGHT",
+      key_sequence = "ALT + RIGHT",
       consuming = "none",
    },
 
@@ -1547,6 +1566,34 @@ data:extend({
       type = "custom-input",
       name = "read-time-and-research-progress",
       key_sequence = "T",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
+      name = "add-to-research-queue-start",
+      key_sequence = "SHIFT + LEFTBRACKET",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
+      name = "add-to-research-queue-end",
+      key_sequence = "CONTROL + LEFTBRACKET",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
+      name = "read-research-queue",
+      key_sequence = "ALT + Q",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
+      name = "clear-research-queue",
+      key_sequence = "CONTROL + SHIFT + ALT + Q",
       consuming = "none",
    },
 
@@ -1785,28 +1832,28 @@ data:extend({
    {
       type = "custom-input",
       name = "set-splitter-input-priority-left",
-      key_sequence = "SHIFT + LEFT",
+      key_sequence = "SHIFT + ALT + LEFT",
       consuming = "none",
    },
 
    {
       type = "custom-input",
       name = "set-splitter-input-priority-right",
-      key_sequence = "SHIFT + RIGHT",
+      key_sequence = "SHIFT + ALT + RIGHT",
       consuming = "none",
    },
 
    {
       type = "custom-input",
       name = "set-splitter-output-priority-left",
-      key_sequence = "CONTROL + LEFT",
+      key_sequence = "CONTROL + ALT + LEFT",
       consuming = "none",
    },
 
    {
       type = "custom-input",
       name = "set-splitter-output-priority-right",
-      key_sequence = "CONTROL + RIGHT",
+      key_sequence = "CONTROL + ALT + RIGHT",
       consuming = "none",
    },
 
