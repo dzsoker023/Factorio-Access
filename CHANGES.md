@@ -14,11 +14,18 @@ Released on August 11th, 2024.
     * A different note is played when the cursor is placed 1 tile away from the ruler line.
     * More features are being planned for audio rulers, such as cursor skipping or build lock being interrupted when crossing over them.
 
-  - Added super ghost mining. Press `CONTROL + SHIFT + X` on a ghost to clear all ghosts within 100 tiles instead of the default of 10 tiles.
-
   - New launcher features (v0.1.3)
-    * Fixed a bug relating to enabling and disabling sub menus. Specifically sometimes cliffs would say they were disabled when in fact they were not.
+    * Fixed a bug relating to enabling and disabling sub menus. Specifically, sometimes cliffs would say they were disabled when in fact they were not.
     * Added versioning so one can tell which version is running through the "About" menu, or the exe file property details.
+
+- Added basic support for research queues in the technology menu.
+  * If you select a researchable technology and press `SHIFT + LEFTBRACKET` then it is added to the start of the queue.
+  * Similarly, if you press `CONTROL + LEFTBRACKET` then it is added to the end of the queue.
+  * While there is a queue, if you select a new technology with only `LEFTBRACKET`, then the queue is cleared and this tech is selected for research by itself.
+  * From any menu, you can read the current research queue by pressing `ALT + Q`.
+  * From any menu, you can clear the current research queue by pressing `CONTROL + SHIFT + ALT + Q`.
+
+- Added super ghost mining. Press `CONTROL + SHIFT + X` on a ghost to clear all ghosts within 100 tiles instead of the default of 10 tiles.
 
 ## Changes
   - Greatly improved Kruise Kontrol functionality.

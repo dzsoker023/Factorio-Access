@@ -1571,6 +1571,34 @@ data:extend({
 
    {
       type = "custom-input",
+      name = "add-to-research-queue-start",
+      key_sequence = "SHIFT + LEFTBRACKET",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
+      name = "add-to-research-queue-end",
+      key_sequence = "CONTROL + LEFTBRACKET",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
+      name = "read-research-queue",
+      key_sequence = "ALT + Q",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
+      name = "clear-research-queue",
+      key_sequence = "CONTROL + SHIFT + ALT + Q",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
       name = "save-game-manually",
       key_sequence = "F1",
       consuming = "none",

@@ -4779,7 +4779,14 @@ script.on_event("click-menu", function(event)
             and players[pindex].technology.index <= #techs
          then
             if game.get_player(pindex).force.add_research(techs[players[pindex].technology.index]) then
-               printout("Research started.", pindex)
+               local q = game.get_player(pindex).force.research_queue
+               if #q >= 1 then
+                  game.get_player(pindex).force.research_queue = nil
+                  game.get_player(pindex).force.add_research(techs[players[pindex].technology.index])
+                  printout("Research started, research queue cleared.", pindex)
+               else
+                  printout("Research started.", pindex)
+               end
             else
                printout("Research locked, first complete the prerequisites.", pindex)
             end
@@ -6163,9 +6170,91 @@ script.on_event("read-time-and-research-progress", function(event)
 
    printout(time_string .. progress_string .. total_time_string, pindex)
    if players[pindex].vanilla_mode then game.get_player(pindex).open_technology_gui() end
+end)
 
-   --Temporarily disable research queue, add it as a feature laterdo**
-   game.get_player(pindex).force.research_queue_enabled = false
+--Add the selected technology to the start of the research queue instead of switching directly to it
+script.on_event("add-to-research-queue-start", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   add_selected_tech_to_research_queue(pindex, true)
+   printout("Added to the start of the research queue.", pindex)
+end)
+
+--Add the selected technology to the end of the research queue instead of switching directly to it
+script.on_event("add-to-research-queue-end", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   add_selected_tech_to_research_queue(pindex, false)
+   printout("Added to the end of the research queue.", pindex)
+end)
+
+--Adds the currently selected researchable technology to the research queue.
+--If the param at_start is true, then added to the start, else to the end
+function add_selected_tech_to_research_queue(pindex, at_start)
+   if players[pindex].menu ~= "technology" or players[pindex].technology.category ~= 1 then return end
+   local p = game.get_player(pindex)
+   if p == nil or p.force == nil then return end
+   p.force.research_queue_enabled = true
+   local q = p.force.research_queue
+   local techs = players[pindex].technology.lua_researchable
+   local selected_tech_name = techs[players[pindex].technology.index].name
+   if at_start then
+      table.insert(q, 1, selected_tech_name)
+   else
+      table.insert(q, selected_tech_name)
+   end
+   p.force.research_queue = q
+end
+
+--Read the research queue (first 10 items)
+script.on_event("read-research-queue", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   local p = game.get_player(pindex)
+   if p == nil or p.force == nil then return end
+   p.force.research_queue_enabled = true
+   local q = p.force.research_queue
+   if q == nil or #q == 0 then
+      printout("Research queue empty.", pindex)
+      return
+   end
+   --Read the queue elements
+   local result = "Research queue contains "
+   local i = 0
+   for i = 1, #q, 1 do
+      local tech = q[i]
+      if i > 10 then
+         result = result
+      elseif type(tech) == "string" then
+         result = result .. tech .. ", "
+      elseif tech.name then
+         if tech.level < 2 then
+            result = result .. tech.name .. ", "
+         else
+            result = result .. tech.name .. " level " .. tech.level .. ", "
+         end
+      else
+         result = result .. "tech" .. ", "
+      end
+   end
+   printout(result, pindex)
+end)
+
+--Clear the research queue
+script.on_event("clear-research-queue", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   local p = game.get_player(pindex)
+   if p == nil or p.force == nil then return end
+   p.force.research_queue_enabled = true
+   local q = p.force.research_queue
+   if q == nil or #q == 0 then
+      printout("Research queue empty.", pindex)
+      return
+   end
+   --Clear the queue
+   p.force.research_queue = nil
+   printout("Research queue cleared.", pindex)
 end)
 
 --When the item in hand changes
