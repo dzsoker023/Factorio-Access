@@ -40,6 +40,8 @@ Date: 2024.08.11
 
     - Added super ghost mining. Press `CONTROL + SHIFT + X` on a ghost to clear all ghosts within 100 tiles instead of the default of 10 tiles.
 
+    - Furnaces when selected will now report how many output units they have ready for collection, if more than 0.
+
   Changes:
     - Greatly improved Kruise Kontrol functionality.
       * Kruise Kontrol now works with only one press of the keybind 
