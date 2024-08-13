@@ -6177,7 +6177,6 @@ script.on_event("add-to-research-queue-start", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    add_selected_tech_to_research_queue(pindex, true)
-   printout("Added to the start of the research queue.", pindex)
 end)
 
 --Add the selected technology to the end of the research queue instead of switching directly to it
@@ -6185,7 +6184,6 @@ script.on_event("add-to-research-queue-end", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    add_selected_tech_to_research_queue(pindex, false)
-   printout("Added to the end of the research queue.", pindex)
 end)
 
 --Adds the currently selected researchable technology to the research queue.
@@ -6204,6 +6202,12 @@ function add_selected_tech_to_research_queue(pindex, at_start)
       table.insert(q, selected_tech_name)
    end
    p.force.research_queue = q
+
+   if at_start then
+      printout("Added to the start of the research queue.", pindex)
+   else
+      printout("Added to the end of the research queue.", pindex)
+   end
 end
 
 --Read the research queue (first 10 items)
