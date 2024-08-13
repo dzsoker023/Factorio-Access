@@ -1,4 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.13.1
+Date: 2024.08.13
+
+  Summary:
+    - This is a quick update to fix a bug where pressing the research queue keys in other contexts would incorrectly report info about the research queue.
+
+  Bugfixes:
+    - Fixed a bug where pressing the research queue keys in other contexts would incorrectly report info about the research queue.
+
+
+---------------------------------------------------------------------------------------------------
 Version: 0.13.0
 Date: 2024.08.11
 

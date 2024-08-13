@@ -1,3 +1,13 @@
+# Version 0.13.1 BETA
+Released on August 13th, 2024.
+
+## Summary
+- This is a quick update to fix a bug where pressing the research queue keys in other contexts would incorrectly report info about the research queue.
+
+## Bugfixes
+- Fixed a bug where pressing the research queue keys in other contexts would incorrectly report info about the research queue.
+
+
 # Version 0.13.0 BETA
 Released on August 11th, 2024.
 
