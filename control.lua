@@ -5900,22 +5900,24 @@ script.on_event("reverse-rotate-building", function(event)
    fa_building_tools.rotate_building_info_read(event, false)
 end)
 
+--Does not work yet
 script.on_event("flip-blueprint-horizontal-info", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
    local bp = p.cursor_stack
    if bp == nil or bp.valid_for_read == false or bp.is_blueprint == false then return end
-   printout("Flipping horizontal", pindex)
+   printout("Error: Flipping horizontal is not supported.", pindex)
 end)
 
+--Does not work yet
 script.on_event("flip-blueprint-vertical-info", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    local p = game.get_player(pindex)
    local bp = p.cursor_stack
    if bp == nil or bp.valid_for_read == false or bp.is_blueprint == false then return end
-   printout("Flipping vertical", pindex)
+   printout("Error: Flipping vertical is not supported.", pindex)
 end)
 
 script.on_event("inventory-read-weapons-data", function(event)
