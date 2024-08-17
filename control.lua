@@ -6777,6 +6777,32 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
       --Destroy text fields
       if p.gui.screen["cursor-jump"] ~= nil then p.gui.screen["cursor-jump"].destroy() end
       if p.opened ~= nil then p.opened = nil end
+   elseif players[pindex].train_limit_editing == true then
+      --Apply the limit
+      players[pindex].train_limit_editing = false
+      local result = event.element.text
+      if result ~= nil and result ~= "" then
+         local constant = tonumber(result)
+         local valid_number = constant ~= nil
+         if valid_number and p.selected and p.selected.valid and p.selected.name == "train-stop" and constant >= 0 then
+            p.selected.trains_limit = constant
+            printout("Set trains limit to " .. constant, pindex)
+         else
+            printout("Invalid input", pindex)
+         end
+      else
+         printout("Invalid input", pindex)
+      end
+      event.element.destroy()
+      --Set the player menu tracker to none
+      players[pindex].menu = "none"
+      players[pindex].in_menu = false
+      --play sound
+      p.play_sound({ path = "Close-Inventory-Sound" })
+
+      --Destroy text fields
+      if p.gui.screen["train-limit-edit"] ~= nil then p.gui.screen["train-limit-edit"].destroy() end
+      if p.opened ~= nil then p.opened = nil end
    elseif players[pindex].menu == "circuit_network_menu" then
       --Take the constant number
       local result = event.element.text

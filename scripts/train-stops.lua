@@ -151,8 +151,22 @@ function mod.run_train_stop_menu(menu_index, pindex, clicked, other_input)
          local result = mod.nearby_train_schedule_remove_stop(train_stop)
          printout(result, pindex)
       end
+   elseif index == 9 then
+      if not clicked then
+         printout("Set the trains limit for this stop by entering a number", pindex)
+      else
+         printout("Type in a number and press ENTER to confirm", pindex)
+         players[pindex].train_limit_editing = true
+         local frame = game.get_player(pindex).gui.screen.add({ type = "frame", name = "train-limit-edit" })
+         frame.bring_to_front()
+         frame.force_auto_center()
+         frame.focus()
+         local input = frame.add({ type = "textfield", name = "input" })
+         input.focus()
+      end
    end
 end
+mod.TRAIN_STOP_MENU_LENGTH = 9
 
 function mod.train_stop_menu_open(pindex)
    if players[pindex].vanilla_mode then return end
@@ -204,8 +218,8 @@ end
 
 function mod.train_stop_menu_down(pindex)
    players[pindex].train_stop_menu.index = players[pindex].train_stop_menu.index + 1
-   if players[pindex].train_stop_menu.index > 8 then
-      players[pindex].train_stop_menu.index = 8
+   if players[pindex].train_stop_menu.index > mod.TRAIN_STOP_MENU_LENGTH then
+      players[pindex].train_stop_menu.index = mod.TRAIN_STOP_MENU_LENGTH
       game.get_player(pindex).play_sound({ path = "inventory-edge" })
    else
       --Play sound

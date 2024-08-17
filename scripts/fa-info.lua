@@ -397,6 +397,9 @@ function mod.ent_info(pindex, ent, description)
    --State the name of a train stop
    if ent.name == "train-stop" then
       result = result .. " " .. ent.backer_name .. " "
+      if ent.trains_limit ~= nil and ent.trains_limit < 10000 then
+         result = result .. ", trains limit " .. ent.trains_limit
+      end
    --State the ID number of a train
    elseif ent.name == "locomotive" or ent.name == "cargo-wagon" or ent.name == "fluid-wagon" then
       result = result .. " of train " .. fa_trains.get_train_name(ent.train)
