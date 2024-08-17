@@ -142,10 +142,15 @@ function mod.reload_weapons(pindex)
    end
    --Apply an inventory transfer to the ammo inventory.
    local res, full = transfer_inventory({ from = main_inv, to = ammo_inv })
-   --**laterdo fail conditions messages, and maybe add reload sound?
+   local moved_key_count = 0
+   for key, val in pairs(res) do
+      moved_key_count = moved_key_count + 1
+   end
    --Check fullness
    if ammo_inv.is_full() then
       result = "Fully reloaded all three weapons"
+   elseif moved_key_count == 0 then
+      result = "Error: No relevant ammo found for reloading"
    else
       result = "Reloaded weapons with any available ammunition, "
    end
@@ -154,23 +159,25 @@ end
 
 --Move all weapons and ammo back to inventory
 function mod.remove_weapons_and_ammo(pindex)
-   local guns_inv = game.get_player(pindex).get_inventory(defines.inventory.character_guns)
-   local ammo_inv = game.get_player(pindex).get_inventory(defines.inventory.character_ammo)
-   local main_inv = game.get_player(pindex).get_inventory(defines.inventory.character_main)
+   local p = game.get_player(pindex)
+   local guns_inv = p.get_inventory(defines.inventory.character_guns)
+   local ammo_inv = p.get_inventory(defines.inventory.character_ammo)
+   local main_inv = p.get_inventory(defines.inventory.character_main)
    local guns_count = #guns_inv - guns_inv.count_empty_stacks()
    local ammos_count = #ammo_inv - ammo_inv.count_empty_stacks()
    local expected_remove_count = guns_count + ammos_count
    local resulted_remove_count = 0
    local message = ""
 
+   --Abort if not enough empty slots in inventory
+   if main_inv.count_empty_stacks() < 6 then return "Error: Not enough empty inventory slots, at least 6 needed" end
+
    --Remove all ammo
    for i = 1, ammos_count, 1 do
       if main_inv.can_insert(ammo_inv[i]) then
          local inserted = main_inv.insert(ammo_inv[i])
          local removed = ammo_inv.remove(ammo_inv[i])
-         if inserted ~= removed then
-            game.get_player(pindex).print("ammo removal count error", { volume_modifier = 0 }) --todo fix
-         end
+         if inserted ~= removed then p.print("ammo removal count error", { volume_modifier = 0 }) end
          resulted_remove_count = resulted_remove_count + math.ceil(removed / 1000) --counts how many stacks are removed
       end
    end
@@ -180,17 +187,13 @@ function mod.remove_weapons_and_ammo(pindex)
       if main_inv.can_insert(guns_inv[i]) then
          local inserted = main_inv.insert(guns_inv[i])
          local removed = guns_inv.remove(guns_inv[i])
-         if inserted ~= removed then
-            game.get_player(pindex).print("gun removal count error", { volume_modifier = 0 }) --todo fix
-         end
+         if inserted ~= removed then p.print("gun removal count error", { volume_modifier = 0 }) end
          resulted_remove_count = resulted_remove_count + math.ceil(removed / 1000) --counts how many stacks are removed
       end
    end
 
    message = "Collected " .. resulted_remove_count .. " of " .. expected_remove_count .. " item stacks,"
-   if game.get_player(pindex).get_main_inventory().count_empty_stacks() == 0 then
-      message = message .. " Inventory full. "
-   end
+   if main_inv.count_empty_stacks() == 0 then message = message .. " Inventory full. " end
 
    return message
 end
@@ -355,6 +358,7 @@ end
 --Remove all armor equipment and then the armor. laterdo "inv full" checks
 function mod.remove_equipment_and_armor(pindex)
    local armor_inv = game.get_player(pindex).get_inventory(defines.inventory.character_armor)
+   local char_main_inv = game.get_player(pindex).get_inventory(defines.inventory.character_main)
    local result = ""
    if armor_inv.is_empty() then return "No armor." end
 
@@ -365,7 +369,7 @@ function mod.remove_equipment_and_armor(pindex)
       grid = armor_inv[1].grid
    end
    if grid ~= nil and grid.valid then
-      local e_count = grid.count()
+      local initial_equipment_count = grid.count()
       --Take all items
       for i = 0, grid.width - 1, 1 do
          for j = 0, grid.height - 1, 1 do
@@ -377,13 +381,13 @@ function mod.remove_equipment_and_armor(pindex)
             end
          end
       end
-      result = "Collected " .. e_count - grid.count() .. " of " .. e_count .. " items, "
+      result = "Collected " .. initial_equipment_count - grid.count() .. " of " .. initial_equipment_count .. " items, "
    end
 
    --Remove armor
    if players[pindex].menu == "vehicle" and game.get_player(pindex).opened.type == "spider-vehicle" then
       --do nothing
-   elseif game.get_player(pindex).get_inventory(defines.inventory.character_main).count_empty_stacks() == 0 then
+   elseif char_main_inv.count_empty_stacks() == 0 then
       result = result .. " inventory full "
    else
       result = result .. "removed " .. armor_inv[1].name
@@ -394,6 +398,147 @@ function mod.remove_equipment_and_armor(pindex)
    end
 
    return result
+end
+
+function mod.guns_menu_open(pindex)
+   local p = game.get_player(pindex)
+   players[pindex].menu = "guns"
+   players[pindex].guns_menu.ammo_selected = false
+   players[pindex].guns_menu.index = 1
+   mod.guns_menu_read_slot(pindex, "Guns and ammo, ")
+end
+
+function mod.guns_menu_left(pindex)
+   local index = players[pindex].guns_menu.index
+   index = index - 1
+   if index == 0 then
+      index = 3
+      game.get_player(pindex).play_sound({ path = "inventory-wrap-around" })
+   else
+      game.get_player(pindex).play_sound({ path = "Inventory-Move" })
+   end
+   players[pindex].guns_menu.index = index
+   game.get_player(pindex).play_sound({ path = "Inventory-Move" })
+   mod.guns_menu_read_slot(pindex)
+end
+
+function mod.guns_menu_right(pindex)
+   local index = players[pindex].guns_menu.index
+   index = index + 1
+   if index == 4 then
+      index = 1
+      game.get_player(pindex).play_sound({ path = "inventory-wrap-around" })
+   else
+      game.get_player(pindex).play_sound({ path = "Inventory-Move" })
+   end
+   players[pindex].guns_menu.index = index
+   mod.guns_menu_read_slot(pindex)
+end
+
+function mod.guns_menu_up_or_down(pindex)
+   players[pindex].guns_menu.ammo_selected = not players[pindex].guns_menu.ammo_selected
+   game.get_player(pindex).play_sound({ path = "Inventory-Move" })
+   mod.guns_menu_read_slot(pindex)
+end
+
+function mod.guns_menu_get_selected_slot(pindex)
+   local menu = players[pindex].guns_menu
+   local p = game.get_player(pindex)
+   local gun_stack = p.get_inventory(defines.inventory.character_guns)[menu.index]
+   local ammo_stack = p.get_inventory(defines.inventory.character_ammo)[menu.index]
+   if menu.ammo_selected then
+      return ammo_stack
+   else
+      return gun_stack
+   end
+end
+
+function mod.guns_menu_read_slot(pindex, start_phrase_in)
+   local start_phrase = start_phrase_in or ""
+   local menu = players[pindex].guns_menu
+   local p = game.get_player(pindex)
+   local result = { "" }
+   table.insert(result, start_phrase)
+   local gun_stack = p.get_inventory(defines.inventory.character_guns)[menu.index]
+   local ammo_stack = p.get_inventory(defines.inventory.character_ammo)[menu.index]
+   if menu.ammo_selected then
+      --Read the ammo slot
+      if ammo_stack and ammo_stack.valid_for_read then
+         table.insert(result, ammo_stack.name .. " " .. "times" .. " " .. ammo_stack.count)
+      else
+         table.insert(result, "empty ammo slot")
+      end
+      table.insert(result, " for ")
+      if gun_stack and gun_stack.valid_for_read then
+         table.insert(result, gun_stack.name)
+      else
+         table.insert(result, "empty gun slot")
+      end
+   else
+      --Read the gun slot
+      if gun_stack and gun_stack.valid_for_read then
+         table.insert(result, gun_stack.name)
+         if gun_stack.count > 1 then table.insert(result, "times" .. " " .. gun_stack.count) end
+      else
+         table.insert(result, "empty gun slot")
+      end
+      table.insert(result, " using ")
+      if ammo_stack and ammo_stack.valid_for_read then
+         --Read the ammo
+         table.insert(result, ammo_stack.name .. " " .. "times" .. " " .. ammo_stack.count)
+      else
+         table.insert(result, "no ammo")
+      end
+   end
+   printout(result, pindex)
+end
+
+function mod.guns_menu_click_slot(pindex)
+   local p = game.get_player(pindex)
+   local hand = p.cursor_stack
+   local menu = players[pindex].guns_menu
+   local gun_stack = p.get_inventory(defines.inventory.character_guns)[menu.index]
+   local ammo_stack = p.get_inventory(defines.inventory.character_ammo)[menu.index]
+   local selected_stack = nil
+   if menu.ammo_selected then
+      selected_stack = ammo_stack
+   else
+      selected_stack = gun_stack
+   end
+   if hand and hand.valid_for_read then
+      --FUll hand operations
+      if selected_stack == nil then
+         --Empty slot
+         if menu.ammo_selected and hand.type ~= "ammo" then
+            printout("Error: Slot reserved for ammo types only", pindex)
+         elseif not menu.ammo_selected and hand.type ~= "gun" then
+            printout("Error: Slot reserved for gun types only", pindex)
+         else
+            hand.swap_stack(selected_stack)
+            --If the swap is successful then the following print statement is overwritten.
+            printout("Error: Incompatible gun and ammo types", pindex)
+         end
+      else
+         --Full slot
+         if menu.ammo_selected and hand.type ~= "ammo" then
+            printout("Error: Slot reserved for ammo types only", pindex)
+         elseif not menu.ammo_selected and hand.type ~= "gun" then
+            printout("Error: Slot reserved for gun types only", pindex)
+         else
+            hand.swap_stack(selected_stack)
+            --If the swap is successful then the following print statement is overwritten.
+            printout("Error: Incompatible gun and ammo types", pindex)
+         end
+      end
+   else
+      --Empty hand
+      if selected_stack and selected_stack.valid_for_read then
+         --Pick up the thing
+         hand.swap_stack(selected_stack)
+      else
+         printout("No action", pindex)
+      end
+   end
 end
 
 return mod

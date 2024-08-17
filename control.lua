@@ -998,6 +998,12 @@ function read_coords(pindex, start_phrase)
          y = y - 1
       end
       printout(result .. " slot " .. x .. ", on row " .. y, pindex)
+   elseif players[pindex].menu == "guns" then
+      if players[pindex].guns_menu.ammo_selected then
+         printout("Ammo slot " .. players[pindex].guns_menu.index, pindex)
+      else
+         printout("Gun slot " .. players[pindex].guns_menu.index, pindex)
+      end
    elseif
       (players[pindex].menu == "building" or players[pindex].menu == "vehicle")
       and players[pindex].building.recipe_selection == false
@@ -1351,6 +1357,11 @@ function initialize(player)
          edit_export = false,
          edit_import = false,
       }
+
+   faplayer.guns_menu = faplayer.guns_menu or {
+      index = 1,
+      ammo_selected = false,
+   }
 
    if table_size(faplayer.mapped) == 0 then player.force.rechart() end
 
@@ -1725,6 +1736,8 @@ function menu_cursor_up(pindex)
    elseif players[pindex].menu == "signal_selector" then
       fa_circuits.signal_selector_group_up(pindex)
       fa_circuits.read_selected_signal_group(pindex, "")
+   elseif players[pindex].menu == "guns" then
+      fa_equipment.guns_menu_up_or_down(pindex)
    end
 end
 
@@ -1989,6 +2002,8 @@ function menu_cursor_down(pindex)
    elseif players[pindex].menu == "signal_selector" then
       fa_circuits.signal_selector_group_down(pindex)
       fa_circuits.read_selected_signal_group(pindex, "")
+   elseif players[pindex].menu == "guns" then
+      fa_equipment.guns_menu_up_or_down(pindex)
    end
 end
 
@@ -2140,6 +2155,8 @@ function menu_cursor_left(pindex)
    elseif players[pindex].menu == "signal_selector" then
       fa_circuits.signal_selector_signal_prev(pindex)
       fa_circuits.read_selected_signal_slot(pindex, "")
+   elseif players[pindex].menu == "guns" then
+      fa_equipment.guns_menu_left(pindex)
    end
 end
 
@@ -2308,6 +2325,8 @@ function menu_cursor_right(pindex)
    elseif players[pindex].menu == "signal_selector" then
       fa_circuits.signal_selector_signal_next(pindex)
       fa_circuits.read_selected_signal_slot(pindex, "")
+   elseif players[pindex].menu == "guns" then
+      fa_equipment.guns_menu_right(pindex)
    end
 end
 
@@ -4906,6 +4925,8 @@ script.on_event("click-menu", function(event)
             players[pindex].signal_selector.ent,
             players[pindex].signal_selector.editing_first_slot
          )
+      elseif players[pindex].menu == "guns" then
+         fa_equipment.guns_menu_click_slot(pindex)
       end
    end
 end)
@@ -5733,7 +5754,6 @@ function do_multi_stack_transfer(ratio, pindex)
       local offset = 1
       if players[pindex].building.recipe_list ~= nil then offset = offset + 1 end
       if players[pindex].building.sector_name == "player inventory from building" then
-         game.get_player(pindex).print("(inventory transfer issue?)", { volume_modifier = 0 })
          --This is the section where we move from the player to the building.
          local item_name = ""
          local stack = players[pindex].inventory.lua_inventory[players[pindex].inventory.index]
@@ -5782,7 +5802,6 @@ end
 * item name / empty string to indicate transfering everything
 * ratio (between 0 and 1), the ratio of the total count to transder for each item.
 * Has no checks or printouts!
-* persistent bug ***: only 1 inv transfer from player inv to chest can work, after that for some reason it always both inserts and takes back
 ]]
 function transfer_inventory(args)
    args.name = args.name or ""
@@ -5798,7 +5817,7 @@ function transfer_inventory(args)
       transfer_list = args.from.get_contents()
    end
    local full = false
-   local res = {}
+   local results = {}
    for name, amount in pairs(transfer_list) do
       if name ~= "blueprint" and name ~= "blueprint-book" then
          amount = math.ceil(amount * args.ratio)
@@ -5809,13 +5828,13 @@ function transfer_inventory(args)
             full = true
          end
          if amount > 0 then
-            res[name] = amount
+            results[name] = amount
             args.from.remove({ name = name, count = amount })
          end
       end
    end
    --game.print("run 1x: " .. args.name)--**
-   return res, full
+   return results, full
 end
 
 script.on_event("crafting-5", function(event)
@@ -5946,10 +5965,7 @@ script.on_event("inventory-read-weapons-data", function(event)
    if not players[pindex].in_menu then
       return
    elseif players[pindex].menu == "inventory" then
-      --Read Weapon data
-      local result = fa_equipment.read_weapons_and_ammo(pindex)
-      --game.get_player(pindex).print(result)--
-      printout(result, pindex)
+      fa_equipment.guns_menu_open(pindex)
    end
 end)
 
@@ -5978,7 +5994,9 @@ end)
 script.on_event("item-info", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if game.get_player(pindex).driving and players[pindex].menu ~= "train_menu" then
+   local p = game.get_player(pindex)
+   local hand = p.cursor_stack
+   if p.driving and players[pindex].menu ~= "train_menu" then
       printout(fa_driving.vehicle_info(pindex), pindex)
       return
    end
@@ -5990,11 +6008,24 @@ script.on_event("item-info", function(event)
       offset = 1
    end
    if not players[pindex].in_menu then
-      local ent = game.get_player(pindex).selected
+      local ent = p.selected
       if ent and ent.valid then
          local str = ent.localised_description
          if str == nil or str == "" then str = "No description for this entity" end
          printout(str, pindex)
+      elseif hand and hand.valid_for_read then
+         local str = ""
+         if hand.prototype.place_result ~= nil then
+            str = hand.prototype.place_result.localised_description
+         else
+            str = hand.prototype.localised_description
+         end
+         if str == nil or str == "" then str = "No description" end
+         printout(str, pindex)
+         local result = { "" }
+         table.insert(result, "In hand: ")
+         table.insert(result, str)
+         printout(result, pindex)
       else
          printout("Nothing selected, use this key to describe an entity or item that you select.", pindex)
       end
@@ -6009,8 +6040,7 @@ script.on_event("item-info", function(event)
       then
          local stack = players[pindex].inventory.lua_inventory[players[pindex].inventory.index]
          if players[pindex].menu == "player_trash" then
-            stack =
-               game.get_player(pindex).get_inventory(defines.inventory.character_trash)[players[pindex].inventory.index]
+            stack = p.get_inventory(defines.inventory.character_trash)[players[pindex].inventory.index]
          end
          if stack and stack.valid_for_read and stack.valid == true then
             local str = ""
@@ -6019,6 +6049,15 @@ script.on_event("item-info", function(event)
             else
                str = stack.prototype.localised_description
             end
+            if str == nil or str == "" then str = "No description" end
+            printout(str, pindex)
+         else
+            printout("No description", pindex)
+         end
+      elseif players[pindex].menu == "guns" then
+         local stack = fa_equipment.guns_menu_get_selected_slot(pindex)
+         if stack and stack.valid_for_read then
+            str = stack.prototype.localised_description
             if str == nil or str == "" then str = "No description" end
             printout(str, pindex)
          else
