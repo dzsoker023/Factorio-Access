@@ -396,11 +396,9 @@ local function get_circuit_read_mode_name(ent)
       result = "Reading contents"
    elseif ent.type == "gate" or ent.type == "wall" then
       if control.read_sensor == true then
-         result = "Reading player presence in virtual signal 'G'"
-      elseif control.read_sensor == false then
-         result = "None"
+         result = "Reading player presence into virtual signal 'G'"
       else
-         result = "Nil"
+         result = "None"
       end
    elseif ent.type == "rail-signal" or ent.type == "rail-chain-signal" then
       result = "Reading virtual color signals for rail signal states"
@@ -460,13 +458,7 @@ local function toggle_circuit_read_mode(ent)
    elseif ent.type == "gate" or ent.type == "wall" then
       changed = true
       control.read_sensor = not control.read_sensor
-      if control.read_sensor == true then
-         result = "Reading player presence in virtual signal 'G'"
-      elseif control.read_sensor == false then
-         result = "None"
-      else
-         result = "Nil"
-      end
+      result = get_circuit_read_mode_name(ent)
    else
       changed = false
       result = get_circuit_read_mode_name(ent) --laterdo** allow toggling some other read modes
@@ -513,12 +505,10 @@ local function get_circuit_operation_mode_name(ent)
       end
    elseif ent.type == "gate" or ent.type == "wall" then
       if control.open_gate == true then
-         result = "Open gate with condition"
+         result = "Open gate with condition, otherwise close"
          uses_condition = true
-      elseif control.open_gate == false then
-         result = "None"
       else
-         result = "Nil"
+         result = "None"
       end
    elseif ent.type == "rail-signal" then
       result = "None" --"Undefined"--**laterdo
@@ -600,13 +590,7 @@ local function toggle_circuit_operation_mode(ent)
    elseif ent.type == "gate" or ent.type == "wall" then
       changed = true
       control.open_gate = not control.open_gate
-      if control.open_gate == true then
-         result = "Open gate with condition"
-      elseif control.open_gate == false then
-         result = "None"
-      else
-         result = "Nil"
-      end
+      result = get_circuit_operation_mode_name(ent)
    elseif ent.type == "rail-signal" then
       result = "Undefined" --**laterdo
    elseif ent.type == "train-stop" then
