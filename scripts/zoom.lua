@@ -1,12 +1,13 @@
 --Here: Functions about the zoom system
 local fa_graphics = require("scripts.graphics")
 
-local MIN_ZOOM = 0.275
-local MAX_ZOOM = 3.282
 local ZOOM_PER_TICK = 1.104086977
 local ln_zoom = math.log(ZOOM_PER_TICK)
 
 local mod = {}
+
+mod.MIN_ZOOM = 0.275
+mod.MAX_ZOOM = 3.282
 
 function mod.get_zoom_tick(pindex)
    return math.floor(math.log(global.players[pindex].zoom) / ln_zoom + 0.5)
@@ -20,6 +21,12 @@ function mod.fix_zoom(pindex)
    game.players[pindex].zoom = global.players[pindex].zoom
 end
 
+function mod.set_zoom(value, pindex)
+   --Note zoom levels:
+   game.players[pindex].zoom = value
+   global.players[pindex].zoom = value
+end
+
 local function zoom_change(pindex, etick, change_by_tick)
    -- if global.players[pindex].last_zoom_event_tick == etick then
    -- print("maybe duplicate")
@@ -30,7 +37,7 @@ local function zoom_change(pindex, etick, change_by_tick)
       local tick = mod.get_zoom_tick(pindex)
       tick = tick + change_by_tick
       local zoom = mod.tick_to_zoom(tick)
-      if zoom < MAX_ZOOM and zoom > MIN_ZOOM then
+      if zoom < mod.MAX_ZOOM and zoom > mod.MIN_ZOOM then
          global.players[pindex].zoom = zoom
          local stack = game.get_player(pindex).cursor_stack
          if stack and stack.valid_for_read and stack.valid and stack.prototype.place_result ~= nil then

@@ -1649,6 +1649,27 @@ data:extend({
 
    {
       type = "custom-input",
+      name = "set-standard-zoom",
+      key_sequence = "ALT + Z",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
+      name = "set-closest-zoom",
+      key_sequence = "SHIFT + ALT + Z",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
+      name = "set-furthest-zoom",
+      key_sequence = "CONTROL + ALT + Z",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
       name = "enable-mouse-update-entity-selection",
       key_sequence = "mouse-button-3",
       consuming = "none",

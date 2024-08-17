@@ -6627,6 +6627,30 @@ script.on_event("recalibrate-zoom", function(event)
    printout("Recalibrated", pindex)
 end)
 
+script.on_event("set-standard-zoom", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   fa_zoom.set_zoom(1, pindex)
+   fa_graphics.sync_build_cursor_graphics(pindex)
+   printout("Set standard zoom.", pindex)
+end)
+
+script.on_event("set-closest-zoom", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   fa_zoom.set_zoom(fa_zoom.MAX_ZOOM, pindex)
+   fa_graphics.sync_build_cursor_graphics(pindex)
+   printout("Set closest zoom.", pindex)
+end)
+
+script.on_event("set-furthest-zoom", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   fa_zoom.set_zoom(fa_zoom.MIN_ZOOM, pindex)
+   fa_graphics.sync_build_cursor_graphics(pindex)
+   printout("Set furthest zoom.", pindex)
+end)
+
 script.on_event("enable-mouse-update-entity-selection", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
