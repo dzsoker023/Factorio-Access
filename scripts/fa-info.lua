@@ -424,6 +424,7 @@ function mod.ent_info(pindex, ent, description)
    if ent.name == "rail-signal" or ent.name == "rail-chain-signal" then
       result = result .. ", Heading " .. fa_utils.direction_lookup(fa_utils.rotate_180(ent.direction))
    end
+   if ent.type == "wall" and ent.get_control_behavior() ~= nil then result = result .. ", gate control circuit, " end
    --Report if marked for deconstruction or upgrading
    if ent.to_be_deconstructed() == true then
       result = result .. " marked for deconstruction, "
