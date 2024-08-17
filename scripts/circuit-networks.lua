@@ -400,12 +400,14 @@ local function get_circuit_read_mode_name(ent)
       else
          result = "None"
       end
-   elseif ent.type == "rail-signal" or ent.type == "rail-chain-signal" then
+   elseif ent.type == "rail-signal" then
       if control.read_signal == true then
-         result = "Reading virtual color signals for rail signal states"
+         result = "Reading virtual color signals to represent rail signal states"
       else
          result = "None"
       end
+   elseif ent.type == "rail-chain-signal" then
+      result = "Reading virtual color signals to represent rail signal states" --This is the only option.
    elseif ent.type == "train-stop" then
       result = "None" --"Reading train ID in virtual signal T and en route train count in virtual signal 'C'"
    elseif ent.type == "accumulator" then
@@ -463,7 +465,7 @@ local function toggle_circuit_read_mode(ent)
       changed = true
       control.read_sensor = not control.read_sensor
       result = get_circuit_read_mode_name(ent)
-   elseif ent.name == "rail-signal" then
+   elseif ent.type == "rail-signal" then
       changed = true
       control.read_signal = not control.read_signal
       result = get_circuit_read_mode_name(ent)
