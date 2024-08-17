@@ -401,7 +401,11 @@ local function get_circuit_read_mode_name(ent)
          result = "None"
       end
    elseif ent.type == "rail-signal" or ent.type == "rail-chain-signal" then
-      result = "Reading virtual color signals for rail signal states"
+      if control.read_signal == true then
+         result = "Reading virtual color signals for rail signal states"
+      else
+         result = "None"
+      end
    elseif ent.type == "train-stop" then
       result = "None" --"Reading train ID in virtual signal T and en route train count in virtual signal 'C'"
    elseif ent.type == "accumulator" then
@@ -459,6 +463,10 @@ local function toggle_circuit_read_mode(ent)
       changed = true
       control.read_sensor = not control.read_sensor
       result = get_circuit_read_mode_name(ent)
+   elseif ent.name == "rail-signal" then
+      changed = true
+      control.read_signal = not control.read_signal
+      result = get_circuit_read_mode_name(ent)
    else
       changed = false
       result = get_circuit_read_mode_name(ent) --laterdo** allow toggling some other read modes
@@ -511,7 +519,12 @@ local function get_circuit_operation_mode_name(ent)
          result = "None"
       end
    elseif ent.type == "rail-signal" then
-      result = "None" --"Undefined"--**laterdo
+      if control.close_signal == true then
+         result = "Close this signal with condition"
+         uses_condition = true
+      else
+         result = "None"
+      end
    elseif ent.type == "train-stop" then
       result = "Send signals to parked train" --"Undefined"--**laterdo
    elseif ent.type == "mining-drill" then
@@ -592,7 +605,9 @@ local function toggle_circuit_operation_mode(ent)
       control.open_gate = not control.open_gate
       result = get_circuit_operation_mode_name(ent)
    elseif ent.type == "rail-signal" then
-      result = "Undefined" --**laterdo
+      changed = true
+      control.close_signal = not control.close_signal
+      result = get_circuit_operation_mode_name(ent)
    elseif ent.type == "train-stop" then
       result = "Undefined" --**laterdo
    elseif ent.type == "mining-drill" then
