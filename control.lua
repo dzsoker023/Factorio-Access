@@ -5092,14 +5092,31 @@ script.on_event("click-hand", function(event)
             range = 15
          end
          if stack.name == "artillery-targeting-remote" then
-            game.get_player(pindex).use_from_cursor(players[pindex].cursor_pos)
+            p.use_from_cursor(players[pindex].cursor_pos)
             --Play sound **laterdo better sound
-            game.get_player(pindex).play_sound({ path = "Close-Inventory-Sound" })
+            p.play_sound({ path = "Close-Inventory-Sound" })
             if cursor_dist < 7 then printout("Warning, you are in the target area!", pindex) end
          elseif cursor_dist < range then
-            game.get_player(pindex).use_from_cursor(players[pindex].cursor_pos)
+            local name = stack.name
+            p.use_from_cursor(players[pindex].cursor_pos)
+            if name == "defender-capsule" or name == "destroyer-capsule" then
+               local max_robots = p.force.maximum_following_robot_count
+               local count_robots = #p.following_robots
+               if name == "defender-capsule" then
+                  count_robots = count_robots + 1
+               elseif name == "destroyer-capsule" then
+                  count_robots = count_robots + 5
+               end
+               if count_robots <= max_robots then
+                  printout(name .. " deployed, " .. count_robots .. " out of " .. max_robots .. " follower robot slots used", pindex)
+               else
+                  printout("Slots full, " .. name .. " deployed, old robots replaced", pindex)
+               end
+            elseif name == "distractor-capsule" then
+               printout(name .. " deployed, they do not follow you", pindex)
+            end
          else
-            game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
+            p.play_sound({ path = "utility/cannot_build" })
             printout("Target is out of range", pindex)
          end
       elseif ent ~= nil then
