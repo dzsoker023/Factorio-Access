@@ -6,33 +6,50 @@ Not released yet.
 
 ## Features
 
-- Added menu search to the travel menu. It works as usual.
-
 - Added circuit network support for regular rail signals.
   * You can now apply an enabling condition for closing the signal.
   * If you use a signal like this at a train station then you can block a moving train from entering or exiting the area, although trains waiting at signals do not interact with isnerters (???).
 
 - Added support for setting the trains limit at train stops, as the last option in the train stop menu.
+  * Train limits are helpful for complex train networks by limiting how many trains are allowed to head for a particular station.
+  * When the limit is reached at a station, other trains planning to go to it will wait for their turn at their previous stations.
+
+- Added full support for the guns inventory.
+  * The guns inventory is opened by pressing `R` while on the main character inventory tab.
+  * It has 3 gun slots in the first row and 3 ammo slots in the second row.
+  * Like with regular inventory slots, you can check the slot position with `K`, get item description info with `Y`, logistic request info with `L`, and production info with `U`.
+  * You can also insert or remove or swap item stacks.
+  * The smart equip shortcut `SHIFT + LEFT BRACKET`, and the smart ammo reload shortcut `SHIFT + R`, and the unequip-all-weapons shortcut `CONTROL + SHIFT + R` work for this menu too.
+
+
+- Added new smart aiming feature for grenades and similar thrown items: Cluster grenades, poison capsules, slowdown capsules.
+  * It is now feasible to use your gun with `SPACE` while you run or drive around with `WASD`, while you select a capsule from the quickbar and safely smart throw it without much thought using `LEFT BRACKET`.
+  * A minimum range is determined based on the damage radius of the thrown item, while every item also has its own maximum range. For example grenades have minimum and maximum ranges of 7 and 15 tiles respectively.
+  * Within the ranges, spawners and worms are targeted first.
+  * Enemy units and players are targeted next.
+  * Buildings and other military targets are selected next, or otherwise the cursor position is tried.
+  * If you are running or driving directly towards a potential target, it is skipped so that you do not run into the blast area.
+  * If you are running or driving directly away from a potential target, the item can be thrown a little closer behind you because it is assumed that you will leave the blast area.
+
 
 - Added information reporting for follower robot counts.
   * You are allowed a limited number of defender or destroyer robots active at the same time. This does not apply to any other robots.
   * The limit is now announced every time you deploy a defender or destroyer capsule.
   * You can still deploy when above the limit in order to refresh your robots because they also have timers that expire.
+  * The robots are now deployed at the character location, where they usually are most effective.
 
-  - Added zoom controls from the keyboard.
+  - Added menu search to the travel menu. It works as usual.
+
+  - Added camera zoom controls from the keyboard.
   * Set standard zoom: ALT + Z
   * Set closest zoom: SHIFT + ALT + Z
   * Set furthest zoom: CONTROL + ALT + Z
 
-- Added new smart aiming feature for grenades and similar thrown items.
-  * Details pending...
-
-- Added detailed support for the guns and ammo inventory.
-  * Details pending...
-
 ## Changes
-- Changed keybinds for health checking.
-  * Details pending...
+- Changed keybinds for health checking and train wagon connecting.
+  * Press `G` to check character health and shields status.
+  * Press `SHIFT + G` to disconnect selected train wagons.
+  * Press `CONTROL + G` to connect selected train wagons.
 
 - Improved circuit network gate support.
   * Walls at the end of gates are where gate circuits are connected. They are now reported.
@@ -44,6 +61,9 @@ Not released yet.
 - Added info in the mod about blueprint flipping not working. There are a couple fixes being discussed for this.
 
 - Fixed a graphics bug where icons representing menus would be left on screen or in the world after logging out and logging in.
+
+- Fixed an issue so that the description can be read for an item in hand when no menus are open and no entities are selected.
+
 
 # Version 0.13.1 BETA
 Released on August 13th, 2024.
