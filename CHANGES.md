@@ -1,3 +1,50 @@
+# Version 0.14.0 BETA
+Not released yet.
+
+## Summary
+- No summary yet.
+
+## Features
+
+- Added menu search to the travel menu. It works as usual.
+
+- Added circuit network support for regular rail signals.
+  * You can now apply an enabling condition for closing the signal.
+  * If you use a signal like this at a train station then you can block a moving train from entering or exiting the area, although trains waiting at signals do not interact with isnerters (???).
+
+- Added support for setting the trains limit at train stops, as the last option in the train stop menu.
+
+- Added information reporting for follower robot counts.
+  * You are allowed a limited number of defender or destroyer robots active at the same time. This does not apply to any other robots.
+  * The limit is now announced every time you deploy a defender or destroyer capsule.
+  * You can still deploy when above the limit in order to refresh your robots because they also have timers that expire.
+
+  - Added zoom controls from the keyboard.
+  * Set standard zoom: ALT + Z
+  * Set closest zoom: SHIFT + ALT + Z
+  * Set furthest zoom: CONTROL + ALT + Z
+
+- Added new smart aiming feature for grenades and similar thrown items.
+  * Details pending...
+
+- Added detailed support for the guns and ammo inventory.
+  * Details pending...
+
+## Changes
+- Changed keybinds for health checking.
+  * Details pending...
+
+- Improved circuit network gate support.
+  * Walls at the end of gates are where gate circuits are connected. They are now reported.
+  * Improved information about reading and operation modes.
+
+## Bugfixes
+- Fixed a bug where rotated temporary blueprints from the copy-paste feature would become permanent and sneak into the inventory.
+
+- Added info in the mod about blueprint flipping not working. There are a couple fixes being discussed for this.
+
+- Fixed a graphics bug where icons representing menus would be left on screen or in the world after logging out and logging in.
+
 # Version 0.13.1 BETA
 Released on August 13th, 2024.
 
