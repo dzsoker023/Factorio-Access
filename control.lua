@@ -5105,43 +5105,53 @@ script.on_event("click-hand", function(event)
          fa_circuits.drag_wire_and_read(pindex)
       elseif stack.prototype ~= nil and stack.prototype.type == "capsule" then
          --If holding a capsule type, e.g. cliff explosives or robot capsules, or remotes, try to use it at the cursor position (no feedback about successful usage)
+         local name = stack.name
          local cursor_dist = util.distance(game.get_player(pindex).position, players[pindex].cursor_pos)
-         local range = 20
-         if stack.name == "cliff-explosives" then
-            range = 10
-         elseif stack.name == "grenade" then
-            range = 15
-         end
-         if stack.name == "artillery-targeting-remote" then
+         local min_range, max_range = fa_combat.get_grenade_or_capsule_range(stack)
+         --Do a range check or use an artillery remote
+         if name == "artillery-targeting-remote" then
             p.use_from_cursor(players[pindex].cursor_pos)
-            --Play sound **laterdo better sound
-            p.play_sound({ path = "Close-Inventory-Sound" })
+            p.play_sound({ path = "Close-Inventory-Sound" }) --**laterdo better sound
             if cursor_dist < 7 then printout("Warning, you are in the target area!", pindex) end
-         elseif cursor_dist < range then
-            local name = stack.name
-            p.use_from_cursor(players[pindex].cursor_pos)
-            if name == "defender-capsule" or name == "destroyer-capsule" then
-               local max_robots = p.force.maximum_following_robot_count
-               local count_robots = #p.following_robots
-               if name == "defender-capsule" then
-                  count_robots = count_robots + 1
-               elseif name == "destroyer-capsule" then
-                  count_robots = count_robots + 5
-               end
-               if count_robots <= max_robots then
-                  printout(
-                     name .. " deployed, " .. count_robots .. " out of " .. max_robots .. " follower robot slots used",
-                     pindex
-                  )
-               else
-                  printout("Slots full, " .. name .. " deployed, old robots replaced", pindex)
-               end
-            elseif name == "distractor-capsule" then
-               printout(name .. " deployed, they do not follow you", pindex)
-            end
-         else
+            return
+         elseif cursor_dist > max_range then
             p.play_sound({ path = "utility/cannot_build" })
             printout("Target is out of range", pindex)
+            return
+         end
+         --Apply smart aiming
+         local aim_pos = players[pindex].cursor_pos
+         if
+            name == "grenade"
+            or name == "cluster-grenade"
+            or name == "poison-capsule"
+            or name == "slowdown-capsule"
+         then
+            aim_pos = fa_combat.smart_aim_grenades_and_capsules(pindex)
+         elseif name == "defender-capsule" or name == "distractor-capsule" or name == "destroyer-capsule" then
+            aim_pos = p.position
+         end
+         --Throw it
+         if aim_pos ~= nil then p.use_from_cursor(aim_pos) end
+         --Capsule robot info after throwing
+         if name == "defender-capsule" or name == "destroyer-capsule" then
+            local max_robots = p.force.maximum_following_robot_count
+            local count_robots = #p.following_robots
+            if name == "defender-capsule" then
+               count_robots = count_robots + 1
+            elseif name == "destroyer-capsule" then
+               count_robots = count_robots + 5
+            end
+            if count_robots <= max_robots then
+               printout(
+                  name .. " deployed, " .. count_robots .. " out of " .. max_robots .. " follower robot slots used",
+                  pindex
+               )
+            else
+               printout("Slots full, " .. name .. " deployed, old robots replaced", pindex)
+            end
+         elseif name == "distractor-capsule" then
+            printout(name .. " deployed, they do not follow you", pindex)
          end
       elseif ent ~= nil then
          --If holding an item with no special left click actions, allow entity left click actions.
