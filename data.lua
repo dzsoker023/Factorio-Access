@@ -1477,7 +1477,7 @@ data:extend({
    {
       type = "custom-input",
       name = "read-character-status",
-      key_sequence = "ALT + RIGHTBRACKET",
+      key_sequence = "G",
       consuming = "none",
    },
 
@@ -1895,7 +1895,7 @@ data:extend({
    {
       type = "custom-input",
       name = "connect-rail-vehicles",
-      key_sequence = "G",
+      key_sequence = "CONTROL + G",
       consuming = "none",
    },
 
