@@ -5579,6 +5579,7 @@ script.on_event("equip-item", function(event)
       if
          not players[pindex].in_menu
          or players[pindex].menu == "inventory"
+         or players[pindex].menu == "guns"
          or (players[pindex].menu == "vehicle" and game.get_player(pindex).opened.type == "spider-vehicle")
       then
          result = fa_equipment.equip_it(stack, pindex)
@@ -5982,7 +5983,7 @@ end)
 script.on_event("inventory-reload-weapons", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if players[pindex].menu == "inventory" then
+   if players[pindex].menu == "inventory" or players[pindex].menu == "guns" then
       --Reload weapons
       local result = fa_equipment.reload_weapons(pindex)
       --game.get_player(pindex).print(result)
@@ -5993,7 +5994,7 @@ end)
 script.on_event("inventory-remove-all-weapons-and-ammo", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if players[pindex].menu == "inventory" then
+   if players[pindex].menu == "inventory" or players[pindex].menu == "guns" then
       local result = fa_equipment.remove_weapons_and_ammo(pindex)
       --game.get_player(pindex).print(result)
       printout(result, pindex)

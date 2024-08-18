@@ -277,7 +277,7 @@ end
 --[[
    Grenade aiming rules
    - First label and sort all potential_targets by distance
-   - If running, do not throw at anything directly ahead of you.
+   - If running or driving forward or backward, do not throw at anything directly ahead of you.
    1. Target enemy spawners or worms found within min and max range, nearest first
    2. If none, then target enemy units or characters found within min and max range, nearest first
    3. If none, then target the cursor position if within min and max range
@@ -293,6 +293,11 @@ function mod.smart_aim_grenades_and_capsules(pindex, draw_circles_in)
    local player_pos = p.position
    --Get running direction
    if p.walking_state.walking then running_dir = p.walking_state.direction end
+   if p.vehicle and p.vehicle.valid and p.vehicle.speed > 0 then running_dir = fa_utils.get_heading_value(p.vehicle) end
+   if p.vehicle and p.vehicle.valid and p.vehicle.speed < 0 then
+      running_dir = fa_utils.rotate_180(fa_utils.get_heading_value(p.vehicle))
+   end
+   if p.vehicle and p.vehicle.valid and p.vehicle.type == "spider-vehicle" then running_dir = nil end
    --Determine max and min throwing ranges based on capsule type
    local min_range, max_range = mod.get_grenade_or_capsule_range(hand)
    --Draw the ranges
@@ -382,9 +387,9 @@ function mod.smart_aim_grenades_and_capsules(pindex, draw_circles_in)
          end
       end
    end
-   --2b. Target all other enemy entities
+   --2b. Target other entities (not "anything" because that includes random stuff too)
    for i, t in ipairs(potential_targets) do
-      if t.valid and t.type ~= "unit-spawner" and t.type ~= "turret" and t.type ~= "unit" and t.type ~= "character" then
+      if t.valid and (t.prototype.is_building or t.prototype.is_military_target) then
          local dist = util.distance(player_pos, t.position)
          local dir = fa_utils.get_direction_precise(t.position, player_pos)
          if dist > min_range and dist < max_range and dir ~= running_dir then
@@ -415,7 +420,7 @@ function mod.smart_aim_grenades_and_capsules(pindex, draw_circles_in)
    if running_dir ~= nil and #potential_targets > 0 then
       back_dir = fa_utils.rotate_180(running_dir)
       for i, t in ipairs(potential_targets) do
-         if t.valid then
+         if t.valid and (t.prototype.is_building or t.prototype.is_military_target) then
             local dist = util.distance(player_pos, t.position)
             local dir = fa_utils.get_direction_precise(t.position, player_pos)
             if dist > min_range - 4 and dist < max_range - 8 and dir == back_dir then return t.position end

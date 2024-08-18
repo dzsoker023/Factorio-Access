@@ -370,7 +370,7 @@ function mod.fast_travel_menu_open(pindex)
       game.get_player(pindex).selected = nil
    elseif players[pindex].in_menu or game.get_player(pindex).opened ~= nil then
       printout("Another menu is open.", pindex)
-   elseif game.get_player(pindex).driving then
+   elseif game.get_player(pindex).vehicle and game.get_player(pindex).vehicle.valid then
       printout("Cannot fast travel from inside a vehicle", pindex)
    end
 
