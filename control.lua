@@ -90,6 +90,7 @@ ENT_TYPES_YOU_CAN_BUILD_OVER = {
    "construction-robot",
    "rocket-silo-rocket-shadow",
 }
+EXCLUDED_ENT_NAMES = { "highlight-box", "flying-text" }
 WALKING = {
    TELESTEP = 0,
    STEP_BY_WALK = 1,
@@ -753,8 +754,8 @@ function refresh_player_tile(pindex)
       { x = math.floor(c_pos.x) + 0.01, y = math.floor(c_pos.y) + 0.01 },
       { x = math.ceil(c_pos.x) - 0.01, y = math.ceil(c_pos.y) - 0.01 },
    }
-   local excluded_names = { "highlight-box", "flying-text" }
-   players[pindex].tile.ents = surf.find_entities_filtered({ area = search_area, name = excluded_names, invert = true })
+   players[pindex].tile.ents =
+      surf.find_entities_filtered({ area = search_area, name = EXCLUDED_ENT_NAMES, invert = true })
    sort_ents_by_primary_first(players[pindex].tile.ents)
    --Draw the tile
    --rendering.draw_rectangle{left_top = search_area[1], right_bottom = search_area[2], color = {1,0,1}, surface = surf, time_to_live = 100}--
@@ -3065,6 +3066,13 @@ script.on_event("ruler-clear", function(event)
    printout("Cleared rulers", pindex)
 end)
 
+script.on_event("blueprint-book-create", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   local p = game.get_player(pindex)
+   if p.is_cursor_empty then p.cursor_stack.set_stack("blueprint-book") end
+end)
+
 script.on_event("type-cursor-target", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -4453,7 +4461,12 @@ script.on_event("click-menu-right", function(event)
          local stack_inv = table.deepcopy(players[pindex].inventory.lua_inventory[players[pindex].inventory.index])
          p.play_sound({ path = "utility/inventory_click" })
          if stack_inv and stack_inv.valid_for_read and (stack_inv.is_blueprint or stack_inv.is_blueprint_book) then
-            --Do not grab it
+            --A a blueprint book is in hand, then throw blueprints into it
+            local book = p.cursor_stack
+            if book and book.valid_for_read and book.is_blueprint_book and stack_inv.is_blueprint then
+               --add here ***
+            end
+            --Otherwise, do not grab blueprints or books
             return
          end
          if not (stack_cur and stack_cur.valid_for_read) and (stack_inv and stack_inv.valid_for_read) then
