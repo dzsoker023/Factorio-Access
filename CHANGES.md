@@ -14,6 +14,18 @@ Not released yet.
   * Train limits are helpful for complex train networks by limiting how many trains are allowed to head for a particular station.
   * When the limit is reached at a station, other trains planning to go to it will wait for their turn at their previous stations.
 
+- Added extensive support for blueprint books.
+  * Press `CONTROL + SHIFT + ALT + B` to grab a new empty book in hand.
+  * With a book in hand and no other menus open, if you press `LEFT BRACKET` you get the list menu for the book contents (as before).
+  * In the list menu, you can press `LEFT BRACKET` to copy the selected blueprint into your hand and put the book away (as before).
+  * In the list menu, you can delete the selected blueprint by pressing `X`.
+  * In the player inventory menu, if you have a book in hand and you press `RIGHT BRACKET` on a blueprint, it is copied into the book's first available empty slot.
+  * The list menu supports menu search.
+  * While books normally can hold other books or other planner types in their list slots, the mod for now supports only blueprints.
+  * There is no support yet for actions related to reordering the items within a book.
+  * With a book in hand and no other menus open, if you press `RIGHT BRACKET` you get the book options menu, where you can check and edit the book name and decription, and you can copy, delete, import, or export the book.
+  * Selecting a book in an player or building inventory slot will now give basic info about it.
+
 - Added full support for the guns inventory.
   * The guns inventory is opened by pressing `R` while on the main character inventory tab.
   * It has 3 gun slots in the first row and 3 ammo slots in the second row.
@@ -55,14 +67,24 @@ Not released yet.
   * Walls at the end of gates are where gate circuits are connected. They are now reported.
   * Improved information about reading and operation modes.
 
+- Entering a menu search term is now allowed from any menu, but the search still runs only in supported menus.
+
 ## Bugfixes
 - Fixed a bug where rotated temporary blueprints from the copy-paste feature would become permanent and sneak into the inventory.
 
 - Added info in the mod about blueprint flipping not working. There are a couple fixes being discussed for this.
 
+- Fixed a crash related to blueprint dimension checks.
+
 - Fixed a graphics bug where icons representing menus would be left on screen or in the world after logging out and logging in.
 
 - Fixed an issue so that the description can be read for an item in hand when no menus are open and no entities are selected.
+
+- Fixed several bugs related to text fields by creating a single function for creating text fields.
+
+- Fixed a crash when trying to check rail item counts for blueprints.
+
+- Fixed some bugs relating to data type checks and other warnings made by LuaLS.
 
 
 # Version 0.13.1 BETA
