@@ -4,6 +4,7 @@
 local fa_utils = require("scripts.fa-utils")
 local fa_building_tools = require("scripts.building-tools")
 local fa_mining_tools = require("scripts.mining-tools")
+local fa_graphics = require("scripts.graphics")
 local dirs = defines.direction
 
 local mod = {}
@@ -15,6 +16,7 @@ function mod.get_bp_data_for_edit(stack)
    return game.json_to_table(game.decode_string(string.sub(stack.export_stack(), 2)))
 end
 
+--Works for blueprints and also books too
 function mod.set_stack_bp_from_data(stack, bp_data)
    stack.import_stack("0" .. game.encode_string(game.table_to_json(bp_data)))
 end
@@ -292,7 +294,7 @@ function mod.refresh_blueprint_in_hand(pindex)
 end
 
 --Basic info for when the blueprint item is read.
-function mod.get_blueprint_info(stack, in_hand)
+function mod.get_blueprint_info(stack, in_hand, pindex)
    --Not a blueprint
    if stack.is_blueprint == false then return "" end
    --Empty blueprint
@@ -321,13 +323,14 @@ function mod.get_blueprint_info(stack, in_hand)
    end
 
    result = result .. ", " .. stack.get_blueprint_entity_count() .. " entities in total "
-   --game.print(result)
 
    --Use this opportunity to update saved information about the blueprint's corners (used when drawing the footprint)
-   local width, height = mod.get_blueprint_width_and_height(pindex)
-   if width == nil or height == nil then return result end
-   players[pindex].blueprint_width_in_hand = width + 1
-   players[pindex].blueprint_height_in_hand = height + 1
+   if in_hand then
+      local width, height = mod.get_blueprint_width_and_height(pindex)
+      if width == nil or height == nil then return result end
+      players[pindex].blueprint_width_in_hand = width + 1
+      players[pindex].blueprint_height_in_hand = height + 1
+   end
    return result
 end
 
@@ -416,12 +419,7 @@ function mod.run_blueprint_menu(menu_index, pindex, clicked, other_input)
             printout(result, pindex)
          else
             players[pindex].blueprint_menu.edit_import = true
-            local frame = game.get_player(pindex).gui.screen.add({ type = "frame", name = "blueprint-edit-import" })
-            frame.bring_to_front()
-            frame.force_auto_center()
-            frame.focus()
-            local input = frame.add({ type = "textfield", name = "input" })
-            input.focus()
+            local frame = fa_graphics.create_text_field_frame(pindex, "blueprint-edit-import")
             local result = "Paste a copied blueprint text string in this box and then press ENTER to load it"
             printout(result, pindex)
          end
@@ -553,7 +551,8 @@ function mod.run_blueprint_menu(menu_index, pindex, clicked, other_input)
          --Subtract inventory amounts
          local result = "Blueprint contains "
          for name, count in pairs(ent_counts) do
-            local inv_count = p.get_main_inventory().get_item_count(name)
+            local item_name = fa_utils.get_item_name_for_ent(name)
+            local inv_count = p.get_main_inventory().get_item_count(item_name)
             if inv_count >= count then
                ent_counts[name] = 0
             else
@@ -585,12 +584,7 @@ function mod.run_blueprint_menu(menu_index, pindex, clicked, other_input)
          printout(result, pindex)
       else
          players[pindex].blueprint_menu.edit_label = true
-         local frame = game.get_player(pindex).gui.screen.add({ type = "frame", name = "blueprint-edit-label" })
-         frame.bring_to_front()
-         frame.force_auto_center()
-         frame.focus()
-         local input = frame.add({ type = "textfield", name = "input" })
-         input.focus()
+         local frame = fa_graphics.create_text_field_frame(pindex, "blueprint-edit-label")
          local result = "Type in a new name for this blueprint and press 'ENTER' to confirm, or press 'ESC' to cancel."
          printout(result, pindex)
       end
@@ -601,12 +595,7 @@ function mod.run_blueprint_menu(menu_index, pindex, clicked, other_input)
          printout(result, pindex)
       else
          players[pindex].blueprint_menu.edit_description = true
-         local frame = game.get_player(pindex).gui.screen.add({ type = "frame", name = "blueprint-edit-description" })
-         frame.bring_to_front()
-         frame.force_auto_center()
-         frame.focus()
-         local input = frame.add({ type = "textfield", name = "input" }) --, text = get_blueprint_description(bp)}
-         input.focus()
+         local frame = fa_graphics.create_text_field_frame(pindex, "blueprint-edit-description")
          local result =
             "Type in the new description text box for this blueprint and press 'ENTER' to confirm, or press 'ESC' to cancel."
          printout(result, pindex)
@@ -640,12 +629,7 @@ function mod.run_blueprint_menu(menu_index, pindex, clicked, other_input)
          printout(result, pindex)
       else
          players[pindex].blueprint_menu.edit_export = true
-         local frame = game.get_player(pindex).gui.screen.add({ type = "frame", name = "blueprint-edit-export" })
-         frame.bring_to_front()
-         frame.force_auto_center()
-         frame.focus()
-         local input = frame.add({ type = "textfield", name = "input", text = bp.export_stack() })
-         input.focus()
+         local frame = fa_graphics.create_text_field_frame(pindex, "blueprint-edit-export", bp.export_stack())
          local result =
             "Copy the text from this box using 'CONTROL + A' and then 'CONTROL + C' and then press ENTER to exit"
          printout(result, pindex)
@@ -657,12 +641,7 @@ function mod.run_blueprint_menu(menu_index, pindex, clicked, other_input)
          printout(result, pindex)
       else
          players[pindex].blueprint_menu.edit_import = true
-         local frame = game.get_player(pindex).gui.screen.add({ type = "frame", name = "blueprint-edit-import" })
-         frame.bring_to_front()
-         frame.force_auto_center()
-         frame.focus()
-         local input = frame.add({ type = "textfield", name = "input" })
-         input.focus()
+         local frame = fa_graphics.create_text_field_frame(pindex, "blueprint-edit-import")
          local result = "Paste a copied blueprint text string in this box and then press ENTER to load it"
          printout(result, pindex)
       end
@@ -758,28 +737,64 @@ function mod.blueprint_menu_down(pindex)
    mod.run_blueprint_menu(players[pindex].blueprint_menu.index, pindex, false)
 end
 
-local function get_bp_book_data_for_edit(stack)
+function mod.get_bp_book_data_for_edit(stack)
    ---@diagnostic disable-next-line: param-type-mismatch
    return game.json_to_table(game.decode_string(string.sub(stack.export_stack(), 2)))
 end
 
---We run the export just once because it eats UPS
-local function set_bp_book_data_from_cursor(pindex)
-   players[pindex].blueprint_book_menu.book_data = get_bp_book_data_for_edit(game.get_player(pindex).cursor_stack)
+--We run the export rarely because it eats UPS
+function mod.set_bp_book_data_from_cursor(pindex)
+   local cursor_stack = game.get_player(pindex).cursor_stack
+   players[pindex].blueprint_book_menu.book_data = mod.get_bp_book_data_for_edit(cursor_stack)
 end
 
-function mod.blueprint_book_get_name(pindex)
+function mod.blueprint_book_get_label(pindex)
    local bp_data = players[pindex].blueprint_book_menu.book_data
    local label = bp_data.blueprint_book.label
    if label == nil then label = "" end
    return label
 end
 
---WIP
-function mod.blueprint_book_set_name(pindex, new_name)
+function mod.blueprint_book_set_label(pindex, new_name)
    local p = game.get_player(pindex)
    local bp_data = players[pindex].blueprint_book_menu.book_data
    bp_data.blueprint_book.label = new_name
+   mod.set_stack_bp_from_data(p.cursor_stack, bp_data)
+end
+
+--Basic info for when the blueprint book item is read.
+function mod.get_blueprint_book_info(stack, in_hand)
+   --Not a book
+   if stack == nil or stack.is_blueprint_book == false then return "" end
+
+   --Get data
+   local book_data = mod.get_bp_book_data_for_edit(stack)
+   local label = book_data.blueprint_book.label
+   if label == nil then label = "" end
+   local item_count = mod.blueprint_book_data_get_item_count(book_data)
+
+   --Construct result
+   local result = { "" }
+   table.insert(result, "Blueprint book ")
+   table.insert(result, label)
+   if in_hand then table.insert(result, " in hand") end
+   table.insert(result, ", ")
+   table.insert(result, " with " .. item_count .. " items")
+
+   return result
+end
+
+function mod.get_blueprint_book_description(stack)
+   local bp_data = mod.get_bp_book_data_for_edit(stack)
+   local desc = bp_data.blueprint_book.description
+   if desc == nil then desc = "" end
+   return desc
+end
+
+function mod.set_blueprint_book_description(pindex, new_name)
+   local p = game.get_player(pindex)
+   local bp_data = players[pindex].blueprint_book_menu.book_data
+   bp_data.blueprint_book.description = new_name
    mod.set_stack_bp_from_data(p.cursor_stack, bp_data)
 end
 
@@ -813,7 +828,6 @@ end
 function mod.blueprint_book_copy_item_to_hand(pindex, i)
    local bp_data = players[pindex].blueprint_book_menu.book_data
    local items = bp_data.blueprint_book.blueprints
-   local item = items[i]["blueprint"]
    local item_string = "0" .. game.encode_string(game.table_to_json(items[i]))
 
    local p = game.get_player(pindex)
@@ -863,20 +877,24 @@ function mod.run_blueprint_book_menu(pindex, menu_index, list_mode, left_clicked
 
    --Run menu
    if list_mode then
+      local book_inv = bpb.get_inventory(defines.inventory.item_main) --**TODO use this for more accurate and efficient reading
       --Blueprint book list mode
       if index == 0 then
          --stuff
          printout(
             "Browsing blueprint book "
-               .. mod.blueprint_book_get_name(pindex)
+               .. mod.blueprint_book_get_label(pindex)
                .. ", with "
                .. item_count
                .. " items,"
-               .. ", Press 'W' and 'S' to navigate options, press 'LEFT BRACKET' to copy a blueprint to hand, press 'E' to exit this menu.",
+               .. ", Press 'W' and 'S' to navigate options, "
+               .. "press 'LEFT BRACKET' to copy a blueprint to hand, "
+               .. "press 'X' to delete a blueprint, "
+               .. "press 'E' to exit this menu.",
             pindex
          )
       else
-         --Examine items
+         --Examine items (empty slots are skipped)
          local item = mod.blueprint_book_read_item(pindex, index)
          local name = ""
          if item == nil or item.item == nil then
@@ -885,15 +903,6 @@ function mod.run_blueprint_book_menu(pindex, menu_index, list_mode, left_clicked
             local label = item.label
             if label == nil then label = "" end
             name = "Blueprint " .. label .. ", featuring " .. mod.get_blueprint_icons_info(item)
-         elseif item.item == "blueprint-book" or item.item == "blueprint_book" or item.item == "book" then
-            local label = item.label
-            if label == nil then label = "" end
-            local book_data = players[pindex].blueprint_book_menu.book_data
-            name = "Blueprint book "
-               .. label
-               .. ", with "
-               .. mod.blueprint_book_data_get_item_count(book_data)
-               .. " items "
          else
             name = "unknown item " .. item.item
          end
@@ -913,16 +922,14 @@ function mod.run_blueprint_book_menu(pindex, menu_index, list_mode, left_clicked
          elseif left_clicked == false and right_clicked == true then
             --Take the blueprint to hand (Therefore both copy and delete)
             --...
-         elseif false then
-            --Delete it (press twice)
          end
       end
    else
       --Blueprint book settings mode
-      if index == 0 or true then
+      if index == 0 then
          printout(
             "Settings for blueprint book "
-               .. mod.blueprint_book_get_name(pindex)
+               .. mod.blueprint_book_get_label(pindex)
                .. ", with "
                .. item_count
                .. " items,"
@@ -934,7 +941,7 @@ function mod.run_blueprint_book_menu(pindex, menu_index, list_mode, left_clicked
             local result = "Read the description of this blueprint book"
             printout(result, pindex)
          else
-            local result = mod.get_blueprint_description(bpb)
+            local result = mod.get_blueprint_book_description(bpb)
             if result == nil or result == "" then result = "no description" end
             printout(result, pindex)
          end
@@ -961,12 +968,7 @@ function mod.run_blueprint_book_menu(pindex, menu_index, list_mode, left_clicked
             printout(result, pindex)
          else
             players[pindex].blueprint_menu.edit_label = true
-            local frame = p.gui.screen.add({ type = "frame", name = "blueprint-edit-label" })
-            frame.bring_to_front()
-            frame.force_auto_center()
-            frame.focus()
-            local input = frame.add({ type = "textfield", name = "input" })
-            input.focus()
+            local frame = fa_graphics.create_text_field_frame(pindex, "blueprint-edit-label")
             local result =
                "Type in a new name for this blueprint and press 'ENTER' to confirm, or press 'ESC' to cancel."
             printout(result, pindex)
@@ -977,12 +979,7 @@ function mod.run_blueprint_book_menu(pindex, menu_index, list_mode, left_clicked
             printout(result, pindex)
          else
             players[pindex].blueprint_menu.edit_description = true
-            local frame = p.gui.screen.add({ type = "frame", name = "blueprint-edit-description" })
-            frame.bring_to_front()
-            frame.force_auto_center()
-            frame.focus()
-            local input = frame.add({ type = "textfield", name = "input" }) --, text = get_blueprint_description(bp)}
-            input.focus()
+            local frame = fa_graphics.create_text_field_frame(pindex, "blueprint-edit-description")
             local result =
                "Type in the new description text box for this blueprint and press 'ENTER' to confirm, or press 'ESC' to cancel."
             printout(result, pindex)
@@ -1001,14 +998,22 @@ function mod.run_blueprint_book_menu(pindex, menu_index, list_mode, left_clicked
             local result = "Delete this blueprint book"
             printout(result, pindex)
          else
-            --Stuff ***
+            bpb.set_stack({ name = "blueprint", count = 1 })
+            bpb.set_stack(nil) --calls event handler to delete empty planners.
+            local result = "Blueprint book deleted and menu closed"
+            printout(result, pindex)
+            mod.blueprint_menu_close(pindex)
          end
       elseif index == 7 then
          if left_clicked ~= true then
             local result = "Export this blueprint book as a text string"
             printout(result, pindex)
          else
-            --Stuff ***
+            players[pindex].blueprint_menu.edit_export = true
+            local frame = fa_graphics.create_text_field_frame(pindex, "blueprint-edit-export", bpb.export_stack())
+            local result =
+               "Copy the text from this box using 'CONTROL + A' and then 'CONTROL + C' and then press ENTER to exit"
+            printout(result, pindex)
          end
       elseif index == 8 then
          --Import a text string to overwrite this blueprint book
@@ -1016,12 +1021,15 @@ function mod.run_blueprint_book_menu(pindex, menu_index, list_mode, left_clicked
             local result = "Import a text string to overwrite this blueprint book"
             printout(result, pindex)
          else
-            --Stuff ***
+            players[pindex].blueprint_menu.edit_import = true
+            local frame = fa_graphics.create_text_field_frame(pindex, "blueprint-edit-import")
+            local result = "Paste a copied blueprint text string in this box and then press ENTER to load it"
+            printout(result, pindex)
          end
       end
    end
 end
-BLUEPRINT_BOOK_SETTINGS_MENU_LENGTH = 7
+BLUEPRINT_BOOK_SETTINGS_MENU_LENGTH = 8
 
 function mod.blueprint_book_menu_open(pindex, open_in_list_mode)
    if players[pindex].vanilla_mode then return end
@@ -1041,7 +1049,9 @@ function mod.blueprint_book_menu_open(pindex, open_in_list_mode)
       edit_export = false,
       edit_import = false,
    }
-   set_bp_book_data_from_cursor(pindex)
+
+   --Set the data
+   mod.set_bp_book_data_from_cursor(pindex)
 
    --Play sound
    game.get_player(pindex).play_sound({ path = "Open-Inventory-Sound" })
@@ -1105,6 +1115,100 @@ function mod.blueprint_book_menu_down(pindex)
    --Load menu
    local bpb_menu = players[pindex].blueprint_book_menu
    mod.run_blueprint_book_menu(pindex, bpb_menu.index, bpb_menu.list_mode, false, false)
+end
+
+--Finds the first empty index for the blueprint book
+local function get_first_empty_book_index(book_data)
+   local items = book_data.blueprint_book.blueprints
+   if items == nil then return 0 end
+   for i = 0, #items + 1, 1 do
+      local i_found = false
+      for j, item in ipairs(items) do
+         if item.index == i then i_found = true end
+      end
+      if i_found == false then return i end
+   end
+   return #items
+end
+
+--Used to explore how blueprint/book info tables work
+function mod.print_book_slots(book_stack)
+   local book_data = mod.get_bp_book_data_for_edit(book_stack)
+   local items = book_data.blueprint_book.blueprints
+   if items == nil then
+      game.print("Empty book.", { volume_modifier = 0 })
+      return
+   end
+   for i = 1, 18, 1 do
+      if items[i] == nil then
+         game.print(i .. ": NIL slot: ", { volume_modifier = 0 })
+      elseif items[i] == {} then
+         game.print(i .. ": Empty table slot: ", { volume_modifier = 0 })
+      elseif items[i].blueprint ~= nil then
+         game.print(i .. ": Slot with 'blueprint', index: " .. items[i]["index"], { volume_modifier = 0 })
+         local bp = items[i].blueprint
+         if bp.item == nil then
+            game.print(i .. ": item: No item", { volume_modifier = 0 })
+         else
+            game.print(i .. ": item: " .. bp.item, { volume_modifier = 0 })
+         end
+      elseif items[i].index == nil then
+         game.print(i .. ": Slot with unknown case, NO index", { volume_modifier = 0 })
+      else
+         game.print(i .. ": Slot with non-bp item, index: " .. items[i]["index"], { volume_modifier = 0 })
+      end
+   end
+end
+
+function mod.add_blueprint_to_book(pindex, book_stack, bp_stack)
+   local p = game.get_player(pindex)
+   local bp_data = mod.get_bp_data_for_edit(bp_stack)
+   local book_data = mod.get_bp_book_data_for_edit(book_stack)
+   local items = book_data.blueprint_book.blueprints
+   local item_count = mod.blueprint_book_data_get_item_count(book_data)
+   if item_count == 0 then items = {} end
+   local new_item = {}
+   local new_slot_id = get_first_empty_book_index(book_data)
+   --game.print("item count: " .. item_count .. ", first empty index: " .. new_slot_id)
+   new_item["index"] = new_slot_id
+   new_item["blueprint"] = bp_data.blueprint
+   items[item_count + 1] = new_item
+   book_data.blueprint_book.blueprints = items
+   mod.set_stack_bp_from_data(book_stack, book_data)
+   printout("Added blueprint copy to book index" .. new_slot_id, pindex)
+end
+
+--Uses the array index and not the book index
+function mod.remove_item_from_book(pindex, book_stack, array_index)
+   local p = game.get_player(pindex)
+   local book_data = mod.get_bp_book_data_for_edit(book_stack)
+   local items = book_data.blueprint_book.blueprints
+   items[array_index] = nil
+   book_data.blueprint_book.blueprints = items
+   mod.set_stack_bp_from_data(book_stack, book_data)
+   printout("Item removed from book, menu closed", pindex)
+end
+
+--Remove gaps by creating a new list with indexes in order. Note: The stack can be writtem-on to sort the array?
+function mod.remove_all_non_blueprints_from_book(book_stack)
+   local p = game.get_player(pindex)
+   local book_data = mod.get_bp_book_data_for_edit(book_stack)
+   local items = book_data.blueprint_book.blueprints
+   if items == nil or items == {} then return items end
+   local new_items = {}
+   local j = 0
+   for i, item in ipairs(items) do
+      local new_item = {}
+      if item.blueprint ~= nil then
+         new_item = { index = j, blueprint = item.blueprint }
+         table.insert(new_items, new_item)
+         j = j + 1
+      else
+         --This is a non-blueprint item, which gets removed at the moment
+      end
+   end
+   book_data.blueprint_book.blueprints = new_items
+   mod.set_stack_bp_from_data(book_stack, book_data)
 end
 
 function mod.copy_selected_area_to_clipboard(pindex, point_1, point_2)

@@ -315,7 +315,9 @@ function read_inventory_slot(pindex, start_phrase_in, inv_in)
       return
    end
    if stack.is_blueprint then
-      printout(fa_blueprints.get_blueprint_info(stack, false), pindex)
+      printout(fa_blueprints.get_blueprint_info(stack, false, pindex), pindex)
+   elseif stack.is_blueprint_book then
+      printout(fa_blueprints.get_blueprint_book_info(stack, false), pindex)
    elseif stack.valid_for_read then
       --Check if the slot is filtered
       local filter_name = p.get_main_inventory().get_filter(index)
@@ -343,7 +345,9 @@ function read_hand(pindex)
    if cursor_stack and cursor_stack.valid_for_read then
       if cursor_stack.is_blueprint then
          --Blueprint extra info
-         printout(fa_blueprints.get_blueprint_info(cursor_stack, true), pindex)
+         printout(fa_blueprints.get_blueprint_info(cursor_stack, true, pindex), pindex)
+      elseif cursor_stack.is_blueprint_book then
+         printout(fa_blueprints.get_blueprint_book_info(cursor_stack, true), pindex)
       elseif cursor_stack.name == "spidertron-remote" then
          local remote_info = ""
          if cursor_stack.connected_entity == nil then
@@ -4194,6 +4198,7 @@ script.on_event("mine-access-sounds", function(event)
 end)
 
 --Mines tiles such as stone brick or concrete within the cursor area, including enlarged cursors
+--Also added: delete blueprints while browsing the blueprint book menu
 script.on_event("mine-tiles", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -4213,6 +4218,9 @@ script.on_event("mine-tiles", function(event)
             if mined then game.get_player(pindex).play_sound({ path = "entity-mined/stone-furnace" }) end
          end
       end
+   elseif players[pindex].menu == "blueprint_book_menu" then
+      local menu = players[pindex].blueprint_book_menu
+      fa_blueprints.remove_item_from_book(pindex, game.get_player(pindex).cursor_stack, menu.index)
    end
 end)
 
@@ -4460,13 +4468,23 @@ script.on_event("click-menu-right", function(event)
          local stack_cur = p.cursor_stack
          local stack_inv = table.deepcopy(players[pindex].inventory.lua_inventory[players[pindex].inventory.index])
          p.play_sound({ path = "utility/inventory_click" })
-         if stack_inv and stack_inv.valid_for_read and (stack_inv.is_blueprint or stack_inv.is_blueprint_book) then
-            --A a blueprint book is in hand, then throw blueprints into it
-            local book = p.cursor_stack
-            if book and book.valid_for_read and book.is_blueprint_book and stack_inv.is_blueprint then
-               --add here ***
+         if
+            stack_cur
+            and stack_cur.valid_for_read
+            and stack_cur.is_blueprint_book
+            and stack_inv
+            and stack_inv.valid_for_read
+         then
+            --A a blueprint book is in hand, then throw other items into it
+            local book = stack_cur
+            if stack_inv.is_blueprint then
+               fa_blueprints.add_blueprint_to_book(pindex, book, stack_inv)
+            elseif stack_inv.is_blueprint_book or stack_inv.is_deconstruction_item or stack_inv.is_upgrade_item then
+               printout("There is not yet support for adding a " .. stack_inv.name .. " to this book", pindex)
+            else
+               printout("Error: Cannot add " .. stack_inv.name .. " to this book", pindex)
             end
-            --Otherwise, do not grab blueprints or books
+            --Finish the interaction here
             return
          end
          if not (stack_cur and stack_cur.valid_for_read) and (stack_inv and stack_inv.valid_for_read) then
@@ -6795,9 +6813,6 @@ end)
 script.on_event("menu-search-open", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if players[pindex].in_menu == false then return end
-   if players[pindex].menu == "train_menu" then return end
-   if game.get_player(pindex).vehicle ~= nil then return end
    if event.tick - players[pindex].last_menu_search_tick < 5 then return end
    fa_menu_search.open_search_box(pindex)
 end)
@@ -6805,7 +6820,6 @@ end)
 script.on_event("menu-search-get-next", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if players[pindex].in_menu == false then return end
    local str = players[pindex].menu_search_term
    if str == nil or str == "" then
       printout("Press 'CONTROL + F' to start typing in a search term", pindex)
@@ -6817,7 +6831,6 @@ end)
 script.on_event("menu-search-get-last", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   if players[pindex].in_menu == false then return end
    local str = players[pindex].menu_search_term
    if str == nil or str == "" then
       printout("Press 'CONTROL + F' to start typing in a search term", pindex)
@@ -6970,7 +6983,7 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
       p.play_sound({ path = "Close-Inventory-Sound" })
 
       --Destroy text fields
-      if p.gui.screen["circuit-condition-constant"] ~= nil then p.gui.screen["circuit-condition-constant"].destroy() end
+      if p.gui.screen["circuit-networks-textfield"] ~= nil then p.gui.screen["circuit-networks-textfield"].destroy() end
       if p.opened ~= nil then p.opened = nil end
    elseif players[pindex].menu == "travel" and players[pindex].entering_search_term ~= true then
       --Edit a travel point
@@ -7052,14 +7065,20 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
          printout("Searching for " .. term .. ", go through results with 'SHIFT + ENTER' or 'CONTROL + ENTER' ", pindex)
       end
       event.element.destroy()
-      players[pindex].menu_search_frame.destroy()
-      players[pindex].menu_search_frame = nil
+      if players[pindex].menu_search_frame ~= nil then
+         players[pindex].menu_search_frame.destroy()
+         players[pindex].menu_search_frame = nil
+      end
    elseif players[pindex].blueprint_menu.edit_label == true then
       --Apply the new label
       players[pindex].blueprint_menu.edit_label = false
       local result = event.element.text
       if result == nil or result == "" then result = "unknown" end
-      fa_blueprints.set_blueprint_label(p.cursor_stack, result)
+      if p.cursor_stack.is_blueprint then
+         fa_blueprints.set_blueprint_label(p.cursor_stack, result)
+      elseif p.cursor_stack.is_blueprint_book then
+         fa_blueprints.blueprint_book_set_label(pindex, result)
+      end
       printout("Blueprint label changed to " .. result, pindex)
       event.element.destroy()
       if p.gui.screen["blueprint-edit-label"] ~= nil then p.gui.screen["blueprint-edit-label"].destroy() end
@@ -7068,7 +7087,11 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
       players[pindex].blueprint_menu.edit_description = false
       local result = event.element.text
       if result == nil or result == "" then result = "unknown" end
-      fa_blueprints.set_blueprint_description(p.cursor_stack, result)
+      if p.cursor_stack.is_blueprint then
+         fa_blueprints.set_blueprint_description(p.cursor_stack, result)
+      elseif p.cursor_stack.is_blueprint_book then
+         fa_blueprints.set_blueprint_book_description(pindex, result)
+      end
       printout("Blueprint description changed.", pindex)
       event.element.destroy()
       if p.gui.screen["blueprint-edit-description"] ~= nil then p.gui.screen["blueprint-edit-description"].destroy() end
@@ -7097,6 +7120,7 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
       end
    end
    players[pindex].last_menu_search_tick = event.tick
+   players[pindex].text_field_open = false
 end)
 
 script.on_event("open-structure-travel-menu", function(event)
@@ -7145,12 +7169,6 @@ script.on_event("open-structure-travel-menu", function(event)
             .. ", Select a direction, confirm with same direction, and use perpendicular directions to select a target,  press left bracket to teleport to selection",
          pindex
       )
-      local screen = game.get_player(pindex).gui.screen
-      local frame = screen.add({ type = "frame", name = "structure-travel" })
-      frame.bring_to_front()
-      frame.force_auto_center()
-      frame.focus()
-      game.get_player(pindex).opened = frame
    else
       printout("Another menu is open. ", pindex)
    end
@@ -8000,7 +8018,7 @@ script.on_event("help-get-other", function(event)
    fa_tutorial.read_other_once(pindex)
 end)
 
---**Use this key to test stuff (ALT-G)
+--**Use this key to test stuff (ALT + G)
 script.on_event("debug-test-key", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -8009,7 +8027,8 @@ script.on_event("debug-test-key", function(event)
    local ent = p.selected
    local stack = game.get_player(pindex).cursor_stack
 
-   game.print(ent.prototype.group.name)
+   if stack.is_blueprint_book then fa_blueprints.print_book_slots(stack) end
+   --game.print(ent.prototype.group.name)
    --get_blueprint_corners(pindex, true)
    --if ent and ent.valid then
    --   game.print("tile width: " .. game.entity_prototypes[ent.name].tile_width)
@@ -8513,12 +8532,8 @@ end
 function type_cursor_position(pindex)
    printout("Enter new co-ordinates for the cursor, separated by a space", pindex)
    players[pindex].cursor_jumping = true
-   local frame = game.get_player(pindex).gui.screen.add({ type = "frame", name = "cursor-jump" })
-   frame.bring_to_front()
-   frame.force_auto_center()
-   frame.focus()
-   local input = frame.add({ type = "textfield", name = "input" })
-   input.focus()
+   local frame = fa_graphics.create_text_field_frame(pindex, "cursor-jump")
+   return frame
 end
 
 --Result is a string of two numbers separated by a space
