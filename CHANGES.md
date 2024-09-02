@@ -1599,7 +1599,7 @@ In this update we have added all the basics and some of the extras for logistic 
   
 - Locate item in hand from inventory feature was revamped to work as intended.
   * For the item in hand, if you press "CONTROL + Q" from the player inventory menu or with no menu open, this will open the relevant item slot in the player inventory.
-  * For the item in hand, if you press "CONTROL + Q" from a building output inventory, his will open the relevant item slot in the building output inventory.
+  * For the item in hand, if you press "CONTROL + Q" from a building output inventory, this will open the relevant item slot in the building output inventory.
   
 - You can now check the currently open menu by pressing "SHIFT + E".
 
@@ -2759,7 +2759,7 @@ New Features:
 
 -Selecting items will now notify the player what is currently in the hand.  Thanks to @Eph for making this happen
 
--Added various mouse controls while on the main map.  Examples include CONTROL + LEFT BRACKET and CONTROL + RIGHT BRACKET for fast transfer and fast split respectively.  This means to put the entire stack you are holding in a building, press CONTROL and LEFT BRACKET while focused on a building.  To put half, press CONTROL + RIGHT BRACKET.  Thanks again to @Eph for his work in this regard
+-Added various mouse controls while on the main map.  Examples include CONTROL + LEFT BRACKET and CONTROL + RIGHT BRACKET for fast transfer and fast split respectively.  This means to put the entire stack you are holding in a building, press CONTROL and LEFT BRACKET while focused on a building.  To put half, press CONTROL + RIGHT BRACKET.  Thanks again to @Eph for their work in this regard
 
 -Jumping cursor to scan items no longer requires entering cursor mode.  This should make it easier to get where you need to go.
 
