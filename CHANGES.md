@@ -58,9 +58,9 @@ Released on September 2nd, 2024.
   * Other wagons and vehicles are symmetric and so they do not support rotating.
 
 - Added camera zoom controls from the keyboard.
-  * Set standard zoom: ALT + Z
-  * Set closest zoom: SHIFT + ALT + Z
-  * Set furthest zoom: CONTROL + ALT + Z
+  * Set standard zoom: `ALT + Z`
+  * Set closest zoom: `SHIFT + ALT + Z`
+  * Set furthest zoom: `CONTROL + ALT + Z`
 
 ## Changes
 - Changed keybinds for health checking and train wagon connecting.
