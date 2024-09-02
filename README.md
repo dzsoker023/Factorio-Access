@@ -106,7 +106,7 @@ Pause or unpause the game with the visual pause menu: ESC
 
 Time of day and current research and total mission time: T
 
-Check character health and shield level: ALT + RIGHT BRACKET
+Check character health and shield level: G
 
 Toggle Vanilla Mode: CONTROL + ALT + V. Note that this will mute the narrator until you toggle back out.
 
@@ -114,7 +114,13 @@ Toggle Cursor Drawing: CONTROL + ALT + C. Note: This is enabled by Vanilla Mode 
 
 Toggle cursor hiding: CONTROL + ALT + C. This is for Vanilla Mode players who do not want to see the mod building previews.
 
-Clear all renders: CONTROL + ALT + R. Note: This is for clearing any mod-drawn objects that fail to disappear on their own.
+Clear all renders: CONTROL + ALT + R. Note: This is rarely needed for clearing any mod-drawn objects that fail to disappear on their own.
+
+Set standard zoom: ALT + Z
+
+Set closest zoom: SHIFT + ALT + Z
+
+Set furthest zoom: CONTROL + ALT + Z
 
 Recalibrate zoom: CONTROL + END. This is rarely needed for resolving bugs related to zooming.
 
@@ -417,6 +423,8 @@ Grab a new deconstruction planner: ALT + D
 
 Grab a new blueprint planner: ALT + B
 
+Grab a new blueprint book: CONTROL + SHIFT + ALT + B
+
 Grab the copy-paste tool: CONTROL + C. Note: This creates a temporary blueprint in hand.
 
 Grab the last copied area: CONTROL + V
@@ -433,15 +441,19 @@ Flip blueprint in hand vertical: G, if supported by all blueprint members
 
 Place blueprint in hand: LEFT BRACKET
 
-Open menu for blueprint in hand: RIGHT BRACKET
+Open options menu for blueprint in hand: RIGHT BRACKET
 
-Note: Most blueprint options are found in its menu.
+Open options menu for blueprint book in hand: RIGHT BRACKET
 
-Open menu for blueprint book in hand: RIGHT BRACKET
+Open list menu for blueprint book in hand: LEFT BRACKET
 
-Open contents for blueprint book in hand: LEFT BRACKET
+Add a blueprint to a book from the player inventory: RIGHT BRACKET with the book in hand
 
-Copy into hand a blueprint from the book menu: LEFT BRACKET
+Copy into hand a temporary blueprint from the book list menu: LEFT BRACKET
+
+Delete a blueprint from the book list menu: X
+
+Delete the planner tool in hand: DELETE (press again to confirm it).
 
 ## Circuit network interactions
 
@@ -477,13 +489,13 @@ Fire at enemies with aiming assistance: SPACEBAR. Note: This only works when an 
 
 Deploy a drone capsule in hand towards the cursor: LEFT BRACKET.
 
-Throw a capsule weapon or grenade in hand towards the cursor: LEFT BRACKET. Warning: It is likely that a grenade or similar weapon will damage you because the cursor is usually automatically nearby.
+Throw a capsule weapon or grenade in hand towards the cursor: LEFT BRACKET. Note: Grenades use smart aiming to target enemies first and avoid you.
 
 The rest of the controls in this section require you to have the inventory screen opened (but no buildings).
 
 Equip a gun or ammo stack: LEFT BRACKET to take it in hand and SHIFT + LEFT BRACKET to equip it.
   
-Read currently equipped guns (up to 3) and ammo: R
+Open guns (and ammo) inventory: R, from the player inventory
   
 Reload all ammo slots from the inventory: SHIFT + R
   
@@ -681,9 +693,9 @@ Shortcut for picking up all rails and signals within 7 tiles: SHIFT + X on a rai
 
 Place rail vehicles: LEFT BRACKET on an empty rail with the vehicle in hand and facing a rail. Locomotives snap into place at train stops. Nearby vehicles connect automatically to each other upon placing.
 
-Manually connect rail vehicles: G near vehicles
+Manually connect rail vehicles: CONTROL + G while selecting it
 
-Manually disconnect rail vehicles: SHIFT + G near vehicles
+Manually disconnect rail vehicles: SHIFT + G while selecting it
 
 Flip direction of a rail vehicle: SHIFT + R on the vehicle, but it must be fully disconnected first.
 
@@ -742,7 +754,7 @@ Read the first rail structure behind: CONTROL + J
 
 Read the precise distance to a nearby train stop for manual alignment: SHIFT + J
 
-Honk the horn: V
+Honk the horn: ALT + W
   
 Open the train menu: LEFT BRACKET. Navigate with ARROW KEYS.
 
