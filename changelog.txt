@@ -238,7 +238,7 @@ Date: 2024.08.11
     - Cleaned up entity selection code so that it is more predictable and useful.
       * Several entities such as flying robots or ore tiles are now considered as secondary entities 
         and they will not be selected first when reading a tile. Other entities will count as primary entities.
-      * Tile cycling with `SHIFT + F` has been rewrittem to go through primary entities first, 
+      * Tile cycling with `SHIFT + F` has been rewritten to go through primary entities first, 
         secondary entities next, and the terrain itself last, before circling back to the start.
       * Entity part reading when you press `K` now checks the currently selected entity instead of the topmost one.
 
@@ -250,7 +250,7 @@ Date: 2024.08.11
   Bugfixes:
     - Fixed a bug that caused rounding errors when entering in a new cursor position by typing.
 
-    - Fixed a crash that occured when reading or writing logistic request info while waiting to respawn.
+    - Fixed a crash that occurred when reading or writing logistic request info while waiting to respawn.
 
     - Fixed several other crashes that occur when trying to do things while waiting to respawn.
 

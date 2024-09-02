@@ -202,7 +202,7 @@ Released on August 11th, 2024.
 
   - Cleaned up entity selection code so that it is more predictable and useful.
     * Several entities such as flying robots or ore tiles are now considered as secondary entities and they will not be selected first when reading a tile. Other entities will count as primary entities.
-    * Tile cycling with `SHIFT + F` has been rewrittem to go through primary entities first, secondary entities next, and the terrain itself last, before circling back to the start.
+    * Tile cycling with `SHIFT + F` has been rewritten to go through primary entities first, secondary entities next, and the terrain itself last, before circling back to the start.
     * Entity part reading when you press `K` now checks the currently selected entity instead of the topmost one.
 
   - Fixed some spelling errors and links in the tutorial. Thank you @danielw97 on GitHub!
@@ -212,7 +212,7 @@ Released on August 11th, 2024.
 ## Bugfixes
   - Fixed a bug that caused rounding errors when entering in a new cursor position by typing.
   
-  - Fixed a crash that occured when reading or writing logistic request info while waiting to respawn.
+  - Fixed a crash that occurred when reading or writing logistic request info while waiting to respawn.
 
   - Fixed several other crashes that occur when trying to do things while waiting to respawn.
 
@@ -1347,7 +1347,7 @@ This is a minor update to extend the tutorial, tweaks some basic behavior, and f
 
 ## Bugfixes 
 
-- Fixed a crash that occured when adding to an existing stack of an item.
+- Fixed a crash that occurred when adding to an existing stack of an item.
 
 - Fixed a crash due to incrementing a logistic request for an item with stack size 1.
 
@@ -1833,7 +1833,7 @@ Released on 31 December, 2023. Happy new year!
 
 - Restored the scanner category for buildings.
 
-- Fixed a crash that occured when checking item descriptions in the filter inserter menu. Unfortunately no descriptions can be checked in this menu.
+- Fixed a crash that occurred when checking item descriptions in the filter inserter menu. Unfortunately no descriptions can be checked in this menu.
 
 - Fixed area mining having infinite range. Sorry people, it is supposed to be used only near the player.
 
@@ -2418,7 +2418,7 @@ Released on October 9th, 2023.
 
 ## Bugfixes
 
-- Fixed a fatal crash that occured when a ore tile is depleted.
+- Fixed a fatal crash that occurred when a ore tile is depleted.
 
 - Rewrote large cursor area scanner tool so that it correctly reports entities and resources in an area.
 
