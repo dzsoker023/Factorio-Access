@@ -3,20 +3,26 @@ Version: 0.14.0
 Date: 2024.09.02
 
   Summary:
-    - This update brings extensive improvements to combat and blueprint books, with many smaller additions and changes regarding
-      other areas such as vehicles, rails, and menu search. Some keybinds have changed regarding checking character health and vehicle features.
+    - This update brings extensive improvements to combat and blueprint books, with many 
+      smaller additions and changes regarding other areas such as vehicles, rails, and menu search.
+      Some keybinds have changed regarding checking character health and vehicle features.
 
   Features:
     - Added extensive support for blueprint books.
       * Press `CONTROL + SHIFT + ALT + B` to grab a new empty book in hand.
-      * With a book in hand and no other menus open, open the book's menu with  `LEFT BRACKET` to see the contents.
-      * In the list menu, press `LEFT BRACKET` to grab a temporary copy the selected blueprint into your hand and put the book away. 
+      * With a book in hand and no other menus open, open the book's menu with `LEFT BRACKET`
+        to see the contents.
+      * In the list menu, press `LEFT BRACKET` to grab a temporary copy the selected blueprint 
+        into your hand and put the book away. 
       * In the list menu, press `X` to delete the blueprint.
-      * From your inventory, with a book in hand, press `RIGHT BRACKET` on a blueprint to copy it into the book's first empty slot.
+      * From your inventory, with a book in hand, press `RIGHT BRACKET` on a blueprint to copy it
+        into the book's first empty slot.
       * The list menu supports menu search.
-      * While books normally can hold other books or other planner types in their list slots, the mod for now supports only blueprints.
+      * While books normally can hold other books or other planner types in their list slots, 
+        the mod for now supports only blueprints.
       * There is no support yet for actions related to reordering the items within a book.
-      * Like with blueprints themselves, use `RIGHT BRACKET` to manage the book itself. This includes renaming, deleting, importing, and exporting.
+      * Like with blueprints themselves, use `RIGHT BRACKET` to manage the book itself. 
+        This includes renaming, deleting, importing, and exporting.
         NOTE that this is a different menu than `LEFT BRACKET`, which shows the blueprints in the book.
       * Selecting a book in a player or building inventory slot now gives basic info about it.
 
@@ -26,42 +32,48 @@ Date: 2024.09.02
     - Added full support for the guns inventory.
       * The guns inventory is opened by pressing `R` while on the main character inventory tab.
       * It has 3 gun slots in the first row and 3 ammo slots in the second row.
-      * Like with regular inventory slots, you can check the slot position with `K`, get item description info with `Y`, 
-        logistic request info with `L`, and production info with `U`.
+      * Like with regular inventory slots, you can check the slot position with `K`,
+        get item description info with `Y`, logistic request info with `L`, and production info with `U`.
       * You can also insert or remove or swap item stacks.
       * The smart equip shortcut `SHIFT + LEFT BRACKET`, and the smart ammo reload shortcut `SHIFT + R`,
         and the unequip-all-weapons shortcut `CONTROL + SHIFT + R` work for this menu too.
 
-    - Added new smart aiming feature for grenades and similar thrown items: Cluster grenades, poison capsules, slowdown capsules.
-      * It is now feasible to use your gun with `SPACE` while you run or drive around with `WASD`, while you select a capsule from the quickbar 
-        and safely smart throw it without much thought using `LEFT BRACKET`.
-      * The mod determines a minimum range based on the damage radius of the thrown item. This ensures that you don't hit yourself. 
-        Every item also has its own maximum range. For example, grenades have minimum and maximum ranges of 7 and 15 tiles respectively. 
-      * The mod will try to smartly target things in this order: spawners and worms, enemy units and players, buildings and military targets, 
-        and finally the cursor position.
-      * If you are running or driving directly towards a potential target, it is skipped so that you do not run into the blast area.
-      * If you are running or driving directly away from a potential target, the item can be thrown a little closer behind you because it is 
-        assumed that you are leaving the blast area. Be careful and keep moving!
+    - Added new smart aiming feature for grenades and similar thrown items. 
+      * The similar items are: cluster grenades, poison capsules, slowdown capsules.
+      * It is now feasible to use your gun with `SPACE` while you run or drive around with `WASD`, while you 
+        select a capsule from the quickbar and safely smart throw it without much thought using `LEFT BRACKET`.
+      * The mod determines a minimum range based on the damage radius of the thrown item. This ensures that
+        you don't hit yourself. Every item also has its own maximum range. For example, grenades have minimum 
+        and maximum ranges of 7 and 15 tiles respectively. 
+      * The mod will try to smartly target things in this order: spawners and worms, enemy units and players, 
+        buildings and military targets, and finally the cursor position.
+      * If you are running or driving directly towards a potential target, it is skipped so that you do not 
+        run into the blast area.
+      * If you are running or driving directly away from a potential target, the item can be thrown a little 
+        closer behind you because it is assumed that you are leaving the blast area. Be careful and keep moving!
 
     - Added information reporting for follower robot counts.
-      * You are allowed a limited number of defender or destroyer robots active at the same time, as your follower robots. This does not apply 
-        to any other robots.
+      * You are allowed a limited number of defender or destroyer robots active at the same time,
+        as your follower robots. This does not apply to any other robots.
       * The limit is now announced every time you deploy a defender or destroyer capsule.
-      * You can still deploy more when above the limit in order to refresh your robots, because they also have timers that expire.
-      * The robots are now deployed at the character location, where they usually are most effective. Then follower robots begin to circle you 
-        and distractor robots stay in place.
+      * You can still deploy more when above the limit in order to refresh your robots, because
+        they also have timers that expire.
+      * The robots are now deployed at the character location, where they usually are most effective.
+        Then follower robots begin to circle you and distractor robots stay in place.
 
     - Added menu search to the travel menu. This works the same as all other menus with search.
 
     - Added circuit network support for regular rail signals.
       * You can now read whether a train is present by checking for the red color signal.
       * You can now apply an enabling condition for closing the signal.
-      * If you use a signal like this at a train station then you can block a moving train from entering or exiting the area, 
-        although trains waiting at signals do not interact with inserters.
+      * If you use a signal like this at a train station then you can block a moving train from entering or
+        exiting the area, although trains waiting at signals do not interact with inserters.
 
     - Added support for setting the trains limit at train stops, as the bottom option in the train stop menu.
-      * Train limits are helpful for complex train networks by limiting how many trains are allowed to head for a particular station.
-      * When the limit is reached at a station, other trains planning to go to it will wait for their turn at their previous stations.
+      * Train limits are helpful for complex train networks by limiting how many trains are allowed to
+        head for a particular station.
+      * When the limit is reached at a station, other trains planning to go to it will wait for their turns
+        at their previous stations.
       * The default case is no limit, which you can restore by inputting a negative number.
 
     - Added support for rotating directional vehicles in hand.
@@ -80,21 +92,25 @@ Date: 2024.09.02
       * Press `SHIFT + G` to disconnect selected train wagons.
       * Press `CONTROL + G` to connect selected train wagons.
 
-    - Honking a vehicle horn has been rebinded from `V` to `ALT + W`. Hence walking mode cannot be toggled while driving.
+    - Honking a vehicle horn has been rebinded from `V` to `ALT + W`. Hence the walking mode cannot be toggled
+      while driving.
 
-    - Cars and tanks that you drive are stopped instantly when you press `WASD` while navigating in an open menu or in cursor mode.
+    - Cars and tanks are stopped instantly when you press `WASD` while navigating in an open menu or in cursor mode.
       * This does not apply for automatic driving with Kruise Kontrol Remote.
       * They are reactivated when you press a movement key when all menus and cursor mode are closed.
       * They are now also stopped as soon as you press `ENTER` to exit them or to cancel Kruise Kontrol.
-      * Trains are not affected by these changes. They still use `WASD` to move and `ARROW KEYS` for the train menu.
+      * Trains are not affected by these changes. They still use `WASD` to move and `ARROW KEYS` for navigating 
+        the train menu.
 
-    - On a tile where several rails and possibly trains are overlapping, end rails now have priority for being reported first.
+    - On a tile where several rails and possibly trains are overlapping, end rails now have priority for being
+      reported first.
 
     - The travel menu can now be opened from inside a vehicle, but you cannot fast travel from inside.
       Consider Kruise Kontrol Remote driving instead.
 
     - Simplified how curved rail directions are described.
-      * For example it now says "rail curved east and northwest" which describes the two directions you can go from the center of this rail.
+      * For example it now says "rail curved east and northwest" which describes the two directions you can go 
+        from the center of this rail.
 
     - Cursor skipping now stops when it crosses an audio ruler.
       * You can also skip along a ruler to its center point.
@@ -107,21 +123,24 @@ Date: 2024.09.02
     - Entering a menu search term is now allowed from any menu, but the search still runs only in supported menus.
 
     - Improved list reading for signals in a circuit network, or items in a logistic network, or items in a train.
-      * 5 items are listed at a time, and you press `LEFT BRACKET` to get 5 more items, until the end of the list is reached.
+      * 5 items are listed at a time, and you press `LEFT BRACKET` to get 5 more items, until the end of the list.
       * Rewind to the start by going up and down the menu again.
 
   Bugfixes:
     - Launcher: Fixed a crash when the mod-list.json file didn't exist.
 
-    - Fixed a bug where rotated temporary blueprints from the copy-paste feature would become permanent and sneak into the inventory.
+    - Fixed a bug where rotated temporary blueprints from the copy-paste feature would become permanent 
+      and sneak into the inventory.
 
     - Added info in the mod about blueprint flipping not working. There are a couple fixes being discussed for this.
 
     - Fixed a crash related to blueprint dimension checks.
 
-    - Fixed a long-existing graphics bug where icons representing menus would remain on screen or in the world after logging out and logging in.
+    - Fixed a long-existing graphics bug where icons representing menus would remain on screen or in the 
+      world after logging out and logging in.
 
-    - Fixed an issue so that the description can be read for an item in hand when no menus are open and no entities are selected.
+    - Fixed an issue so that the description can be read for an item in hand when no menus are open and 
+      no entities are selected.
 
     - Fixed several bugs related to text input fields by creating a single function for creating text fields.
 
@@ -138,10 +157,12 @@ Version: 0.13.1
 Date: 2024.08.13
 
   Summary:
-    - This is a quick update to fix a bug where pressing the research queue keys in other contexts would incorrectly report info about the research queue.
+    - This is a quick update to fix a bug where pressing the research queue keys in other contexts would
+      incorrectly report info about the research queue.
 
   Bugfixes:
-    - Fixed a bug where pressing the research queue keys in other contexts would incorrectly report info about the research queue.
+    - Fixed a bug where pressing the research queue keys in other contexts would incorrectly report info 
+      about the research queue.
 
 
 ---------------------------------------------------------------------------------------------------
@@ -182,7 +203,8 @@ Date: 2024.08.11
     - Added basic support for research queues in the technology menu.
       * If you select a researchable technology and press `SHIFT + LEFTBRACKET` then it is added to the start of the queue.
       * Similarly, if you press `CONTROL + LEFTBRACKET` then it is added to the end of the queue.
-      * While there is a queue, if you select a new technology with only `LEFTBRACKET`, then the queue is cleared and this tech is selected for research by itself.
+      * While there is a queue, if you select a new technology with only `LEFTBRACKET`, then the queue is cleared and this 
+        tech is selected for research by itself.
       * From any menu, you can read the current research queue by pressing `ALT + Q`.
       * From any menu, you can clear the current research queue by pressing `CONTROL + SHIFT + ALT + Q`.
 
@@ -191,7 +213,8 @@ Date: 2024.08.11
       * Added a small check to prevent broadcasting the same point twice in a row, but the check only remembers your last broadcast.
       * Other than this small check, if other players already have this point, the repeated addition is not prevented.
 
-    - Added super ghost mining. Press `CONTROL + SHIFT + X` on a ghost to clear all ghosts within 100 tiles instead of the default of 10 tiles.
+    - Added super ghost mining. Press `CONTROL + SHIFT + X` on a ghost to clear all ghosts within 100 tiles instead of
+      the default of 10 tiles.
 
     - Furnaces when selected will now report how many output units they have ready for collection, if more than 0.
 
