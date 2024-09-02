@@ -172,8 +172,8 @@ function mod.logistics_networks_info(ent, pos_in)
    return result, result_code
 end
 
---Finds or assigns the logistic request slot for the item
-local function get_personal_logistic_slot_index(item_stack, pindex)
+--Finds or assigns the logistic request slot for the item object, which is a stack or a prototype
+local function get_personal_logistic_slot_index(item_object, pindex)
    local p = game.get_player(pindex)
    local slots_nil_counter = 0
    local slot_found = false
@@ -187,7 +187,7 @@ local function get_personal_logistic_slot_index(item_stack, pindex)
       current_slot = p.get_personal_logistic_slot(slot_id)
       if current_slot == nil or current_slot.name == nil then
          slots_nil_counter = slots_nil_counter + 1
-      elseif current_slot.name == item_stack.name then
+      elseif current_slot.name == item_object.name then
          slot_found = true
          correct_slot_id = slot_id
       else
@@ -1469,8 +1469,8 @@ function mod.player_logistic_requests_summary_info(pindex)
    return result
 end
 
---Read the current personal logistics request set for this item
-function mod.player_logistic_request_read(item_stack, pindex, additional_checks)
+--Read the current personal logistics request set for this item object, which is a stack or a prototype
+function mod.player_logistic_request_read(item_object, pindex, additional_checks)
    local p = game.get_player(pindex)
    local current_slot = nil
    local correct_slot_id = nil
@@ -1493,13 +1493,13 @@ function mod.player_logistic_request_read(item_stack, pindex, additional_checks)
       if not p.character_personal_logistic_requests_enabled then result = result .. "Requests paused, " end
    end
 
-   if item_stack == nil or item_stack.valid_for_read == false then
+   if item_object == nil or item_object.valid == false then
       printout(result .. "Error: Unknown or missing item", pindex)
       return
    end
 
    --Find the correct request slot for this item
-   local correct_slot_id = get_personal_logistic_slot_index(item_stack, pindex)
+   local correct_slot_id = get_personal_logistic_slot_index(item_object, pindex)
 
    if correct_slot_id == nil or correct_slot_id < 1 then
       printout(result .. "Error: Invalid slot ID", pindex)
@@ -1512,7 +1512,7 @@ function mod.player_logistic_request_read(item_stack, pindex, additional_checks)
       --No requests found
       printout(
          result
-            .. item_stack.name
+            .. item_object.name
             .. " has no personal logistic requests set,"
             .. " use the L key and modifier keys to set requests.",
          pindex
@@ -1526,10 +1526,10 @@ function mod.player_logistic_request_read(item_stack, pindex, additional_checks)
          local inv_result = ""
          local trash_result = ""
          local stack_size = 1
-         if item_stack.object_name == "LuaItemStack" then
-            stack_size = item_stack.prototype.stack_size
-         elseif item_stack.object_name == "LuaItemPrototype" then
-            stack_size = item_stack.stack_size
+         if item_object.object_name == "LuaItemStack" then
+            stack_size = item_object.prototype.stack_size
+         elseif item_object.object_name == "LuaItemPrototype" then
+            stack_size = item_object.stack_size
          end
 
          if current_slot.min ~= nil then
@@ -1540,10 +1540,10 @@ function mod.player_logistic_request_read(item_stack, pindex, additional_checks)
             max_result = fa_utils.express_in_stacks(current_slot.max, stack_size, false) .. " maximum "
          end
 
-         local inv_count = p.get_main_inventory().get_item_count(item_stack.name)
+         local inv_count = p.get_main_inventory().get_item_count(item_object.name)
          inv_result = fa_utils.express_in_stacks(inv_count, stack_size, false) .. " in inventory, "
 
-         local trash_count = p.get_inventory(defines.inventory.character_trash).get_item_count(item_stack.name)
+         local trash_count = p.get_inventory(defines.inventory.character_trash).get_item_count(item_object.name)
          trash_result = fa_utils.express_in_stacks(trash_count, stack_size, false) .. " in personal trash, "
 
          printout(
@@ -1551,7 +1551,7 @@ function mod.player_logistic_request_read(item_stack, pindex, additional_checks)
                .. min_result
                .. max_result
                .. " requested for "
-               .. item_stack.name
+               .. item_object.name
                .. ", "
                .. inv_result
                .. trash_result
@@ -1563,7 +1563,7 @@ function mod.player_logistic_request_read(item_stack, pindex, additional_checks)
          --All requests are nil
          printout(
             result
-               .. item_stack.name
+               .. item_object.name
                .. " has no personal logistic requests set,"
                .. " use the L key and modifier keys to set requests.",
             pindex
@@ -1983,9 +1983,13 @@ function mod.run_roboport_menu(menu_index, pindex, clicked)
       --6. Check network item contents
       if not clicked then
          printout("Read items info for the network", pindex)
+         players[pindex].menu_click_count = 0
       else
          if nw ~= nil then
-            local result = mod.logistic_network_items_info(port)
+            local click_count = players[pindex].menu_click_count
+            click_count = click_count + 1
+            local result = mod.logistic_network_items_info(port, click_count)
+            players[pindex].menu_click_count = click_count
             printout(result, pindex)
          else
             printout("Error: No network", pindex)
@@ -2166,12 +2170,14 @@ function mod.logistic_network_chests_info(port)
    return result
 end
 
-function mod.logistic_network_items_info(port)
-   local result = " Network "
+function mod.logistic_network_items_info(port, group_no)
+   local result = { "" }
    local nw = port.logistic_cell.logistic_network
    if nw == nil or nw.valid == false then
-      result = " Error: no network "
+      table.insert(result, " Error: no network ")
       return result
+   elseif group_no == 1 then
+      table.insert(result, "Network contains ")
    end
    local itemset = nw.get_contents()
    local itemtable = {}
@@ -2181,88 +2187,33 @@ function mod.logistic_network_items_info(port)
    table.sort(itemtable, function(k1, k2)
       return k1.count > k2.count
    end)
-   if #itemtable == 0 then
-      result = result .. " contains no items. "
+   --Use a cached list to handle changes in the list while reading
+   if group_no == 1 then
+      players[pindex].cached_list = itemtable
    else
-      result = result
-         .. " contains "
-         .. itemtable[1].name
-         .. " times "
-         .. fa_utils.simplify_large_number(itemtable[1].count)
-         .. ", "
-      if #itemtable > 1 then
-         result = result
-            .. " and "
-            .. itemtable[2].name
-            .. " times "
-            .. fa_utils.simplify_large_number(itemtable[2].count)
-            .. ", "
+      itemtable = players[pindex].cached_list
+   end
+   if #itemtable == 0 then
+      table.insert(result, " no items. ")
+      return result
+   else
+      local group_start = (group_no - 1) * 5 + 1
+      local group_end = group_start + 4
+      if #itemtable < group_start then
+         table.insert(result, " no other items.")
+         return result
       end
-      if #itemtable > 2 then
-         result = result
-            .. " and "
-            .. itemtable[3].name
-            .. " times "
-            .. fa_utils.simplify_large_number(itemtable[3].count)
-            .. ", "
+      for i = group_start, group_end, 1 do
+         if itemtable[i] then
+            table.insert(
+               result,
+               ", " .. itemtable[i].name .. " times " .. fa_utils.simplify_large_number(itemtable[i].count)
+            )
+         end
       end
-      if #itemtable > 3 then
-         result = result
-            .. " and "
-            .. itemtable[4].name
-            .. " times "
-            .. fa_utils.simplify_large_number(itemtable[4].count)
-            .. ", "
+      if #itemtable > group_end then
+         table.insert(result, ", and other items, " .. #itemtable .. " total, press LEFT BRACKET to list more.")
       end
-      if #itemtable > 4 then
-         result = result
-            .. " and "
-            .. itemtable[5].name
-            .. " times "
-            .. fa_utils.simplify_large_number(itemtable[5].count)
-            .. ", "
-      end
-      if #itemtable > 5 then
-         result = result
-            .. " and "
-            .. itemtable[6].name
-            .. " times "
-            .. fa_utils.simplify_large_number(itemtable[6].count)
-            .. ", "
-      end
-      if #itemtable > 6 then
-         result = result
-            .. " and "
-            .. itemtable[7].name
-            .. " times "
-            .. fa_utils.simplify_large_number(itemtable[7].count)
-            .. ", "
-      end
-      if #itemtable > 7 then
-         result = result
-            .. " and "
-            .. itemtable[8].name
-            .. " times "
-            .. fa_utils.simplify_large_number(itemtable[8].count)
-            .. ", "
-      end
-      if #itemtable > 8 then
-         result = result
-            .. " and "
-            .. itemtable[9].name
-            .. " times "
-            .. fa_utils.simplify_large_number(itemtable[9].count)
-            .. ", "
-      end
-      if #itemtable > 9 then
-         result = result
-            .. " and "
-            .. itemtable[10].name
-            .. " times "
-            .. fa_utils.simplify_large_number(itemtable[10].count)
-            .. ", "
-      end
-      if #itemtable > 10 then result = result .. " and other items " end
    end
    return result
 end

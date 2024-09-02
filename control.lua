@@ -145,6 +145,19 @@ function sort_ents_by_primary_first(ents)
       local a_is_primary = ent_is_primary(a, pindex)
       local b_is_primary = ent_is_primary(b, pindex)
 
+      --For rails, check if end rail
+      local a_is_end_rail = false
+      local b_is_end_rail = false
+      if a.name == "straight-rail" or a.name == "curved-rail" then
+         local is_end_rail, dir, comment = fa_rails.check_end_rail(a, pindex)
+         a_is_end_rail = is_end_rail
+      end
+      if b.name == "straight-rail" or b.name == "curved-rail" then
+         local is_end_rail, dir, comment = fa_rails.check_end_rail(b, pindex)
+         b_is_end_rail = is_end_rail
+      end
+      if a_is_end_rail and not b_is_end_rail then return true end
+
       -- Both or none are primary
       if a_is_primary == b_is_primary then return false end
 
@@ -411,6 +424,10 @@ function locate_hand_in_player_inventory(pindex)
    local p = game.get_player(pindex)
    local inv = p.get_main_inventory()
    local stack = p.cursor_stack
+   if p.cursor_stack_temporary then
+      printout("This item is temporary", pindex)
+      return
+   end
 
    --Check if stack empty and menu supported
    if stack == nil or not stack.valid_for_read or not stack.valid then
@@ -463,6 +480,13 @@ function locate_hand_in_building_output_inventory(pindex)
    local inv = nil
    local stack = p.cursor_stack
    local pb = players[pindex].building
+   if p.cursor_stack_temporary then
+      printout("This item is temporary", pindex)
+      return
+   end
+   if stack.is_blueprint or stack.is_blueprint_book or stack.is_deconstruction_item or stack.is_upgrade_item then
+      return
+   end
 
    --Check if stack empty and menu supported
    if stack == nil or not stack.valid_for_read or not stack.valid then
@@ -516,6 +540,16 @@ function locate_hand_in_crafting_menu(pindex)
    local p = game.get_player(pindex)
    local inv = p.get_main_inventory()
    local stack = p.cursor_stack
+   if
+      p.cursor_stack_temporary
+      or stack.is_blueprint
+      or stack.is_blueprint_book
+      or stack.is_deconstruction_item
+      or stack.is_upgrade_item
+   then
+      printout("This item cannot be crafted", pindex)
+      return
+   end
 
    --Check if stack empty and menu supported
    if stack == nil or not stack.valid_for_read or not stack.valid then
@@ -627,7 +661,6 @@ function force_cursor_off(pindex)
    fa_graphics.sync_build_cursor_graphics(pindex)
    players[pindex].player_direction = p.character.direction
    players[pindex].build_lock = false
-   if p.driving and p.vehicle then p.vehicle.active = true end
 
    --Close Remote view
    toggle_remote_view(pindex, false, true, true)
@@ -2565,7 +2598,8 @@ end
 --Returns false if failed to move
 function move(direction, pindex, nudged)
    local p = game.get_player(pindex)
-   if p.driving or p.character == nil then return false end
+   if p.character == nil then return false end
+   if p.vehicle then return true end
    local first_player = game.get_player(pindex)
    local pos = players[pindex].position
    local new_pos = fa_utils.offset_position(pos, direction, 1)
@@ -2707,6 +2741,9 @@ function move_key(direction, event, force_single_tile)
       game.get_player(pindex).game_view_settings.update_entity_selection = false
    end
 
+   --Reset unconfirmed actions
+   players[pindex].confirm_action_tick = 0
+
    --Save the key press event
    local pex = players[event.player_index]
    pex.bump.last_dir_key_2nd = pex.bump.last_dir_key_1st
@@ -2735,9 +2772,26 @@ function move_key(direction, event, force_single_tile)
    --Play a sound for audio ruler alignment (cursor mode moved)
    if players[pindex].in_menu == false and players[pindex].cursor then Rulers.update_from_cursor(pindex) end
 
-   --If driving a spidertron in telestep mode, suggest using smooth walking
-   if p.vehicle and p.vehicle.type == "spider-vehicle" and players[pindex].walk ~= WALKING.SMOOTH then
-      printout("To walk the spidertron, enable smooth walking mode", pindex)
+   --Handle vehicle behavior
+   if p.vehicle then
+      if p.vehicle.type == "car" then
+         --Deactivate (and stop) cars when in a menu
+         if players[pindex].cursor or players[pindex].in_menu then p.vehicle.active = false end
+         --Re-activate inactive cars when in no menu
+         if not players[pindex].cursor and not players[pindex].in_menu and p.vehicle.active == false then
+            p.vehicle.active = true
+            p.vehicle.speed = 0
+         end
+         --Re-activate inactive cars if in Kruise Kontrol
+         if fa_kk.is_active(pindex) then
+            p.vehicle.active = true
+            p.vehicle.speed = 0
+         end
+      end
+      --If driving a spidertron in telestep mode, suggest using smooth walking
+      if p.vehicle.type == "spider-vehicle" and players[pindex].walk ~= WALKING.SMOOTH then
+         printout("To walk the spidertron, enable smooth walking mode", pindex)
+      end
    end
 end
 
@@ -2746,13 +2800,6 @@ function cursor_mode_move(direction, pindex, single_only)
    local diff = players[pindex].cursor_size * 2 + 1
    if single_only then diff = 1 end
    local p = game.get_player(pindex)
-
-   if p.driving and p.vehicle and (p.vehicle.type == "car" or p.vehicle.type == "locomotive") then
-      if math.abs(p.vehicle.speed * 215) < 25 then
-         fa_driving.stop_vehicle(pindex)
-         p.vehicle.active = false
-      end
-   end
 
    players[pindex].cursor_pos =
       fa_utils.center_of_tile(fa_utils.offset_position(players[pindex].cursor_pos, direction, diff))
@@ -3723,6 +3770,9 @@ function close_menu_resets(pindex)
       game.get_player(pindex).game_view_settings.update_entity_selection = false
    end
 
+   --Reset unconfirmed actions
+   players[pindex].confirm_action_tick = 0
+
    --Reset menu vars
    players[pindex].in_menu = false
    players[pindex].menu = "none"
@@ -4182,6 +4232,27 @@ function swap_weapon_backward(pindex, write_to_character)
    if write_to_character then p.character.selected_gun_index = gun_index end
    return gun_index
 end
+
+script.on_event("delete", function(event)
+   pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   local p = game.get_player(pindex)
+   local hand = p.cursor_stack
+   if players[pindex].menu == "blueprint_book_menu" and players[pindex].blueprint_book_menu.list_mode == true then
+      --WIP
+   elseif hand and hand.valid_for_read then
+      local is_planner = hand.is_blueprint
+         or hand.is_blueprint_book
+         or hand.is_deconstruction_item
+         or hand.is_upgrade_item
+      if is_planner then
+         if fa_utils.confirm_action(pindex, hand.export_stack(), "Press again to delete the planner in hand.") then
+            p.cursor_stack_temporary = true
+            p.clear_cursor()
+         end
+      end
+   end
+end)
 
 --Creates sound effects for vanilla mining
 script.on_event("mine-access-sounds", function(event)
@@ -5976,6 +6047,8 @@ end)
 script.on_event("read-character-status", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
+   local hand = game.get_player(pindex).cursor_stack
+   if hand and hand.valid_for_read and (hand.is_blueprint or hand.is_blueprint_book) then return end
    fa_info.read_character_status(pindex)
 end)
 
@@ -6607,6 +6680,7 @@ script.on_event("toggle-walk", function(event)
    pindex = event.player_index
    local p = game.get_player(pindex)
    if not check_for_player(pindex) then return end
+   if p.vehicle then return end
    reset_bump_stats(pindex)
    players[pindex].move_queue = {}
    if p.character == nil then return end
@@ -6872,7 +6946,7 @@ script.on_event("honk", function(event)
          game.play_sound({ path = "train-honk-low-long", position = vehicle.position })
       elseif vehicle.name == "tank" then
          game.play_sound({ path = "tank-honk", position = vehicle.position })
-      else
+      elseif vehicle.type == "car" then
          game.play_sound({ path = "car-honk", position = vehicle.position })
       end
    end
@@ -6881,7 +6955,7 @@ end)
 script.on_event("open-fast-travel-menu", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
-   if game.get_player(pindex).driving ~= true then fa_travel.fast_travel_menu_open(pindex) end
+   fa_travel.fast_travel_menu_open(pindex)
 end)
 
 --GUI action confirmed, such as by pressing ENTER
@@ -6912,9 +6986,14 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
          local constant = tonumber(result)
          ---@cast constant  number
          local valid_number = constant ~= nil
-         if valid_number and p.selected and p.selected.valid and p.selected.name == "train-stop" and constant >= 0 then
-            p.selected.trains_limit = constant
-            printout("Set trains limit to " .. constant, pindex)
+         if valid_number and p.selected and p.selected.valid and p.selected.name == "train-stop" then
+            if constant >= 0 then
+               p.selected.trains_limit = constant
+               printout("Set trains limit to " .. constant, pindex)
+            else
+               p.selected.trains_limit = nil
+               printout("Cleared trains limit", pindex)
+            end
          else
             printout("Invalid input", pindex)
          end
@@ -7297,6 +7376,7 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
    local p = game.get_player(pindex)
    local start = nil
    local start_tile_is_water = fa_utils.tile_is_water(p.surface, players[pindex].cursor_pos)
+   local start_tile_is_ruler_aligned = Rulers.is_any_ruler_aligned(pindex, players[pindex].cursor_pos)
    local current = nil
    local limit = iteration_limit or 100
    local moved = 1
@@ -7378,6 +7458,16 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
 
    --Run checks and skip when needed
    while moved < limit do
+      --For audio rulers, stop if crossing into or out of alignment with any rulers
+      local current_tile_is_ruler_aligned = Rulers.is_any_ruler_aligned(pindex, players[pindex].cursor_pos)
+      if start_tile_is_ruler_aligned ~= current_tile_is_ruler_aligned then
+         Rulers.update_from_cursor(pindex)
+         return moved
+      --Also for rulers, stop if at the definiton point of any ruler
+      elseif Rulers.is_at_any_ruler_definition(pindex, players[pindex].cursor_pos) then
+         Rulers.update_from_cursor(pindex)
+         return moved
+      end
       --Check the current entity or tile against the starting one
       if current == nil then
          if start == nil then

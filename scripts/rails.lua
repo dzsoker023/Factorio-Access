@@ -82,21 +82,21 @@ function mod.rail_ent_info(pindex, ent, description)
    elseif ent.name == "curved-rail" and is_end_rail == false then
       result = result .. " curved "
       if ent.direction == dirs.north then --0
-         result = result .. " facing south and falling diagonal "
+         result = result .. " south and northwest "
       elseif ent.direction == dirs.northeast then
-         result = result .. " facing south and rising diagonal "
+         result = result .. " south and northeast "
       elseif ent.direction == dirs.east then
-         result = result .. " facing west  and rising diagonal "
+         result = result .. " west  and northeast "
       elseif ent.direction == dirs.southeast then
-         result = result .. " facing west  and falling diagonal "
+         result = result .. " west  and southeast "
       elseif ent.direction == dirs.south then
-         result = result .. " facing north and falling diagonal "
+         result = result .. " north and southeast "
       elseif ent.direction == dirs.southwest then
-         result = result .. " facing north and rising diagonal "
+         result = result .. " north and southwest "
       elseif ent.direction == dirs.west then
-         result = result .. " facing east  and rising diagonal "
+         result = result .. " east  and southwest "
       elseif ent.direction == dirs.northwest then --7
-         result = result .. " facing east  and falling diagonal "
+         result = result .. " east  and northwest "
       end
    end
 
@@ -323,6 +323,7 @@ end
 --Determines if an entity is an end rail. Returns boolean is_end_rail, integer end rail direction, and string comment for errors.
 function mod.check_end_rail(check_rail, pindex)
    local is_end_rail = false
+   ---@type defines.direction | int
    local dir = -1
    local comment = "Check function error."
 
@@ -929,6 +930,7 @@ end
 function mod.rail_read_next_rail_entity_ahead(pindex, rail, is_forward)
    local message = "Up this rail, "
    local origin_rail = rail
+   ---@type defines.rail_direction
    local dir_ahead = defines.rail_direction.front
    if not is_forward then
       dir_ahead = defines.rail_direction.back
