@@ -6044,14 +6044,6 @@ script.on_event("read-entity-status", function(event)
    if result ~= nil and result ~= "" then printout(result, pindex) end
 end)
 
-script.on_event("read-character-status", function(event)
-   pindex = event.player_index
-   if not check_for_player(pindex) then return end
-   local hand = game.get_player(pindex).cursor_stack
-   if hand and hand.valid_for_read and (hand.is_blueprint or hand.is_blueprint_book) then return end
-   fa_info.read_character_status(pindex)
-end)
-
 script.on_event("rotate-building", function(event)
    fa_building_tools.rotate_building_info_read(event, true)
 end)
@@ -7762,12 +7754,13 @@ script.on_event("set-entity-filter-from-hand", function(event)
             --Remove the last signal
             fa_circuits.constant_combinator_remove_last_signal(ent, pindex)
          elseif ent.type == "inserter" then
-            --Call the filter setter
             local result = set_inserter_filter_by_hand(pindex, ent)
             printout(result, pindex)
          elseif ent.type == "infinity-container" then
-            --Call the filter setter
             local result = set_infinity_chest_filter_by_hand(pindex, ent)
+            printout(result, pindex)
+         elseif ent.type == "infinity-pipe" then
+            local result = set_infinity_pipe_filter_by_hand(pindex, ent)
             printout(result, pindex)
          end
       else
@@ -7779,12 +7772,13 @@ script.on_event("set-entity-filter-from-hand", function(event)
             --Add a new signal
             fa_circuits.constant_combinator_add_stack_signal(ent, stack, pindex)
          elseif ent.type == "inserter" then
-            --Call the filter setter
             local result = set_inserter_filter_by_hand(pindex, ent)
             printout(result, pindex)
          elseif ent.type == "infinity-container" then
-            --Call the filter setter
             local result = set_infinity_chest_filter_by_hand(pindex, ent)
+            printout(result, pindex)
+         elseif ent.type == "infinity-pipe" then
+            local result = set_infinity_pipe_filter_by_hand(pindex, ent)
             printout(result, pindex)
          end
       end
@@ -7961,18 +7955,36 @@ script.on_event("disconnect-rail-vehicles", function(event)
    end
 end)
 
-script.on_event("inventory-read-armor-stats", function(event)
-   local pindex = event.player_index
-   local vehicle = nil
-   if not check_for_player(pindex) or not players[pindex].in_menu then return end
-   if
-      (players[pindex].in_menu and players[pindex].menu == "inventory")
-      or (players[pindex].menu == "vehicle" and game.get_player(pindex).opened.type == "spider-vehicle")
-   then
-      local result = fa_equipment.read_armor_stats(pindex)
-      --game.get_player(pindex).print(result)--
-      printout(result, pindex)
+script.on_event("read-health-and-armor-stats", function(event)
+   pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   local p = game.get_player(pindex)
+   local output = { "" }
+   --Skip blueprint flipping
+   local hand = game.get_player(pindex).cursor_stack
+   if hand and hand.valid_for_read and (hand.is_blueprint or hand.is_blueprint_book) then return end
+   if players[pindex].in_menu then
+      if players[pindex].menu == "vehicle" then
+         --Vehicle health and armor equipment stats
+         local result = fa_equipment.read_armor_stats(pindex, p.opened)
+         table.insert(output, result)
+      else
+         --Player health and armor equipment stats
+         local result = fa_equipment.read_armor_stats(pindex, nil)
+         table.insert(output, result)
+      end
+   else
+      if p.vehicle then
+         --Vehicle health and armor equipment stats
+         local result = fa_equipment.read_armor_stats(pindex, p.vehicle)
+         table.insert(output, result)
+      else
+         --Player health stats only
+         local result = fa_equipment.read_shield_and_health_level(pindex, nil)
+         table.insert(output, result)
+      end
    end
+   printout(output, pindex)
 end)
 
 script.on_event("inventory-read-equipment-list", function(event)
@@ -8618,6 +8630,37 @@ function set_infinity_chest_filter_by_hand(pindex, ent)
    end
 end
 
+function set_infinity_pipe_filter_by_hand(pindex, ent)
+   local stack = game.get_player(pindex).cursor_stack
+   if stack == nil or stack.valid_for_read == false or stack.valid == false then
+      --Delete filters
+      ent.set_infinity_pipe_filter(nil)
+      return "All filters cleared"
+   else
+      --Get the fluid from the barrel in hand
+      local name = stack.name
+      local first, last = string.find(name, "-barrel")
+      if first then
+         local fluid_name = string.sub(name, 1, first - 1)
+         local temp = 25
+         if fluid_name == "water" then
+            temp = 15
+         elseif fluid_name == "empty" then
+            --Special case: Empty barrel sets steam
+            fluid_name = "steam"
+            temp = 500
+         end
+         if game.fluid_prototypes[fluid_name] then
+            ent.set_infinity_pipe_filter({ name = fluid_name, temperature = temp, percentage = 1.00, mode = "exactly" })
+            return "Set filter to fluid in hand"
+         end
+         return "Error: Unknown fluid in hand " .. fluid_name
+      end
+      return "Error: Not a fluid barrel in hand"
+   end
+   return "Error setting fluid"
+end
+
 --Feature for typing in coordinates for moving the mod cursor.
 function type_cursor_position(pindex)
    printout("Enter new co-ordinates for the cursor, separated by a space", pindex)
@@ -9057,6 +9100,27 @@ function all_ents_are_walkable(pos)
    end
    return true
 end
+
+script.on_event("console", function(event)
+   printout("Opened console", pindex)
+end)
+
+script.on_event(defines.events.on_console_chat, function(event)
+   local speaker = game.get_player(event.player_index).name
+   if speaker == nil or speaker == "" then speaker = "Player" end
+   local message = event.message
+   for pindex, player in pairs(players) do
+      printout(speaker .. " says, " .. message, pindex)
+   end
+end)
+
+script.on_event(defines.events.on_console_command, function(event)
+   local speaker = game.get_player(event.player_index).name
+   if speaker == nil or speaker == "" then speaker = "Player" end
+   for pindex, player in pairs(players) do
+      printout(speaker .. " commands, " .. event.command .. " " .. event.parameters, pindex)
+   end
+end)
 
 --WIP. This function can be called via the console: /c __FactorioAccess__ regenerate_all_uncharted_spawners() --laterdo fix bugs?
 function regenerate_all_uncharted_spawners(surface_in)

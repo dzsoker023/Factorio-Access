@@ -249,70 +249,122 @@ function mod.count_empty_equipment_slots(grid)
    return slots_left
 end
 
---Read armor stats such as type and bonuses
-function mod.read_armor_stats(pindex)
-   local armor_inv = game.get_player(pindex).get_inventory(defines.inventory.character_armor)
-   local result = ""
-   if armor_inv.is_empty() then return "No armor equipped." end
-   if armor_inv[1].grid == nil or not armor_inv[1].grid.valid then
-      return armor_inv[1].name .. " equipped, with no equipment grid."
-   end
-   --Armor with Equipment
+function mod.read_shield_and_health_level(pindex, ent_in)
+   local p = game.get_player(pindex)
+   local char = p.character
+   local ent
    local grid
-   if players[pindex].menu == "vehicle" and game.get_player(pindex).opened.type == "spider-vehicle" then
-      grid = game.get_player(pindex).opened.grid
-      result = localising.get_alt(game.entity_prototypes["spidertron"])
-      if result == nil then
-         result = "Spidertron " --laterdo possible bug here
-      end
+   local result = { "" }
+   if ent_in then
+      --Report for the ent
+      ent = ent_in
+      grid = ent.grid
+      table.insert(result, ent.localised_name)
    else
-      grid = armor_inv[1].grid
-      result = armor_inv[1].name .. " equipped, "
-   end
-   if grid.count() == 0 then return result .. " no armor equipment installed. " end
-   --Read shield level
-   if grid.max_shield > 0 then
-      if grid.shield == grid.max_shield then
-         result = result .. " shields full, "
-      else
-         result = result .. " shields at " .. math.ceil(100 * grid.shield / grid.max_shield) .. " percent, "
+      --Report for this player
+      if char == nil or char.valid == false then
+         table.insert(result, "No character")
+         return result
       end
+      ent = char
+      local armor_inv = p.get_inventory(defines.inventory.character_armor)
+      if armor_inv[1] and armor_inv[1].valid_for_read and armor_inv[1].grid and armor_inv[1].grid.valid then
+         grid = armor_inv[1].grid
+      end
+   end
+
+   --Check shield health remaining (if supported)
+   local empty_shield = false
+   if grid then
+      if grid.shield > 0 and grid.shield == grid.max_shield then
+         table.insert(result, " Shield full, ")
+      elseif grid.shield > 0 then
+         local shield_left = math.floor(grid.shield / grid.max_shield * 100 + 0.5)
+         table.insert(result, " Shield " .. shield_left .. " percent, ")
+      else
+         empty_shield = true
+      end
+   end
+   --Check health
+   if ent.is_entity_with_health then
+      if ent.get_health_ratio() == 1 then
+         table.insert(result, { "access.full-health" })
+      else
+         table.insert(result, { "access.percent-health", math.floor(ent.get_health_ratio() * 100) })
+      end
+   end
+   -- State shield empty at the end (if supported)
+   if grid and empty_shield then table.insert(result, ", shield empty ") end
+   return result
+end
+
+--Read armor stats such as type and bonuses. Default option is the player's own armor.
+function mod.read_armor_stats(pindex, ent_in)
+   local ent = ent_in
+   local armor_inv = game.get_player(pindex).get_inventory(defines.inventory.character_armor)
+   local result = mod.read_shield_and_health_level(pindex, ent_in) --First report health and shield
+   table.insert(result, ", ")
+   local grid
+   if ent_in == nil then
+      --Player armor
+      if armor_inv.is_empty() then
+         table.insert(result, "No armor equipped.")
+         return result
+      elseif armor_inv[1].grid == nil or not armor_inv[1].grid.valid then
+         table.insert(result, armor_inv[1].name .. " equipped, with no equipment grid.")
+         return result
+      end
+      --Player armor with non-empty equipment grid
+      grid = armor_inv[1].grid
+      table.insert(result, armor_inv[1].name .. " equipped, ")
+   else
+      --Entity grid
+      grid = ent.grid
+      if grid == nil or grid.valid == false then
+         --No more info to report
+         return result
+      end
+      --Entity with non-empty equipment grid
+      --(continue)
+   end
+   --Stop if no equipment
+   if grid.count() == 0 then
+      table.insert(result, " no armor equipment installed. ")
+      return result
    end
    --Read battery level
    if grid.battery_capacity > 0 then
       if grid.available_in_batteries == grid.battery_capacity then
-         result = result .. " batteries full, "
+         table.insert(result, " batteries full, ")
       elseif grid.available_in_batteries == 0 then
-         result = result .. " batteries empty "
+         table.insert(result, " batteries empty ")
       else
-         result = result
-            .. " batteries at "
-            .. math.ceil(100 * grid.available_in_batteries / grid.battery_capacity)
-            .. " percent, "
+         local battery_level = math.ceil(100 * grid.available_in_batteries / grid.battery_capacity)
+         table.insert(result, " batteries at " .. battery_level .. " percent, ")
       end
    else
-      result = result .. " no batteries, "
+      table.insert(result, " no batteries, ")
    end
    --Energy Producers
    if grid.generator_energy > 0 or grid.max_solar_energy > 0 then
-      result = result .. " generating "
+      table.insert(result, " generating ")
       if grid.generator_energy > 0 then
-         result = result .. fa_electrical.get_power_string(grid.generator_energy * 60) .. " nonstop, "
+         table.insert(result, fa_electrical.get_power_string(grid.generator_energy * 60) .. " nonstop, ")
       end
       if grid.max_solar_energy > 0 then
-         result = result .. fa_electrical.get_power_string(grid.max_solar_energy * 60) .. " at daytime, "
+         table.insert(result, fa_electrical.get_power_string(grid.max_solar_energy * 60) .. " at daytime, ")
       end
    end
-
    --Movement bonus
    if grid.count("exoskeleton-equipment") > 0 then
-      result = result
-         .. " movement bonus "
-         .. grid.count("exoskeleton-equipment") * 30
-         .. " percent for "
-         .. fa_electrical.get_power_string(grid.count("exoskeleton-equipment") * 200000)
+      table.insert(
+         result,
+         " movement bonus "
+            .. grid.count("exoskeleton-equipment") * 30
+            .. " percent for "
+            .. fa_electrical.get_power_string(grid.count("exoskeleton-equipment") * 200000)
+      )
    end
-
    return result
 end
 
@@ -507,14 +559,14 @@ function mod.guns_menu_click_slot(pindex)
    end
    if hand and hand.valid_for_read then
       --FUll hand operations
-      if selected_stack == nil then
+      if selected_stack == nil or selected_stack.valid_for_read == false then
          --Empty slot
          if menu.ammo_selected and hand.type ~= "ammo" then
             printout("Error: Slot reserved for ammo types only", pindex)
          elseif not menu.ammo_selected and hand.type ~= "gun" then
             printout("Error: Slot reserved for gun types only", pindex)
          else
-            hand.swap_stack(selected_stack)
+            if selected_stack ~= nil then hand.swap_stack(selected_stack) end
             --If the swap is successful then the following print statement is overwritten.
             printout("Error: Incompatible gun and ammo types", pindex)
          end

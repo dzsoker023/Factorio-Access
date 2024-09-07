@@ -1490,7 +1490,7 @@ data:extend({
 
    {
       type = "custom-input",
-      name = "read-character-status",
+      name = "read-health-and-armor-stats",
       key_sequence = "G",
       consuming = "none",
    },
@@ -1782,6 +1782,13 @@ data:extend({
 
    {
       type = "custom-input",
+      name = "console",
+      key_sequence = "GRAVE",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
       name = "open-warnings-menu",
       key_sequence = "P",
       consuming = "none",
@@ -1902,7 +1909,7 @@ data:extend({
    {
       type = "custom-input",
       name = "set-entity-filter-from-hand",
-      key_sequence = "CONTROL + LEFTBRACKET",
+      key_sequence = "ALT + LEFTBRACKET",
       consuming = "none",
    },
 
@@ -1917,13 +1924,6 @@ data:extend({
       type = "custom-input",
       name = "disconnect-rail-vehicles",
       key_sequence = "SHIFT + G",
-      consuming = "none",
-   },
-
-   {
-      type = "custom-input",
-      name = "inventory-read-armor-stats",
-      key_sequence = "G",
       consuming = "none",
    },
 

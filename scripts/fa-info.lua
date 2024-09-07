@@ -157,6 +157,13 @@ function mod.ent_info(pindex, ent, description)
             result = result .. ", in network " .. network_name
          end
       end
+   elseif ent.name == "infinity-pipe" then
+      local filter = ent.get_infinity_pipe_filter()
+      if filter == nil then
+         result = result .. " draining "
+      else
+         result = result .. " of " .. filter.name
+      end
    end
    --Pipe ends are labelled to distinguish them
    if ent.name == "pipe" and fa_building_tools.is_a_pipe_end(ent, pindex) then result = result .. " end, " end
@@ -411,6 +418,9 @@ function mod.ent_info(pindex, ent, description)
       else
          result = result .. ", " .. fa_rails.get_signal_state_info(ent)
       end
+   end
+   if ent.type == "mining-drill" and mod.cursor_is_at_mining_drill_output_part(pindex, ent) then
+      result = result .. " drop chute "
    end
    --Report the entity facing direction
    if
@@ -842,6 +852,7 @@ function mod.ent_info(pindex, ent, description)
       local pos = ent.position
       local radius = ent.prototype.mining_drill_radius
       local area = { { pos.x - radius, pos.y - radius }, { pos.x + radius, pos.y + radius } }
+      --Compute resources covered
       local resources = ent.surface.find_entities_filtered({ area = area, type = "resource" })
       local dict = {}
       for i, resource in pairs(resources) do
@@ -851,6 +862,7 @@ function mod.ent_info(pindex, ent, description)
             dict[resource.name] = dict[resource.name] + resource.amount
          end
       end
+      --Compute drop position
       local drop = ent.drop_target
       local drop_name = nil
       if drop ~= nil and drop.valid then
@@ -864,9 +876,10 @@ function mod.ent_info(pindex, ent, description)
             end
          end
       end
+      --Report info
       if drop ~= nil and drop.valid then result = result .. " outputs to " .. drop_name end
       if ent.status == defines.entity_status.waiting_for_space_in_destination then
-         result = result .. " output full "
+         result = result .. ", output full "
       end
       if table_size(dict) > 0 then
          result = result .. ", Mining from "
@@ -1474,43 +1487,10 @@ function mod.read_selected_entity_status(pindex)
    return result
 end
 
-function mod.read_character_status(pindex)
-   local p = game.get_player(pindex)
-   local char = p.character
-   local result = { "" }
-   --Report if character missing
-   if char == nil or char.valid == false then
-      printout(pindex, "No character")
-      return
-   end
-   --Check character has any energy shield health remaining
-   local shield_left = 0
-   local armor_inv = p.get_inventory(defines.inventory.character_armor)
-   if
-      armor_inv[1]
-      and armor_inv[1].valid_for_read
-      and armor_inv[1].valid
-      and armor_inv[1].grid
-      and armor_inv[1].grid.valid
-   then
-      local grid = armor_inv[1].grid
-      if grid.shield > 0 and grid.shield == grid.max_shield then
-         table.insert(result, "Shield full, ")
-      elseif grid.shield > 0 then
-         shield_left = math.floor(grid.shield / grid.max_shield * 100 + 0.5)
-         table.insert(result, "Shield " .. shield_left .. " percent, ")
-      else
-         --Say nothing
-      end
-   end
-   --Character health
-   if char.is_entity_with_health and char.get_health_ratio() == 1 then
-      table.insert(result, { "access.full-health" })
-   elseif char.is_entity_with_health then
-      table.insert(result, { "access.percent-health", math.floor(char.get_health_ratio() * 100) })
-   end
-   printout(result, pindex)
-   return
+function mod.cursor_is_at_mining_drill_output_part(pindex, ent)
+   local dir = ent.direction
+   local correct_pos = fa_utils.offset_position(ent.drop_position, fa_utils.rotate_180(dir), 1)
+   return util.distance(correct_pos, players[pindex].cursor_pos) < 0.6
 end
 
 return mod
