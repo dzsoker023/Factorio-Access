@@ -33,7 +33,7 @@ The game can be purchased from Factorio.com or from Steam. Any purchase gives ac
 1. Go to https://www.factorio.com/download
 1. If needed, login using your Factorio account or Steam account.
 1. Among the install options, find the stable releases at the top half of the page.
-1. Select "Download full game for Windows". This will download an exe file which is the setup application.
+1. Select "Download full game for Windows". This will download an "exe" file which is the setup application.
 1. Run the exe file and follow the instructions.
 1. All done! You need to install the mod next.
 
@@ -41,16 +41,23 @@ The game can be purchased from Factorio.com or from Steam. Any purchase gives ac
 1. Go to https://www.factorio.com/download
 1. If needed, login using your Factorio account or Steam account.
 1. Among the install options, find the stable releases at the top half of the page.
-1. Go to the section with "Other download options" and select "Download full game for Linux". This will download a tar.xz file.
+1. Go to the section with "Other download options" and select "Download full game for Linux". This will download a "tar.xz" file.
 1. Move the file to the directory where you want to install the game.
 1. Extract the game from the file using a program such as 7zip.
 1. All done! You need to install the mod next.
 
-# Installing Factorio Access (Windows)
+## Mac Version
+1. Go to https://www.factorio.com/download
+1. If needed, login using your Factorio account or Steam account.
+1. Among the install options, find the stable releases at the top half of the page.
+1. Go to the section with "Other download options" and select "Download full game for macOS". This will download a "dmg" file.
+1. Install the "dmg" file like any other.
 
-To install a mod release, follow the instructions below:
+# Installing Factorio Access
 
-## Mod release install for Factorio Windows Zip version
+To install a mod release, follow the instructions below, depending on the version of Factorio that you have installed.
+
+## Windows Zip version: Mod release install
 1. Download the latest release zip file such as "Factorio_Access_Beta_0_X_X.zip" from the releases page here: https://github.com/Factorio-Access/FactorioAccess/releases. There are other files that you can download there but you need only the one mentioned. You may get a security warning about downloading an unlicensed application, which is true for the mod launcher. For safety reasons, please do not download the mod launcher from anywhere else.
 1. Put the zip file in an empty folder and extract its contents. You should find a folder named "Factorio_Access_Beta_content". You need to open it and copy everything inside of it. These contents should include the mod's own launcher called "launcher.exe" as well as a "mods" folder and a "Factorio.jkm" file.
 1. Navigate to your Factorio standalone folder, with a name such as "Factorio_1.1.101". This is your Factorio game data folder.
@@ -61,8 +68,7 @@ To install a mod release, follow the instructions below:
 1. Follow the mod launcher instructions while the game is configured. This may involve launching the game itself temporarily.
 1. The game is ready to play from the launcher when the main menu appears.
 
-
-## Mod release install for Factorio Steam version or regular Windows version
+## Windows Steam version or regular Windows version: Mod release install
 1. Download the latest release zip file such as "Factorio_Access_Beta_0_X_X.zip" from the releases page here: https://github.com/Factorio-Access/FactorioAccess/releases. There are other files that you can download there but you need only the one mentioned. You may get a security warning about downloading an unlicensed application, which is true for the mod launcher. For safety reasons, please do not download the mod launcher from anywhere else.
 2. Put the zip file in an empty folder and extract its contents. You should find a folder named "Factorio_Access_Beta_content". You need to open it and copy everything inside of it. These contents should include the mod's own launcher called "launcher.exe" as well as a "mods" folder and a "Factorio.jkm" file.
 3. Run the game `factorio.exe` at least once if you have not, and then exit it. This is necessary in order to create the folders for the next step. The exe can be found under the folder `bin`.
@@ -79,13 +85,37 @@ To install a mod release, follow the instructions below:
 1. Follow the mod launcher instructions while the game is configured. This may involve launching the game itself temporarily.
 1. The game is ready to play from the launcher when the main menu appears.
 
-# Installing Factorio Access (Linux)
+## Linux Version: Mod install and running via Python scripts
 1. Install speechd and python 3 through your distribution. Note that Instructions vary by distribution.
-1. Clone the launcher mod from GitHub.
+1. Use Git or GitHub CLI to get the launcher from the [Factorio-Access-Launcher repository](https://github.com/Factorio-Access/Factorio-Access-Launcher).
 1. CD into the folder.
 1. If you want to use a virtual python environment, or an executable, run build_main.py. If not, run pip to install requirements.txt by:  "pip install -r requirements.txt"
 1. Run the executable or main.py
 1. If it complains it can't find your Factorio installation then add the path to the Factorio executable as an argument when launching.
+
+## MacOS: Mod install and running via Python scripts
+### High level instructions
+For step by step instructions continue to the next section.
+1. Make sure you have python 3 installed.
+1. Use Git or GitHub CLI, or extract from the release zip, to get the FactorioAccess mod into Factorio's mods folder, which is "~/Library/Application Support/factorio/mods" on Mac.
+1. Use Git or GitHub CLI to get the launcher from the [Factorio-Access-Launcher repository](https://github.com/Factorio-Access/Factorio-Access-Launcher). It shouldn't matter where you put it.
+1. Enter the repository folder and run the launcher builder script: `python3.11 build_main.py`
+1. Run the mod launcher via python.
+1. Follow the launcher instructions while the game is configured. This may involve launching the game itself temporarily.
+1. The game is ready to play from the launcher when the main menu appears.
+
+### Step by step instructions
+1. Open the terminal.
+1. Run `python3` as a single word command to check which python version is installed. 
+1. If you have python3, the version number will be printed. You need python 3.11, but any python3 will work. To exit python, use the command `exit()`.
+1. If you do not have python3, then install it from the official website: https://www.python.org/downloads/release/python-3110/
+1. In the terminal, navigate to the folder you'd like the launcher folder to be inside. For example: `cd ~/Documents`
+1. Clone the launcher repository here: `git clone git@github.com:Factorio-Access/Factorio-Access-Launcher.git`
+1. Go into the newly created folder: `cd Factorio-Access-Launcher`
+1. Run the build script: `python3.11 build_main.py`
+1. The build script might error out but it will at least set up the virtual environment and install the required python modules.
+1. The mod should now be fully installed. Any time you want to run the launcher you can go to the same folder and run: `./venv/bin/python main.py`
+1. Follow the launcher's setup steps as instructed by it.
 
 # Factorio Access Controls
 
