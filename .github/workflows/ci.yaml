@@ -9,9 +9,8 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     - name: 'stylua --check'
-      uses: JohnnyMorganz/stylua-action@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        version: latest # NOTE: we recommend pinning to a specific version in case of formatting changes
-        # CLI arguments
-        args: --check .
+      shell: bash
+      run: |
+        cargo install --version 0.20.0 stylua --features lua52
+        stylua --check . -v
+
