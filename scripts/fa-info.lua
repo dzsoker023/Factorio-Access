@@ -52,16 +52,20 @@ local function get_adjacent_source(box, pos, dir)
 end
 
 --Outputs basic entity info, usually called when the cursor selects an entity.
+---@param ent LuaEntity
 function mod.ent_info(pindex, ent, description)
    local p = game.get_player(pindex)
    local result = fa_localising.get(ent, pindex)
    if result == nil or result == "" then result = ent.name end
    if game.players[pindex].name == "Crimso" then result = result .. " " .. ent.type .. " " end
    if ent.type == "resource" then
-      if ent.name ~= "crude-oil" then
+      if not ent.initial_amount then
+         -- initial_amount is nil for non-infinite resources.
          result = result .. ", x " .. ent.amount
       else
-         result = result .. ", x " .. math.floor(ent.amount / 3000) .. "%"
+         -- The game computes it this way then displays it as 403% or w/e.
+         local percentage = ent.prototype.normal_resource_amount / 100
+         result = result .. ", x " .. math.floor(ent.amount / percentage) .. "%"
       end
    end
    if ent.name == "entity-ghost" then
