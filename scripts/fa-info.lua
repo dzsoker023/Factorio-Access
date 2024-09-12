@@ -926,7 +926,7 @@ function mod.ent_info(pindex, ent, description)
       result = result .. " out of power "
    end
    if ent.type == "accumulator" then
-      local level = math.ceil(ent.energy / 50000) --In percentage
+      local level = math.ceil(ent.energy / ent.electric_buffer_size * 100) --In percentage
       local charge = math.ceil(ent.energy / 1000) --In kilojoules
       result = result .. ", " .. level .. " percent full, containing " .. charge .. " kilojoules. "
    elseif ent.type == "solar-panel" then
