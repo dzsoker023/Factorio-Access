@@ -154,6 +154,8 @@ Set furthest zoom: CONTROL + ALT + Z
 
 Recalibrate zoom: CONTROL + END. This is rarely needed for resolving bugs related to zooming.
 
+Console usage: Open with GRAVE, and then type the message and submit with ENTER.
+
 ## Tutorial
 
 Read current step: H
@@ -270,6 +272,8 @@ Area mining rail objects within 10 tiles: SHIFT + X, on a rail.
 
 Area mining ghosts within 10 tiles: SHIFT + X, on a ghost.
 
+Super area mining ghosts within 100 tiles: CONTROL + SHIFT + X, on a ghost.
+
 Area mining everything marked for deconstruction within 5 tiles: SHIFT + X, with a deconstruction planner in hand (via ALT + D).
 
 Start instant mining tool: CONTROL + X. When you are holding this tool, everything the cursor touches is mined instantly.
@@ -352,6 +356,11 @@ Load cursor bookmark coordinates: B
 
 Type in cursor coordinates to jump to: ALT + T
 
+Place an audio ruler at the cursor: CONTROL + ALT + B
+
+Clear the audio ruler: SHIFT + ALT + B
+
+Note: Audio rulers provide reference points with audio queues that help with aligning things.
 
 ## Kruise Kontrol
 Note: Kruise Kontrol is a different mod that we forked.  You can find our fork
@@ -521,7 +530,7 @@ Swap gun in hand: TAB
   
 Fire at the cursor: C. Warning: Friendly fire is allowed.
   
-Fire at enemies with aiming assistance: SPACEBAR. Note: This only works when an enemy is within range, and only for pistols or submachine guns or rocket launchers with regular rockets. Other weapons such as shotguns, flamethrowers, and special rockets, will fire at the cursor because they do not have aiming assistance. 
+Fire at enemies with aiming assistance: SPACEBAR. Note: This only works when an enemy is within range, and only for pistols or submachine guns or rocket launchers with regular or explosive rockets. Other weapons such as shotguns, flamethrowers, and special rockets, will fire at the cursor because they do not have aiming assistance. 
 
 Deploy a drone capsule in hand towards the cursor: LEFT BRACKET.
 
@@ -674,6 +683,18 @@ Unqueue 1 item: LEFT BRACKET
 Unqueue 5 items: RIGHT BRACKET
 
 Unqueue all items: SHIFT + LEFT BRACKET
+
+## Research queue
+
+Read the queue: ALT + Q
+
+Clear the queue: CONTROL + SHIFT + ALT + Q
+
+Add a researchable tech to the front of the queue: SHIFT + LEFT BRACKET
+
+Add a researchable tech to the back of the queue: CONTROL + LEFT BRACKET
+
+Reset the queue to have only this researchable technology: LEFT BRACKET
 
 ## In item selector submenu (alternative)
 
