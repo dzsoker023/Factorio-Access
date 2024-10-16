@@ -7636,7 +7636,9 @@ end)
 script.on_event("toggle-inventory-slot-filter", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
-   set_selected_inventory_slot_filter(pindex)
+
+   -- Conflicts with setting splitter filters.  Will be fixed by #262
+   if players[pindex].in_menu then set_selected_inventory_slot_filter(pindex) end
 end)
 
 --Sets inventory slot filters
