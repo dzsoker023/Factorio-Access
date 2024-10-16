@@ -434,6 +434,8 @@ function mod.ent_info(pindex, ent, description, is_scanner)
    elseif ent.name == "rail-signal" or ent.name == "rail-chain-signal" then
       if ent.status == defines.entity_status.not_connected_to_rail then
          result = result .. " not connected to rails "
+      elseif ent.status == defines.entity_status.cant_divide_segments then
+         result = result .. " can't divide segments "
       else
          result = result .. ", " .. fa_rails.get_signal_state_info(ent)
       end
