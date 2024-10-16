@@ -18,7 +18,7 @@ local function inventory_find_index_of_next_name_match(inv, index, str, pindex)
       local stack = inv[i]
       if stack ~= nil and (stack.object_name == "LuaTechnology" or stack.valid_for_read) then
          local name = string.lower(localising.get(stack.prototype, pindex))
-         local result = string.find(name, str)
+         local result = string.find(name, str, 1, true)
          if result ~= nil then
             if name ~= players[pindex].menu_search_last_name then
                players[pindex].menu_search_last_name = name
@@ -37,7 +37,7 @@ local function inventory_find_index_of_next_name_match(inv, index, str, pindex)
       local stack = inv[i]
       if stack ~= nil and (stack.object_name == "LuaTechnology" or stack.valid_for_read) then
          local name = string.lower(localising.get(stack.prototype, pindex))
-         local result = string.find(name, str)
+         local result = string.find(name, str, 1, true)
          if result ~= nil then
             if name ~= players[pindex].menu_search_last_name then
                players[pindex].menu_search_last_name = name
@@ -65,7 +65,7 @@ local function inventory_find_index_of_last_name_match(inv, index, str, pindex)
       local stack = inv[i]
       if stack ~= nil and stack.valid_for_read then
          local name = string.lower(localising.get(stack.prototype, pindex))
-         local result = string.find(name, str)
+         local result = string.find(name, str, 1, true)
          if result ~= nil then
             if name ~= players[pindex].menu_search_last_name then
                players[pindex].menu_search_last_name = name
@@ -84,7 +84,7 @@ local function inventory_find_index_of_last_name_match(inv, index, str, pindex)
       local stack = inv[i]
       if stack ~= nil and stack.valid_for_read then
          local name = string.lower(localising.get(stack.prototype, pindex))
-         local result = string.find(name, str)
+         local result = string.find(name, str, 1, true)
          if result ~= nil then
             if name ~= players[pindex].menu_search_last_name then
                players[pindex].menu_search_last_name = name
@@ -117,7 +117,7 @@ local function crafting_find_index_of_next_name_match(str, pindex, last_i, last_
          local recipe = recipes[i][j]
          if recipe and recipe.valid then
             local name = string.lower(localising.get(recipe, pindex))
-            local result = string.find(name, str)
+            local result = string.find(name, str, 1, true)
             --game.print(i .. "," .. j .. " : " .. name .. " vs. " .. str,{volume_modifier=0})
             if result ~= nil then
                --game.print(" * " .. i .. "," .. j .. " : " .. name .. " vs. " .. str .. " * ",{volume_modifier=0})
@@ -142,7 +142,7 @@ local function crafting_find_index_of_next_name_match(str, pindex, last_i, last_
          local recipe = recipes[i][j]
          if recipe and recipe.valid then
             local name = string.lower(localising.get(recipe, pindex))
-            local result = string.find(name, str)
+            local result = string.find(name, str, 1, true)
             --game.print(i .. "," .. j .. " : " .. name .. " vs. " .. str,{volume_modifier=0})
             if result ~= nil then
                --game.print(" * " .. i .. "," .. j .. " : " .. name .. " vs. " .. str .. " * ",{volume_modifier=0})
@@ -174,7 +174,7 @@ local function prototypes_find_index_of_next_name_match(array, index, str, pinde
       local prototype = array[i]
       if prototype ~= nil and prototype.valid then
          local name = string.lower(localising.get(prototype, pindex))
-         local result = string.find(name, str)
+         local result = string.find(name, str, 1, true)
          if result ~= nil then
             if name ~= players[pindex].menu_search_last_name then
                players[pindex].menu_search_last_name = name
@@ -200,7 +200,7 @@ local function blueprint_book_find_index_of_next_match(index, str, pindex)
       for i = index, #items, 1 do
          if items[i] and items[i].blueprint and items[i].blueprint.label then
             local name = string.lower(items[i].blueprint.label)
-            local result = string.find(name, str)
+            local result = string.find(name, str, 1, true)
             if result ~= nil then
                if name ~= players[pindex].menu_search_last_name then
                   players[pindex].menu_search_last_name = name
@@ -217,7 +217,7 @@ local function blueprint_book_find_index_of_next_match(index, str, pindex)
       for i = 1, index, 1 do
          if items[i] and items[i].blueprint and items[i].blueprint.label then
             local name = string.lower(items[i].blueprint.label)
-            local result = string.find(name, str)
+            local result = string.find(name, str, 1, true)
             if result ~= nil then
                if name ~= players[pindex].menu_search_last_name then
                   players[pindex].menu_search_last_name = name
@@ -242,7 +242,7 @@ local function travel_find_index_of_next_name_match(index, str, pindex)
       local locus = players[pindex].travel[i]
       if locus and locus.name then
          local name = string.lower(locus.name)
-         local result = string.find(name, str)
+         local result = string.find(name, str, 1, true)
          if result ~= nil then
             if name ~= players[pindex].menu_search_last_name then
                players[pindex].menu_search_last_name = name
@@ -261,7 +261,7 @@ local function travel_find_index_of_next_name_match(index, str, pindex)
       local locus = players[pindex].travel[i]
       if locus and locus.name then
          local name = string.lower(locus.name)
-         local result = string.find(name, str)
+         local result = string.find(name, str, 1, true)
          if result ~= nil then
             if name ~= players[pindex].menu_search_last_name then
                players[pindex].menu_search_last_name = name
