@@ -22,6 +22,16 @@ when pulling from the cache we must still do those fields.  The others can be
 brought forward on updates.
 
 For now, this assumes category cannot change.
+
+fa-utils corner finding relies on map queries and is slow.  As a result, the
+entry is put into the cache using an approximated top left corner and then that
+is made more accurate in update_entry.  The problem we face is that some
+entities, primarily rocket ship pieces in the initial crash site, don't quite
+line up with tiles.  A longer term solution is to use the bounding boxes.
+Unfortunately however, we aren't set up to do that safely until we have a better
+cursor handling solution because the points such boxes can return are by their
+nature highly irregular.  Since we can do this on a slow path and since we know
+that the old scanner used that successfully, we just do it.
 ]]
 local FaInfo = require("scripts.fa-info")
 local FaUtils = require("scripts.fa-utils")
@@ -56,27 +66,18 @@ function SimpleBackend:validate_entry(player, e)
    return e.backend_data.valid and player.surface_index == e.backend_data.surface_index
 end
 
-function SimpleBackend:fillout_entry(entity, entry)
+function SimpleBackend:update_entry(_player, entry)
+   local entity = entry.backend_data
    if entity.type == "curved-rail" then
       -- curved-rail special case: take the center.
       entry.position = entity.position
    else
-      -- This is accurate and better than going through FaUtils in terms of
-      -- performance since that does map queries.  We will probably fix FaUtils
-      -- but for now we limit the fallout to here.
-      entry.position = {
-         x = entity.position.x - entity.tile_width / 2,
-         y = entity.position.y - entity.tile_height / 2,
-      }
+      entry.position = FaUtils.get_ent_northwest_corner_position(entity)
    end
    entry.backend = self
    entry.backend_data = entity
    entry.category = self.category_callback(entity)
    entry.subcategory = self.subcategory_callback(entity)
-end
-
-function SimpleBackend:update_entry(_player, e)
-   self:fillout_entry(e.backend_data, e)
 end
 
 function SimpleBackend:readout_entry(player, e)
@@ -104,11 +105,11 @@ function SimpleBackend:dump_entries_to_callback(player, callback)
          self.known_entities[regnum] = nil
          self.entry_cache[regnum] = nil
       else
-         --It would be nice if we could use fillout_entry, but we cannot.  Lua
-         --optimizes the case of being able to pre-lookup functions into locals,
-         --as well as the case wherein one writes out a table as a constant (it
-         --knows how to allocate exactly the right sizes in that case).  This
-         --got us 30% gains.
+         -- Lua optimizes the case of being able to pre-lookup functions into
+         --locals, as well as the case wherein one writes out a table as a
+         --constant (it knows how to allocate exactly the right sizes in that
+         --case).  This got us 30% gains.  This means that the following cannot
+         --be factored out into helper functions easily, if at all.
          local pos = entity.position
          local x, y = pos.x, pos.y
          local tw, th = entity.tile_width, entity.tile_height
