@@ -1,3 +1,48 @@
+# Version 0.15.0 BETA
+Released on October 19th, 2024.
+
+## Summary
+- The main highlight of this update is a full rewrite of the software of the scanner tool. It now incrementally scans in the background, which makes scan refreshes significantly faster, especially on larger maps. It also has smarter ways of grouping objects.
+
+- IMPORTANT: If you upgrade into an existing save, the new scanner tool will need to set up for the first time. This will take around 1 minute before it starts returning results. This does not happen on newly created maps or on maps where the setup has already been done before. However, this might happen again after future updates that signficantly modify the new scanner tool.
+
+## Features
+- Rewritten scanner tool:
+  * It works much faster on large maps compared to the old tool. It does this by incermentally scanning in the background.
+  * The amount of resources in a patch is now announced.
+  * Note: The scanner defines individual resource patches during its setup phase. If you have mined a patch such that it is now two separate clusters, new scanner during setup will think they are separate patches.
+  * A group of oil wells is now coalesced into a single oil field patch if it is far away.
+  * When describing forests, the new scanner gives exact tree counts instead of descriptors like "dense" or "sparse".
+  * The dimensions of water bodies are now more accurately tracked and announced.
+  * The scanner now reports information like the cursor does, rather than using a shortened form.
+  * Trains are now grouped such that every entry is a different train rather than a different wagon type.
+  * Scanner categorization of idle furnaces is now more accurate.  The recipe is inferred from the furnace output, if present.
+
+- The mod now catches and prevents the invalid placement of rail signals at problematic points along rail forks. In such cases it reports "can't divide segments".
+
+- Modded accumulators are now supported, by reporting the relevant information.
+
+- Modded infinite resources are now supported, by reporting the relevant information.
+
+## Changes
+- Launcher changes: A few updates for Factorio 2.0 compatibility and faster new game starting.
+
+- Area scan summaries under larger cursor sizes are now lag-free.
+
+- The long-ago deprecated feature of structure travel has been fully removed.
+
+- Sorting scan results by count has been dropped. Depending on demand, this may be reintroduced.
+
+## Bugfixes
+- Fixed the accidental reporting that slot filters not being supported when a splitter filter is being set.
+
+- Fixed a crash when doing a menu search with special non-alphanumeric characters.
+
+- Fixed falsely reporting that pumpjacks and other modded entities outputting fluids have a drop position.
+
+- Audio rulers no longer move bookmarks along with them. These are now separate as intended.
+
+
 # Version 0.14.1 BETA
 Released on September 7th, 2024.
 
