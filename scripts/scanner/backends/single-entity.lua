@@ -90,6 +90,32 @@ mod.Character = decl_bound_category("fa.scanner.backends.Character", SC.CATEGORI
 -- Unit are enemies in vanilla.
 mod.Unit = decl_bound_category("fa.scanner.backends.Unit", SC.CATEGORIES.ENEMIES)
 
+-- Spawners need to be grouped by pollution. Buckets copied from old scanner. 0
+-- is implicit.  Keep in sorted order.
+local SPAWNER_POLLUTION_BUCKETS = {
+   1,
+   99,
+}
+
+mod.Spawner = decl("fa.scanner.backends.Spawner", {
+   category_callback = functionize(SC.CATEGORIES.ENEMIES),
+
+   ---@param ent LuaEntity
+   subcategory_callback = function(ent)
+      local level = 0
+      local p = ent.absorbed_pollution
+      for i = 1, #SPAWNER_POLLUTION_BUCKETS do
+         if SPAWNER_POLLUTION_BUCKETS[i] <= p then
+            level = i
+         else
+            break
+         end
+      end
+
+      return cat2(ent.name, tostring(level))
+   end,
+})
+
 -- There are so many logistics items that we will make one generic backend and
 -- list them off in the LUT instead (inserters, transport belts, splitters, so
 -- on).

@@ -115,7 +115,7 @@ local BACKEND_LUT = {
    ["tree"] = TreeBackend.TreeBackend,
    ["turret"] = SEB.Unit,
    ["underground-belt"] = SEB.Logistics,
-   ["unit-spawner"] = SEB.Unit,
+   ["unit-spawner"] = SEB.Spawner,
    ["unit"] = SEB.Unit,
    ["wall"] = SEB.Military,
 }
@@ -200,7 +200,7 @@ end
 local surface_state = GlobalManager.declare_global_module(
    "scanner",
    new_empty_surface,
-   { root_field = "surfaces", ephemeral_state_version = 2 }
+   { root_field = "surfaces", ephemeral_state_version = 3 }
 )
 
 -- Given a backend setup and an array of entities, dispatch the entities to the
