@@ -90,11 +90,11 @@ mod.Character = decl_bound_category("fa.scanner.backends.Character", SC.CATEGORI
 -- Unit are enemies in vanilla.
 mod.Unit = decl_bound_category("fa.scanner.backends.Unit", SC.CATEGORIES.ENEMIES)
 
--- Spawners need to be grouped by pollution. Buckets copied from old scanner. 0
--- is implicit.  Keep in sorted order.
+-- Spawners need to be grouped by pollution. Buckets copied from old scanner.
 local SPAWNER_POLLUTION_BUCKETS = {
-   1,
-   99,
+   { 0, { "fa.scanner-spawner-polluted-none" } },
+   { 1, { "fa.scanner-spawner-polluted-lightly" } },
+   { 99, { "fa.scanner-spawner-polluted-heavily" } },
 }
 
 mod.Spawner = decl("fa.scanner.backends.Spawner", {
@@ -105,7 +105,7 @@ mod.Spawner = decl("fa.scanner.backends.Spawner", {
       local level = 0
       local p = ent.absorbed_pollution
       for i = 1, #SPAWNER_POLLUTION_BUCKETS do
-         if SPAWNER_POLLUTION_BUCKETS[i] <= p then
+         if SPAWNER_POLLUTION_BUCKETS[i][1] <= p then
             level = i
          else
             break
@@ -113,6 +113,22 @@ mod.Spawner = decl("fa.scanner.backends.Spawner", {
       end
 
       return cat2(ent.name, tostring(level))
+   end,
+
+   ---@param ent LuaEntity
+   readout_callback = function(player, ent)
+      local result = SPAWNER_POLLUTION_BUCKETS[1][2]
+      local p = ent.absorbed_pollution
+      for i = 1, #SPAWNER_POLLUTION_BUCKETS do
+         if SPAWNER_POLLUTION_BUCKETS[i][1] <= p then
+            result = SPAWNER_POLLUTION_BUCKETS[i][2]
+         else
+            break
+         end
+      end
+
+      local info_string = Info.ent_info(player.index, ent, nil, true)
+      return { "fa.scanner-spawner-announce", info_string, result }
    end,
 })
 

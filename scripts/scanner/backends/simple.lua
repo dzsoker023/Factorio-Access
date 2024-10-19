@@ -55,7 +55,7 @@ end
 ---@class fa.scanner.backends.SimpleBackend: fa.scanner.ScannerBackend
 ---@field known_entities table<number, LuaEntity>
 ---@field entry_cache table<number, fa.scanner.ScanEntry>
----@field readout_callback fun(LuaEntity): LocalisedString
+---@field readout_callback fun(LuaPlayer, LuaEntity): LocalisedString
 ---@field category_callback(LuaEntity): fa.scanner.Category
 ---@field subcategory_callback fun(LuaEntity): fa.scanner.Subcategory
 
@@ -155,7 +155,7 @@ function SimpleBackend:on_new_tiles(tiles) end
 ---@class fa.scanner.SimpleBackendCallbacks
 ---@field category_callback (fun(e: LuaEntity):fa.scanner.Category)?
 ---@field subcategory_callback (fun(LuaEntity): fa.scanner.Subcategory)?
----@field readout_callback (fun(LuaEntity): LocalisedString)?
+---@field readout_callback (fun(LuaPlayer, LuaEntity): LocalisedString)?
 
 ---@param callbacks fa.scanner.SimpleBackendCallbacks
 ---@return fa.scanner.ScannerBackend
