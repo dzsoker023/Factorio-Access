@@ -46,6 +46,7 @@ mod.MiningDrill = decl("fa.scanner.backends.MiningDrill", {
       return cat2(ent.name, key_part)
    end,
 })
+
 mod.Furnace = decl("fa.scanner.backends.Furnace", {
    category_callback = functionize(SC.CATEGORIES.PRODUCTION),
    ---@param ent LuaEntity
@@ -97,7 +98,29 @@ mod.Production = decl_bound_category("fa.scanner.backends.Production", SC.CATEGO
 mod.Military = decl_bound_category("fa.scanner.backends.Military", SC.CATEGORIES.MILITARY)
 mod.Other = decl_bound_category("fa.scanner.backends.Other", SC.CATEGORIES.OTHER)
 mod.Remnants = decl_bound_category("fa.scanner.backends.Remnants", SC.CATEGORIES.REMNANTS)
-mod.Containers = decl_bound_category("fa.scanner.backends.Containers", SC.CATEGORIES.CONTAINERS)
+
+mod.Containers = decl("fa.scanner.backends.Containers", {
+   category_callback = functionize(SC.CATEGORIES.CONTAINERS),
+   ---@param ent LuaEntity
+   subcategory_callback = function(ent)
+      local itemset = ent.get_inventory(defines.inventory.chest).get_contents()
+      local subcat
+      -- This is a set not an array, and we care if it has 0, 1, or multiple
+      -- items. To do that, pull out the first two keys.
+      local key1 = next(itemset)
+      local key2 = next(itemset, key1)
+      local subcat
+      if key1 and not key2 then
+         subcat = key1
+      elseif not key1 then
+         subcat = "<EMPTY>"
+      else
+         subcat = "<MIXED>"
+      end
+      return cat2(ent.name, subcat)
+   end,
+})
+
 mod.Corpses = decl_bound_category("fa.scanner.backends.Corpses", SC.CATEGORIES.CORPSES)
 -- For rocks.
 mod.Rock = decl_bound_category("fa.scanner.backends.ResourceSingle", SC.CATEGORIES.RESOURCES)
