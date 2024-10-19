@@ -1,3 +1,19 @@
+# Version 0.15.1 BETA
+Released on October 19th, 2024.
+
+## Summary
+- This quick follow-up update fixes a launcher bug and re-adds the scanner tool feature of grouping chests by their contents.
+
+## Features
+- Re-added the scanner tool feature of grouping chests by their contents. For each type of chest (e.g. iron chest):
+  * All empty chests are in the empty group. E.g. empty iron chests.
+  * All chests with a single type of item in them are gouped according to the item. E.g. iron chests with copper plates or iron chests with rocket control units.
+  * All chests with more than one type of item in them are in the mixed group. E.g. iron chests with various items.
+
+## Bugfixes
+- Fixed a launcher bug that prevented loading saved games other than the last played one.
+
+
 # Version 0.15.0 BETA
 Released on October 19th, 2024.
 

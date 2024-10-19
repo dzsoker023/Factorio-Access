@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.15.1
+Date: 2024.10.19
+
+  Summary:
+    - This quick follow-up update fixes a launcher bug and re-adds the scanner tool feature of 
+      grouping chests by their contents.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.15.0
 Date: 2024.10.19
 
