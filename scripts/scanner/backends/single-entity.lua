@@ -122,7 +122,21 @@ mod.Containers = decl("fa.scanner.backends.Containers", {
 })
 
 mod.Corpses = decl_bound_category("fa.scanner.backends.Corpses", SC.CATEGORIES.CORPSES)
+
 -- For rocks.
 mod.Rock = decl_bound_category("fa.scanner.backends.ResourceSingle", SC.CATEGORIES.RESOURCES)
 
+-- When used on something with a fluidbox, group by the contained fluid.  In the
+-- rare case of multiple fluids, will group by one arbitrarily, not necessarily
+-- the same one each time.
+mod.LogisticsWithFluid = decl("fa.scanner.backends.LogisticsWithFluid", {
+   category_callback = functionize(SC.CATEGORIES.LOGISTICS),
+
+   ---@param ent LuaEntity
+   subcategory_callback = function(ent)
+      local fluids = ent.get_fluid_contents()
+      local fluid_name = next(fluids) or "<NONE>"
+      return cat2(ent.name, fluid_name)
+   end,
+})
 return mod

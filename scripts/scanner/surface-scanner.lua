@@ -68,7 +68,7 @@ local BACKEND_LUT = {
    ["heat-interface"] = SEB.Logistics,
    ["heat-pipe"] = SEB.Logistics,
    ["infinity-container"] = SEB.Containers,
-   ["infinity-pipe"] = SEB.Production,
+   ["infinity-pipe"] = SEB.LogisticsWithFluid,
    ["inserter"] = SEB.Logistics,
    ["item-entity"] = SEB.Other,
    ["lab"] = SEB.Production,
@@ -84,8 +84,8 @@ local BACKEND_LUT = {
    ["market"] = SEB.Logistics,
    ["mining-drill"] = SEB.MiningDrill,
    ["offshore-pump"] = SEB.Production,
-   ["pipe-to-ground"] = SEB.Logistics,
-   ["pipe"] = SEB.Logistics,
+   ["pipe-to-ground"] = SEB.LogisticsWithFluid,
+   ["pipe"] = SEB.LogisticsWithFluid,
    ["player-port"] = SEB.Other,
    ["power-switch"] = SEB.Logistics,
    ["programmable-speaker"] = SEB.Logistics,
@@ -107,7 +107,7 @@ local BACKEND_LUT = {
    ["solar-panel"] = SEB.Logistics,
    ["spider-vehicle"] = SEB.Vehicle,
    ["splitter"] = SEB.Logistics,
-   ["storage-tank"] = SEB.Logistics,
+   ["storage-tank"] = SEB.LogisticsWithFluid,
    ["straight-rail"] = SEB.TrainsSimple,
    ["tile-ghost"] = SEB.Ghosts,
    ["train-stop"] = SEB.TrainsSimple,
@@ -200,7 +200,7 @@ end
 local surface_state = GlobalManager.declare_global_module(
    "scanner",
    new_empty_surface,
-   { root_field = "surfaces", ephemeral_state_version = 1 }
+   { root_field = "surfaces", ephemeral_state_version = 2 }
 )
 
 -- Given a backend setup and an array of entities, dispatch the entities to the
