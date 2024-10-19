@@ -181,4 +181,14 @@ mod.LogisticsWithFluid = decl("fa.scanner.backends.LogisticsWithFluid", {
       return cat2(ent.name, fluid_name)
    end,
 })
+
+-- Roboports are categorized by network name.
+mod.Roboport = decl("fa.scanner.backends.Roboport", {
+   category_callback = functionize(SC.CATEGORIES.LOGISTICS),
+
+   ---@param ent LuaEntity
+   subcategory_callback = function(ent)
+      return cat2(ent.name, ent.backer_name)
+   end,
+})
 return mod

@@ -97,7 +97,7 @@ local BACKEND_LUT = {
    ["rail-signal"] = SEB.TrainsSimple,
    ["reactor"] = SEB.Logistics,
    ["resource"] = ResourcePatchesBackend.ResourcePatchesBackend,
-   ["roboport"] = SEB.Logistics,
+   ["roboport"] = SEB.Roboport,
    ["rocket-silo-rocket-shadow"] = SEB.Other,
    ["rocket-silo-rocket"] = SEB.Other,
    ["rocket-silo"] = SEB.Production,
@@ -200,7 +200,7 @@ end
 local surface_state = GlobalManager.declare_global_module(
    "scanner",
    new_empty_surface,
-   { root_field = "surfaces", ephemeral_state_version = 3 }
+   { root_field = "surfaces", ephemeral_state_version = 4 }
 )
 
 -- Given a backend setup and an array of entities, dispatch the entities to the
