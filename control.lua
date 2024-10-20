@@ -3061,7 +3061,7 @@ script.on_event("cursor-bookmark-save", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    local pos = players[pindex].cursor_pos
-   players[pindex].cursor_bookmark = pos
+   players[pindex].cursor_bookmark = table.deepcopy(pos)
    printout("Saved cursor bookmark at " .. math.floor(pos.x) .. ", " .. math.floor(pos.y), pindex)
    game.get_player(pindex).play_sound({ path = "Close-Inventory-Sound" })
 end)
