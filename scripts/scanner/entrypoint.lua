@@ -446,6 +446,10 @@ local function announce_cursor_pos(pindex, ps)
       -- And for the same reason--we shouldn't be caching tile contents, but we do.
       refresh_player_tile(pindex)
       announcing.backend:update_entry(pobj, announcing)
+      -- Until we have a cursor module or the like, we must then manually try to
+      -- select the entity if there is one.
+      local new_ent = get_first_ent_at_tile(pindex)
+      if new_ent then pobj.selected = new_ent end
       printout({
          "fa.scanner-full-presentation",
          announcing.backend:readout_entry(pobj, announcing),
