@@ -8124,22 +8124,6 @@ script.on_event(defines.events.on_train_changed_state, function(event)
          end
       end
    end
-   --Check if the train has temporary stops and note this for its passengers
-   if fa_trains.schedule_contains_temporary_stops(event.train) == true then
-      for i, player in ipairs(event.train.passengers) do
-         players[player.index].train_has_temporary_stops = true
-      end
-   else
-      --If not, check if any passangers recently noted that there was a temporary train stop (meaning that you arrived)
-      for i, player in ipairs(event.train.passengers) do
-         if players[player.index].train_has_temporary_stops == true then
-            event.train.manual_mode = true
-            local str = "Temporary travel complete, switched to manual control"
-            printout(str, player.index)
-         end
-         players[player.index].train_has_temporary_stops = false
-      end
-   end
 end)
 
 --If a filter inserter is selected, the item in hand is set as its output filter item.

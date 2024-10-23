@@ -1032,9 +1032,7 @@ function mod.go_to_valid_train_stop_from_list(pindex, train)
 
    --Set the station target
    local wait_condition_1 = { type = "passenger_not_present", compare_type = "and" }
-   local wait_condition_2 = { type = "time", ticks = 60, compare_type = "and" }
-   local new_record = { wait_conditions = nil, station = name, temporary = true }
-   --local new_record = { wait_conditions = { wait_condition_1, wait_condition_2 }, station = name, temporary = true }
+   local new_record = { wait_conditions = { wait_condition_1 }, station = name, temporary = true }
 
    local schedule = train.schedule
    if schedule == nil then
@@ -1042,6 +1040,11 @@ function mod.go_to_valid_train_stop_from_list(pindex, train)
    --game.get_player(pindex).print("made new schedule")
    else
       local records = schedule.records
+      -- If other temporary stops are present they are probably from us. For
+      -- example sending a train to a station multiple times without leaving it.
+      for i = #records, 1, -1 do
+         if records[i].temporary == true then table.remove(records, i) end
+      end
       table.insert(records, 1, new_record)
    end
    train.schedule = schedule
