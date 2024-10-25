@@ -2,7 +2,7 @@
 Released on October 25th, 2024.
 
 ## Summary
-- This update improves the grouping of the new scanner and fixes some bugs.
+- This quick update improves the grouping of the new scanner and fixes some bugs in the scanner and the launcher.
 
 ## Changes
 - Scanner selected entities now get selected by the cursor too, as with the old scanner.
@@ -38,6 +38,10 @@ Released on October 19th, 2024.
 
 ## Bugfixes
 - Fixed a launcher bug that prevented loading saved games other than the last played one.
+
+- Launcher: Fixed a crash on attempted new games from the custom new game menu.
+
+- Launcher: Fixed a crash in the menu when an autoplace can't be disabled.
 
 
 # Version 0.15.0 BETA
