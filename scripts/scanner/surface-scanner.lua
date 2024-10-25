@@ -200,7 +200,7 @@ end
 local surface_state = GlobalManager.declare_global_module(
    "scanner",
    new_empty_surface,
-   { root_field = "surfaces", ephemeral_state_version = 6 }
+   { root_field = "surfaces", ephemeral_state_version = 7 }
 )
 
 -- Given a backend setup and an array of entities, dispatch the entities to the
