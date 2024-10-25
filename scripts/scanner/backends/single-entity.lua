@@ -30,7 +30,7 @@ mod.CraftingMachine = decl("fa.scanner.backends.CraftingMachine", {
    subcategory_callback = function(ent)
       local r = ent.get_recipe()
       local rn = r and r.name or "<UNCONFIGURED>"
-      return cat2(ent.type, rn)
+      return cat2(ent.name, rn)
    end,
 })
 
