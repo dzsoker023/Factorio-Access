@@ -1,3 +1,29 @@
+# Version 0.15.2 BETA
+Released on October 25th, 2024.
+
+## Summary
+- This update improves the grouping of the new scanner and fixes some bugs.
+
+## Changes
+- Scanner selected entities now get selected by the cursor too, as with the old scanner.
+
+- Improvements to the new scanner grouping and reporting.
+  * Pipes and storage tanks are grouped by which fluid they contain.
+  * Pipe ends have a group of their own because typically they point to unfinished pipe construction and thus should be found quickly. 
+  * Spawners are grouped and also identified by how polluted they are (note that they do not take in any pollution in peaceful mode).
+  * Roboports are grouped by the network they belong to.
+
+- Renamed a scanner building group.
+  * Power production buildings are grouped with logistics buildings so that building categories are populated a little more equally. Hence the new category is now more appropriately named as "logistics and power".
+
+## Bugfixes
+- Bookmark locations are now saved correctly so that they do not move unintentionally when the cursor moves.
+
+- Fixed a scanner grouping bug that put various unconfigured crafting machines in the same group, such as oil refineries and chemical plants when they both have no recipes set.
+
+- Single-time train travel has been reverted such that a train resumes its old schedule after the player exits upon arriving at the temporary station. This was needed for fixing an issue about trains skipping stations.
+
+
 # Version 0.15.1 BETA
 Released on October 19th, 2024.
 
