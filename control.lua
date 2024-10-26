@@ -7281,6 +7281,16 @@ function cursor_skip_iteration(pindex, direction, iteration_limit)
             --Water tile -> non-water tile found
             return moved
          else
+            --For audio rulers, stop if crossing into or out of alignment with any rulers
+            local current_tile_is_ruler_aligned = Rulers.is_any_ruler_aligned(pindex, players[pindex].cursor_pos)
+            if start_tile_is_ruler_aligned ~= current_tile_is_ruler_aligned then
+               Rulers.update_from_cursor(pindex)
+               return moved
+            --Also for rulers, stop if at the definiton point of any ruler
+            elseif Rulers.is_at_any_ruler_definition(pindex, players[pindex].cursor_pos) then
+               Rulers.update_from_cursor(pindex)
+               return moved
+            end
             --Iterate again
             players[pindex].cursor_pos = fa_utils.offset_position(players[pindex].cursor_pos, direction, 1)
             selected_tile_is_water = fa_utils.tile_is_water(p.surface, players[pindex].cursor_pos)

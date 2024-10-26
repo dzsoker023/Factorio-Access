@@ -1,5 +1,5 @@
 # Version 0.15.2 BETA
-Released on October 25th, 2024.
+Released on October 26th, 2024.
 
 ## Summary
 - This quick update improves the grouping of the new scanner and fixes some bugs in the scanner and the launcher.
@@ -22,6 +22,8 @@ Released on October 25th, 2024.
 - Fixed a scanner grouping bug that put various unconfigured crafting machines in the same group, such as oil refineries and chemical plants when they both have no recipes set.
 
 - Single-time train travel has been reverted such that a train resumes its old schedule after the player exits upon arriving at the temporary station. This was needed for fixing an issue about trains skipping stations.
+
+- Fixed that cursor skipping does not pick up audio rulers when starting over water.
 
 
 # Version 0.15.1 BETA
