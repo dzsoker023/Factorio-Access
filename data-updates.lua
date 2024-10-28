@@ -1,4 +1,5 @@
 local Consts = require("scripts.consts")
+local DataToRuntimeMap = require("scripts.data-to-runtime-map")
 
 for name, proto in pairs(data.raw.container) do
    proto.open_sound = proto.open_sound or { filename = "__base__/sound/metallic-chest-open.ogg", volume = 0.43 }
@@ -151,23 +152,8 @@ If nil we just don't write anything after the =.
 local resource_search_radiuses = {}
 
 for name, proto in pairs(data.raw["resource"]) do
-   if proto.type == "resource" then
-      local line = {}
-      table.insert(line, name)
-      table.insert(line, "=")
-      local sr = proto.resource_patch_search_radius or 3
-      table.insert(line, tostring(sr))
-      table.insert(resource_search_radiuses, table.concat(line))
-   end
+   if proto.type == "resource" then resource_search_radiuses[name] = proto.resource_patch_search_radius or 3 end
 end
 
-data:extend({
-   {
-      type = "item",
-      name = Consts.RESOURCE_SEARCH_RADIUSES_ITEM,
-      icon = data.raw.item.accumulator.icon,
-      icon_size = 2,
-      stack_size = 1,
-      localised_description = table.concat(resource_search_radiuses, "\n"),
-   },
-})
+local DataToRuntimeMap = require("scripts.data-to-runtime-map")
+DataToRuntimeMap.build(Consts.RESOURCE_SEARCH_RADIUSES_MAP_NAME, resource_search_radiuses)

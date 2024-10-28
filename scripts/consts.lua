@@ -11,6 +11,6 @@ local mod = {}
 -- https://lua-api.factorio.com/latest/types/ScriptTriggerEffectItem.html#effect_id
 mod.NEW_ENTITY_SUBSCRIBER_TRIGGER_ID = "fa.subscribe-to-new-entities"
 
-mod.RESOURCE_SEARCH_RADIUSES_ITEM = "fa-resource-radiuses-proto"
+mod.RESOURCE_SEARCH_RADIUSES_MAP_NAME = "resource-search-radiuses"
 
 return mod

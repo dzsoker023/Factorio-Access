@@ -1,4 +1,5 @@
 local Consts = require("scripts.consts")
+local DataToRuntimeMap = require("scripts.data-to-runtime-map")
 local FaInfo = require("scripts.fa-info")
 local FaUtils = require("scripts.fa-utils")
 local Functools = require("scripts.functools")
@@ -10,15 +11,12 @@ local mod = {}
 
 ---@type function(): table<string, number>
 local PROTOTYPE_SEARCH_RADIUSES = Functools.cached(function()
-   local ln = game.item_prototypes[Consts.RESOURCE_SEARCH_RADIUSES_ITEM].localised_description
-   ---@cast ln string
-   local ret = {}
-
-   for name, c in ln:gmatch("([^=]*)=(%d*)") do
-      ret[name] = tonumber(c)
+   local loaded = DataToRuntimeMap.load(Consts.RESOURCE_SEARCH_RADIUSES_MAP_NAME)
+   local res = {}
+   for k, v in pairs(loaded) do
+      res[k] = tonumber(v)
    end
-
-   return ret
+   return res
 end)
 
 ---@class fa.scanner.ResourcePatch
