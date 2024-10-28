@@ -95,7 +95,9 @@ function ResourcePatchesBackend:get_clusterer_for(proto)
    -- it is the case that the resource search distance is optional, we're a mod
    -- trying to do this reasonably so we just pull a default out of the air.
    local search_radius = PROTOTYPE_SEARCH_RADIUSES()[proto]
-   search_radius = search_radius or 10
+   -- We are careful to default this when declaring the map, so not finding one
+   -- is a bug; trees have long since been moved to their own clusterer.
+   assert(search_radius)
 
    local nc = clusterer_fact(search_radius)
 
