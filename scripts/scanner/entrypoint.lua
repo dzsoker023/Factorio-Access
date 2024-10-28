@@ -363,6 +363,9 @@ local function move_in_subcategory(pindex, ps, dir)
 
    if
       not ps.scanner_cursor.category
+      -- Can happen on the first scan of a save after an update which wipes out
+      -- state.
+      or not ps.entries[ps.scanner_cursor.category]
       or not next(ps.entries[ps.scanner_cursor.category])
       or not ps.entries[ps.scanner_cursor.category][ps.scanner_cursor.subcategory_index]
    then
