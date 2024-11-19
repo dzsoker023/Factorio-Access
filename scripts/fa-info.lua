@@ -1164,7 +1164,7 @@ end
 
 --Reports the charting range of a radar and how much of it has been charted so far.
 function mod.radar_charting_info(radar)
-   local charting_range = radar.prototype.max_distance_of_sector_revealed
+   local charting_range = radar.prototype.get_max_distance_of_sector_revealed()
    local count = 0
    local total = 0
    local centerx = math.floor(radar.position.x / 32)
