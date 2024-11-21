@@ -384,6 +384,8 @@ local function get_circuit_read_mode_name(ent)
       if control.read_contents == true then
          if control.read_contents_mode == dcb.transport_belt.content_read_mode.hold then
             result = "Reading held items"
+         elseif control.read_contents_mode == dcb.transport_belt.content_read_mode.entire_belt_hold then
+            result = "reading content from the whole belt"
          elseif control.read_contents_mode == dcb.transport_belt.content_read_mode.pulse then
             result = "pulsing passing items"
          end
@@ -441,6 +443,10 @@ local function toggle_circuit_read_mode(ent)
          control.read_contents_mode = dcb.transport_belt.content_read_mode.hold
          result = "Reading held items"
       elseif control.read_contents_mode == dcb.transport_belt.content_read_mode.hold then
+         control.read_contents = true
+         control.read_contents_mode = dcb.transport_belt.content_read_mode.entire_belt_hold	
+         result = "reading the contents from the whole belt"
+      elseif control.read_contents_mode == dcb.transport_belt.content_read_mode.entire_belt_hold then
          control.read_contents = true
          control.read_contents_mode = dcb.transport_belt.content_read_mode.pulse
          result = "pulsing passing items"
