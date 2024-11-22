@@ -1083,6 +1083,7 @@ function mod.ent_info(pindex, ent, is_scanner)
                if active_filter_count > 1 then filter_result = filter_result .. " and " end
                local local_name = Localising.get(prototypes.item[filt.name], pindex)
                if local_name == nil then local_name = tostring(filt.name) or " unknown item " end
+               if filter_result == nil then filter_result ="" end 
                filter_result = filter_result .. local_name
             end
          end
