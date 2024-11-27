@@ -75,7 +75,7 @@ local function present_list(list, truncate, protos)
 
    -- Careful: this is actually a reverse sort.
    table.sort(final, function(a, b)
-      if a.count == b.count and a.name == b.name then
+      if a.count == b.count and a.name.name == b.name.name then
          return a.quality.level > b.quality.level
       elseif a.count == b.count then
          --return a.name > b.name
