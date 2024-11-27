@@ -123,7 +123,7 @@ local function ent_info_facing(ctx)
 
    if
       (ent.prototype.is_building and ent.supports_direction)
-      or (ent.name == "entity-ghost" and ent.ghost_prototype.is_building and ent.ghost_prototype.supports_direction)
+      or (ent.type == "entity-ghost" and ent.ghost_prototype.is_building and ent.ghost_prototype.supports_direction)
    then
       effective_direction = FaUtils.direction_lookup(ent.direction)
       if ent.type == "generator" then
@@ -290,18 +290,6 @@ local function ent_info_resource(ctx)
          local percentage = ent.prototype.normal_resource_amount / 100
          ctx.message:fragment({ "fa.ent-info-resource-infinite", percentage })
       end
-   end
-end
-
----@param ctx fa.Info.EntInfoContext
-local function ent_info_ghost(ctx)
-   local ent = ctx.ent
-   if ent.name == "entity-ghost" then
-      ctx.message:fragment({
-         "fa.ent-info-ghost",
-         Localising.get_localised_name_with_fallback(ent.ghost_prototype),
-         Localising.get_localised_name_with_fallback(ent.prototype),
-      })
    end
 end
 
@@ -888,6 +876,10 @@ local function ent_info_pole_neighbors(ctx)
             local a_dist = FaUtils.distance(a.position, ctx.cursor_pos)
             local b_dist = FaUtils.distance(b.position, ctx.cursor_pos)
             if a_dist < b_dist then return true end
+            -- Careful: if the distances aren't equal then continuing is a bad
+            -- sort function.
+            if a_dist > b_dist then return false end
+
             -- We want the 8-way direction here, as there is little point in
             -- reporting 16-way for poles.
             local a_dir = FaUtils.get_direction_biased(a.position, ctx.cursor_pos)
@@ -1002,8 +994,17 @@ function mod.ent_info(pindex, ent, is_scanner)
       cursor_pos = { x = players[pindex].cursor_pos.x, y = players[pindex].cursor_pos.y },
    }
 
-   ctx.message:fragment(Localising.get_localised_name_with_fallback(ent))
-
+   -- We need to special case ghosts, so that we can fold the "x of y" in, e.g.
+   -- "entity ghost of transport belt".
+   if ent.type == "entity-ghost" or ent.type == "tile-ghost" then
+      ctx.message:fragment({
+         "fa.ent-info-ghost",
+         Localising.get_localised_name_with_fallback(ent),
+         Localising.get_localised_name_with_fallback(ent.ghost_prototype),
+      })
+   else
+      ctx.message:fragment(Localising.get_localised_name_with_fallback(ent))
+   end
    local function run_handler(handler, nolist)
       handler(ctx)
       if not nolist then ctx.message:list_item() end
@@ -1034,7 +1035,6 @@ function mod.ent_info(pindex, ent, is_scanner)
    run_handler(ent_info_pole_neighbors, true)
 
    run_handler(ent_info_resource)
-   run_handler(ent_info_ghost)
    run_handler(ent_info_rail)
    run_handler(ent_info_character)
    run_handler(ent_info_character_corpse)
