@@ -78,7 +78,7 @@ local function present_list(list, truncate, protos)
       if a.count == b.count and a.name == b.name then
          return a.quality.level > b.quality.level
       elseif a.count == b.count then
-         return a.name > b.name
+         --return a.name > b.name
       else
          return a.count > b.count
       end
@@ -1083,13 +1083,12 @@ function mod.ent_info(pindex, ent, is_scanner)
                if active_filter_count > 1 then filter_result = filter_result .. " and " end
                local local_name = Localising.get(prototypes.item[filt.name], pindex)
                if local_name == nil then local_name = tostring(filt.name) or " unknown item " end
-               if filter_result == nil then filter_result ="" end 
-               filter_result = filter_result .. local_name
+               if filter_result == nil then filter_result =local_name else filter_result = filter_result .. local_name end 
             end
          end
          if active_filter_count > 0 then
             ctx.message:fragment(filter_result)
-            run_handler(",")
+            --run_handler(",")
          end
       end
       --Read held item

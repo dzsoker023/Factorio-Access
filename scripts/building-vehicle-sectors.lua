@@ -168,6 +168,7 @@ function mod.open_operable_building(ent, pindex)
          for i = 1, ent.filter_slot_count do
             local filter = ent.get_filter(i)
             if filter == nil then filter = "No filter selected." end
+            if type(filter) == "table" then filter=filter.name .. ", with quality set to " .. filter.quality end
             table.insert(players[pindex].building.sectors[#players[pindex].building.sectors].inventory, filter)
          end
          table.insert(
