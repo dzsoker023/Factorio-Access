@@ -740,7 +740,9 @@ function mod.queue_announce(pindex)
 
    local joining = {}
    for _, t in pairs(queue) do
-      table.insert(joining, tech_name_string(player.force.technologies[t]))
+      local tech = player.force.technologies[t]  -- Get the Technology object
+      local tech_name = tech.localised_name[1]  -- Get the localization key (string)
+      table.insert(joining, tech_name_string(tech_name))  -- Pass the string to your function
    end
    local joined = FaUtils.localise_cat_table(joining, ", ")
 

@@ -686,7 +686,7 @@ end
 
 local function toggle_condition_comparator(ent, pindex, comparator_in_words)
    local circuit_condition = ent.get_control_behavior().circuit_condition
-   local cond = circuit_condition.condition
+   local cond = circuit_condition
    local comparator = cond.comparator
    if comparator == "=" then
       comparator = "≠"
@@ -704,7 +704,7 @@ local function toggle_condition_comparator(ent, pindex, comparator_in_words)
       comparator = "="
    end
    cond.comparator = comparator
-   circuit_condition.condition = cond
+   circuit_condition= cond
    ent.get_control_behavior().circuit_condition = circuit_condition
 
    if comparator_in_words == true then

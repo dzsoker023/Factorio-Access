@@ -149,8 +149,8 @@ function mod.rail_ent_info(pindex, ent, description)
    --Check if there is a train stop nearby, to announce station spaces
    if is_horz_or_vert then
       local stop = nil
-      local segment_ent_1 = ent.get_rail_segment_entity(defines.rail_direction.front, false)
-      local segment_ent_2 = ent.get_rail_segment_entity(defines.rail_direction.back, false)
+      local segment_ent_1 = ent.get_rail_segment_stop(defines.rail_direction.front)
+      local segment_ent_2 = ent.get_rail_segment_stop(defines.rail_direction.back)
       if
          segment_ent_1 ~= nil
          and segment_ent_1.name == "train-stop"
