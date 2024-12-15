@@ -30,11 +30,15 @@ local fa_warnings = require("scripts.warnings")
 local fa_circuits = require("scripts.circuit-networks")
 local fa_kk = require("scripts.kruise-kontrol-wrapper")
 local fa_quickbar = require("scripts.quickbar")
+local BeltAnalyzer = require("scripts.ui.belt-analyzer")
 local FaCommands = require("scripts.fa-commands")
+local Filters = require("scripts.filters")
 local Consts = require("scripts.consts")
+local F = require("scripts.field-ref")
 local Research = require("scripts.research")
 local Rulers = require("scripts.rulers")
 local ScannerEntrypoint = require("scripts.scanner.entrypoint")
+local TH = require("scripts.table-helpers")
 local WorkQueue = require("scripts.work-queue")
 
 ---@meta scripts.shared-types
@@ -297,7 +301,7 @@ function read_inventory_slot(pindex, start_phrase_in, inv_in)
       --Label it as an empty slot
       result = result .. "Empty Slot"
       --Check if the empty slot has a filter set
-      local filter_name = p.get_main_inventory().get_filter(index)
+      local filter_name = Filters.get_filter_prototype(p.get_main_inventory(), index)
       if filter_name ~= nil then
          result = result .. " filtered for " .. filter_name --laterdo localise this name
       end
@@ -310,7 +314,7 @@ function read_inventory_slot(pindex, start_phrase_in, inv_in)
       printout(fa_blueprints.get_blueprint_book_info(stack, false), pindex)
    elseif stack.valid_for_read then
       --Check if the slot is filtered
-      local filter_name = p.get_main_inventory().get_filter(index)
+      local filter_name = Filters.get_filter_prototype(p.get_main_inventory(), index)
       if filter_name ~= nil then result = result .. " filtered " end
       --Check if the stack has damage
       if stack.health < 1 then result = result .. " damaged " end
@@ -1589,49 +1593,7 @@ function menu_cursor_up(pindex)
    elseif players[pindex].menu == "technology" then
       Research.menu_move_vertical(pindex, -1)
    elseif players[pindex].menu == "belt" then
-      if players[pindex].belt.sector == 1 then
-         if
-            (players[pindex].belt.side == 1 and players[pindex].belt.line1.valid and players[pindex].belt.index > 1)
-            or (players[pindex].belt.side == 2 and players[pindex].belt.line2.valid and players[pindex].belt.index > 1)
-         then
-            game.get_player(pindex).play_sound({ path = "Inventory-Move" })
-            players[pindex].belt.index = players[pindex].belt.index - 1
-         end
-      elseif players[pindex].belt.sector == 2 then
-         local max = 0
-         if players[pindex].belt.side == 1 then
-            max = #players[pindex].belt.network.combined.left
-         elseif players[pindex].belt.side == 2 then
-            max = #players[pindex].belt.network.combined.right
-         end
-         if players[pindex].belt.index > 1 then
-            game.get_player(pindex).play_sound({ path = "Inventory-Move" })
-            players[pindex].belt.index = math.min(players[pindex].belt.index - 1, max)
-         end
-      elseif players[pindex].belt.sector == 3 then
-         local max = 0
-         if players[pindex].belt.side == 1 then
-            max = #players[pindex].belt.network.downstream.left
-         elseif players[pindex].belt.side == 2 then
-            max = #players[pindex].belt.network.downstream.right
-         end
-         if players[pindex].belt.index > 1 then
-            game.get_player(pindex).play_sound({ path = "Inventory-Move" })
-            players[pindex].belt.index = math.min(players[pindex].belt.index - 1, max)
-         end
-      elseif players[pindex].belt.sector == 4 then
-         local max = 0
-         if players[pindex].belt.side == 1 then
-            max = #players[pindex].belt.network.upstream.left
-         elseif players[pindex].belt.side == 2 then
-            max = #players[pindex].belt.network.upstream.right
-         end
-         if players[pindex].belt.index > 1 then
-            game.get_player(pindex).play_sound({ path = "Inventory-Move" })
-            players[pindex].belt.index = math.min(players[pindex].belt.index - 1, max)
-         end
-      end
-      fa_belts.read_belt_slot(pindex)
+      BeltAnalyzer.belt_analyzer:on_up(pindex)
    elseif players[pindex].menu == "warnings" then
       if players[pindex].warnings.category > 1 then
          players[pindex].warnings.category = players[pindex].warnings.category - 1
@@ -1835,49 +1797,7 @@ function menu_cursor_down(pindex)
    elseif players[pindex].menu == "technology" then
       Research.menu_move_vertical(pindex, 1)
    elseif players[pindex].menu == "belt" then
-      if players[pindex].belt.sector == 1 then
-         if
-            (players[pindex].belt.side == 1 and players[pindex].belt.line1.valid and players[pindex].belt.index < 4)
-            or (players[pindex].belt.side == 2 and players[pindex].belt.line2.valid and players[pindex].belt.index < 4)
-         then
-            game.get_player(pindex).play_sound({ path = "Inventory-Move" })
-            players[pindex].belt.index = players[pindex].belt.index + 1
-         end
-      elseif players[pindex].belt.sector == 2 then
-         local max = 0
-         if players[pindex].belt.side == 1 then
-            max = #players[pindex].belt.network.combined.left
-         elseif players[pindex].belt.side == 2 then
-            max = #players[pindex].belt.network.combined.right
-         end
-         if players[pindex].belt.index < max then
-            game.get_player(pindex).play_sound({ path = "Inventory-Move" })
-            players[pindex].belt.index = math.min(players[pindex].belt.index + 1, max)
-         end
-      elseif players[pindex].belt.sector == 3 then
-         local max = 0
-         if players[pindex].belt.side == 1 then
-            max = #players[pindex].belt.network.downstream.left
-         elseif players[pindex].belt.side == 2 then
-            max = #players[pindex].belt.network.downstream.right
-         end
-         if players[pindex].belt.index < max then
-            game.get_player(pindex).play_sound({ path = "Inventory-Move" })
-            players[pindex].belt.index = math.min(players[pindex].belt.index + 1, max)
-         end
-      elseif players[pindex].belt.sector == 4 then
-         local max = 0
-         if players[pindex].belt.side == 1 then
-            max = #players[pindex].belt.network.upstream.left
-         elseif players[pindex].belt.side == 2 then
-            max = #players[pindex].belt.network.upstream.right
-         end
-         if players[pindex].belt.index < max then
-            game.get_player(pindex).play_sound({ path = "Inventory-Move" })
-            players[pindex].belt.index = math.min(players[pindex].belt.index + 1, max)
-         end
-      end
-      fa_belts.read_belt_slot(pindex)
+      BeltAnalyzer.belt_analyzer:on_down(pindex)
    elseif players[pindex].menu == "warnings" then
       local warnings = {}
       if players[pindex].warnings.sector == 1 then
@@ -2071,15 +1991,7 @@ function menu_cursor_left(pindex)
    elseif players[pindex].menu == "technology" then
       Research.menu_move_horizontal(pindex, -1)
    elseif players[pindex].menu == "belt" then
-      if players[pindex].belt.side == 2 then
-         players[pindex].belt.side = 1
-         game.get_player(pindex).play_sound({ path = "Inventory-Move" })
-         if not pcall(function()
-            fa_belts.read_belt_slot(pindex)
-         end) then
-            printout("Blank", pindex)
-         end
-      end
+      BeltAnalyzer.belt_analyzer:on_left(pindex)
    elseif players[pindex].menu == "warnings" then
       if players[pindex].warnings.index > 1 then
          players[pindex].warnings.index = players[pindex].warnings.index - 1
@@ -2216,15 +2128,7 @@ function menu_cursor_right(pindex)
    elseif players[pindex].menu == "technology" then
       Research.menu_move_horizontal(pindex, 1)
    elseif players[pindex].menu == "belt" then
-      if players[pindex].belt.side == 1 then
-         players[pindex].belt.side = 2
-         game.get_player(pindex).play_sound({ path = "Inventory-Move" })
-         if not pcall(function()
-            fa_belts.read_belt_slot(pindex)
-         end) then
-            printout("Blank", pindex)
-         end
-      end
+      BeltAnalyzer.belt_analyzer:on_right(pindex)
    elseif players[pindex].menu == "warnings" then
       local warnings = {}
       if players[pindex].warnings.sector == 1 then
@@ -2781,6 +2685,7 @@ script.on_event(defines.events.on_player_driving_changed_state, function(event)
 end)
 
 --Pause / resume the game. If a menu GUI is open, ESC makes it close the menu instead
+---@param event EventData.CustomInputEvent
 script.on_event("pause-game-fa", function(event)
    local pindex = event.player_index
    --game.get_player(pindex).close_map()
@@ -2812,23 +2717,28 @@ script.on_event("pause-game-fa", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-up", function(event)
    move_key(defines.direction.north, event)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-down", function(event)
    move_key(defines.direction.south, event)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-left", function(event)
    move_key(defines.direction.west, event)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-right", function(event)
    move_key(defines.direction.east, event)
 end)
 
 --Read coordinates of the cursor. Extra info as well such as entity part if an entity is selected, and heading and speed info for vehicles.
+---@param event EventData.CustomInputEvent
 script.on_event("read-cursor-coords", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -2836,6 +2746,7 @@ script.on_event("read-cursor-coords", function(event)
 end)
 
 --Get distance and direction of cursor from player.
+---@param event EventData.CustomInputEvent
 script.on_event("read-cursor-distance-and-direction", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -2872,6 +2783,7 @@ script.on_event("read-cursor-distance-and-direction", function(event)
 end)
 
 --Get distance and direction of cursor from player as a vector with a horizontal component and vertical component.
+---@param event EventData.CustomInputEvent
 script.on_event("read-cursor-distance-vector", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -2912,6 +2824,7 @@ script.on_event("read-cursor-distance-vector", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("read-character-coords", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -2926,11 +2839,13 @@ script.on_event("read-character-coords", function(event)
 end)
 
 --Returns the cursor to the player position.
+---@param event EventData.CustomInputEvent
 script.on_event("return-cursor-to-player", function(event)
    pindex = event.player_index
    return_cursor_to_character(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-bookmark-save", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -2940,6 +2855,7 @@ script.on_event("cursor-bookmark-save", function(event)
    game.get_player(pindex).play_sound({ path = "Close-Inventory-Sound" })
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-bookmark-load", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -2952,6 +2868,7 @@ script.on_event("cursor-bookmark-load", function(event)
    game.get_player(pindex).play_sound({ path = "Close-Inventory-Sound" })
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("ruler-save", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -2961,12 +2878,14 @@ script.on_event("ruler-save", function(event)
    game.get_player(pindex).play_sound({ path = "Close-Inventory-Sound" })
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("ruler-clear", function(event)
    local pindex = event.player_index
    Rulers.clear_rulers(pindex)
    printout("Cleared rulers", pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("blueprint-book-create", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -2974,24 +2893,28 @@ script.on_event("blueprint-book-create", function(event)
    if p.is_cursor_empty then p.cursor_stack.set_stack("blueprint-book") end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("type-cursor-target", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    type_cursor_position(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("teleport-to-cursor", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    fa_teleport.teleport_to_cursor(pindex, false, false, false)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("teleport-to-cursor-forced", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    fa_teleport.teleport_to_cursor(pindex, false, true, false)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("teleport-to-alert-forced", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3010,6 +2933,7 @@ script.on_event("teleport-to-alert-forced", function(event)
    refresh_player_tile(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("toggle-cursor", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3019,6 +2943,7 @@ script.on_event("toggle-cursor", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("toggle-remote-view", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3029,6 +2954,7 @@ script.on_event("toggle-remote-view", function(event)
 end)
 
 --We have cursor sizes 1,3,5,11,21,51,101,251
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-size-increment", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3067,6 +2993,7 @@ script.on_event("cursor-size-increment", function(event)
 end)
 
 --We have cursor sizes 1,3,5,11,21,51,101,251
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-size-decrement", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3104,6 +3031,7 @@ script.on_event("cursor-size-decrement", function(event)
    game.get_player(pindex).play_sound({ path = "Close-Inventory-Sound", volume_modifier = 0.75 })
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("increase-inventory-bar-by-1", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3115,6 +3043,7 @@ script.on_event("increase-inventory-bar-by-1", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("increase-inventory-bar-by-5", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3126,6 +3055,7 @@ script.on_event("increase-inventory-bar-by-5", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("increase-inventory-bar-by-100", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3137,6 +3067,7 @@ script.on_event("increase-inventory-bar-by-100", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("decrease-inventory-bar-by-1", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3148,6 +3079,7 @@ script.on_event("decrease-inventory-bar-by-1", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("decrease-inventory-bar-by-5", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3159,6 +3091,7 @@ script.on_event("decrease-inventory-bar-by-5", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("decrease-inventory-bar-by-100", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3170,6 +3103,7 @@ script.on_event("decrease-inventory-bar-by-100", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("increase-train-wait-times-by-5", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3180,6 +3114,7 @@ script.on_event("increase-train-wait-times-by-5", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("increase-train-wait-times-by-60", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3190,6 +3125,7 @@ script.on_event("increase-train-wait-times-by-60", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("decrease-train-wait-times-by-5", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3200,6 +3136,7 @@ script.on_event("decrease-train-wait-times-by-5", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("decrease-train-wait-times-by-60", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3210,6 +3147,7 @@ script.on_event("decrease-train-wait-times-by-60", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("inserter-hand-stack-size-up", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3223,6 +3161,7 @@ script.on_event("inserter-hand-stack-size-up", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("inserter-hand-stack-size-down", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3236,6 +3175,7 @@ script.on_event("inserter-hand-stack-size-down", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("read-rail-structure-ahead", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3248,6 +3188,7 @@ script.on_event("read-rail-structure-ahead", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("read-driving-structure-ahead", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3270,6 +3211,7 @@ script.on_event("read-driving-structure-ahead", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("read-rail-structure-behind", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3282,11 +3224,13 @@ script.on_event("read-rail-structure-behind", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("rescan", function(event)
    pindex = event.player_index
    ScannerEntrypoint.do_refresh(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("scan-facing-direction", function(event)
    local player = game.get_player(event.player_index)
    local char = player.character
@@ -3294,53 +3238,62 @@ script.on_event("scan-facing-direction", function(event)
    ScannerEntrypoint.do_refresh(event.player_index, char.direction)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("scan-list-up", function(event)
    pindex = event.player_index
 
    ScannerEntrypoint.move_subcategory(pindex, -1)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("scan-list-down", function(event)
    pindex = event.player_index
 
    ScannerEntrypoint.move_subcategory(pindex, 1)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("scan-list-middle", function(event)
    pindex = event.player_index
 
    ScannerEntrypoint.announce_current_item(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("scan-category-up", function(event)
    pindex = event.player_index
 
    ScannerEntrypoint.move_category(pindex, -1)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("scan-category-down", function(event)
    pindex = event.player_index
 
    ScannerEntrypoint.move_category(pindex, 1)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("scan-selection-up", function(event)
    pindex = event.player_index
 
    ScannerEntrypoint.move_within_subcategory(pindex, -1)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("scan-selection-down", function(event)
    pindex = event.player_index
 
    ScannerEntrypoint.move_within_subcategory(pindex, 1)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("scan-sort-by-distance", function(event)
    ScannerEntrypoint.resort(event.player_index)
 end)
 
 --Repeats the last thing read out. Not just the scanner.
+---@param event EventData.CustomInputEvent
 script.on_event("repeat-last-spoken", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3348,6 +3301,7 @@ script.on_event("repeat-last-spoken", function(event)
 end)
 
 --Calls function to notify if items are being picked up via vanilla F key.
+---@param event EventData.CustomInputEvent
 script.on_event("pickup-items-info", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3389,30 +3343,24 @@ function read_item_pickup_state(pindex)
          printout(result, pindex)
          return
       end
-      local left = ent.get_transport_line(1).get_contents()
-      local right = ent.get_transport_line(2).get_contents()
-
-      for name, count in pairs(right) do
-         if left[name] ~= nil then
-            left[name] = left[name] + count
-         else
-            left[name] = count
-         end
-      end
-      local contents = {}
-      for name, count in pairs(left) do
-         table.insert(contents, { name = name, count = count })
-      end
-      table.sort(contents, function(k1, k2)
-         return k1.count > k2.count
+      local left = TH.nqc_to_sorted_descending(
+         TH.rollup2(ent.get_transport_line(1).get_contents(), F.name().get, F.quality().get, F.count().get)
+      )
+      local right = TH.nqc_to_sorted_descending(
+         TH.rollup2(ent.get_transport_line(2).get_contents(), F.name().get, F.quality().get, F.count().get)
+      )
+      local all = {}
+      TH.concat_arrays(left, right)
+      -- Rename it, for clarity.
+      local all = left
+      table.sort(all, function(a, b)
+         return a.count > b.count
       end)
-      if #contents > 0 then
-         result = result .. contents[1].name
-         if #contents > 1 then
-            result = result .. ", and " .. contents[2].name
-            if #contents > 2 then result = result .. ", and other item types " end
-         end
-      end
+
+      if all[1] then result = result .. all[1].name end
+      if all[2] then result = result .. " " .. string.format("and %s", all[2].name) end
+      if all[3] then result = result .. " and others" end
+
       result = result .. " from nearby belts"
    --Check if there are ground items within n tiles
    elseif #nearby_ground_items > 0 then
@@ -3447,12 +3395,14 @@ script.on_event(defines.events.on_picked_up_item, function(event)
 end)
 
 --Reads other entities on the same tile? Note: Possibly unneeded
+---@param event EventData.CustomInputEvent
 script.on_event("tile-cycle", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
    if not players[pindex].in_menu then tile_cycle(pindex) end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("open-inventory", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then
@@ -3483,6 +3433,7 @@ function open_player_inventory(tick, pindex)
    players[pindex].crafting.index = 1
 end
 
+---@param event EventData.CustomInputEvent
 script.on_event("close-menu-access", function(event) --close_menu, menu closed
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3559,6 +3510,7 @@ function close_menu_resets(pindex)
    }
 end
 
+---@param event EventData.CustomInputEvent
 script.on_event("read-menu-name", function(event) --read_menu_name
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3604,6 +3556,7 @@ script.on_event(quickbar_set_events, fa_quickbar.quickbar_set_handler)
 
 script.on_event(quickbar_page_events, fa_quickbar.quickbar_page_handler)
 
+---@param event EventData.CustomInputEvent
 script.on_event("switch-menu-or-gun", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3691,19 +3644,7 @@ script.on_event("switch-menu-or-gun", function(event)
          players[pindex].menu = "inventory"
          read_inventory_slot(pindex, "Inventory, ")
       elseif players[pindex].menu == "belt" then
-         players[pindex].belt.index = 1
-         players[pindex].belt.sector = players[pindex].belt.sector + 1
-         if players[pindex].belt.sector == 5 then players[pindex].belt.sector = 1 end
-         local sector = players[pindex].belt.sector
-         if sector == 1 then
-            printout("Local Lanes", pindex)
-         elseif sector == 2 then
-            printout("Total Lanes", pindex)
-         elseif sector == 3 then
-            printout("Downstream lanes", pindex)
-         elseif sector == 4 then
-            printout("Upstream Lanes", pindex)
-         end
+         BeltAnalyzer.belt_analyzer:on_next_tab(pindex)
       elseif players[pindex].menu == "warnings" then
          players[pindex].warnings.sector = players[pindex].warnings.sector + 1
          if players[pindex].warnings.sector > 3 then players[pindex].warnings.sector = 1 end
@@ -3757,6 +3698,7 @@ script.on_event("switch-menu-or-gun", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("reverse-switch-menu-or-gun", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -3839,19 +3781,7 @@ script.on_event("reverse-switch-menu-or-gun", function(event)
          players[pindex].menu = "inventory"
          read_inventory_slot(pindex, "Inventory, ")
       elseif players[pindex].menu == "belt" then
-         players[pindex].belt.index = 1
-         players[pindex].belt.sector = players[pindex].belt.sector - 1
-         if players[pindex].belt.sector == 0 then players[pindex].belt.sector = 4 end
-         local sector = players[pindex].belt.sector
-         if sector == 1 then
-            printout("Local Lanes", pindex)
-         elseif sector == 2 then
-            printout("Total Lanes", pindex)
-         elseif sector == 3 then
-            printout("Downstream lanes", pindex)
-         elseif sector == 4 then
-            printout("Upstream Lanes", pindex)
-         end
+         BeltAnalyzer.belt_analyzer:on_previous_tab(pindex)
       elseif players[pindex].menu == "warnings" then
          players[pindex].warnings.sector = players[pindex].warnings.sector - 1
          if players[pindex].warnings.sector < 1 then players[pindex].warnings.sector = 3 end
@@ -3998,6 +3928,7 @@ function swap_weapon_backward(pindex, write_to_character)
    return gun_index
 end
 
+---@param event EventData.CustomInputEvent
 script.on_event("delete", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -4020,6 +3951,7 @@ script.on_event("delete", function(event)
 end)
 
 --Creates sound effects for vanilla mining
+---@param event EventData.CustomInputEvent
 script.on_event("mine-access-sounds", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -4035,6 +3967,7 @@ end)
 
 --Mines tiles such as stone brick or concrete within the cursor area, including enlarged cursors
 --Also added: delete blueprints while browsing the blueprint book menu
+---@param event EventData.CustomInputEvent
 script.on_event("mine-tiles", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -4060,6 +3993,7 @@ script.on_event("mine-tiles", function(event)
 end)
 
 --Flush the selected fluid
+---@param event EventData.CustomInputEvent
 script.on_event("flush-fluid", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -4097,6 +4031,7 @@ script.on_event("flush-fluid", function(event)
 end)
 
 --Mines groups of entities depending on the name or type. Includes trees and rocks, rails.
+---@param event EventData.CustomInputEvent
 script.on_event("mine-area", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -4241,6 +4176,7 @@ script.on_event("mine-area", function(event)
 end)
 
 --Long range area mining. Includes only ghosts for now.
+---@param event EventData.CustomInputEvent
 script.on_event("super-mine-area", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -4276,6 +4212,7 @@ script.on_event("super-mine-area", function(event)
 end)
 
 --Cut-paste-tool. NOTE: This keybind needs to be the same as that for the cut paste tool (default CONTROL + X). laterdo maybe keybind to game control somehow
+---@param event EventData.CustomInputEvent
 script.on_event("cut-paste-tool-comment", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -4288,6 +4225,7 @@ script.on_event("cut-paste-tool-comment", function(event)
 end)
 
 --Right click actions in menus (click_menu)
+---@param event EventData.CustomInputEvent
 script.on_event("click-menu-right", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -4358,11 +4296,14 @@ script.on_event("click-menu-right", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("leftbracket-key-id", function(event) end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("rightbracket-key-id", function(event) end)
 
 --Left click actions in menus (click_menu)
+---@param event EventData.CustomInputEvent
 script.on_event("click-menu", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -4501,12 +4442,13 @@ script.on_event("click-menu", function(event)
                      players[pindex].item_selector.index = 1
                      read_item_selector_slot(pindex)
                   else
-                     players[pindex].building.ent.set_filter(
+                     Filters.set_filter(
+                        players[pindex].building.ent,
                         players[pindex].building.index,
                         players[pindex].item_cache[players[pindex].item_selector.index].name
                      )
                      sectors_i.inventory[players[pindex].building.index] =
-                        players[pindex].building.ent.get_filter(players[pindex].building.index)
+                        Filters.get_filter_prototype(players[pindex].building.ent, players[pindex].building.index)
                      printout("Filter set.", pindex)
                      players[pindex].building.item_selection = false
                      players[pindex].item_selection = false
@@ -4760,6 +4702,7 @@ function player_inventory_click(pindex, left_click)
 end
 
 --Left click actions with items in hand
+---@param event EventData.CustomInputEvent
 script.on_event("click-hand", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -4964,6 +4907,7 @@ script.on_event("click-hand", function(event)
 end)
 
 --Right click actions with items in hand
+---@param event EventData.CustomInputEvent
 script.on_event("click-hand-right", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5050,6 +4994,7 @@ script.on_event("click-hand-right", function(event)
 end)
 
 --Left click actions with no menu and no items in hand
+---@param event EventData.CustomInputEvent
 script.on_event("click-entity", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5158,6 +5103,7 @@ function clicked_on_entity(ent, pindex)
 end
 
 --For a building, opens circuit menu
+---@param event EventData.CustomInputEvent
 script.on_event("open-circuit-menu", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5230,6 +5176,7 @@ script.on_event("open-circuit-menu", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("repair-area", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5254,6 +5201,7 @@ script.on_event("repair-area", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("crafting-all", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5298,6 +5246,7 @@ script.on_event("crafting-all", function(event)
 end)
 
 --Transfers a stack from one inventory to another. Preserves BP data.
+---@param event EventData.CustomInputEvent
 script.on_event("transfer-one-stack", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5370,6 +5319,7 @@ script.on_event("transfer-one-stack", function(event)
 end)
 
 --You can equip armor, armor equipment, guns, ammo. You can equip from the hand, or from the inventory with an empty hand.
+---@param event EventData.CustomInputEvent
 script.on_event("equip-item", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5411,6 +5361,7 @@ script.on_event("equip-item", function(event)
 end)
 
 --Has the same input as the ghost placement function and so it uses that
+---@param event EventData.CustomInputEvent
 script.on_event("open-rail-builder", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5445,6 +5396,7 @@ script.on_event("open-rail-builder", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("quick-build-rail-left-turn", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5454,6 +5406,7 @@ script.on_event("quick-build-rail-left-turn", function(event)
    if ent.name == "straight-rail" then fa_rail_builder.build_rail_turn_left_45_degrees(ent, pindex) end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("quick-build-rail-right-turn", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5467,6 +5420,7 @@ end)
 * Control click an item in an inventory to try smart transfer ALL of it. 
 * Control click an empty slot to try to smart transfer ALL items from that inventory.
 ]]
+---@param event EventData.CustomInputEvent
 script.on_event("transfer-all-stacks", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5479,6 +5433,7 @@ script.on_event("transfer-all-stacks", function(event)
 end)
 
 --Default is control clicking
+---@param event EventData.CustomInputEvent
 script.on_event("fa-alternate-build", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5503,6 +5458,7 @@ end)
 * Control click an item in an inventory to try smart transfer HALF of it. 
 * Control click an empty slot to try to smart transfer HALF of all items from that inventory.
 ]]
+---@param event EventData.CustomInputEvent
 script.on_event("transfer-half-of-all-stacks", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5655,6 +5611,7 @@ function transfer_inventory(args)
    return results, full
 end
 
+---@param event EventData.CustomInputEvent
 script.on_event("crafting-5", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5698,6 +5655,7 @@ script.on_event("crafting-5", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("menu-clear-filter", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5713,7 +5671,7 @@ script.on_event("menu-clear-filter", function(event)
                   and players[pindex].building.index
                      < #players[pindex].building.sectors[players[pindex].building.sector].inventory
                then
-                  players[pindex].building.ent.set_filter(players[pindex].building.index, nil)
+                  Filters.set_filter(players[pindex].building.ent, players[pindex].building.index, nil)
                   players[pindex].building.sectors[players[pindex].building.sector].inventory[players[pindex].building.index] =
                      "No filter selected."
                   printout("Filter cleared", pindex)
@@ -5724,7 +5682,7 @@ script.on_event("menu-clear-filter", function(event)
                and players[pindex].building.index
                   < #players[pindex].building.sectors[players[pindex].building.sector].inventory
             then
-               players[pindex].building.ent.set_filter(players[pindex].building.index, nil)
+               Filters.set_filter(players[pindex].building.ent, players[pindex].building.index, nil)
                players[pindex].building.sectors[players[pindex].building.sector].inventory[players[pindex].building.index] =
                   "No filter selected."
                printout("Filter cleared.", pindex)
@@ -5735,6 +5693,7 @@ script.on_event("menu-clear-filter", function(event)
 end)
 
 --Reads the entity status but also adds on extra info depending on the entity
+---@param event EventData.CustomInputEvent
 script.on_event("read-entity-status", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5743,15 +5702,18 @@ script.on_event("read-entity-status", function(event)
    if result ~= nil and result ~= "" then printout(result, pindex) end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("rotate-building", function(event)
    fa_building_tools.rotate_building_info_read(event, true)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("reverse-rotate-building", function(event)
    fa_building_tools.rotate_building_info_read(event, false)
 end)
 
 --Does not work yet
+---@param event EventData.CustomInputEvent
 script.on_event("flip-blueprint-horizontal-info", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5762,6 +5724,7 @@ script.on_event("flip-blueprint-horizontal-info", function(event)
 end)
 
 --Does not work yet
+---@param event EventData.CustomInputEvent
 script.on_event("flip-blueprint-vertical-info", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5771,6 +5734,7 @@ script.on_event("flip-blueprint-vertical-info", function(event)
    printout("Error: Flipping vertical is not supported.", pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("inventory-read-weapons-data", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5781,6 +5745,7 @@ script.on_event("inventory-read-weapons-data", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("inventory-reload-weapons", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5792,6 +5757,7 @@ script.on_event("inventory-reload-weapons", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("inventory-remove-all-weapons-and-ammo", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5803,6 +5769,7 @@ script.on_event("inventory-remove-all-weapons-and-ammo", function(event)
 end)
 
 --Reads the custom info for an item selected. If you are driving, it returns custom vehicle info
+---@param event EventData.CustomInputEvent
 script.on_event("item-info", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5951,6 +5918,7 @@ script.on_event("item-info", function(event)
 end)
 
 --Reads the custom info for the last indexed scanner item
+---@param event EventData.CustomInputEvent
 script.on_event("item-info-last-indexed", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5969,6 +5937,7 @@ script.on_event("item-info-last-indexed", function(event)
 end)
 
 --Read production statistics info for the selected item, in the hand or else selected in the inventory menu
+---@param event EventData.CustomInputEvent
 script.on_event("item-production-info", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -5979,6 +5948,7 @@ end)
 
 --Gives in-game time. The night darkness is from 11 to 13, and peak daylight hours are 18 to 6.
 --For realism, if we adjust by 12 hours, we get 23 to 1 as midnight and 6 to 18 as peak solar.
+---@param event EventData.CustomInputEvent
 script.on_event("read-time-and-research-progress", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6004,23 +5974,27 @@ script.on_event("read-time-and-research-progress", function(event)
    if players[pindex].vanilla_mode then game.get_player(pindex).open_technology_gui() end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("add-to-research-queue-start", function(event)
    local pindex = event.player_index
    if players[pindex].menu == "technology" then Research.menu_enqueue(pindex, 1) end
 end)
 
 --Add the selected technology to the end of the research queue instead of switching directly to it
+---@param event EventData.CustomInputEvent
 script.on_event("add-to-research-queue-end", function(event)
    local pindex = event.player_index
    if players[pindex].menu == "technology" then Research.menu_enqueue(pindex, nil) end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("read-research-queue", function(event)
    local pindex = event.player_index
    Research.queue_announce(pindex)
 end)
 
 --Clear the research queue
+---@param event EventData.CustomInputEvent
 script.on_event("clear-research-queue", function(event)
    local pindex = event.player_index
    Research.clear_queue(pindex)
@@ -6195,6 +6169,7 @@ script.on_event(defines.events.on_gui_closed, function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("save-game-manually", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6208,6 +6183,7 @@ walk_type_speech = {
    "Walking smoothly enabled",
 }
 
+---@param event EventData.CustomInputEvent
 script.on_event("toggle-walk", function(event)
    pindex = event.player_index
    local p = game.get_player(pindex)
@@ -6243,6 +6219,7 @@ function fix_walk(pindex)
 end
 
 --Toggle building while walking
+---@param event EventData.CustomInputEvent
 script.on_event("toggle-build-lock", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6257,6 +6234,7 @@ script.on_event("toggle-build-lock", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("toggle-vanilla-mode", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6278,6 +6256,7 @@ script.on_event("toggle-vanilla-mode", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("toggle-cursor-hiding", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6292,6 +6271,7 @@ script.on_event("toggle-cursor-hiding", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("clear-renders", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6313,6 +6293,7 @@ function clear_renders()
    rendering.clear("")
 end
 
+---@param event EventData.CustomInputEvent
 script.on_event("recalibrate-zoom", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6321,6 +6302,7 @@ script.on_event("recalibrate-zoom", function(event)
    printout("Recalibrated", pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("set-standard-zoom", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6329,6 +6311,7 @@ script.on_event("set-standard-zoom", function(event)
    printout("Set standard zoom.", pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("set-closest-zoom", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6337,6 +6320,7 @@ script.on_event("set-closest-zoom", function(event)
    printout("Set closest zoom.", pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("set-furthest-zoom", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6345,12 +6329,14 @@ script.on_event("set-furthest-zoom", function(event)
    printout("Set furthest zoom.", pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("enable-mouse-update-entity-selection", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    game.get_player(pindex).game_view_settings.update_entity_selection = true
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("pipette-tool-info", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6367,26 +6353,32 @@ script.on_event("pipette-tool-info", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("copy-entity-settings-info", function(event)
    local pindex = event.player_index
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("paste-entity-settings-info", function(event)
    local pindex = event.player_index
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("fast-entity-transfer-info", function(event)
    local pindex = event.player_index
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("fast-entity-split-info", function(event)
    local pindex = event.player_index
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("drop-cursor-info", function(event)
    local pindex = event.player_index
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("read-hand", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6394,6 +6386,7 @@ script.on_event("read-hand", function(event)
 end)
 
 --Empties hand and opens the item from the player/building inventory
+---@param event EventData.CustomInputEvent
 script.on_event("locate-hand-in-inventory", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6409,6 +6402,7 @@ script.on_event("locate-hand-in-inventory", function(event)
 end)
 
 --Empties hand and opens the item from the crafting menu
+---@param event EventData.CustomInputEvent
 script.on_event("locate-hand-in-crafting-menu", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6416,6 +6410,7 @@ script.on_event("locate-hand-in-crafting-menu", function(event)
 end)
 
 --ENTER KEY by default
+---@param event EventData.CustomInputEvent
 script.on_event("menu-search-open", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6423,6 +6418,7 @@ script.on_event("menu-search-open", function(event)
    fa_menu_search.open_search_box(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("menu-search-get-next", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6434,6 +6430,7 @@ script.on_event("menu-search-get-next", function(event)
    fa_menu_search.fetch_next(pindex, str)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("menu-search-get-last", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6445,6 +6442,7 @@ script.on_event("menu-search-get-last", function(event)
    fa_menu_search.fetch_last(pindex, str)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("open-warnings-menu", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
@@ -6466,6 +6464,7 @@ script.on_event("open-warnings-menu", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("honk", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -6484,6 +6483,7 @@ script.on_event("honk", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("open-fast-travel-menu", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
@@ -6729,48 +6729,56 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
    players[pindex].text_field_open = false
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-skip-north", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
    cursor_skip(pindex, defines.direction.north)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-skip-south", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
    cursor_skip(pindex, defines.direction.south)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-skip-west", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
    cursor_skip(pindex, defines.direction.west)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-skip-east", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
    cursor_skip(pindex, defines.direction.east)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-skip-by-preview-north", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
    cursor_skip(pindex, defines.direction.north, 1000, true)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-skip-by-preview-south", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
    cursor_skip(pindex, defines.direction.south, 1000, true)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-skip-by-preview-west", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
    cursor_skip(pindex, defines.direction.west, 1000, true)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-skip-by-preview-east", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) or players[pindex].vanilla_mode then return end
@@ -7072,22 +7080,27 @@ function apply_skip_by_preview_size(pindex, direction)
    return shift
 end
 
+---@param event EventData.CustomInputEvent
 script.on_event("nudge-building-up", function(event)
    fa_building_tools.nudge_key(defines.direction.north, event)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("nudge-building-down", function(event)
    fa_building_tools.nudge_key(defines.direction.south, event)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("nudge-building-left", function(event)
    fa_building_tools.nudge_key(defines.direction.west, event)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("nudge-building-right", function(event)
    fa_building_tools.nudge_key(defines.direction.east, event)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("nudge-character-up", function(event)
    local pindex = event.player_index
    if move(defines.direction.north, pindex, true) then
@@ -7098,6 +7111,7 @@ script.on_event("nudge-character-up", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("nudge-character-down", function(event)
    local pindex = event.player_index
    if move(defines.direction.south, pindex, true) then
@@ -7108,6 +7122,7 @@ script.on_event("nudge-character-down", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("nudge-character-left", function(event)
    local pindex = event.player_index
    if move(defines.direction.west, pindex, true) then
@@ -7118,6 +7133,7 @@ script.on_event("nudge-character-left", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("nudge-character-right", function(event)
    local pindex = event.player_index
    if move(defines.direction.east, pindex, true) then
@@ -7128,6 +7144,7 @@ script.on_event("nudge-character-right", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("alternative-menu-up", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7138,6 +7155,7 @@ script.on_event("alternative-menu-up", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("alternative-menu-down", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7148,42 +7166,49 @@ script.on_event("alternative-menu-down", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("alternative-menu-left", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and players[pindex].menu == "train_menu" then fa_trains.menu_left(pindex) end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("alternative-menu-right", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    if players[pindex].in_menu and players[pindex].menu == "train_menu" then fa_trains.menu_right(pindex) end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-one-tile-north", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    if players[pindex].cursor then move_key(dirs.north, event, true) end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-one-tile-south", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    if players[pindex].cursor then move_key(dirs.south, event, true) end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-one-tile-east", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    if players[pindex].cursor then move_key(dirs.east, event, true) end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-one-tile-west", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    if players[pindex].cursor then move_key(dirs.west, event, true) end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("set-splitter-input-priority-left", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7196,6 +7221,7 @@ script.on_event("set-splitter-input-priority-left", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("set-splitter-input-priority-right", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7208,6 +7234,7 @@ script.on_event("set-splitter-input-priority-right", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("set-splitter-output-priority-left", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7219,6 +7246,7 @@ script.on_event("set-splitter-output-priority-left", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("set-splitter-output-priority-right", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7232,6 +7260,7 @@ script.on_event("set-splitter-output-priority-right", function(event)
 end)
 
 --Sets entity filters for splitters, inserters, contant combinators, infinity chests
+---@param event EventData.CustomInputEvent
 script.on_event("set-entity-filter-from-hand", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7284,6 +7313,7 @@ script.on_event("set-entity-filter-from-hand", function(event)
 end)
 
 --Sets inventory slot filters
+---@param event EventData.CustomInputEvent
 script.on_event("toggle-inventory-slot-filter", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7305,19 +7335,19 @@ function set_selected_inventory_slot_filter(pindex)
    index = index or 1
    --Act according to the situation defined by the filter slot, slot item, and hand item.
    local menu = players[pindex].menu
-   local filter = inv.get_filter(index)
+   local filter = Filters.get_filter_prototype(inv, index)
    local slot_item = inv[index]
    local hand_item = p.cursor_stack
 
    --1. If a  filter is set then clear it
    if filter ~= nil then
-      inv.set_filter(index, nil)
+      Filters.set_filter(inv, index, nil)
       read_selected_inventory_and_slot(pindex, "Slot filter cleared, ")
       return
    --2. If no filter is set and both the slot and hand are full, then choose the slot item (because otherwise it needs to be moved)
    elseif slot_item and slot_item.valid_for_read and hand_item and hand_item.valid_for_read then
       if inv.can_set_filter(index, slot_item.name) then
-         inv.set_filter(index, slot_item.name)
+         Filters.set_filter(inv, index, slot_item.name)
          read_selected_inventory_and_slot(pindex, "Slot filter set, ")
       else
          printout("Error: Unable to set the slot filter for this item", pindex)
@@ -7326,7 +7356,7 @@ function set_selected_inventory_slot_filter(pindex)
    --3. If no filter is set and the slot is full and the hand is empty (implied), then set the slot item as the filter
    elseif slot_item and slot_item.valid_for_read then
       if inv.can_set_filter(index, slot_item.name) then
-         inv.set_filter(index, slot_item.name)
+         Filters.set_filter(inv, index, slot_item.name)
          read_selected_inventory_and_slot(pindex, "Slot filter set, ")
       else
          printout("Error: Unable to set the slot filter for this item", pindex)
@@ -7335,7 +7365,7 @@ function set_selected_inventory_slot_filter(pindex)
    --4. If no filter is set and the slot is empty (implied) and the hand is full, then set the hand item as the filter
    elseif hand_item and hand_item.valid_for_read then
       if inv.can_set_filter(index, hand_item.name) then
-         inv.set_filter(index, hand_item.name)
+         Filters.set_filter(inv, index, hand_item.name)
          read_selected_inventory_and_slot(pindex, "Slot filter set, ")
       else
          printout("Error: Unable to set the slot filter for this item", pindex)
@@ -7351,19 +7381,21 @@ end
 --Returns the currently selected entity inventory based on the current mod menu and mod sector.
 function get_selected_inventory_and_slot(pindex)
    local p = game.get_player(pindex)
+   local c = p.character
+   if not c then return nil end
    local inv = nil
    local index = nil
    local menu = players[pindex].menu
    if menu == "inventory" then
-      inv = p.get_main_inventory()
+      inv = c.get_main_inventory()
       index = players[pindex].inventory.index
    elseif menu == "player_trash" then
-      inv = p.get_inventory(defines.inventory.character_trash)
+      inv = c.get_inventory(defines.inventory.character_trash)
       index = players[pindex].inventory.index
    elseif menu == "building" or menu == "vehicle" then
       local sector_name = players[pindex].building.sector_name
       if sector_name == "player inventory from building" then
-         inv = p.get_main_inventory()
+         inv = c.get_main_inventory()
          index = players[pindex].inventory.index
       else
          inv = players[pindex].building.sectors[players[pindex].building.sector].inventory
@@ -7392,6 +7424,7 @@ function read_selected_inventory_and_slot(pindex, start_phrase_in)
 end
 
 -- G is used to connect rolling stock
+---@param event EventData.CustomInputEvent
 script.on_event("connect-rail-vehicles", function(event)
    local pindex = event.player_index
    local vehicle = nil
@@ -7424,6 +7457,7 @@ script.on_event("connect-rail-vehicles", function(event)
 end)
 
 --SHIFT + G is used to disconnect rolling stock
+---@param event EventData.CustomInputEvent
 script.on_event("disconnect-rail-vehicles", function(event)
    local pindex = event.player_index
    local vehicle = nil
@@ -7455,6 +7489,7 @@ script.on_event("disconnect-rail-vehicles", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("read-health-and-armor-stats", function(event)
    pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7487,6 +7522,7 @@ script.on_event("read-health-and-armor-stats", function(event)
    printout(output, pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("inventory-read-equipment-list", function(event)
    local pindex = event.player_index
    local vehicle = nil
@@ -7501,6 +7537,7 @@ script.on_event("inventory-read-equipment-list", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("inventory-remove-all-equipment-and-armor", function(event)
    local pindex = event.player_index
    local vehicle = nil
@@ -7517,6 +7554,7 @@ script.on_event("inventory-remove-all-equipment-and-armor", function(event)
 end)
 
 --Runs before shooting a weapon to check for selected atomic bombs and the target distance
+---@param event EventData.CustomInputEvent
 script.on_event("shoot-weapon-fa", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7524,6 +7562,7 @@ script.on_event("shoot-weapon-fa", function(event)
 end)
 
 --Attempt to launch a rocket
+---@param event EventData.CustomInputEvent
 script.on_event("launch-rocket", function(event)
    ---@diagnostic disable: cast-local-type
    ---@diagnostic disable: assign-type-mismatch
@@ -7551,6 +7590,7 @@ script.on_event("launch-rocket", function(event)
 end)
 
 --Toggle whether rockets are launched automatically when they have cargo
+---@param event EventData.CustomInputEvent
 script.on_event("toggle-auto-launch-with-cargo", function(event)
    ---@diagnostic disable: cast-local-type
    ---@diagnostic disable: assign-type-mismatch
@@ -7578,42 +7618,49 @@ script.on_event("toggle-auto-launch-with-cargo", function(event)
 end)
 
 --Help key and tutorial system WIP
+---@param event EventData.CustomInputEvent
 script.on_event("help-read", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    fa_tutorial.read_current_step(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("help-next", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    fa_tutorial.next_step(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("help-back", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    fa_tutorial.prev_step(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("help-chapter-next", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    fa_tutorial.next_chapter(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("help-chapter-back", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    fa_tutorial.prev_chapter(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("help-toggle-header-mode", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    fa_tutorial.toggle_header_detail(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("help-get-other", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7621,6 +7668,7 @@ script.on_event("help-get-other", function(event)
 end)
 
 --**Use this key to test stuff (ALT + G)
+---@param event EventData.CustomInputEvent
 script.on_event("debug-test-key", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7643,6 +7691,7 @@ script.on_event("debug-test-key", function(event)
    --Character:move_to(players[pindex].cursor_pos, util.distance(players[pindex].position,players[pindex].cursor_pos), 100)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("logistic-request-read", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7650,6 +7699,7 @@ script.on_event("logistic-request-read", function(event)
    if game.get_player(pindex).driving == false then fa_bot_logistics.logistics_info_key_handler(pindex) end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("logistic-request-increment-min", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7657,6 +7707,7 @@ script.on_event("logistic-request-increment-min", function(event)
    fa_bot_logistics.logistics_request_increment_min_handler(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("logistic-request-decrement-min", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7664,6 +7715,7 @@ script.on_event("logistic-request-decrement-min", function(event)
    fa_bot_logistics.logistics_request_decrement_min_handler(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("logistic-request-increment-max", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7671,6 +7723,7 @@ script.on_event("logistic-request-increment-max", function(event)
    fa_bot_logistics.logistics_request_increment_max_handler(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("logistic-request-decrement-max", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7678,6 +7731,7 @@ script.on_event("logistic-request-decrement-max", function(event)
    fa_bot_logistics.logistics_request_decrem_max_handler(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("logistic-request-clear", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7685,6 +7739,7 @@ script.on_event("logistic-request-clear", function(event)
    fa_bot_logistics.logistics_request_clear_handler(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("vanilla-toggle-personal-logistics-info", function(event)
    local pindex = event.player_index
    local p = game.get_player(pindex)
@@ -7701,6 +7756,7 @@ script.on_event("vanilla-toggle-personal-logistics-info", function(event)
    end
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("send-selected-stack-to-logistic-trash", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
@@ -7783,9 +7839,9 @@ function set_inserter_filter_by_hand(pindex, ent)
    if stack == nil or stack.valid_for_read == false then
       --Delete last filter
       for i = ent.filter_slot_count, 1, -1 do
-         local filt = ent.get_filter(i)
+         local filt = Filters.get_filter_prototype(ent, i)
          if filt ~= nil then
-            ent.set_filter(i, nil)
+            Filters.set_filter(ent, i, nil)
             return "Last filter cleared"
          end
       end
@@ -7793,10 +7849,10 @@ function set_inserter_filter_by_hand(pindex, ent)
    else
       --Add item in hand as next filter
       for i = 1, ent.filter_slot_count, 1 do
-         local filt = ent.get_filter(i)
+         local filt = Filters.get_filter_prototype(ent, i)
          if filt == nil then
-            ent.set_filter(i, stack.name)
-            if ent.get_filter(i) == stack.name then
+            Filters.set_filter(ent, i, stack.name)
+            if Filters.get_filter_prototype(ent, i) == stack.name then
                return "Added filter"
             else
                return "Filter setting failed"
@@ -8296,6 +8352,7 @@ function all_ents_are_walkable(pos)
    return true
 end
 
+---@param event EventData.CustomInputEvent
 script.on_event("console", function(event)
    printout("Opened console", pindex)
 end)
@@ -8368,14 +8425,17 @@ function general_mod_menu_down(pindex, menu, upper_limit)
    end
 end
 
+---@param event EventData.CustomInputEvent
 script.on_event("fa-pda-driving-assistant-info", function(event)
    fa_driving.pda_read_assistant_toggled_info(event.player_index)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("fa-pda-cruise-control-info", function(event)
    fa_driving.pda_read_cruise_control_toggled_info(event.player_index)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("fa-pda-cruise-control-set-speed-info", function(event)
    printout(
       "Type in the new cruise control speed and press 'ENTER' and then 'E' to confirm, or press 'ESC' to exit",
@@ -8383,25 +8443,28 @@ script.on_event("fa-pda-cruise-control-set-speed-info", function(event)
    )
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("nearest-damaged-ent-info", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    fa_info.read_nearest_damaged_ent_info(players[pindex].cursor_pos, pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("cursor-pollution-info", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    fa_info.read_pollution_level_at_position(players[pindex].cursor_pos, pindex)
 end)
 
---Enables remote view if not already, and then enables kruise kontrol
+---@param event EventData.CustomInputEvent
 script.on_event("fa-kk-start", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end
    fa_kk.activate_kk(pindex)
 end)
 
+---@param event EventData.CustomInputEvent
 script.on_event("fa-kk-cancel", function(event)
    local pindex = event.player_index
    if not check_for_player(pindex) then return end

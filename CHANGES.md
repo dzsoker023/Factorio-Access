@@ -1,3 +1,19 @@
+# Version 0.15.3 BETA
+Released on November 23rd, 2024.
+
+## Summary
+- This is a quick patch update of scanner and locale features while work continues on base game 2.0 compatibility.
+
+## Bugfixes
+- Fixed mismatched locale files.
+
+- Fixed scanner compatibility with modded resource types.
+
+- Fixed a scanner crash related to updating the mod.
+
+- Launcher: Fixed multiplayer server settings menu crashing and improved localization.
+
+
 # Version 0.15.2 BETA
 Released on October 26th, 2024.
 

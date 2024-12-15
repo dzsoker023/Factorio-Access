@@ -15,6 +15,7 @@ won't change our mind later or maybe even go as far as adding settings for this
 stuff.
 ]]
 local dirs = defines.direction
+local Filters = require("scripts.filters")
 local util = require("util")
 
 local F = require("scripts.field-ref")
@@ -72,7 +73,7 @@ local function present_list(list, truncate, protos)
       if a.count == b.count and a.name == b.name then
          return a.quality.level > b.quality.level
       elseif a.count == b.count then
-         --return a.name > b.name
+         return a.name > b.name
       else
          return a.count > b.count
       end
@@ -188,6 +189,8 @@ local function ent_info_important_statuses(ctx)
          ctx.message:fragment({ "fa.ent-info-input-missing" })
       elseif status == stat.full_output or status == stat.full_burnt_result_output then
          ctx.message:fragment({ "fa.ent-info-output-full" })
+      elseif status == defines.entity_status.pipeline_overextended then
+         ctx.message:fragment({ "entity-status.pipeline-overextended" })
       end
    end
 end
@@ -925,50 +928,74 @@ local function ent_info_belt_contents(ctx)
 
    local found_items = false
 
-   for _, side in pairs({ defines.transport_line.left_line, defines.transport_line.right_line }) do
-      local is_full = node:is_line_full(side)
-      local carries = node:carries_heuristic(side, 5)
-      local carries_exact = carries.distance == 0
-      local best_name, best_qual = TH.max_counts2(carries.results, TH.max_counts2_tiebreak_quality)
-      local count = TH.length2(carries.results)
 
-      if best_name then
-         found_items = true
-         ctx.message:fragment({
-            side == defines.transport_line.left_line and "fa.ent-info-transport-belt-left"
-               or "fa.ent-info-transport-belt-right",
-         })
+   local is_full = {
+      left = node:is_line_full(defines.transport_line.left_line),
+      right = node:is_line_full(defines.transport_line.right_line),
+   }
+   local carries = {
+      left = node:carries_heuristic(defines.transport_line.left_line, 5),
+      right = node:carries_heuristic(defines.transport_line.right_line, 5),
+   }
+   local empty = { left = true, right = true }
+   local most_common_for_both = { left = nil, right = nil }
+   local other_count_for_both = { left = nil, right = nil }
 
-         local item_str = Localising.get_localised_name_with_fallback(prototypes.item[best_name])
+   local params = {}
+   for _, side in pairs({ "left", "right" }) do
+      local carries = carries[side]
+      local is_full = is_full[side]
+      if next(carries.results) then
+         empty[side] = false
+         local most_common = TH.max_counts2(carries.results, TH.max_counts2_tiebreak_quality)
+         most_common_for_both[side] = most_common
 
-         if best_qual ~= "normal" then
-            item_str = {
-               "fa.item-with-quality",
-               item_str,
-               Localising.get_localised_name_with_fallback(prototypes.quality[best_qual]),
-            }
+         local dist = carries.distance
+         local dist_dir = 1
+         if dist < 0 then
+            dist_dir = 1
+         elseif dist > 0 then
+            dist_dir = 2
          end
-
-         if count > 1 then item_str = { "fa.ent-info-transport-belt-multi-item", item_str, count - 1 } end
-
-         if carries.distance == 0 then
-            ctx.message:fragment({
-               "fa.ent-info-transport-belt-carrying",
-               Localising.get_localised_name_with_fallback(prototypes.item[best_name]),
-            })
-         elseif carries.distance < 0 then
-            ctx.message:fragment({ "fa.ent-info-transport-belt-carrying-upstream", item_str, -carries.distance })
-         elseif carries.distance > 0 then
-            ctx.message:fragment({ "fa.ent-info-transport-belt-carrying-downstream", item_str, carries.distance })
-         end
-
-         if node:is_line_full(side) then ctx.message:fragment({ "fa.ent-info-transport-full" }) end
-
-         ctx.message:list_item()
+         local others = table_size(carries.results) - 1
+         other_count_for_both[side] = others
+         TH.concat_arrays(params, { most_common, dist, dist_dir, others, is_full and 1 or 0 })
       end
    end
 
-   if not found_items then ctx.message:fragment({ "fa.ent-info-transport-belt-empty" }) end
+   local key = "fa.ent-info-belt-contents-empty"
+   if (not empty.left) and empty.right then
+      key = "fa.ent-info-belt-contents-left"
+   elseif empty.left and not empty.right then
+      key = "fa.ent-info-belt-contents-right"
+   elseif not (empty.left or empty.right) then
+      key = "fa.ent-info-belt-contents-both"
+
+      -- If they're the same simplify to the simpler key.
+      if
+         most_common_for_both.left == most_common_for_both.right
+         and other_count_for_both.left == other_count_for_both.right
+      then
+         key = "fa.ent-info-belt-contents-both"
+      end
+   end
+   table.insert(params, 1, key)
+   ctx.message:fragment(params)
+end
+
+---@param ctx fa.Info.EntInfoContext
+local function ent_info_filters(ctx)
+   local filts = Filters.get_all_filters(ctx.ent)
+   if next(filts) then
+      local first = true
+
+      for _, name in pairs(filts) do
+         ctx.message:list_item()
+         if first then ctx.message:fragment("Filters for") end
+         first = false
+         ctx.message:fragment(Localising.get_localised_name_with_fallback(prototypes.item[name]))
+      end
+   end
 end
 
 --Outputs basic entity info, usually called when the cursor selects an entity.
@@ -1024,8 +1051,9 @@ function mod.ent_info(pindex, ent, is_scanner)
 
    run_handler(ent_info_facing, true)
    run_handler(ent_info_underground_belt_type, true)
-   run_handler(ent_info_belt_contents, true)
+
    run_handler(ent_info_belt_shape, true)
+   run_handler(ent_info_belt_contents, true)
    run_handler(ent_info_pole_neighbors, true)
 
    run_handler(ent_info_resource)
@@ -1064,27 +1092,10 @@ function mod.ent_info(pindex, ent, is_scanner)
    end
    run_handler(ent_info_spidertron)
 
+   run_handler(ent_info_filters)
+
    --Inserters: Explain held items, pickup and drop positions
    if ent.type == "inserter" then
-      --Declare filters
-      if ent.filter_slot_count > 0 then
-         ctx.message:fragment("Filters for")
-         local active_filter_count = 0
-         for i = 1, ent.filter_slot_count, 1 do
-            local filt = ent.get_filter(i)
-            if filt ~= nil then
-               active_filter_count = active_filter_count + 1
-               if active_filter_count > 1 then filter_result = filter_result .. " and " end
-               local local_name = Localising.get(prototypes.item[filt.name], pindex)
-               if local_name == nil then local_name = tostring(filt.name) or " unknown item " end
-               if filter_result == nil then filter_result =local_name else filter_result = filter_result .. local_name end 
-            end
-         end
-         if active_filter_count > 0 then
-            ctx.message:fragment(filter_result)
-            --run_handler(",")
-         end
-      end
       --Read held item
       if ent.held_stack ~= nil and ent.held_stack.valid_for_read and ent.held_stack.valid then
          ctx.message:fragment(", holding")

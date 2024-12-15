@@ -242,10 +242,10 @@ function mod.localise_signal_name(signal, pindex)
       sig_name = "nil"
       sig_type = "nil"
    end
-   --if sig_type == nil or sig_type == "nil" then
-      --sig_name = "nil"
-      --sig_type = "nil"
-   if sig_type == nill  then
+   if sig_type == nil or sig_type == "nil" then
+      sig_name = "nil"
+      sig_type = "nil"
+   elseif sig_type == "item" then
       sig_name = localising.get(prototypes.item[signal.name], pindex)
       if sig_name == nil then sig_name = signal.name end
    elseif sig_type == "fluid" then

@@ -16,6 +16,7 @@ local F = require("scripts.field-ref")
 local FaUtils = require("scripts.fa-utils")
 local Geometry = require("scripts.geometry")
 local localising = require("scripts.localising")
+local MessageBuilder = require("scripts.message-builder")
 local TH = require("scripts.table-helpers")
 
 local mod = {}
@@ -298,17 +299,20 @@ function Node:get_line_contents(line)
    local line = self.entity.get_transport_line(line --[[@as number]])
 
    local buckets = {}
-   for i = 1, line.line_length * 4 do
+
+   for _ = 1, line.line_length * 4 do
       table.insert(buckets, {
          items = {},
       })
    end
 
    for _, details in pairs(line.get_detailed_contents()) do
-      local slot = math.floor(details.position * 4)
+      local slot = math.floor(details.position * 4) + 1
       local b = buckets[slot]
+
       local ds = details.stack
       local n, q = ds.name, ds.quality.name
+
       b.items[n] = b.items[n] or {}
       b.items[n][q] = (b.items[n][q] or 0) + ds.count
    end
@@ -452,7 +456,8 @@ function Node:walk_single_parents(callback)
    end
 end
 
--- Exactly the same as walk_single_parent but for single children.
+-- Exactly the same as walk_single_parent but for single children, and stopping
+-- at sideloads.
 ---@param callback fun(LuaEntity, number): boolean second arg is number of steps so far, starts at 1.
 function Node:walk_single_child(callback)
    self:_assert_valid()
@@ -467,7 +472,21 @@ function Node:walk_single_child(callback)
    while true do
       local children = get_children(e)
       if #children ~= 1 then return end
-      e = children[1]
+      local new = children[1]
+
+      -- Sideload detection: either the next segment faces away, is a corner, or
+      -- is a sideload.
+      if new.type == "transport-belt" or new.type == "underground-belt" then
+         local new_shape = new.type == "underground-belt" and "straight" or new.belt_shape
+         -- If it is an underground belt we claim straight and it will face a
+         -- different direction.  If it is a sideload then the chnild has a
+         -- direct parent that isn't this parent and is thus also going to claim
+         -- to be straight.  Sideloads into corners are double sideloads onto
+         -- straight belts.
+         if new_shape == "straight" and e.direction ~= new.direction then return end
+      end
+
+      e = new
 
       if e.type == "entity-ghost" then return end
       if seen[e.unit_number] then return end
@@ -534,9 +553,128 @@ function Node:carries_heuristic(line_index, depth_limit)
    return result
 end
 
---Transport belt analyzer: Read a results list slot
-function mod.read_belt_slot(pindex, start_phrase)
-   return "unimplemented for 2.0"
+---@class fa.TransportBelts.BeltAnalyzerData
+---@field left { upstream: fa.NQC, downstream: fa.NQC, total: fa.NQC }
+---@field right { upstream: fa.NQC, downstream: fa.NQC, total: fa.NQC }
+---@field upstream_length number in "slots", always a multiple of 4.
+---@field downstream_length number
+---@field total_length number
+
+---@param ent LuaEntity
+---@return number
+local function belt_length_in_slots(ent)
+   -- Underground belt exits are also special: they have 0.5-length lines which are used, and two lines left empty.
+   if ent.type == "underground-belt" and ent.belt_to_ground_type == "output" then return 2 end
+
+   -- Underground belt entrances are where we get the length of the underground part from.
+   if ent.type == "underground-belt" and ent.belt_to_ground_type == "input" then
+      local l1 = ent.get_transport_line(1).line_length
+      local l2 = ent.get_transport_line(3).line_length
+      return (l1 + l2) * 4
+   end
+
+   if ent.type == "loader" then return 0 end
+
+   -- Everything else is 4: transport belts for the obvious reason and splitters
+   -- because they are complicated and 4 is a good enough approximation.
+   return 4
+end
+
+--[[
+Run the belt analyzer algorithm: collect the left and right lane contents for
+upstream, downstraem, and total.  Total is upstream+downstream+here.  Upstream
+is everything with one parent, stopping at ghosts.  Downstream is everything
+with 1 child, stopping at ghosts and sideloads.
+
+This can't be pulled out because moving it up the module hierarchy would require
+iterating and joining potentially large tables together in a redundant fashion.
+So we do it here, then consume it in ui/belt-analyzer.lua.
+]]
+---@return fa.TransportBelts.BeltAnalyzerData
+function Node:belt_analyzer_algo()
+   local ret = {
+      left = {
+         upstream = {},
+         downstream = {},
+         total = {},
+      },
+      right = { upstream = {}, downstream = {}, total = {} },
+      upstream_length = 0,
+      downstream_length = 0,
+      -- There is always at least this belt.
+      total_length = 0,
+   }
+
+   ---@param tab fa.NQC
+   ---@param buckets fa.TransportBelts.SlotBucket[]
+   local function fold_buckets_into(tab, buckets)
+      for _, bucket in pairs(buckets) do
+         for n, quals in pairs(bucket.items) do
+            local dest = tab[n]
+            if not dest then
+               dest = {}
+               tab[n] = dest
+            end
+
+            for qual, count in pairs(quals) do
+               dest[qual] = (dest[qual] or 0) + count
+            end
+         end
+      end
+   end
+
+   -- It is possible for a belt loop to up to double count if we traverse it
+   -- upstream then downstream. We choose to attribute such loops to upstream.
+   -- In any case, we must duplicate the seen check in the lower level walking
+   -- functions to prevent this.  In future, we may wish to consider warning of
+   -- loops, but this requires a very particular and impractical setup.
+   local seen = {}
+
+   -- Add to total, then to up/downstream if ud is specified.
+   ---@param n fa.TransportBelts.Node
+   ---@param ud "upstream" | "downstream" | nil
+   ---@return boolean false if we did nothing because it was seen before.
+   local function add_node(n, ud)
+      local un_num = n.entity.unit_number
+      if seen[un_num] then return false end
+      seen[un_num] = true
+
+      local this_contents = n:get_all_contents()
+      local left = this_contents[1]
+      local right = this_contents[2]
+      fold_buckets_into(ret.left.total, left)
+      fold_buckets_into(ret.right.total, right)
+      if ud then
+         fold_buckets_into(ret.left[ud], left)
+         fold_buckets_into(ret.right[ud], right)
+      end
+
+      return true
+   end
+
+   -- Ourself, to total only.
+   add_node(self)
+
+   self:walk_single_parents(function(e)
+      local n = Node.create(e)
+      if add_node(n, "upstream") then
+         ret.upstream_length = ret.upstream_length + belt_length_in_slots(e)
+         return true
+      end
+      return false
+   end)
+
+   self:walk_single_child(function(e)
+      if add_node(Node.create(e), "downstream") then
+         ret.downstream_length = ret.downstream_length + belt_length_in_slots(e)
+         return true
+      end
+      return false
+   end)
+
+   ret.total_length = belt_length_in_slots(self.entity) + ret.upstream_length + ret.downstream_length
+
+   return ret
 end
 
 --Set the input priority or the output priority or filter for a splitter
@@ -551,7 +689,7 @@ function mod.set_splitter_priority(splitter, is_input, is_left, filter_item_stac
       result = "Cleared splitter filter"
       splitter.splitter_output_priority = "none"
    elseif filter_item_stack ~= nil and filter_item_stack.valid_for_read then
-      splitter.splitter_filter = filter_item_stack.prototype
+      splitter.splitter_filter = { name = filter_item_stack.prototype }
       filter = splitter.splitter_filter
       result = "filter set to " .. filter_item_stack.name
       if splitter.splitter_output_priority == "none" then
@@ -616,70 +754,60 @@ function mod.set_splitter_priority(splitter, is_input, is_left, filter_item_stac
 end
 
 --Returns an info string about a splitter's input and output settings.
+---@param ent LuaEntity
+---@return LocalisedString
 function mod.splitter_priority_info(ent)
-   local result = ","
    local input = ent.splitter_input_priority
    local output = ent.splitter_output_priority
    local filter = ent.splitter_filter
+   local msg = MessageBuilder.MessageBuilder.new()
+
    if input == "none" then
-      result = result .. " input balanced, "
+      msg:fragment("input balanced,")
    elseif input == "right" then
-      result = result
-         .. " input priority "
-         .. "right"
-         .. " which is "
-         .. FaUtils.direction_lookup(FaUtils.rotate_90(ent.direction))
-         .. ", "
+      msg:fragment("input priority right")
+      msg:fragment("which is")
+
+      msg:fragment(FaUtils.direction_lookup(FaUtils.rotate_90(ent.direction)))
+      msg:fragment(",")
    elseif input == "left" then
-      result = result
-         .. " input priority "
-         .. "left"
-         .. " which is "
-         .. FaUtils.direction_lookup(FaUtils.rotate_270(ent.direction))
-         .. ", "
+      msg:fragment("input priority left which is")
+      msg:fragment(FaUtils.direction_lookup(FaUtils.rotate_270(ent.direction)))
+      msg:fragment(",")
    end
    if filter == nil then
       if output == "none" then
-         result = result .. " output balanced, "
+         msg:fragment(" output balanced,")
       elseif output == "right" then
-         result = result
-            .. " output priority "
-            .. "right"
-            .. " which is "
-            .. FaUtils.direction_lookup(FaUtils.rotate_90(ent.direction))
-            .. ", "
+
+         msg:fragment("output priority right which is")
+
+         msg:fragment(FaUtils.direction_lookup(FaUtils.rotate_90(ent.direction)))
+         msg:fragment(",")
       elseif output == "left" then
-         result = result
-            .. " output priority "
-            .. "left"
-            .. " which is "
-            .. FaUtils.direction_lookup(FaUtils.rotate_270(ent.direction))
-            .. ", "
+         msg:fragment("output priority left which is")
+
+         msg:fragment(FaUtils.direction_lookup(FaUtils.rotate_270(ent.direction)))
+         msg:fragment(",")
       end
    else
-      local item_name = localising.get(filter, pindex)
-      if item_name == nil or item_name == "" then item_name = "unknown item" end
+      local item_name = localising.get_localised_name_with_fallback(prototypes.item[filter.name])
+      msg:fragment("output filtering")
+      msg:fragment(item_name)
+      msg:fragment("to the")
+      msg:fragment(output)
+      msg:fragment("which is")
+
       if output == "right" then
-         result = result
-            .. " output filtering "
-            .. item_name
-            .. " towards the "
-            .. "right"
-            .. " which is "
-            .. FaUtils.direction_lookup(FaUtils.rotate_90(ent.direction))
-            .. ", "
+
+         msg:fragment(FaUtils.direction_lookup(FaUtils.rotate_90(ent.direction)))
       elseif output == "left" then
-         result = result
-            .. " output filtering "
-            .. item_name
-            .. " towards the "
-            .. "left"
-            .. " which is "
-            .. FaUtils.direction_lookup(FaUtils.rotate_270(ent.direction))
-            .. ", "
+         msg:fragment(FaUtils.direction_lookup(FaUtils.rotate_270(ent.direction)))
       end
+
+      msg:fragment(",")
    end
-   return result
+   return msg:build()
 end
 
 return mod
