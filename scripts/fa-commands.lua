@@ -8,10 +8,7 @@ the mod to be silent.
 ]]
 local Fluids = require("scripts.fluids")
 local FaUtils = require("scripts.fa-utils")
-<<<<<<< HEAD
-=======
 local Localising = require("scripts.localising")
->>>>>>> test
 local TH = require("scripts.table-helpers")
 local TransportBelts = require("scripts.transport-belts")
 local Wires = require("scripts.wires")
@@ -71,10 +68,7 @@ function cmd_fac(cmd)
 
    environment.FaUtils = FaUtils
    environment.Fluids = Fluids
-<<<<<<< HEAD
-=======
    environment.Localising = Localising
->>>>>>> test
    environment.TableHelpers = TH
    environment.TH = TH
    environment.TransportBelts = TransportBelts

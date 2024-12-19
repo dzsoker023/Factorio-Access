@@ -983,6 +983,7 @@ function mod.circuit_network_menu_run(pindex, ent_in, menu_index, clicked, other
          or ent.type == "rail-chain-signal"
          or ent.type == "accumulator"
          or ent.type == "roboport"
+         or ent.type == "reactor"
          or ent.type == "constant-combinator"
       local circuit_cond = nil
       local read_mode = get_circuit_read_mode_name(ent)

@@ -184,7 +184,7 @@ local function get_personal_logistic_slot_index(item_object, pindex)
    --Find the correct request slot for this item, if any
    while not slot_found and slots_nil_counter < 250 do
       slot_id = slot_id + 1
-      current_slot = p.get_personal_logistic_slot(slot_id)
+      current_slot = p.get_requester_point().get_section(1).get_slot(slot_id)
       if current_slot == nil or current_slot.name == nil then
          slots_nil_counter = slots_nil_counter + 1
       elseif current_slot.name == item_object.name then
@@ -200,7 +200,7 @@ local function get_personal_logistic_slot_index(item_object, pindex)
       slot_id = 0
       while not slot_found and slot_id < 250 do
          slot_id = slot_id + 1
-         current_slot = p.get_personal_logistic_slot(slot_id)
+         current_slot = p.get_requester_point().get_section(1).get_slot(slot_id)
          if current_slot == nil or current_slot.name == nil then
             slot_found = true
             correct_slot_id = slot_id
@@ -282,11 +282,11 @@ local function player_logistic_request_increment_min(item_stack, pindex)
    end
 
    --Read the correct slot id value, increment it, set it
-   current_slot = p.get_personal_logistic_slot(correct_slot_id)
+   current_slot = p.get_requester_point().get_section(1).get_slot(correct_slot_id)
    if current_slot == nil or current_slot.name == nil then
       --Create a fresh request
-      local new_slot = { name = item_stack.name, min = 1, max = nil }
-      p.set_personal_logistic_slot(correct_slot_id, new_slot)
+      local new_slot = { value = "iron-plate", min = 1, max = nil}
+      p.get_requester_point().get_section(1).set_slot(1, new_slot)
    else
       --Update existing request
       local stack_size = 1
@@ -1490,7 +1490,7 @@ function mod.player_logistic_request_read(item_object, pindex, additional_checks
       if network == nil or not network.valid then result = result .. "Not in a network, " end
 
       --Check if personal logistics are enabled
-      if not p.character_personal_logistic_requests_enabled then result = result .. "Requests paused, " end
+      if not p.get_requester_point().enabled then result = result .. "Requests paused, " end
    end
 
    if item_object == nil or item_object.valid == false then
@@ -1507,7 +1507,7 @@ function mod.player_logistic_request_read(item_object, pindex, additional_checks
    end
 
    --Read the correct slot id value
-   current_slot = p.get_personal_logistic_slot(correct_slot_id)
+   current_slot = p.get_requester_point().get_section(1).get_slot(correct_slot_id)
    if current_slot == nil or current_slot.name == nil then
       --No requests found
       printout(
