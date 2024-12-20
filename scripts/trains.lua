@@ -123,8 +123,8 @@ function mod.get_relative_leading_rail_and_train_dir(pindex, train)
    local ahead_rail_dir = nil
 
    local vehicle = game.get_player(pindex).vehicle
-   local front_rail = train.front_rail
-   local back_rail = train.back_rail
+   --local front_rail = train.front_rail
+   --local back_rail = train.back_rail
    local locos = train.locomotives
    local vehicle_is_a_front_loco = nil
 
@@ -226,7 +226,7 @@ end
 --]]
 
 --Takes all the output from the get_next_rail_entity_ahead and adds extra info before reading them out. Does NOT detect trains.
-function mod.train_read_next_rail_entity_ahead(pindex, invert, mute_in)
+--[[function mod.train_read_next_rail_entity_ahead(pindex, invert, mute_in)
    local message = "Ahead, "
    local honk_score = 0
    local train = game.get_player(pindex).vehicle.train
@@ -400,7 +400,7 @@ function mod.train_read_next_rail_entity_ahead(pindex, invert, mute_in)
    end
    return honk_score
 end
-
+--]]
 --[[ Train menu options summary
    0. name, id, menu instructions
    1. Train state , destination info. Click to toggle manual mode.
@@ -762,12 +762,12 @@ function mod.fluid_contents_info(wagon)
 end
 
 --Returns most common items and fluids in a train (sum of all wagons)
-function mod.train_top_contents_info(train, group_no)
+function mod. train_top_contents_info(train, group_no)
    local result = { "" }
    local itemset = train.get_contents()
    local itemtable = {}
-   for name, count in pairs(itemset) do
-      table.insert(itemtable, { name = name, count = count })
+   for _, item in pairs(itemset) do
+      table.insert(itemtable, { name = item.name, count = item.count })
    end
    table.sort(itemtable, function(k1, k2)
       return k1.count > k2.count
@@ -809,7 +809,8 @@ end
 function mod.instant_schedule(train, seconds_in)
    local seconds = seconds_in or 300
    local surf = train.front_stock.surface
-   local train_stops = surf.get_train_stops()
+   --local train_stops = surf.get_train_stops()
+   local train_stops = surf.find_entities_filtered { name = "train-stop" }
    local valid_stops = 0
    train.schedule = nil
    for i, stop in ipairs(train_stops) do
@@ -962,7 +963,8 @@ function mod.refresh_valid_train_stop_list(train, pindex)
    players[pindex].valid_train_stop_list = {}
    train.manual_mode = true
    local surf = train.front_stock.surface
-   local train_stops = surf.get_train_stops()
+   --local train_stops = surf.get_train_stops()
+   local train_stops = surf.find_entities_filtered { name = "train-stop" }
    local str = ""
    for i, stop in ipairs(train_stops) do
       --Set a stop
@@ -1111,8 +1113,8 @@ function mod.check_and_honk_at_closed_signal(tick, pindex)
    --2. Check if the train is manually driving and has nonzero speed
    if train.speed == 0 or not train.manual_mode then return end
    --3. Check if ahead of the train is a closed rail signal or rail chain signal
-   local honk_score = mod.train_read_next_rail_entity_ahead(pindex, false, true)
-   if honk_score < 2 then return end
+   --local honk_score = mod.train_read_next_rail_entity_ahead(pindex, false, true)
+   --if honk_score < 2 then return end
    --4. HONK (short)
    game.get_player(pindex).play_sound({ path = "train-honk-short" })
    players[pindex].last_honk_tick = tick
@@ -1135,13 +1137,13 @@ function mod.check_and_honk_at_trains_in_same_block(tick, pindex)
    --2. Check if the train has nonzero speed
    if train.speed == 0 then return end
    --3. Check if there is another train within the same rail block (for both the front rail and the back rail)
-   if train.front_rail == nil or not train.front_rail.valid or train.back_rail == nil or not train.back_rail.valid then
-      return
-   end
-   if train.front_rail.trains_in_block < 2 and train.back_rail.trains_in_block < 2 then return end
-   --4. HONK (long)
-   game.get_player(pindex).play_sound({ path = "train-honk-long" })
-   players[pindex].last_honk_tick = tick
+   --if train.front_rail == nil or not train.front_rail.valid or train.back_rail == nil or not train.back_rail.valid then
+      --return
+   --end
+   --if train.front_rail.trains_in_block < 2 and train.back_rail.trains_in_block < 2 then return end
+   ---4. HONK (long)
+   --game.get_player(pindex).play_sound({ path = "train-honk-long" })
+   --players[pindex].last_honk_tick = tick
 end
 
 --Play a sound to indicate the train is turning

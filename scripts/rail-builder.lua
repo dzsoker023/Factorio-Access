@@ -47,7 +47,8 @@ function mod.append_rail(pos, pindex)
       --2 Scan the area around within a X tile radius of pos
       local ents = surf.find_entities_filtered({ position = pos, radius = 3, name = "straight-rail" })
       if #ents == 0 then
-         ents = surf.find_entities_filtered({ position = pos, radius = 3, name = "curved-rail" })
+         --ents = surf.find_entities_filtered({ position = pos, radius = 3, name = "curved-rail" })
+         ents = surf.find_entities_filtered({ position = pos, radius = 3, name = "rail-ramp" })
          if #ents == 0 then
             game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
             if players[pindex].build_lock == false then
