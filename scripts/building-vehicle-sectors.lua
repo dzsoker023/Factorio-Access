@@ -554,7 +554,7 @@ function mod.read_sector_slot(pindex, prefix_inventory_size_and_name, start_phra
             local index = players[pindex].building.index
             local filter_name = building_sector.inventory.get_filter(index)
             if filter_name ~= nil then
-               result = result .. " filtered for " .. filter_name --laterdo localise this name
+               result = result .. " filtered for " .. filter_name.name --laterdo localise this name
             end
          end
          if building_sector.name == "Modules" then result = "Empty module slot" end
