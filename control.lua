@@ -7740,6 +7740,14 @@ script.on_event("logistic-request-clear", function(event)
 end)
 
 ---@param event EventData.CustomInputEvent
+script.on_event("logistic-toggle-request-from-buffers", function(event)
+   local pindex = event.player_index
+   if not check_for_player(pindex) then return end
+   if game.get_player(pindex).character == nil then return end
+   fa_bot_logistics.logistics_request_toggle_handler(pindex)
+end)
+
+---@param event EventData.CustomInputEvent
 script.on_event("vanilla-toggle-personal-logistics-info", function(event)
    local pindex = event.player_index
    local p = game.get_player(pindex)

@@ -262,25 +262,26 @@ end
 local function constant_combinator_count_valid_signals(ent)
    local count = 0
    local combinator = ent.get_control_behavior()
-   local max_signals_count = combinator.signals_count
+   local max_signals_count = combinator.get_section(1).filters_count
    for i = 1, max_signals_count, 1 do
-      if combinator.get_signal(i).signal ~= nil then count = count + 1 end
+      if combinator.get_section(1).get_slot(i).signal ~= nil then count = count + 1 end
    end
    return count
 end
 
 local function constant_combinator_get_first_empty_slot_id(ent)
    local combinator = ent.get_control_behavior()
-   local max_signals_count = combinator.signals_count
+   local max_signals_count = combinator.get_section(1).filters_count
+   if max_signals_count  == 0 then max_signals_count  = 1 end
    for i = 1, max_signals_count, 1 do
-      if combinator.get_signal(i).signal == nil then return i end
+      if combinator.get_section(1).get_slot(i).signal == nil then return i end
    end
    return max_signals_count
 end
 
 function mod.constant_combinator_signals_info(ent, pindex)
    local combinator = ent.get_control_behavior()
-   local max_signals_count = combinator.signals_count
+   local max_signals_count = combinator.get_section(1).filters_count
    local valid_signals_count = constant_combinator_count_valid_signals(ent)
    local result = nil
    if combinator.enabled then
@@ -319,7 +320,7 @@ function mod.constant_combinator_add_selector_signal(prototype, signal_type, ent
    local first_empty_slot = constant_combinator_get_first_empty_slot_id(ent)
    local new_signal_id = { type = signal_type, name = prototype.name }
    local new_signal = { signal = new_signal_id, count = 1 }
-   combinator.set_signal(first_empty_slot, new_signal)
+   combinator.get_section(1).set_slot(first_empty_slot, new_signal)
    printout("Added signal for " .. localising.get(prototype, pindex), pindex)
 end
 
@@ -347,13 +348,13 @@ end
 
 function mod.constant_combinator_set_last_signal_count(value, ent, pindex)
    local combinator = ent.get_control_behavior()
-   local max_signals_count = combinator.signals_count
+   local max_signals_count = combinator.get_section(1).filters_count
    for i = max_signals_count, 1, -1 do
-      local signal = combinator.get_signal(i)
+      local signal = combinator.get_section(1).get_slot(i)
       if signal.signal ~= nil then
          local signal_name = mod.localise_signal_name(signal.signal, pindex)
          signal.count = value
-         combinator.set_signal(i, signal)
+         combinator.get_section(1).set_slot(i, signal)
          return true
       end
    end

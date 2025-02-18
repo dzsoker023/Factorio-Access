@@ -1978,6 +1978,14 @@ data:extend({
 
    {
       type = "custom-input",
+      name = "logistic-toggle-request-from-buffers",
+      key_sequence = "CONTROL + SHIFT + L",
+      consuming = "none",
+   },
+
+   
+   {
+      type = "custom-input",
       name = "send-selected-stack-to-logistic-trash",
       key_sequence = "O",
       consuming = "none",

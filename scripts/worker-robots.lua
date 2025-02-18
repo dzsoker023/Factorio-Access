@@ -503,7 +503,9 @@ end
 
 --Finds or assigns the logistic request slot for the item, for chests or vehicles
 local function get_entity_logistic_slot_index(item_stack, chest)
-   local slots_max_count = chest.request_slot_count
+   local sectionid=1
+   if chest.get_logistic_sections().get_section(1).is_manual == false then sectionid=2 end
+   local slots_max_count = chest.get_logistic_sections().get_section(sectionid).filters_count
    local slot_found = false
    local current_slot = nil
    local correct_slot_id = nil
@@ -512,10 +514,10 @@ local function get_entity_logistic_slot_index(item_stack, chest)
    --Find the correct request slot for this item, if any
    while not slot_found and slot_id < slots_max_count do
       slot_id = slot_id + 1
-      current_slot = chest.get_request_slot(slot_id)
-      if current_slot == nil or current_slot.name == nil then
+      current_slot = chest.get_logistic_sections().get_section(sectionid).get_slot(slot_id)
+      if current_slot == nil or current_slot.value== nil then
          --do nothing
-      elseif current_slot.name == item_stack.name then
+      elseif current_slot.value.name == item_stack.name then
          slot_found = true
          correct_slot_id = slot_id
       else
@@ -528,8 +530,8 @@ local function get_entity_logistic_slot_index(item_stack, chest)
       slot_id = 0
       while not slot_found and slot_id < 100 do
          slot_id = slot_id + 1
-         current_slot = chest.get_request_slot(slot_id)
-         if current_slot == nil or current_slot.name == nil then
+         current_slot = chest.get_logistic_sections().get_section(sectionid).get_slot(slot_id)
+         if current_slot == nil or current_slot.value== nil then
             slot_found = true
             correct_slot_id = slot_id
          else
@@ -568,22 +570,26 @@ local function chest_logistic_request_increment_min(item_stack, chest, pindex)
       return false
    end
 
+
+local sectionid=1
+if chest.get_logistic_sections().get_section(1).is_manual == false then sectionid = 2 end
+
    --Read the correct slot id value, increment it, set it
-   current_slot = chest.get_request_slot(correct_slot_id)
+   current_slot = chest.get_logistic_sections().get_section(sectionid).get_slot(correct_slot_id)
    local stack_size = 1
    if item_stack.object_name == "LuaItemStack" then
       stack_size = item_stack.prototype.stack_size
    elseif item_stack.object_name == "LuaItemPrototype" then
       stack_size = item_stack.stack_size
    end
-   if current_slot == nil or current_slot.name == nil then
+   if current_slot == nil or current_slot.value== nil then
       --Create a fresh request
-      local new_slot = { name = item_stack.name, count = stack_size }
-      chest.set_request_slot(new_slot, correct_slot_id)
+      local new_slot = { value = item_stack.name, count = stack_size }
+      chest.get_logistic_sections().get_section(sectionid).set_slot(correct_slot_id, new_slot)
    else
       --Update existing request
-      current_slot.count = increment_logistic_request_min_amount(stack_size, current_slot.count)
-      chest.set_request_slot(current_slot, correct_slot_id)
+      current_slot.min = increment_logistic_request_min_amount(stack_size, current_slot.min)
+      chest.get_logistic_sections().get_section(sectionid).set_slot(correct_slot_id, current_slot)
    end
 
    --Read new status
@@ -594,6 +600,8 @@ end
 local function chest_logistic_request_decrement_min(item_stack, chest, pindex)
    local current_slot = nil
    local correct_slot_id = nil
+   local sectionid=1
+   if chest.get_logistic_sections().get_section(1).is_manual == false then sectionid=2 end
 
    --Check if logistics have been researched
    for i, tech in pairs(game.get_player(pindex).force.technologies) do
@@ -615,24 +623,24 @@ local function chest_logistic_request_decrement_min(item_stack, chest, pindex)
    end
 
    --Read the correct slot id value, decrement it, set it
-   current_slot = chest.get_request_slot(correct_slot_id)
+   current_slot = chest.get_logistic_sections().get_section(sectionid).get_slot(correct_slot_id)
    local stack_size = 1
    if item_stack.object_name == "LuaItemStack" then
       stack_size = item_stack.prototype.stack_size
    elseif item_stack.object_name == "LuaItemPrototype" then
       stack_size = item_stack.stack_size
    end
-   if current_slot == nil or current_slot.name == nil then
+   if current_slot == nil or current_slot.value== nil then
       --Create a fresh request
-      local new_slot = { name = item_stack.name, count = stack_size }
-      chest.set_request_slot(new_slot, correct_slot_id)
+      local new_slot = { value= item_stack.name, min= stack_size }
+      chest.get_logistic_sections().get_section(sectionid).set_slot(correct_slot_id, new_slot)
    else
       --Update existing request
-      current_slot.count = decrement_logistic_request_min_amount(stack_size, current_slot.count)
-      if current_slot.count == nil or current_slot.count == 0 then
-         chest.clear_request_slot(correct_slot_id)
+      current_slot.min= decrement_logistic_request_min_amount(stack_size, current_slot.min)
+      if current_slot.min== nil or current_slot.min== 0 then
+         chest.get_logistic_sections().get_section(sectionid).clear_slot(correct_slot_id)
       else
-         chest.set_request_slot(current_slot, correct_slot_id)
+         chest.get_logistic_sections().get_section(sectionid).set_slot(correct_slot_id, current_slot)
       end
    end
 
@@ -1309,15 +1317,7 @@ end
 --Call the appropriate function after a keypress for modifying a logistic request
 function mod.logistics_request_toggle_handler(pindex)
    local ent = game.get_player(pindex).opened
-   if
-      not players[pindex].in_menu
-      or players[pindex].menu == "inventory"
-      or players[pindex].menu == "player_trash"
-      or players[pindex].menu == "crafting"
-   then
-      --Player: Toggle enabling requests
-      logistics_request_toggle_personal_logistics(pindex)
-   elseif players[pindex].menu == "vehicle" and mod.can_make_logistic_requests(ent) then
+   if players[pindex].menu == "vehicle" and mod.can_make_logistic_requests(ent) then
       --Vehicles: Toggle enabling requests
       logistics_request_toggle_spidertron_logistics(ent, pindex)
    elseif players[pindex].menu == "building" then
@@ -1578,6 +1578,8 @@ function mod.chest_logistic_request_read(item_stack, chest, pindex)
    local current_slot = nil
    local correct_slot_id = nil
    local result = ""
+   local sectionid=1
+   if chest.get_logistic_sections().get_section(1).is_manual == false then sectionid=2 end
 
    --Check if logistics have been researched
    for i, tech in pairs(game.get_player(pindex).force.technologies) do
@@ -1599,8 +1601,8 @@ function mod.chest_logistic_request_read(item_stack, chest, pindex)
    end
 
    --Read the correct slot id value
-   current_slot = chest.get_request_slot(correct_slot_id)
-   if current_slot == nil or current_slot.name == nil then
+   current_slot = chest.get_logistic_sections().get_section(sectionid).get_slot(correct_slot_id)
+   if current_slot == nil or current_slot.value == nil then
       --No requests found
       printout(
          item_stack.name .. " has no logistic requests set, use the 'L' key and modifier keys to set requests.",
@@ -1618,8 +1620,8 @@ function mod.chest_logistic_request_read(item_stack, chest, pindex)
       local req_result = ""
       local inv_result = ""
 
-      if current_slot.count ~= nil then
-         req_result = fa_utils.express_in_stacks(current_slot.count, stack_size, false)
+      if current_slot.min ~= nil then
+         req_result = fa_utils.express_in_stacks(current_slot.min, stack_size, false)
       end
 
       local inv_count = chest.get_output_inventory().get_item_count(item_stack.name)
@@ -1849,7 +1851,7 @@ function mod.read_entity_requests_summary(ent, pindex) --**laterdo improve
    if ent.type == "spider-vehicle" then
       printout(ent.request_slot_count .. " spidertron logistic requests set", pindex)
    else
-      printout(ent.request_slot_count .. " chest logistic requests set", pindex)
+      printout(ent.get_logistic_sections().get_section(1).filters_count .. " chest logistic requests set", pindex)
    end
 end
 
