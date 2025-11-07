@@ -96,7 +96,7 @@ local rail_ends = {
     local created = selected_entity.surface.create_entity{
         name = best_extension.name or selected_entity.name,
         position = best_extension.position,
-        direction = best_extension.goal_direction,
+        direction = best_extension.direction,
         force = selected_entity.force,
         raise_built = true
     }
