@@ -51,6 +51,7 @@ local MovementHistory = require("scripts.movement-history")
 local PlayerInit = require("scripts.player-init")
 local PlayerMiningTools = require("scripts.player-mining-tools")
 local Quickbar = require("scripts.quickbar")
+local railplan = require("scripts.railplan")
 local Research = require("scripts.research")
 local Rulers = require("scripts.rulers")
 local ScannerEntrypoint = require("scripts.scanner.entrypoint")
@@ -4195,8 +4196,8 @@ EventManager.on_event("fa-comma", function(event)
    if not player then return end
 
    local cursor_stack = player.cursor_stack
-   if not cursor_stack or not cursor_stack.valid_for_read or not cursor_stack.is_blueprint_book then return end
-
+   if not cursor_stack or not cursor_stack.valid_for_read or not cursor_stack.is_blueprint_book or not cursor_stack.name == "rail" then return end
+if cursor_stack.is_blueprint_book  then
    local book_inv = cursor_stack.get_inventory(defines.inventory.item_main)
    if not book_inv or #book_inv == 0 then
       Speech.speak(pindex, { "fa.blueprint-book-empty" })
@@ -4215,6 +4216,9 @@ EventManager.on_event("fa-comma", function(event)
    else
       Speech.speak(pindex, { "fa.blueprint-book-empty-active" })
    end
+else if cursor_stack.name == "rail" then 
+railplan.extendforward()
+end
 end, EventManager.EVENT_KIND.WORLD)
 
 EventManager.on_event("fa-m", function(event)
@@ -4237,6 +4241,10 @@ EventManager.on_event("fa-m", function(event)
    end
 
    cycle_blueprint_book(pindex, -1)
+   if stack.name == "rail" then 
+railplan.extendleft()
+end
+
 end, EventManager.EVENT_KIND.WORLD)
 
 EventManager.on_event("fa-dot", function(event)
@@ -4259,6 +4267,10 @@ EventManager.on_event("fa-dot", function(event)
    end
 
    cycle_blueprint_book(pindex, 1)
+   if stack.name == "rail" then 
+railplan.extendright()
+end
+
 end, EventManager.EVENT_KIND.WORLD)
 
 -- Dangerous delete: Delete blueprint/decon/upgrade planner from hand, or clear spidertron remote list
