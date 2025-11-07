@@ -1,10 +1,52 @@
--- railplan.lua
+   -- railplan.lua
 -- Automatic rail extension helper for Factorio 2 mods
 -- Supports all rail variants (straight, curved, half-diagonal, legacy, elevated, etc.)
 local Viewpoint = require("scripts.viewpoint")
 local Speech = require("scripts.speech")
 
 local railplan = {}
+
+function totextbox(what)
+local function table_to_string(tbl, indent)
+    indent = indent or 0
+    local result = ""
+    local prefix = string.rep("  ", indent)
+    
+    for k, v in pairs(tbl) do
+        if type(v) == "table" then
+            result = result .. prefix .. tostring(k) .. ":\n" .. table_to_string(v, indent + 1)
+        else
+            result = result .. prefix .. tostring(k) .. " = " .. tostring(v) .. "\n"
+        end
+    end
+    return result
+end
+
+local text 
+    if type(what) == "table" then
+        text = table_to_string(what)
+    else
+        text = tostring(what)
+    end
+storage.players[1].text_field_open = true
+   local text = text
+   local frame = game.get_player(1).gui.screen.add({ type = "frame", name = "copy"})
+   frame.bring_to_front()
+   frame.force_auto_center()
+   frame.focus()
+   local input = frame.add({ type = "textfield", name = "input", text = text })
+   input.focus()
+       local remove_tick = game.tick + (5 * 60)
+    script.on_event(defines.events.on_tick, function(event)
+        if event.tick >= remove_tick then
+            if frame and frame.valid then
+                frame.destroy()
+            end
+            script.on_event(defines.events.on_tick, nil) -- leiratkozás, hogy ne fusson tovább
+        end
+    end)
+   return frame
+end
 
 -- Helper: calculate distance between two positions
 local function distance(p1, p2)
@@ -31,10 +73,11 @@ local function extend(player, selected_entity, cursor_pos, side)
     end
 
 local rail_ends = {
-    front = selected_entity.get_rail_end(defines.rail_direction.front),
-    back  = selected_entity.get_rail_end(defines.rail_direction.back)
+    front = selected_entity.get_rail_segment_end(defines.rail_direction.front).get_rail_end(defines.rail_direction.front),
+    back  = selected_entity.get_rail_segment_end(defines.rail_direction.back).get_rail_end(defines.rail_direction.front)
 }
-
+rail_ends .front.move_to_segment_end()
+rail_ends .back.move_to_segment_end()
     if not (rail_ends.front and rail_ends.back) then
         Speech.speak(pindex, "no rail ends found")
         return
@@ -54,16 +97,20 @@ local rail_ends = {
         return
     end
 
+
     local current_dir = chosen_end.direction
     local best_extension
     local smallest_diff = math.huge
 
     for _, ext in pairs(extensions) do
         local goal_dir = ext.goal.direction
-        local diff = (goal_dir - current_dir + 8) % 8
+   --      if current_dir < 4 and goal_dir > 10 then goal_dir = goal_dir-16 
+   --  elseif current_dir > 12 and goal_dir < 4 then goal_dir = goal_dir+16 end
+   --      local diff = goal_dir - current_dir
+local diff = (goal_dir - current_dir + 16) % 16
 
         if side == "forward" then
-            if diff == 0 then
+            if diff == 0 and ext.direction == current_dir  then
                 best_extension = ext
                 break
             elseif diff < smallest_diff then
@@ -71,25 +118,32 @@ local rail_ends = {
                 smallest_diff = diff
             end
 
-        elseif side == "left" then
-            if diff > 0 and diff < 4 and diff < smallest_diff then
-                best_extension = ext
-                smallest_diff = diff
-            end
-
-        elseif side == "right" then
-            local adjusted_diff = (current_dir - goal_dir + 8) % 8
-            if adjusted_diff > 0 and adjusted_diff < 4 and adjusted_diff < smallest_diff then
-                best_extension = ext
-                smallest_diff = adjusted_diff
-            end
-        end
+elseif side == "left" then
+    local turn = (goal_dir - current_dir + 16) % 16
+    -- balra jellemzően 12–15 (negatív, azaz “nagyobb” a ciklusban)
+    if (turn >= 12 or turn <= 2) and turn > 0 and turn < smallest_diff then
+        best_extension = ext
+        smallest_diff = turn
     end
+
+elseif side == "right" then
+    local turn = (goal_dir - current_dir + 16) % 16
+    -- jobbra jellemzően 1–4 között
+    if turn > 0 and turn < 4 and turn < smallest_diff then
+        best_extension = ext
+        smallest_diff = turn
+    end
+end
+end
 
     if not best_extension then
         Speech.speak(pindex, "no valid extension found")
         return
     end
+
+    table.insert(extensions, best_extension)
+totextbox(extensions)
+
 
     Speech.speak(pindex, "placing rail: " .. (best_extension.name or selected_entity.name))
 
