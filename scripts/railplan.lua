@@ -1,6 +1,8 @@
 -- railplan.lua
 -- Automatic rail extension helper for Factorio 2 mods
 -- Supports all rail variants (straight, curved, half-diagonal, legacy, elevated, etc.)
+local Viewpoint = require("scripts.viewpoint")
+local Speech = require("scripts.speech")
 
 local railplan = {}
 
@@ -18,32 +20,47 @@ local function is_rail_entity(entity)
 end
 
 -- Internal: main placement logic
-local function extend(selected_entity, cursor_pos, side)
-    if not is_rail_entity(selected_entity) then return end
+local function extend(player, selected_entity, cursor_pos, side)
+    local pindex = player.index
 
-    local rail_ends = {
-        front = selected_entity:get_rail_end("front"),
-        back = selected_entity:get_rail_end("back")
-    }
+    Speech.speak(pindex, "railplan.extend start: " .. side)
 
-    if not (rail_ends.front and rail_ends.back) then return end
+    if not is_rail_entity(selected_entity) then
+        Speech.speak(pindex, "no rail selected")
+        return
+    end
+
+local rail_ends = {
+    front = selected_entity.get_rail_end(defines.rail_direction.front),
+    back  = selected_entity.get_rail_end(defines.rail_direction.back)
+}
+
+    if not (rail_ends.front and rail_ends.back) then
+        Speech.speak(pindex, "no rail ends found")
+        return
+    end
 
     -- choose closer end
-    local front_dist = distance(rail_ends.front.position, cursor_pos)
-    local back_dist = distance(rail_ends.back.position, cursor_pos)
+    local front_dist = distance(rail_ends.front.location.position, cursor_pos)
+    local back_dist  = distance(rail_ends.back.location.position, cursor_pos)
     local chosen_end = front_dist < back_dist and rail_ends.front or rail_ends.back
 
+    Speech.speak(pindex, "chosen end: " .. (front_dist < back_dist and "front" or "back"))
+
     -- get possible extensions
-    local extensions = chosen_end:get_rail_extensions("rail")
-    if not extensions or #extensions == 0 then return end
+    local extensions = chosen_end.get_rail_extensions("rail")
+    if not extensions or #extensions == 0 then
+        Speech.speak(pindex, "no rail extensions available")
+        return
+    end
 
     local current_dir = chosen_end.direction
-    local best_extension = nil
+    local best_extension
     local smallest_diff = math.huge
 
     for _, ext in pairs(extensions) do
-        local goal_dir = ext.goal_direction
-        local diff = (goal_dir - current_dir + 8) % 8 -- normalize 0–7
+        local goal_dir = ext.goal.direction
+        local diff = (goal_dir - current_dir + 8) % 8
 
         if side == "forward" then
             if diff == 0 then
@@ -69,42 +86,71 @@ local function extend(selected_entity, cursor_pos, side)
         end
     end
 
-    if best_extension then
-        selected_entity.surface.create_entity{
-            name = best_extension.name or selected_entity.name,
-            position = best_extension.position,
-            direction = best_extension.goal_direction,
-            force = selected_entity.force,
-            raise_built = true
-        }
+    if not best_extension then
+        Speech.speak(pindex, "no valid extension found")
+        return
+    end
+
+    Speech.speak(pindex, "placing rail: " .. (best_extension.name or selected_entity.name))
+
+    local created = selected_entity.surface.create_entity{
+        name = best_extension.name or selected_entity.name,
+        position = best_extension.position,
+        direction = best_extension.goal_direction,
+        force = selected_entity.force,
+        raise_built = true
+    }
+
+    if not created then
+        Speech.speak(pindex, "rail placement failed")
+    else
+        Speech.speak(pindex, "rail placement success")
     end
 end
 
 -- Public: extend left
-function railplan.extend_left()
-    local player = game.player
+function railplan.extend_left(pindex)
+    local player = game.get_player(pindex)
     if not player then return end
     local entity = player.selected
-    if not entity then return end
-    extend(entity, player.cursor_position, "left")
+    if not entity then
+        Speech.speak(player.index, "no selected entity")
+        return
+    end
+
+    local vp = Viewpoint.get_viewpoint(pindex)
+    local cursor_pos = vp and vp:get_cursor_pos() or entity.position
+    extend(player, entity, cursor_pos, "left")
 end
 
 -- Public: extend forward
-function railplan.extend_forward()
-    local player = game.player
+function railplan.extend_forward(pindex)
+    local player = game.get_player(pindex)
     if not player then return end
     local entity = player.selected
-    if not entity then return end
-    extend(entity, player.cursor_position, "forward")
+    if not entity then
+        Speech.speak(player.index, "no selected entity")
+        return
+    end
+
+    local vp = Viewpoint.get_viewpoint(pindex)
+    local cursor_pos = vp and vp:get_cursor_pos() or entity.position
+    extend(player, entity, cursor_pos, "forward")
 end
 
 -- Public: extend right
-function railplan.extend_right()
-    local player = game.player
+function railplan.extend_right(pindex)
+    local player = game.get_player(pindex)
     if not player then return end
     local entity = player.selected
-    if not entity then return end
-    extend(entity, player.cursor_position, "right")
+    if not entity then
+        Speech.speak(player.index, "no selected entity")
+        return
+    end
+
+    local vp = Viewpoint.get_viewpoint(pindex)
+    local cursor_pos = vp and vp:get_cursor_pos() or entity.position
+    extend(player, entity, cursor_pos, "right")
 end
 
 return railplan

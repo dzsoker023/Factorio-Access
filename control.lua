@@ -4196,7 +4196,7 @@ EventManager.on_event("fa-comma", function(event)
    if not player then return end
 
    local cursor_stack = player.cursor_stack
-   if not cursor_stack or not cursor_stack.valid_for_read or not cursor_stack.is_blueprint_book or not cursor_stack.name == "rail" then return end
+   if not cursor_stack or not cursor_stack.valid_for_read then return end
 if cursor_stack.is_blueprint_book  then
    local book_inv = cursor_stack.get_inventory(defines.inventory.item_main)
    if not book_inv or #book_inv == 0 then
@@ -4216,8 +4216,8 @@ if cursor_stack.is_blueprint_book  then
    else
       Speech.speak(pindex, { "fa.blueprint-book-empty-active" })
    end
-else if cursor_stack.name == "rail" then 
-railplan.extendforward()
+ elseif cursor_stack and cursor_stack.valid_for_read and cursor_stack.name == "rail" then 
+ railplan.extend_forward(pindex)
 end
 end, EventManager.EVENT_KIND.WORLD)
 
@@ -4242,7 +4242,7 @@ EventManager.on_event("fa-m", function(event)
 
    cycle_blueprint_book(pindex, -1)
    if stack.name == "rail" then 
-railplan.extendleft()
+railplan.extend_left(pindex)
 end
 
 end, EventManager.EVENT_KIND.WORLD)
@@ -4268,7 +4268,7 @@ EventManager.on_event("fa-dot", function(event)
 
    cycle_blueprint_book(pindex, 1)
    if stack.name == "rail" then 
-railplan.extendright()
+railplan.extend_right(pindex)
 end
 
 end, EventManager.EVENT_KIND.WORLD)

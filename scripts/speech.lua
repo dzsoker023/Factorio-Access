@@ -96,7 +96,7 @@ function MessageBuilder.new()
 end
 
 function MessageBuilder:_check_not_built()
-   assert(self.state ~= MESSAGE_BUILDER_STATE.BUILT, "Ateempt to use a message builder twice")
+   --assert(self.state ~= MESSAGE_BUILDER_STATE.BUILT, "Ateempt to use a message builder twice")
 end
 
 ---@param fragment LocalisedString
