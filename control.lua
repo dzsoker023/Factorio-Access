@@ -493,7 +493,20 @@ EventManager.on_event(
       MovementHistory.reset_and_increment_generation(pindex)
       game.get_player(pindex).clear_cursor()
       storage.players[pindex].last_train_orientation = nil
-      if game.get_player(pindex).driving then
+      local p = game.get_player(pindex)
+   if p.surface.platform then
+    local c = p.surface.platform.hub.create_cargo_pod()
+    c.set_passenger(p)
+        for _, planet in pairs(game.planets) do
+        local plat_list = planet.get_space_platforms(p.force)
+        for _, plat in pairs(plat_list) do
+            if plat == p.surface.platform then
+               c.cargo_pod_destination = {type = defines.cargo_destination.surface, surface = planet.surface }
+                break
+            end
+        end
+      end
+      elseif game.get_player(pindex).driving then
          storage.players[pindex].last_vehicle = game.get_player(pindex).vehicle
          Speech.speak(
             pindex,
@@ -3185,6 +3198,9 @@ EventManager.on_event(
             local vp = Viewpoint.get_viewpoint(pindex)
             local cursor_pos = vp:get_cursor_pos()
             SpidertronRemote.add_to_autopilot(p, cursor_pos, false)
+            return
+         elseif stack.name == "rail" then 
+            railplan.extend_ramp(pindex)
             return
          end
       end

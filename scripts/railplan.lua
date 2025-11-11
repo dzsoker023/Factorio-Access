@@ -117,12 +117,12 @@ local function extend(player, selected_entity, cursor_pos, side)
 
         if side == "forward" then
             -- Forward: prefer straight ahead (diff == 0)
-            if diff == 0 then
+            if diff == 0 and chosen_end.location.rail_layer == ext.goal.rail_layer then
                 best_extension = ext
                 best_diff = 0
                 break
             -- Also accept very small deviations (1 step either direction)
-            elseif best_diff == nil or diff == 1 or diff == 15 then
+            elseif best_diff == nil or diff == 1 or diff == 15 and chosen_end.location.rail_layer == ext.goal.rail_layer then
                 if best_diff == nil or diff < best_diff or (diff == 15 and (best_diff == nil or best_diff > 1)) then
                     best_extension = ext
                     best_diff = diff
@@ -161,6 +161,12 @@ local function extend(player, selected_entity, cursor_pos, side)
                     best_diff = turn_magnitude
                 end
             end
+
+        elseif side == "ramp" then
+            if chosen_end.location.rail_layer ~= ext.goal.rail_layer then
+                best_extension = ext
+                break
+            end
         end
     end
 
@@ -169,11 +175,23 @@ local function extend(player, selected_entity, cursor_pos, side)
         return
     end
 
+    table.insert(extensions,best_extension)
+--totextbox(extensions)
+
     Speech.speak(pindex, string.format("placing rail: %s (diff: %s)", 
         best_extension.name or selected_entity.name, 
         tostring(best_diff)))
 
-    local created = selected_entity.surface.create_entity{
+
+    local plan_ghost = {
+        name = "entity-ghost", 
+        inner_name = best_extension.name or selected_entity.name,
+        position = best_extension.position,
+        direction = best_extension.direction,
+        force = selected_entity.force,
+        raise_built = true
+    }
+    local plan = {
         name = best_extension.name or selected_entity.name,
         position = best_extension.position,
         direction = best_extension.direction,
@@ -181,10 +199,48 @@ local function extend(player, selected_entity, cursor_pos, side)
         raise_built = true
     }
 
+local required_item = nil
+local required_number=nil
+if best_extension.name == "rail-ramp" then
+    required_item = "rail-ramp"
+    required_number=1
+else
+    required_item = "rail"
+    if best_extension.name == "straight-rail" or best_extension.name == "elevated-straight-rail" then required_number = 1
+    elseif best_extension.name == "curved-rail-a" or best_extension.name == "elevated-curved-rail-a" or best_extension.name == "curved-rail-b" or best_extension.name == "elevated-curved-rail-b" then required_number = 3
+    elseif best_extension.name == "half-diagonal-rail" or best_extension.name == "elevated-half-diagonal-rail" then required_number = 2
+    else required_number=1
+    end
+end
+
+local stack = storage.players[pindex].cursor_stack
+local stack2 = nil
+       if not (stack.valid and stack.valid_for_read and stack.name == required_item  and stack.count >= required_number) then
+      --Check if the inventory has enough
+      if storage.players[pindex].inventory.lua_inventory.get_item_count(required_item) < required_number then
+         --game.get_player(pindex).play_sound({ path = "utility/cannot_build" })
+         --printout("You need at least 10 rails in your inventory to build this turn.", pindex)
+         return
+      else
+         --Take from the inventory.
+         stack2 = storage.players[pindex].inventory.lua_inventory.find_item_stack(required_item)
+         storage.players[pindex].cursor_stack.swap_stack(stack2)
+         stack = storage.players[pindex].cursor_stack
+         storage.players[pindex].inventory.max = #storage.players[pindex].inventory.lua_inventory
+      end
+   end
+   local created = false
+if selected_entity.surface.can_place(plan) then 
+game.get_player(pindex).cursor_stack.count = game.get_player(pindex).cursor_stack.count - required_number
+selected_entity.surface.create_entity(plan)
+created=true
+end
+
     if not created then
         Speech.speak(pindex, "rail placement failed")
     else
         Speech.speak(pindex, "rail placement success")
+
     end
 end
 
@@ -216,6 +272,21 @@ function railplan.extend_forward(pindex)
     local vp = Viewpoint.get_viewpoint(pindex)
     local cursor_pos = vp and vp:get_cursor_pos() or entity.position
     extend(player, entity, cursor_pos, "forward")
+end
+
+-- Public: extend ramp
+function railplan.extend_ramp(pindex)
+    local player = game.get_player(pindex)
+    if not player then return end
+    local entity = player.selected
+    if not entity then
+        Speech.speak(player.index, "no selected entity")
+        return
+    end
+
+    local vp = Viewpoint.get_viewpoint(pindex)
+    local cursor_pos = vp and vp:get_cursor_pos() or entity.position
+    extend(player, entity, cursor_pos, "ramp")
 end
 
 -- Public: extend right
