@@ -1,3 +1,7 @@
+# 0.16.57 (2026-03-04))
+
+- Some multiplayer fixes
+
 # 0.16.56 (2026-02-05)
 
 - Correct dependencies in the mod portal
