@@ -48,6 +48,8 @@ Clear all ghosts within 100 tiles: `ctrl + shift + x` (not a cheat--only removes
 
 Get the status of an entity: `right bracket`
 
+Check the pollution level at the cursor: `shift + u`
+
 Fast transfer full stacks from the hand to the selected entity: `ctrl + left bracket`
 
 Fast transfer half stacks from the hand to the selected entity: `ctrl + right bracket`
