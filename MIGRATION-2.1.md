@@ -1,8 +1,40 @@
 # FactorioAccess 2.0.73 to 2.1.8 Migration Plan
 
-Status: planning only, no code changed yet. Target game version 2.1.8 (base API
-version 6, unchanged). The mod's `info.json` is not yet marked 2.1 compatible,
-so the game cannot be launched with the mod loaded until that is done.
+Status: EXECUTED. Target game version 2.1.8 (base API version 6, unchanged).
+info.json is now marked 2.1. The mod loads and all 82 in-game tests plus all
+Lua tests pass on 2.1.8.
+
+## Execution status
+
+Done (see commits on the f2.1 branch):
+- Item 1 fluids, item 2 defines.inventory, item 3 control-behavior descriptors
+  (load-blocking), item 4 neighbours, item 5 active write, item 6 recipe
+  categories, item 7 product probability, item 8 quickbar -- all complete.
+- The two verify-only items resolved as no-change: the `minable` read is still
+  valid; `mouse-button-3` is still a valid key (the data stage loads cleanly).
+
+Found during execution (not in the original plan), now fixed:
+- data-updates.lua iterated `data.raw.tool`, which is nil in 2.1 because science
+  packs became plain items -- switched to `data.raw.item`. (Was a hard load crash.)
+- Two `PipeConnection.target.owner.type` reads in fa-info.lua (573, 1048): target
+  is now a LuaEntity, so `.owner` was dropped. (Caught by the stricter lint.)
+- Kruise_Kontrol_Remote (a forked 2.0 mod we own) is disabled in the install's
+  mod-list so the suite can run; it needs its own 2.1 pass, likely a separate
+  session. Our wrapper code was still migrated (the `.active` write).
+
+Deliberately deferred (per scope decision):
+- Item 3b additive dialog gaps: radar `mode` (surface/universe) and descriptors
+  for the new circuit-connectable types (boiler/heat_pipe/lab/land_mine). New-type
+  scope is out for now.
+
+Flagged for playtesting (best-effort 1:1, worth a closer look in-game):
+- Fluid "locked fluid" now comes from `get_fluid_filter`; an empty recipe-locked
+  crafting-machine fluidbox may not report its locked fluid as it did before
+  (non-empty boxes still resolve via the fluid segment).
+- Quickbar slots holding a blueprint record or spidertron remote announce as empty
+  (the old code only handled item filters); item/filter slots work as before.
+
+The rest of this document is the original plan, retained for reference.
 
 ## Scope
 
