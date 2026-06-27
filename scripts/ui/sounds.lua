@@ -263,7 +263,11 @@ function mod.play_sound_at_position(sound_spec, position)
       })
       logger:debug("Sound played at position: " .. serpent.line(sound_spec))
    else
-      game.play_sound(table.combine(sound_spec, { position = position }))
+      local spec = { position = position }
+      for k, v in pairs(sound_spec) do
+         spec[k] = v
+      end
+      game.play_sound(spec)
    end
 end
 

@@ -140,7 +140,7 @@ function mod.extract_rail_table(surface, force)
          local rail = surface.create_entity({
             name = rail_name,
             position = origin,
-            direction = dir,
+            direction = dir --[[@as defines.direction]],
             force = force,
             raise_built = false,
          })

@@ -153,7 +153,14 @@ local function localise_trigger(tech, trig)
       local amount = CRAFT_ITEM_COUNTS()[tech.name][trig.item.name]
       assert(amount)
       table.insert(res, amount)
-      table.insert(res, trig.item_quality or "normal")
+      local quality = trig.item.quality
+      local quality_name = "normal"
+      if type(quality) == "string" then
+         quality_name = quality
+      elseif quality then
+         quality_name = quality.name
+      end
+      table.insert(res, quality_name)
    elseif trig.type == "mine-entity" then
       table.insert(res, Localising.get_localised_name_with_fallback(prototypes.entity[trig.entity]))
    elseif trig.type == "craft-fluid" then

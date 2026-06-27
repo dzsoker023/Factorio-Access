@@ -226,7 +226,7 @@ function mod.add_item_signals(builder, root, unlocked_only, force, result_conver
             local loot = entity_proto.loot
             if loot then
                for _, loot_item in ipairs(loot) do
-                  if loot_item.item then unlocked_items[loot_item.item] = true end
+                  if loot_item.type == "item" then unlocked_items[loot_item.name] = true end
                end
             end
 

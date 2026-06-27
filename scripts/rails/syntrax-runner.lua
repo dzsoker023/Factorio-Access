@@ -63,7 +63,7 @@ local function convert_placement(placement, planner_description)
          direction = placement.direction,
       }
    else
-      error("Unknown placement type: " .. tostring(placement.type))
+      error("Unknown placement type: " .. tostring((placement --[[@as syntrax.vm.Placement]]).type))
    end
 end
 

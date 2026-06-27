@@ -12,7 +12,7 @@ local UiKeyGraph = require("scripts.ui.key-graph")
 local mod = {}
 
 ---Render the rocket silo configuration form
----@param ctx fa.ui.TabContext
+---@param ctx fa.ui.graph.Ctx
 ---@return fa.ui.graph.Render?
 local function render_rocket_silo_config(ctx)
    local entity = ctx.tablist_shared_state.entity

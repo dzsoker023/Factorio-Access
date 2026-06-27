@@ -83,7 +83,11 @@ local function analyze_triggers(triggers, force_condition)
    end
 
    -- Handle single trigger vs array of triggers
-   if triggers.type then triggers = { triggers } end
+   if
+      (triggers --[[@as table]]).type
+   then
+      triggers = { triggers }
+   end
 
    local max_radius = nil
    local has_area = false
@@ -184,7 +188,11 @@ local function find_smoke_entity_in_triggers(triggers)
    if not triggers then return nil end
 
    -- Handle single trigger vs array
-   if triggers.type then triggers = { triggers } end
+   if
+      (triggers --[[@as table]]).type
+   then
+      triggers = { triggers }
+   end
 
    for _, trigger in ipairs(triggers) do
       if trigger.action_delivery then
@@ -365,15 +373,9 @@ function mod.build_map()
                end
                if proj_analysis.force then force_cond = proj_analysis.force end
 
-               -- Also check final_attack_result
-               local final_analysis = analyze_triggers(proj_proto.final_attack_result, force_cond)
-               if final_analysis.has_area then
-                  has_area = true
-                  if final_analysis.radius and (not area_radius or final_analysis.radius > area_radius) then
-                     area_radius = final_analysis.radius
-                  end
-               end
-               if final_analysis.force then force_cond = final_analysis.force end
+               -- (The projectile's final_action is not exposed on the runtime
+               -- prototype, so it cannot be analyzed here. This previously read a
+               -- non-existent `final_attack_result` field and was always a no-op.)
 
                -- Check if the projectile creates a smoke-with-trigger entity
                local smoke_name = find_smoke_entity_in_triggers(proj_proto.action)
@@ -396,8 +398,10 @@ function mod.build_map()
 
          combat_data.ammo[name] = {
             target_type = target_type,
-            min_range = ammo_type.min_range,
-            max_range = ammo_type.range or 0,
+            -- BUG (preexisting): AmmoType exposes no min_range/range; absolute ranges
+            -- live on the gun's attack_parameters. These have always been nil/0.
+            min_range = nil,
+            max_range = 0,
             range_modifier = range_modifier,
             soft_min_range = soft_min,
             has_area_damage = has_area,

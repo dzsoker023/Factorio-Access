@@ -173,7 +173,7 @@ function mod._dispatch_event(event_id, event)
    local event_handlers = handlers[event_id]
    if not event_handlers then return end
 
-   local pindex = event.player_index
+   local pindex = (event --[[@as { player_index: integer? }]]).player_index
 
    -- Check if this event has a player_index and needs initialization
    if pindex then

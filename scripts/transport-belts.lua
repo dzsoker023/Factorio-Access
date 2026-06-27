@@ -28,6 +28,15 @@ local function count3(a, b, c)
    return (a and 1 or 0) + (b and 1 or 0) + (c and 1 or 0)
 end
 
+-- get_transport_line wants a defines.transport_line; the line indices we use are
+-- exactly the integers that enum is defined as. This carries the type without
+-- changing the value (an inline cast on an integer literal does not satisfy LuaLS).
+---@param index integer
+---@return defines.transport_line
+local function tl(index)
+   return index --[[@as defines.transport_line]]
+end
+
 -- Get the input direction of a belt connectable.
 ---@param connectable LuaEntity
 ---@return defines.direction
@@ -294,7 +303,7 @@ The items table is prototype->quality->count.
 ---@return  fa.TransportBelts.SlotBucket[]
 function Node:get_line_contents(line)
    self:_assert_valid()
-   local line = self.entity.get_transport_line(line --[[@as number]])
+   local line = self.entity.get_transport_line(line --[[@as defines.transport_line]])
 
    local buckets = {}
 
@@ -394,7 +403,7 @@ end
 ---@param line defines.transport_line
 function Node:is_line_full(line)
    self:_assert_valid()
-   local line = self.entity.get_transport_line(line --[[@as number]])
+   local line = self.entity.get_transport_line(line --[[@as defines.transport_line]])
    local expected = line.line_length * 4
    return #line == expected
 end
@@ -413,7 +422,7 @@ end
 ---@return boolean
 function Node:is_all_full()
    for i = 1, #self.entity.get_max_transport_line_index() do
-      local line = self.entity.get_transport_line(i)
+      local line = self.entity.get_transport_line(i --[[@as defines.transport_line]])
       local expected = line.line_length * 4
       if expected ~= #line then return false end
    end
@@ -573,10 +582,10 @@ local function belt_length_in_slots(ent)
 
    -- Underground belt entrances: above ground + underground portions
    if ent.type == "underground-belt" and ent.belt_to_ground_type == "input" then
-      local left_above = ent.get_transport_line(1).line_length
-      local left_underground = ent.get_transport_line(3).line_length
-      local right_above = ent.get_transport_line(2).line_length
-      local right_underground = ent.get_transport_line(4).line_length
+      local left_above = ent.get_transport_line(tl(1)).line_length
+      local left_underground = ent.get_transport_line(tl(3)).line_length
+      local right_above = ent.get_transport_line(tl(2)).line_length
+      local right_underground = ent.get_transport_line(tl(4)).line_length
       return {
          left = (left_above + left_underground) * 4,
          right = (right_above + right_underground) * 4,
@@ -588,8 +597,8 @@ local function belt_length_in_slots(ent)
 
    -- Transport belts: measure actual line lengths (differs at corners)
    if ent.type == "transport-belt" then
-      local left_length = ent.get_transport_line(1).line_length
-      local right_length = ent.get_transport_line(2).line_length
+      local left_length = ent.get_transport_line(tl(1)).line_length
+      local right_length = ent.get_transport_line(tl(2)).line_length
       return {
          left = left_length * 4,
          right = right_length * 4,

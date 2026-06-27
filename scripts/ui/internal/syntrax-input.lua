@@ -10,7 +10,7 @@ local mod = {}
 ---@type fa.ui.UiPanelBase
 local syntrax_input_ui = {
    ui_name = "syntrax_input",
-   open = nil, -- Defined below
+   open = function() end, -- placeholder; the real method is defined below
    on_child_result = nil, -- Defined below
 }
 

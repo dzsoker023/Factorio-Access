@@ -15,7 +15,7 @@ local Localising = require("scripts.localising")
 local mod = {}
 
 ---Render the infinity pipe configuration menu
----@param ctx fa.ui.TabContext
+---@param ctx fa.ui.graph.Ctx
 ---@return fa.ui.graph.Render?
 local function render_infinity_pipe_config(ctx)
    local entity = ctx.tablist_shared_state.entity

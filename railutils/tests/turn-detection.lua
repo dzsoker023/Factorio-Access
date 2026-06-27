@@ -82,7 +82,7 @@ local function test_piece_detection(pieces, piece_index, turn_name)
 
       -- Should only detect turn when all 4 pieces are present
       local all_present = perm[1] and perm[2] and perm[3] and perm[4]
-      local detected_turn = desc.kind:find("-turn", 1, true) ~= nil
+      local detected_turn = (desc.kind --[[@as string]]):find("-turn", 1, true) ~= nil
 
       if all_present then
          lu.assertTrue(
@@ -97,7 +97,7 @@ local function test_piece_detection(pieces, piece_index, turn_name)
          )
          -- Verify it's detecting the correct turn
          lu.assertTrue(
-            desc.kind:find(turn_name, 1, true) ~= nil,
+            (desc.kind --[[@as string]]):find(turn_name, 1, true) ~= nil,
             string.format(
                "%s piece %d (perm %d): detected wrong turn, got: %s",
                turn_name,

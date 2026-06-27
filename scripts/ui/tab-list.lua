@@ -129,6 +129,7 @@ local tablist_storage = StorageManager.declare_storage_module("tab_list", {}, {
 ---@field tab_order string[]
 ---@field tabs_callback fun(pindex: number, parameters: any): fa.ui.TabstopDescriptor[]
 ---@field shared_state_initializer (fun(number, table): table)?
+---@field get_binds_callback (fun(pindex: number, parameters: table): fa.ui.Bind[]?)?
 ---@field declaration fa.ui.TabListDeclaration
 local TabList = {}
 local TabList_meta = { __index = TabList }

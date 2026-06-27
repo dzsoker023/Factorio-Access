@@ -31,7 +31,7 @@ function mod.needs_gun_menu_tab(pindex)
 end
 
 ---@class fa.ui.GunMenu.SharedState
--- For now there are none, just empty table.
+---@field entity LuaEntity? Set when rendering guns for a specific entity (see entity-ui.lua)
 
 ---@class fa.ui.GunMenu.Parameters
 ---Empty for now, but available for future extensions

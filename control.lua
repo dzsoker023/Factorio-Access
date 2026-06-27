@@ -3090,6 +3090,7 @@ EventManager.on_event(
 
       if ent.type == "power-switch" then
          local cb = ent.get_control_behavior()
+         ---@cast cb LuaGenericOnOffControlBehavior
          if cb and (cb.circuit_enable_disable or cb.connect_to_logistic_network) then
             Speech.speak(pindex, { "fa.power-switch-circuit-controlled" })
          else
@@ -3370,11 +3371,18 @@ local function kb_read_item_pickup_state(event)
          Speech.speak(pindex, result)
          return
       end
+      -- Line indices are exactly the integers defines.transport_line is defined as;
+      -- carry the type without changing the value.
+      ---@param index integer
+      ---@return defines.transport_line
+      local function tl(index)
+         return index --[[@as defines.transport_line]]
+      end
       local left = TH.nqc_to_sorted_descending(
-         TH.rollup2(ent.get_transport_line(1).get_contents(), F.name().get, F.quality().get, F.count().get)
+         TH.rollup2(ent.get_transport_line(tl(1)).get_contents(), F.name().get, F.quality().get, F.count().get)
       )
       local right = TH.nqc_to_sorted_descending(
-         TH.rollup2(ent.get_transport_line(2).get_contents(), F.name().get, F.quality().get, F.count().get)
+         TH.rollup2(ent.get_transport_line(tl(2)).get_contents(), F.name().get, F.quality().get, F.count().get)
       )
       local all = {}
       TH.concat_arrays(left, right)

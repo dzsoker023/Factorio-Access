@@ -298,6 +298,11 @@ function mod.add_formatted_filters(point, msg_builder, filter_type)
    -- For filters (CompiledLogisticFilter array)
    if filter_type == "filters" then
       for _, filter in ipairs(items) do
+         -- BUG (2.1): items are CompiledLogisticFilter (name/count/max_count), but
+         -- push_request_readout still expects the old LogisticFilter (value/min/max).
+         -- filter.value is always nil, so this readout is currently a no-op. Needs a
+         -- real rewrite to read CompiledLogisticFilter fields.
+         ---@diagnostic disable-next-line: undefined-field
          if filter and filter.value then
             msg_builder:list_item()
             ---@diagnostic disable-next-line: param-type-mismatch

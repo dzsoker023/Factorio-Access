@@ -74,7 +74,7 @@ describe("Rail Grid Adjustment", function()
                      local real_rail = surface.create_entity({
                         name = prototype_name,
                         position = { x = x, y = y },
-                        direction = dir,
+                        direction = dir --[[@as defines.direction]],
                         force = player.force,
                         raise_built = false,
                      })

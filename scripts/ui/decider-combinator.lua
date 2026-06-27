@@ -230,6 +230,7 @@ local function build_condition_vtable(entity, i, condition, row_key)
             cycle_item_networks(entity, "conditions", i, "second_signal_networks", ctx)
          elseif ctx.modifiers and ctx.modifiers.shift then
             local cb = entity.get_control_behavior()
+            ---@cast cb LuaDeciderCombinatorControlBehavior
             local params = cb.parameters
             ctx.controller:open_textbox("", { node = row_key, target = "constant" }, { "fa.decider-enter-constant" })
          else
