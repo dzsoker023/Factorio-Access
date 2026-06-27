@@ -61,48 +61,6 @@ local function schedule_personal_logistics_announcement(pindex)
    worker_robots_storage[pindex].pending_logistic_state_announcement = true
 end
 
--- Push a readout of a logistic request to the provided builder as a fragment.
----@param msg_builder fa.MessageBuilder
----@param req LogisticFilter
-local function push_request_readout(msg_builder, req)
-   -- Error conditions are unlocalised because they should never happen.  We
-   -- should probably change these to asserts in the long run, but for now this
-   -- is very new code and it is better to function partially.
-
-   local protoname = req.value
-   if not protoname then
-      msg_builder:fragment({ "fa.error-unable-to-determine-item" })
-      return
-   end
-
-   if type(protoname) ~= "string" then protoname = protoname.name end
-
-   local bottom = req.min
-   local top = req.max
-
-   local localised_item = Localising.get_localised_name_with_fallback(prototypes.item[protoname])
-   if not bottom and not top then
-      msg_builder:fragment({ "fa.bots-request-unconstrained", localised_item })
-      return
-   elseif bottom and top then
-      if bottom == top then
-         msg_builder:fragment({ "fa.bots-request-exactly", localised_item, bottom })
-      else
-         msg_builder:fragment({ "fa.bots-request-range", localised_item, bottom, top })
-      end
-
-      return
-   elseif not bottom or bottom == 0 then
-      msg_builder:fragment({ "fa.bots-request-max-only", localised_item, top })
-      return
-   elseif not top then
-      msg_builder:fragment({ "fa.bots-request-min-only", localised_item, bottom })
-      return
-   end
-
-   msg_builder:fragment({ "fa.error-unable-to-handle-request" }):fragment(serpent.line(req))
-end
-
 function mod.logistics_info_key_handler(pindex)
    local p = game.get_player(pindex)
    local ent = p.selected
@@ -272,53 +230,6 @@ function mod.get_network_name_for_point(point)
    if not network.valid then return nil end
 
    return mod.get_network_name_from_network(network)
-end
-
----Add formatted compiled filters from a point to a message builder
----@param point LuaLogisticPoint
----@param msg_builder fa.MessageBuilder
----@param filter_type "filters" | "targeted_items_pickup" | "targeted_items_deliver"
-function mod.add_formatted_filters(point, msg_builder, filter_type)
-   if not point or not point.valid then return end
-
-   local items
-   if filter_type == "filters" then
-      items = point.filters
-   elseif filter_type == "targeted_items_pickup" then
-      items = point.targeted_items_pickup
-   elseif filter_type == "targeted_items_deliver" then
-      items = point.targeted_items_deliver
-   end
-
-   if not items or not next(items) then
-      msg_builder:list_item({ "fa.logistics-no-items" })
-      return
-   end
-
-   -- For filters (CompiledLogisticFilter array)
-   if filter_type == "filters" then
-      for _, filter in ipairs(items) do
-         -- BUG (2.1): items are CompiledLogisticFilter (name/count/max_count), but
-         -- push_request_readout still expects the old LogisticFilter (value/min/max).
-         -- filter.value is always nil, so this readout is currently a no-op. Needs a
-         -- real rewrite to read CompiledLogisticFilter fields.
-         ---@diagnostic disable-next-line: undefined-field
-         if filter and filter.value then
-            msg_builder:list_item()
-            ---@diagnostic disable-next-line: param-type-mismatch
-            push_request_readout(msg_builder, filter)
-         end
-      end
-   else
-      -- For targeted_items (ItemWithQualityCounts - table of item_name -> count)
-      for item_name, count in pairs(items) do
-         if count and count > 0 then
-            msg_builder:list_item()
-            msg_builder:fragment(Localising.get_localised_name_with_fallback(prototypes.item[item_name]))
-            msg_builder:fragment(tostring(count))
-         end
-      end
-   end
 end
 
 ---Get the network name (custom name if set, else network ID)
