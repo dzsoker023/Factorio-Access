@@ -1270,7 +1270,7 @@ local function cursor_skip_iteration(pindex, direction, iteration_limit)
 
    --For pipes to ground, apply a special case where you jump to the underground neighbour
    if start ~= nil and start.valid and start.type == "pipe-to-ground" then
-      local connections = start.fluidbox.get_pipe_connections(1)
+      local connections = start.get_fluid_box_pipe_connections(1)
       for i, con in ipairs(connections) do
          if con.target ~= nil then
             local dist = math.ceil(util.distance(start.position, con.target.get_pipe_connections(1)[1].position))
@@ -1285,7 +1285,7 @@ local function cursor_skip_iteration(pindex, direction, iteration_limit)
       end
       --For underground belts, apply a special case where you jump to the underground neighbour
    elseif start ~= nil and start.valid and start.type == "underground-belt" then
-      local neighbour = start.neighbours
+      local neighbour = start.underground_belt_neighbour
       if neighbour then
          local other_end = neighbour
          local dist = math.ceil(util.distance(start.position, other_end.position))

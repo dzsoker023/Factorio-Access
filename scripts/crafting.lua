@@ -79,7 +79,14 @@ function mod.recipe_cannot_craft_reason(pindex, recipe_in)
    local p = game.get_player(pindex)
    if p.character then
       local crafting_categories = p.character.prototype.crafting_categories
-      if not crafting_categories[recipe.category] then return { "fa.crafting-requires-machine" } end
+      local hand_craftable = false
+      for _, category in ipairs(recipe.categories) do
+         if crafting_categories[category] then
+            hand_craftable = true
+            break
+         end
+      end
+      if not hand_craftable then return { "fa.crafting-requires-machine" } end
    end
 
    -- Check if recipe requires fluids (cannot be hand-crafted normally)

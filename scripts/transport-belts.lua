@@ -140,7 +140,7 @@ local function get_parents(connectable)
    end
 
    if connectable.type == "underground-belt" and connectable.belt_to_ground_type == "output" then
-      behind = connectable.neighbours
+      behind = connectable.underground_belt_neighbour
    end
 
    return behind, sl, sr
@@ -156,9 +156,9 @@ local function get_children(connectable)
    if
       connectable.type == "underground-belt"
       and connectable.belt_to_ground_type == "input"
-      and connectable.neighbours
+      and connectable.underground_belt_neighbour
    then
-      table.insert(neighbours, connectable.neighbours)
+      table.insert(neighbours, connectable.underground_belt_neighbour)
    end
    return neighbours
 end
@@ -744,7 +744,7 @@ function mod.find_underground_entrance(surface, prototype, position, direction)
 
       for _, candidate in ipairs(candidates) do
          -- Check if it's an entrance (input type) without a connection
-         if candidate.belt_to_ground_type == "input" and not candidate.neighbours then
+         if candidate.belt_to_ground_type == "input" and not candidate.underground_belt_neighbour then
             -- Belts are only one tile always
             return candidate, distance
          end

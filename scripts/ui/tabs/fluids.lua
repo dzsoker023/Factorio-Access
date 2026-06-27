@@ -75,9 +75,9 @@ local function render_fluids_tab(ctx)
                return
             end
 
-            -- Always use remove_fluid (fluidbox.flush has bugs in 2.0)
+            -- Always use extract_fluid (fluidbox.flush has bugs)
             -- Use a very large number to flush all fluid of this type
-            local removed = ent.remove_fluid({ name = desc.fluid_name, amount = 1e9 })
+            local removed = ent.extract_fluid({ name = desc.fluid_name, amount = 1e9 })
             if removed and removed > 0 then
                clear_ctx.message:fragment({ "fa.fluids-flushed" })
             else

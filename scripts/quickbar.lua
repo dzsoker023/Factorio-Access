@@ -6,6 +6,20 @@ local UiRouter = require("scripts.ui.router")
 
 local mod = {}
 
+---Get the item prototype name held in a quick bar slot, or nil if the slot is
+---empty or holds a non-item (a blueprint record or spidertron remote).
+---@param slot QuickBarSlot?
+---@return string?
+local function quick_bar_slot_item_name(slot)
+   if not slot then return nil end
+   if slot.type == "item" and slot.item then return slot.item.name end
+   if slot.type == "filter" and slot.filter then
+      if type(slot.filter) == "string" then return slot.filter end
+      return slot.filter.name
+   end
+   return nil
+end
+
 ---@param event EventData.CustomInputEvent
 function mod.quickbar_get_handler(event)
    local pindex = event.player_index
@@ -43,11 +57,11 @@ function mod.quickbar_page_handler(event)
 end
 
 function mod.read_quick_bar_slot(index, pindex)
-   local page = game.get_player(pindex).get_active_quick_bar_page(1) - 1
-   local item = game.get_player(pindex).get_quick_bar_slot(index + 10 * page)
-   if item ~= nil then
-      local proto = prototypes.item[item.name]
-      local count = game.get_player(pindex).get_main_inventory().get_item_count(item.name)
+   local page = game.get_player(pindex).get_active_quick_bar_page(1)
+   local item_name = quick_bar_slot_item_name(game.get_player(pindex).get_quick_bar_slot(page, index))
+   if item_name ~= nil then
+      local proto = prototypes.item[item_name]
+      local count = game.get_player(pindex).get_main_inventory().get_item_count(item_name)
       local stack = game.get_player(pindex).cursor_stack
       if stack and stack.valid_for_read then
          count = count + stack.count
@@ -71,22 +85,21 @@ end
 function mod.set_quick_bar_slot(index, pindex)
    local p = game.get_player(pindex)
    local router = UiRouter.get_router(pindex)
-   local page = game.get_player(pindex).get_active_quick_bar_page(1) - 1
+   local page = game.get_player(pindex).get_active_quick_bar_page(1)
    local stack_cur = game.get_player(pindex).cursor_stack
    local ent = p.selected
    if stack_cur and stack_cur.valid_for_read and stack_cur.valid == true then
-      game.get_player(pindex).set_quick_bar_slot(index + 10 * page, stack_cur)
+      game.get_player(pindex).set_quick_bar_slot(page, index, stack_cur)
       local msg = MessageBuilder.new()
       msg:fragment({ "fa.quickbar-assigned", index })
       msg:fragment(Localising.get_localised_name_with_fallback(stack_cur))
       Speech.speak(pindex, msg:build())
    else
       --Clear the slot
-      local item = game.get_player(pindex).get_quick_bar_slot(index + 10 * page)
+      local item_name = quick_bar_slot_item_name(game.get_player(pindex).get_quick_bar_slot(page, index))
       local item_desc = nil
-      if item ~= nil then item_desc = Localising.get_localised_name_with_fallback(item) end
-      ---@diagnostic disable-next-line: param-type-mismatch
-      game.get_player(pindex).set_quick_bar_slot(index + 10 * page, nil)
+      if item_name ~= nil then item_desc = Localising.get_localised_name_with_fallback(prototypes.item[item_name]) end
+      game.get_player(pindex).set_quick_bar_slot(page, index, nil)
       local msg = MessageBuilder.new()
       msg:fragment({ "fa.quickbar-unassigned", index })
       if item_desc then msg:fragment(item_desc) end
@@ -95,12 +108,11 @@ function mod.set_quick_bar_slot(index, pindex)
 end
 
 function mod.read_switched_quick_bar(index, pindex)
-   local page = game.get_player(pindex).get_active_quick_bar_page(index)
-   local item = game.get_player(pindex).get_quick_bar_slot(1 + 10 * (index - 1))
+   local item_name = quick_bar_slot_item_name(game.get_player(pindex).get_quick_bar_slot(index, 1))
    local msg = MessageBuilder.new()
    msg:fragment({ "fa.quickbar-page-selected", index })
-   if item ~= nil then
-      msg:fragment(Localising.get_localised_name_with_fallback(prototypes.item[item.name]))
+   if item_name ~= nil then
+      msg:fragment(Localising.get_localised_name_with_fallback(prototypes.item[item_name]))
    else
       msg:fragment({ "fa.quickbar-empty-slot" })
    end

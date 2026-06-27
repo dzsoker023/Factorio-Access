@@ -67,19 +67,23 @@ Given a fluidbox, determine if it must be a specific fluid, using the following 
 
 Otherwise return nil.  Either there's no requirement or the user has managed to mix fluids.
 ]]
----@param fluidbox LuaFluidBox
+---Normalize a FluidID (string | LuaFluidPrototype | Fluid) to its fluid name.
+---@param fluid_id FluidID?
+---@return string?
+local function fluid_id_name(fluid_id)
+   if not fluid_id then return nil end
+   if type(fluid_id) == "string" then return fluid_id end
+   return fluid_id.name
+end
+
+---@param entity LuaEntity
 ---@param index number
 ---@return string?
-local function get_local_fluidbox_constraint(fluidbox, index)
-   local locked = fluidbox.get_locked_fluid(index)
-   if locked then return locked end
-   local filt = fluidbox.get_filter(index)
-
-   if filt then return filt.name end
-   local from_contents
-   local contents = fluidbox.get_fluid_segment_contents(index)
-   if contents and table_size(contents) == 1 then from_contents = next(contents) end
-   return from_contents
+local function get_local_fluidbox_constraint(entity, index)
+   local filt = entity.get_fluid_filter(index)
+   if filt and filt.fluid then return fluid_id_name(filt.fluid) end
+   local seg = entity.get_fluid_segment_fluid(index)
+   if seg then return seg.name end
 end
 
 --[[
@@ -87,15 +91,15 @@ Given a fluidbox and index, determine what the fluid must be using the rules of
 get_local_fluidbox_constraint, but call it on all immediately adjacent
 fluidboxes until one is found.  We don't look further than that. for now.
 ]]
----@param fluidbox LuaFluidBox
+---@param entity LuaEntity
 ---@param index number
 ---@return string?
-local function get_fluidbox_constraint(fluidbox, index)
-   local first_attempt = get_local_fluidbox_constraint(fluidbox, index)
+local function get_fluidbox_constraint(entity, index)
+   local first_attempt = get_local_fluidbox_constraint(entity, index)
    if first_attempt then return first_attempt end
 
    -- Otherwise try adjacents.
-   for _, c in pairs(fluidbox.get_pipe_connections(index)) do
+   for _, c in pairs(entity.get_fluid_box_pipe_connections(index)) do
       if c.target then
          local try = get_local_fluidbox_constraint(c.target, c.target_fluidbox_index)
          if try then return try end
@@ -108,15 +112,14 @@ end
 function mod.get_connection_points(ent)
    ---@type fa.Fluids.ConnectionPoint[]
    local res = {}
-   local fb = ent.fluidbox
 
    local is_crafting_machine = Consts.CRAFTING_MACHINES[ent.type]
 
    local closed_because_no_recipe = is_crafting_machine and ent.get_recipe() == nil
 
-   for i = 1, #fb do
-      local conns = fb.get_pipe_connections(i)
-      local fluid = get_fluidbox_constraint(fb, i)
+   for i = 1, ent.fluids_count do
+      local conns = ent.get_fluid_box_pipe_connections(i)
+      local fluid = get_fluidbox_constraint(ent, i)
 
       for j = 1, #conns do
          local c = conns[j]
@@ -145,11 +148,11 @@ function mod.get_connection_points(ent)
          -- side yet, we can't know.
          if c.connection_type ~= "normal" and c.target then
             local other_pos =
-               c.target.get_pipe_connections(c.target_fluidbox_index)[c.target_pipe_connection_index].position
+               c.target.get_fluid_box_pipe_connections(c.target_fluidbox_index)[c.target_pipe_connection_index].position
             distance_in_tiles = math.ceil(FaUtils.distance(c.position, other_pos))
          end
          local open = true
-         if is_crafting_machine then open = not closed_because_no_recipe or fb.get_locked_fluid(i) ~= nil end
+         if is_crafting_machine then open = not closed_because_no_recipe or ent.get_fluid_filter(i) ~= nil end
          ---@type fa.Fluids.ConnectionPoint
          local part = {
             bidirectional = in_dir ~= nil and out_dir ~= nil,
@@ -193,14 +196,13 @@ This function considers only pipe entities, and ignores undergrounds. Undergroun
 ---@return { shape: fa.NetworkShape.Shape, direction: defines.direction }
 function mod.get_pipe_shape(ent)
    assert(ent.type == "pipe" or ent.type == "infinity-pipe")
-   local fb = ent.fluidbox
-   assert(#fb == 1)
+   assert(ent.fluids_count == 1)
 
    local dirs = {}
-   local conns = fb.get_pipe_connections(1)
+   local conns = ent.get_fluid_box_pipe_connections(1)
 
    for _, conn in pairs(conns) do
-      if conn.target and (conn.target.owner.type == "pipe" or conn.target.owner.type == "infinity-pipe") then
+      if conn.target and (conn.target.type == "pipe" or conn.target.type == "infinity-pipe") then
          local dx = conn.target_position.x - conn.position.x
          local dy = conn.target_position.y - conn.position.y
          local dir = FaUtils.direction_of_vector({ x = dx, y = dy })
@@ -230,14 +232,15 @@ function mod.build_fluid_descriptors(entity)
    local fluids_count = entity.fluids_count
    if fluids_count == 0 then return descriptors end
 
-   local fluidbox = entity.fluidbox
-
-   -- For entities with fluidboxes, use fluidbox data exclusively
-   if fluidbox and #fluidbox > 0 then
-      for i = 1, #fluidbox do
-         local prototype = fluidbox.get_prototype(i)
-         local locked_fluid = fluidbox.get_locked_fluid(i)
-         local fluid_data = fluidbox[i]
+   -- Entities with proper fluidboxes (pipes, machines) expose per-box prototypes;
+   -- entities with raw fluid storage but no fluidbox prototype (fluid wagons, fluid
+   -- turrets) only report bulk contents via get_fluid_contents.
+   if entity.get_fluid_box_prototype(1) ~= nil then
+      for i = 1, fluids_count do
+         local prototype = entity.get_fluid_box_prototype(i)
+         local filter = entity.get_fluid_filter(i)
+         local locked_fluid = filter and filter.fluid and fluid_id_name(filter.fluid)
+         local fluid_data = entity.get_fluid(i)
 
          -- Determine the production type
          local production_type = nil

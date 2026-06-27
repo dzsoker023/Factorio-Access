@@ -53,8 +53,8 @@ function mod.read_recipe_details(message, recipe)
       end
 
       -- Include probability if less than 100%
-      if product.probability and product.probability < 1 then
-         message:fragment(("%.2f%%"):format(product.probability * 100))
+      if product.independent_probability and product.independent_probability < 1 then
+         message:fragment(("%.2f%%"):format(product.independent_probability * 100))
       end
    end
 end
@@ -63,13 +63,7 @@ end
 ---@param recipe LuaRecipe
 ---@return string[]
 local function get_recipe_categories(recipe)
-   local categories = { recipe.category }
-   if recipe.additional_categories then
-      for _, cat in ipairs(recipe.additional_categories) do
-         table.insert(categories, cat)
-      end
-   end
-   return categories
+   return recipe.categories
 end
 
 ---Get crafters that can make a recipe, separated into hand-craftable and machines
