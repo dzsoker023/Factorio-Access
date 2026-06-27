@@ -32,7 +32,7 @@ local function transfer_inventory(args)
       to_inventory = args.to.get_output_inventory()
    elseif args.to.get_inventory ~= nil then
       to_inventory = args.to.get_inventory(defines.inventory.chest)
-         or args.to.get_inventory(defines.inventory.assembling_machine_input)
+         or args.to.get_inventory(defines.inventory.crafter_input)
          or args.to.get_inventory(defines.inventory.lab_input)
          or args.to.get_inventory(defines.inventory.rocket_silo_rocket)
    elseif args.to.get_main_inventory ~= nil then

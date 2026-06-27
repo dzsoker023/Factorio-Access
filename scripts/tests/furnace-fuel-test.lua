@@ -17,7 +17,7 @@ describe("Furnace Fuel Status", function()
 
          -- Furnaces don't use set_recipe - they automatically choose based on ingredients
          -- Add ingredients but no fuel
-         local ingredient_inv = furnace.get_inventory(defines.inventory.furnace_source)
+         local ingredient_inv = furnace.get_inventory(defines.inventory.crafter_input)
          ingredient_inv.insert({ name = "iron-ore", count = 10 })
 
          -- Ensure fuel inventory is empty
@@ -85,7 +85,7 @@ describe("Furnace Fuel Status", function()
 
          -- Furnaces don't use set_recipe - they automatically choose based on ingredients
          -- Add ingredients to trigger smelting
-         local ingredient_inv = furnace.get_inventory(defines.inventory.furnace_source)
+         local ingredient_inv = furnace.get_inventory(defines.inventory.crafter_input)
          ingredient_inv.insert({ name = "iron-ore", count = 10 })
 
          -- Add a tiny bit of fuel to start crafting
