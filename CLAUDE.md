@@ -405,7 +405,7 @@ This is a Factorio 2.0 project, not a Factorio 1.1 project.  Factorio 2.0 comes 
 
 A complete reference (one file per class, concept, define, etc) is at `./llm-docs/api-reference`. List this directory recursively for a "table of contents".
 
-Read `./llm-docs/CLAUDE.md` for more specific information on browsing this documentation.
+Read `./llm-docs/api-reference/CLAUDE.md` for more specific information on browsing this documentation.
 
 You **MUST** double check that you understand APIs before using them.  Your training knowledge cutoff was only barely after the Factorio 2.0 release and a vast majority of your training data refers to 1.1 APIs.  In addition to changes, the 2.0 API adds a lot of new functions and objects which may also simplify mod tasks.
 
