@@ -6,16 +6,30 @@ local UiRouter = require("scripts.ui.router")
 
 local mod = {}
 
----Get the item prototype name held in a quick bar slot, or nil if the slot is
----empty or holds a non-item (a blueprint record or spidertron remote).
+---Describe what a quick bar slot holds. A slot can hold a plain item or item
+---filter, a blueprint-library record, or a spidertron remote.
 ---@param slot QuickBarSlot?
----@return string?
-local function quick_bar_slot_item_name(slot)
+---@return LocalisedString? description Localised name of the content, nil if empty
+---@return string? item_name Plain item name for an inventory count, nil if not a counted item
+local function describe_quick_bar_slot(slot)
    if not slot then return nil end
-   if slot.type == "item" and slot.item then return slot.item.name end
-   if slot.type == "filter" and slot.filter then
-      if type(slot.filter) == "string" then return slot.filter end
-      return slot.filter.name
+   if slot.type == "item" and slot.item then
+      local name = slot.item.name
+      return Localising.get_localised_name_with_fallback(prototypes.item[name]), name
+   elseif slot.type == "filter" and slot.filter then
+      local name = type(slot.filter) == "string" and slot.filter or slot.filter.name
+      local proto = prototypes.item[name]
+      if proto then return Localising.get_localised_name_with_fallback(proto), name end
+      return name
+   elseif slot.type == "record" and slot.record then
+      local record = slot.record
+      if record.label and record.label ~= "" then return record.label end
+      local proto = prototypes.item[record.type]
+      if proto then return Localising.get_localised_name_with_fallback(proto) end
+      return record.type
+   elseif slot.type == "remote" then
+      local proto = prototypes.item["spidertron-remote"]
+      if proto then return Localising.get_localised_name_with_fallback(proto) end
    end
    return nil
 end
@@ -57,29 +71,25 @@ function mod.quickbar_page_handler(event)
 end
 
 function mod.read_quick_bar_slot(index, pindex)
-   local page = game.get_player(pindex).get_active_quick_bar_page(1)
-   local item_name = quick_bar_slot_item_name(game.get_player(pindex).get_quick_bar_slot(page, index))
-   if item_name ~= nil then
-      local proto = prototypes.item[item_name]
-      local count = game.get_player(pindex).get_main_inventory().get_item_count(item_name)
-      local stack = game.get_player(pindex).cursor_stack
-      if stack and stack.valid_for_read then
-         count = count + stack.count
-         local msg = MessageBuilder.new()
-         msg:fragment({ "fa.quickbar-unselected" })
-         msg:fragment(Localising.get_localised_name_with_fallback(proto))
-         msg:fragment({ "fa.quickbar-count", count })
-         Speech.speak(pindex, msg:build())
-      else
-         local msg = MessageBuilder.new()
-         msg:fragment({ "fa.quickbar-selected" })
-         msg:fragment(Localising.get_localised_name_with_fallback(proto))
-         msg:fragment({ "fa.quickbar-count", count })
-         Speech.speak(pindex, msg:build())
-      end
-   else
-      Speech.speak(pindex, { "fa.quickbar-empty-slot" }) --does this print, maybe not working because it is linked to the game control?
+   local p = game.get_player(pindex)
+   local page = p.get_active_quick_bar_page(1)
+   local name, item_name = describe_quick_bar_slot(p.get_quick_bar_slot(page, index))
+   if name == nil then
+      Speech.speak(pindex, { "fa.quickbar-empty-slot" })
+      return
    end
+
+   local stack = p.cursor_stack
+   local msg = MessageBuilder.new()
+   msg:fragment(stack and stack.valid_for_read and { "fa.quickbar-unselected" } or { "fa.quickbar-selected" })
+   msg:fragment(name)
+   -- Only plain items have an inventory count to report.
+   if item_name then
+      local count = p.get_main_inventory().get_item_count(item_name)
+      if stack and stack.valid_for_read then count = count + stack.count end
+      msg:fragment({ "fa.quickbar-count", count })
+   end
+   Speech.speak(pindex, msg:build())
 end
 
 function mod.set_quick_bar_slot(index, pindex)
@@ -96,9 +106,7 @@ function mod.set_quick_bar_slot(index, pindex)
       Speech.speak(pindex, msg:build())
    else
       --Clear the slot
-      local item_name = quick_bar_slot_item_name(game.get_player(pindex).get_quick_bar_slot(page, index))
-      local item_desc = nil
-      if item_name ~= nil then item_desc = Localising.get_localised_name_with_fallback(prototypes.item[item_name]) end
+      local item_desc = describe_quick_bar_slot(game.get_player(pindex).get_quick_bar_slot(page, index))
       game.get_player(pindex).set_quick_bar_slot(page, index, nil)
       local msg = MessageBuilder.new()
       msg:fragment({ "fa.quickbar-unassigned", index })
@@ -108,14 +116,10 @@ function mod.set_quick_bar_slot(index, pindex)
 end
 
 function mod.read_switched_quick_bar(index, pindex)
-   local item_name = quick_bar_slot_item_name(game.get_player(pindex).get_quick_bar_slot(index, 1))
+   local name = describe_quick_bar_slot(game.get_player(pindex).get_quick_bar_slot(index, 1))
    local msg = MessageBuilder.new()
    msg:fragment({ "fa.quickbar-page-selected", index })
-   if item_name ~= nil then
-      msg:fragment(Localising.get_localised_name_with_fallback(prototypes.item[item_name]))
-   else
-      msg:fragment({ "fa.quickbar-empty-slot" })
-   end
+   msg:fragment(name or { "fa.quickbar-empty-slot" })
    Speech.speak(pindex, msg:build())
 end
 

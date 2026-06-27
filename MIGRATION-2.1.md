@@ -31,8 +31,10 @@ Flagged for playtesting (best-effort 1:1, worth a closer look in-game):
 - Fluid "locked fluid" now comes from `get_fluid_filter`; an empty recipe-locked
   crafting-machine fluidbox may not report its locked fluid as it did before
   (non-empty boxes still resolve via the fluid segment).
-- Quickbar slots holding a blueprint record or spidertron remote announce as empty
-  (the old code only handled item filters); item/filter slots work as before.
+- Quickbar slots now describe all four 2.1 slot kinds: plain item and item filter
+  (with inventory count, as before), blueprint-library records (by label, falling
+  back to the record type), and spidertron remotes. Item count is only spoken for
+  the item/filter kinds. Worth confirming the record/remote wording in-game.
 
 The rest of this document is the original plan, retained for reference.
 
