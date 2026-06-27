@@ -8,7 +8,7 @@ Called when a space platform changes state
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### old_state
 
@@ -20,7 +20,7 @@ Identifier of the event
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

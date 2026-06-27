@@ -22,3 +22,11 @@
 
 **Default:** 0
 
+### damage_type
+
+Defaults to "physical" damage.
+
+**Type:** `DamageTypeID`
+
+**Optional:** Yes
+

@@ -44,7 +44,7 @@ If the item is mirrored (only crafting machines support this)
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -60,7 +60,7 @@ Where the item was placed.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

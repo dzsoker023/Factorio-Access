@@ -4,6 +4,22 @@
 
 ## Parameters
 
+### alt_direction
+
+Only provided if different from `direction`.
+
+**Type:** `defines.direction`
+
+**Optional:** Yes
+
+### alt_position
+
+Only provided if different from first position inside of `positions`.
+
+**Type:** `MapPosition`
+
+**Optional:** Yes
+
 ### connection_category
 
 **Type:** Array[`string`]
@@ -28,9 +44,15 @@
 
 **Required:** Yes
 
+### hide_connection_info
+
+**Type:** `boolean`
+
+**Required:** Yes
+
 ### linked_connection_id
 
-Only supplied if `connection_type` is `"linked"`.
+Only provided if `connection_type` is `"linked"`.
 
 **Type:** `uint32`
 

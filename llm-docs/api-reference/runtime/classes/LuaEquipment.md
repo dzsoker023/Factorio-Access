@@ -132,6 +132,36 @@ If this equipment is marked to be removed.
 
 **Read type:** `boolean`
 
+### power_production
+
+The power production specific to the ElectricEnergyInterfaceEquipment type.
+
+**Read type:** `double`
+
+**Write type:** `double`
+
+**Subclasses:** ElectricEnergyInterfaceEquipment
+
+### power_usage
+
+The power usage specific to the ElectricEnergyInterfaceEquipment type.
+
+**Read type:** `double`
+
+**Write type:** `double`
+
+**Subclasses:** ElectricEnergyInterfaceEquipment
+
+### electric_buffer_size
+
+The power buffer size of this ElectricEnergyInterfaceEquipment.
+
+**Read type:** `double`
+
+**Write type:** `double`
+
+**Subclasses:** ElectricEnergyInterfaceEquipment
+
 ### valid
 
 Is this object valid? This Lua object holds a reference to an object within the game engine. It is possible that the game-engine object is removed whilst a mod still holds the corresponding Lua object. If that happens, the object becomes invalid, i.e. this attribute will be `false`. Mods are advised to check for object validity if any change to the game state might have occurred between the creation of the Lua object and its access.

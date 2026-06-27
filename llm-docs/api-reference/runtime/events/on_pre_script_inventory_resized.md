@@ -18,7 +18,7 @@ The mod that did the resizing. This will be `"core"` if done by console command 
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### new_size
 
@@ -40,7 +40,7 @@ If done by console command; the player who ran the command.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

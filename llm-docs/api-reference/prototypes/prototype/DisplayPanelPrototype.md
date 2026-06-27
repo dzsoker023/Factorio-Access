@@ -25,6 +25,26 @@ The maximum display width of the text on the display panel. If the text exceeds 
 
 **Default:** 400
 
+### max_text_length
+
+Maximum length of the text. If the text exceeds this length all characters beyond the limit will be discarded.
+
+**Type:** `uint32`
+
+**Optional:** Yes
+
+**Default:** 500
+
+### max_records_count
+
+Maximum amount of message records that can be configured in this display panel when it is connected to circuit network. Must be >= 1.
+
+**Type:** `uint32`
+
+**Optional:** Yes
+
+**Default:** 100
+
 ### text_shift
 
 The shift of the text on the display panel.

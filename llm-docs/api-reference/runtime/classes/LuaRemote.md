@@ -4,17 +4,17 @@ Registry of interfaces between scripts. An interface is simply a dictionary mapp
 
 ## Attributes
 
-### object_name
-
-The class name of this object. Available even when `valid` is false. For LuaStruct objects it may also be suffixed with a dotted path to a member of the struct.
-
-**Read type:** `string`
-
 ### interfaces
 
 List of all registered interfaces. For each interface name, `remote.interfaces[name]` is a dictionary mapping the interface's registered functions to `true`.
 
 **Read type:** Dictionary[`string`, Dictionary[`string`, `True`]]
+
+### object_name
+
+The class name of this object. Available even when `valid` is false. For LuaStruct objects it may also be suffixed with a dotted path to a member of the struct.
+
+**Read type:** `string`
 
 ## Methods
 

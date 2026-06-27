@@ -223,3 +223,11 @@ Hides the space location from the planet selection lists and the space map.
 
 **Overrides parent:** Yes
 
+### platform_surface_render_parameters
+
+Render parameters that influence platforms orbiting this space location.
+
+**Type:** `SurfaceRenderParameters`
+
+**Optional:** Yes
+

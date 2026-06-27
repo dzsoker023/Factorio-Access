@@ -58,6 +58,16 @@ Index of a CircuitNetwork or ElectricSubNetwork which is going through this wire
 
 **Read type:** `uint32`
 
+### electric_network
+
+The electric sub network this copper wire connector provides.
+
+No value will be provided if this is not a copper wire connector. May be `nil` in case of a copper wire connector when it belongs to a ghost or its from a power switch when there are no real wires connecting it to other entities.
+
+**Read type:** `LuaElectricSubNetwork`
+
+**Optional:** Yes
+
 ### valid
 
 Is this object valid? This Lua object holds a reference to an object within the game engine. It is possible that the game-engine object is removed whilst a mod still holds the corresponding Lua object. If that happens, the object becomes invalid, i.e. this attribute will be `false`. Mods are advised to check for object validity if any change to the game state might have occurred between the creation of the Lua object and its access.

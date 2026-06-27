@@ -33,7 +33,7 @@ Must be > 0.
 
 ### automated_ammo_count
 
-Must be > 0.
+Must be > 0. The amount of ammo that inserters automatically insert into this artillery wagon.
 
 **Type:** `ItemCountType`
 

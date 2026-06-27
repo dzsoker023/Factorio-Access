@@ -30,7 +30,7 @@ The absolute position of this connection within the entity.
 
 The connected fluidbox, if any.
 
-**Type:** `LuaFluidBox`
+**Type:** `LuaEntity`
 
 **Optional:** Yes
 

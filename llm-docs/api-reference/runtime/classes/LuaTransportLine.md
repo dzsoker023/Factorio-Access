@@ -139,7 +139,7 @@ Get counts of all items on this line, similar to how [LuaInventory::get_contents
 
 **Returns:**
 
-- `ItemWithQualityCounts` - List of all items on this line.
+- Array[`ItemWithQualityCount`] - List of all items on this line.
 
 ### get_detailed_contents
 

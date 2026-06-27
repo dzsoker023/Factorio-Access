@@ -1,5 +1,7 @@
 # AlternativeBuildTipTrigger
 
+Triggered when using the "build ghost" hotkey to build something.
+
 **Type:** `Struct`
 
 ## Properties

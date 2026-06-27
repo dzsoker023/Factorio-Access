@@ -20,7 +20,7 @@ The market entity.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### offer_index
 
@@ -36,7 +36,7 @@ The player who did the purchasing.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

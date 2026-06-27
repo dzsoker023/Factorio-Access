@@ -1,5 +1,7 @@
 # EmptyWidgetStyleSpecification
 
+Root style: `"empty_widget"`
+
 **Type:** `Struct`
 
 ## Properties
@@ -13,6 +15,8 @@
 **Required:** Yes
 
 ### graphical_set
+
+Required on the root style.
 
 **Type:** `ElementImageSet`
 

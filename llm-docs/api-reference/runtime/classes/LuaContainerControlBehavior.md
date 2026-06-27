@@ -8,7 +8,7 @@ Control behavior for container entities.
 
 ### read_contents
 
-`true` if this container is sending its content to a circuit network
+`true` if this container is sending its content to a circuit network.
 
 **Read type:** `boolean`
 

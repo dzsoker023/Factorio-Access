@@ -16,6 +16,16 @@ Specifies how many of the directions of the SpriteNWay are filled up with this s
 
 **Default:** "4 if used in Sprite4Way, 8 if used in Sprite8Way"
 
+### frame_repeat
+
+Specifies for how many directions each frame is used. Silently forced to always be at least `1`.
+
+**Type:** `uint32`
+
+**Optional:** Yes
+
+**Default:** 1
+
 ### generate_sdf
 
 Unused.

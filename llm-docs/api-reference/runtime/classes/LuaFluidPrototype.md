@@ -32,6 +32,10 @@ The amount of energy in Joules required to heat one unit of this fluid by 1°C.
 
 **Read type:** `Color`
 
+### visualization_color
+
+**Read type:** `Color`
+
 ### gas_temperature
 
 The temperature above which this fluid will be shown as gaseous inside tanks and pipes.
@@ -55,6 +59,12 @@ The amount of energy in Joules one unit of this fluid will produce when burnt in
 An alternative prototype that will be used to display info about this prototype in Factoriopedia.
 
 **Read type:** `LuaFluidPrototype`
+
+**Optional:** Yes
+
+### spent_fluid
+
+**Read type:** `SpentFluidSpecification`
 
 **Optional:** Yes
 

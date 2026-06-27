@@ -6,6 +6,14 @@ Parameters that affect the look and control of the game. Updating any of the mem
 
 ## Attributes
 
+### hide_tall_entities
+
+Makes tall entities translucent and unselectable.
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
+
 ### show_alert_gui
 
 Show the flashing alert icons next to the player's toolbar.
@@ -65,6 +73,14 @@ Shows or hides the view options when map is opened.
 ### show_minimap
 
 Show the chart in the upper right-hand corner of the screen.
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
+
+### show_pins_gui
+
+Shows or hides the pins GUI on the right side of the screen.
 
 **Read type:** `boolean`
 

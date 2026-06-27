@@ -288,19 +288,19 @@ The strings are entity types.
 
 ### custom_tag_scale
 
+Defaults to `1.0`.
+
 **Type:** `float`
 
 **Optional:** Yes
-
-**Default:** 1.0
 
 ### custom_tag_max_scale
 
+Defaults to `1.0`.
+
 **Type:** `float`
 
 **Optional:** Yes
-
-**Default:** 1.0
 
 ### custom_tag_selected_overlay_tint
 

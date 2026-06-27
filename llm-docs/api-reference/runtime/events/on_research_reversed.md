@@ -14,7 +14,7 @@ If the technology was un-researched by script.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### research
 
@@ -24,7 +24,7 @@ The technology un-researched
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

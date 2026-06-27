@@ -20,7 +20,7 @@ The entity that was built.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -36,7 +36,7 @@ The tags associated with this entity if any.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

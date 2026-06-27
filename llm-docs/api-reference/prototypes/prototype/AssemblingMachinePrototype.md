@@ -19,7 +19,7 @@ The preset recipe of this machine. This machine does not show a recipe selection
 
 ### fixed_quality
 
-Only loaded when fixed_recipe is provided.
+Only loaded if `fixed_recipe` is defined.
 
 **Type:** `QualityID`
 
@@ -73,17 +73,9 @@ The maximum circuit wire distance for this entity.
 
 **Optional:** Yes
 
-### enable_logistic_control_behavior
-
-**Type:** `boolean`
-
-**Optional:** Yes
-
-**Default:** True
-
 ### ingredient_count
 
-Sets the maximum number of ingredients this machine can craft with. Any recipe with more ingredients than this will be unavailable in this machine.
+Sets the maximum number of item ingredients this machine can craft with. Any recipe with more item ingredients than this will be unavailable in this machine.
 
 This only counts item ingredients, not fluid ingredients! This means if ingredient count is 2, and the recipe has 2 item ingredients and 1 fluid ingredient, it can still be crafted in the machine.
 

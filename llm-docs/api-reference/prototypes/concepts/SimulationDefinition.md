@@ -18,6 +18,8 @@ Used by tips and tricks and main menu simulations. Simulations can be controlled
 
 ### game_view_settings
 
+Only applied to the simulation if a test player is created through [LuaSimulation::create_test_player](runtime:LuaSimulation::create_test_player).
+
 **Type:** `GameViewSettings`
 
 **Optional:** Yes
@@ -32,7 +34,7 @@ The save file that is used for this simulation. If not given and `generate_map` 
 
 ### init_file
 
-This code is run as a (silent) console command inside the simulation when it is first initialized. Since this is run as a console command, the restrictions of console commands apply, e.g. `require` is not available, see [here](runtime:libraries).
+This code is run as a (silent) console command inside the simulation when it is first initialized. Since this is run as a console command, the restrictions of console commands apply, e.g. `require` is not available, see [here](auxiliary:libraries).
 
 **Type:** `FileName`
 
@@ -42,7 +44,7 @@ This code is run as a (silent) console command inside the simulation when it is 
 
 Only loaded if `init_file` is not defined.
 
-This code is run as a (silent) console command inside the simulation when it is first initialized. Since this is run as a console command, the restrictions of console commands apply, e.g. `require` is not available, see [here](runtime:libraries).
+This code is run as a (silent) console command inside the simulation when it is first initialized. Since this is run as a console command, the restrictions of console commands apply, e.g. `require` is not available, see [here](auxiliary:libraries).
 
 **Type:** `string`
 
@@ -52,7 +54,7 @@ This code is run as a (silent) console command inside the simulation when it is 
 
 ### update_file
 
-This code is run as a (silent) console command inside the simulation every time the simulation is updated. Since this is run as a console command, the restrictions of console commands apply, e.g. `require` is not available, see [here](runtime:libraries).
+This code is run as a (silent) console command inside the simulation every time the simulation is updated. Since this is run as a console command, the restrictions of console commands apply, e.g. `require` is not available, see [here](auxiliary:libraries).
 
 **Type:** `FileName`
 
@@ -62,7 +64,7 @@ This code is run as a (silent) console command inside the simulation every time 
 
 Only loaded if `update_file` is not defined.
 
-This code is run as a (silent) console command inside the simulation every time the simulation is updated. Since this is run as a console command, the restrictions of console commands apply, e.g. `require` is not available, see [here](runtime:libraries).
+This code is run as a (silent) console command inside the simulation every time the simulation is updated. Since this is run as a console command, the restrictions of console commands apply, e.g. `require` is not available, see [here](auxiliary:libraries).
 
 **Type:** `string`
 

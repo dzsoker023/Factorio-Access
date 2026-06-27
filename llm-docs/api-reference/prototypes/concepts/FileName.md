@@ -8,6 +8,8 @@ A slash `"/"` is always used as the directory delimiter. A path always begins wi
 
 - **mod path**: The format `__<mod-name>__` is placeholder for root of any other mod (mods/<mod-name>), and is accessible as long as the mod is active.
 
+Relative paths using `..` are not supported.
+
 **Type:** `string`
 
 ## Examples

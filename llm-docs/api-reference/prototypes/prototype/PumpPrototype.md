@@ -55,13 +55,15 @@ The animation for the pump.
 
 **Default:** "1 / 64.0"
 
-### fluid_wagon_connector_alignment_tolerance
+### fluid_wagon_tank_valve_max_distance
+
+counts from the "start of the arm", which is `pump's position + wagon_connection_graphics.part1_to_2_shift + wagon_connection_graphics.top_pivot_shift (depending on direction)`
 
 **Type:** `double`
 
 **Optional:** Yes
 
-**Default:** "2 / 32.0"
+**Default:** 2.2
 
 ### fluid_wagon_connector_frame_count
 
@@ -129,9 +131,39 @@ When true, pump will reduce pumping speed based on fullness of the input fluid s
 
 **Optional:** Yes
 
-### fluid_wagon_connector_graphics
+### wagon_connection_graphics
 
-**Type:** `FluidWagonConnectorGraphics`
+**Type:** `PumpWagonConnectionGraphics`
 
 **Optional:** Yes
+
+### base_lifting_sound
+
+**Type:** `InterruptibleSound`
+
+**Optional:** Yes
+
+### arm_orienting_sound
+
+**Type:** `InterruptibleSound`
+
+**Optional:** Yes
+
+### clamp_sound
+
+**Type:** `Sound`
+
+**Optional:** Yes
+
+### show_fluid_visualization_when_in_cursor
+
+When this is true, fluid pipelines will be visualized when this entity is held in the cursor.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
+**Overrides parent:** Yes
 

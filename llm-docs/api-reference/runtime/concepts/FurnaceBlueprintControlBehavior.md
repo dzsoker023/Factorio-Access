@@ -26,19 +26,17 @@ Defaults to `false`.
 
 **Optional:** Yes
 
-### include_fuel
-
-Defaults to `false`.
-
-**Type:** `boolean`
-
-**Optional:** Yes
-
 ### include_in_crafting
 
 Defaults to `true`.
 
 **Type:** `boolean`
+
+**Optional:** Yes
+
+### input_networks
+
+**Type:** `CircuitNetworkSelection`
 
 **Optional:** Yes
 
@@ -48,7 +46,21 @@ Defaults to `true`.
 
 **Optional:** Yes
 
+### output_networks
+
+**Type:** `CircuitNetworkSelection`
+
+**Optional:** Yes
+
 ### read_contents
+
+Defaults to `false`.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+### read_fuel
 
 Defaults to `false`.
 

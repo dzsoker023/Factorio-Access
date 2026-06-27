@@ -53,6 +53,8 @@ How many friendly defensive units are required within the [EnemySpawnerPrototype
 
 Ticks for cooldown after unit is spawned. The first member of the tuple is min, the second member of the tuple is max.
 
+The resulting spawning cooldown is a linear interpolation between min and max based on the current evolution factor.
+
 **Type:** (`double`, `double`)
 
 **Required:** Yes
@@ -75,7 +77,7 @@ What spaces should be between the spawned units.
 
 ### max_richness_for_spawn_shift
 
-Max richness to determine spawn shift. Spawn shift is linear interpolation between 0 and max_spawn_shift.
+Max richness to determine spawn shift. Spawn shift is a linear interpolation between 0 and max_spawn_shift.
 
 **Type:** `double`
 
@@ -102,6 +104,14 @@ Caps how much richness can be added on top of evolution when spawning units. [Se
 **Optional:** Yes
 
 **Default:** 0
+
+### spawn_blocked_trigger
+
+Trigger that is activated when the spawner cannot find a valid spawn location.
+
+**Type:** `Trigger`
+
+**Optional:** Yes
 
 ### result_units
 

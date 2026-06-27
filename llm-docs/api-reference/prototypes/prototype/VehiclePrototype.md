@@ -15,17 +15,17 @@ Must be positive. Weight of the entity used for physics calculation when car hit
 
 **Required:** Yes
 
-### braking_power
+### braking_force
 
-Must be positive. There is no functional difference between the two ways to set braking power/force.
+Must be positive.
 
-**Type:** `Energy` | `double`
+**Type:** `double`
 
 **Required:** Yes
 
-### friction
+### friction_force
 
-Must be positive. There is no functional difference between the two ways to set friction force.
+Must be positive.
 
 **Type:** `double`
 

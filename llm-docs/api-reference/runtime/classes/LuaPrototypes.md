@@ -4,12 +4,6 @@ Provides read-only access to prototypes. It is accessible through the global obj
 
 ## Attributes
 
-### object_name
-
-The class name of this object. Available even when `valid` is false. For LuaStruct objects it may also be suffixed with a dotted path to a member of the struct.
-
-**Read type:** `string`
-
 ### font
 
 A dictionary containing every LuaFontPrototype indexed by `name`.
@@ -34,11 +28,9 @@ Maps from the style's name to its type, as seen on [StyleSpecification](prototyp
 
 ### utility_constants
 
-All utility constants.
+All game-defined utility constants. Note that his is implemented as a [LuaCustomTable](runtime:LuaCustomTable).
 
-See [UtilityConstants](prototype:UtilityConstants) for possible values.
-
-**Read type:** LuaCustomTable[`string`, `AnyBasic`]
+**Read type:** `UtilityConstants`
 
 ### entity
 
@@ -319,6 +311,12 @@ A dictionary containing every LuaProcessionLayerInheritanceGroupPrototype indexe
 ### max_underground_belt_distance
 
 **Read type:** `uint8`
+
+### object_name
+
+The class name of this object. Available even when `valid` is false. For LuaStruct objects it may also be suffixed with a dotted path to a member of the struct.
+
+**Read type:** `string`
 
 ## Methods
 

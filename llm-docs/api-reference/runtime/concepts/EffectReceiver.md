@@ -10,6 +10,36 @@
 
 **Required:** Yes
 
+### consumption_limits
+
+**Type:** `EffectValueRange`
+
+**Required:** Yes
+
+### pollution_limits
+
+**Type:** `EffectValueRange`
+
+**Required:** Yes
+
+### productivity_limits
+
+**Type:** `EffectValueRange`
+
+**Required:** Yes
+
+### quality_limits
+
+**Type:** `EffectValueRange`
+
+**Required:** Yes
+
+### speed_limits
+
+**Type:** `EffectValueRange`
+
+**Required:** Yes
+
 ### uses_beacon_effects
 
 **Type:** `boolean`

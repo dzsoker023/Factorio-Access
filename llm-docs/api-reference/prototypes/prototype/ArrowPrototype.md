@@ -52,3 +52,17 @@ The arrows used for example in the campaign, they are literally just arrows.
 
 **Default:** False
 
+### selection_priority
+
+The entity with the higher number is selectable before the entity with the lower number.
+
+The value `0` will be treated the same as `nil`.
+
+**Type:** `uint8`
+
+**Optional:** Yes
+
+**Default:** 20
+
+**Overrides parent:** Yes
+

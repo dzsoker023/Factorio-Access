@@ -2,11 +2,19 @@
 
 A dictionary of feature flags and their status. It can be used to adjust prototypes based on whether the feature flags are enabled. It is accessible through the global object named `feature_flags`.
 
+See the [mod structure](auxiliary:mod-structure) documentation for more information on what each feature flag affects.
+
 **Type:** `Struct`
 
 ## Properties
 
 *These properties apply when the value is a struct/table.*
+
+### expansion
+
+**Type:** `boolean`
+
+**Required:** Yes
 
 ### quality
 

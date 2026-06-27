@@ -44,12 +44,6 @@ If a behavior fails this many times, the enemy (or enemy group) is destroyed. Th
 
 **Write type:** `PollutionMapSettings`
 
-### steering
-
-**Read type:** `SteeringMapSetting`
-
-**Write type:** `SteeringMapSetting`
-
 ### unit_group
 
 **Read type:** `UnitGroupMapSettings`

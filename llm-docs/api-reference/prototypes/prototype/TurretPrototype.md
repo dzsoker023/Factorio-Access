@@ -61,6 +61,14 @@ When `false` the turret will enter `starting_attack` state without checking its 
 
 **Default:** False
 
+### leave_attacking_if_shoot_fails
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
 ### turret_base_has_direction
 
 When `true` the turret's collision box will affected by its rotation.

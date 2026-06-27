@@ -12,9 +12,11 @@
 
 **Required:** Yes
 
-### entity
+### entities
 
-**Type:** `EntityID`
+Must contain at least 1 element. The trigger is considered fulfilled if at least one of these entities is mined.
+
+**Type:** Array[`EntityID`]
 
 **Required:** Yes
 

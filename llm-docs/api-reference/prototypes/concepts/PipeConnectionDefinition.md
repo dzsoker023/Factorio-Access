@@ -36,6 +36,16 @@ If the owning fluidbox has [draw_only_when_connected](prototype:FluidBox::draw_o
 
 **Optional:** Yes
 
+### hide_connection_info
+
+If true, connection arrows and fluid icons will not be drawn for this connection when the entity is selected or in alt-mode.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+
 ### direction
 
 Primary direction this connection points to when entity direction is north and the entity is not mirrored. When entity is rotated or mirrored, effective direction will be computed based on this value.
@@ -67,6 +77,30 @@ Only loaded, and mandatory if `position` is not defined and if `connection_type`
 **Type:** (`MapPosition`, `MapPosition`, `MapPosition`, `MapPosition`)
 
 **Optional:** Yes
+
+### alt_position
+
+Relative position of the pipe connection when entity direction is north-east.
+
+Only loaded if `connection_type` is `"normal"` or `"underground"`.
+
+**Type:** `MapPosition`
+
+**Optional:** Yes
+
+**Default:** "Value of `position` or first value of `positions`"
+
+### alt_direction
+
+Direction this connection should be facing when entity direction is north-east. When entity is rotated, effective direction will be computed based on this value.
+
+Only loaded if `connection_type` is `"normal"` or `"underground"`.
+
+**Type:** `defines.direction`
+
+**Optional:** Yes
+
+**Default:** "Value of `direction`"
 
 ### connection_category
 

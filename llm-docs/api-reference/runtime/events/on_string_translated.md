@@ -20,7 +20,7 @@ The localised string being translated.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -36,7 +36,7 @@ The translated `localised_string`.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

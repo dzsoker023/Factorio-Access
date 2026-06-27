@@ -4,6 +4,44 @@ The order property is a simple `string`. When the game needs to sort prototypes 
 
 The alphabetical sorting uses [lexicographical comparison](https://en.wikipedia.org/wiki/Lexicographic_order) to determine if a given prototype is shown before or after another. If the order strings are equal then the game falls back to comparing the prototype names to determine order.
 
+The order of special characters can be identified by looking at a UTF-8 character list. This is the order some common characters are sorted in:
+
+- "-"
+
+- "0"
+
+- "9"
+
+- "A"
+
+- "Z"
+
+- "["
+
+- "]"
+
+- "a"
+
+- "z"
+
+The following order strings would be ordered thusly then:
+
+- "-"
+
+- "a"
+
+- "ab"
+
+- "azaaa" (`b` is sorted before `z`, so "ab" comes before "az", regardless of the letters following it)
+
+- "b"
+
+- "b-zzz"
+
+- "b[aaa]" (`[` is sorted after `-` in UTF-8)
+
+- "bb" (`b` is sorted after `[` in UTF-8)
+
 **Type:** `string`
 
 ## Examples
@@ -20,31 +58,6 @@ The alphabetical sorting uses [lexicographical comparison](https://en.wikipedia.
   name = "item-2",
   order = "ab",
 }
-```
-```
-
-```
-```
--- The order of special characters can be identified by looking at a UTF-8 character list.
--- This is the order some common characters are sorted in:
-"-"
-"0"
-"9"
-"A"
-"Z"
-"["
-"]"
-"a"
-"z"
--- The following order strings would be ordered thusly then:
-"a"
-"ab"
-"azaaa"  -- "b" is sorted before "z", so "ab" comes before "az", regardless of the letters following it
-"b"
-"b-zzz"
-"b[aaa]" -- "[" is sorted after "-" in UTF-8
-"bb"  -- "b" is sorted after "[" in UTF-8
-]
 ```
 ```
 

@@ -14,7 +14,7 @@ The force to reassign entities to.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### source
 
@@ -24,7 +24,7 @@ The force to be destroyed
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

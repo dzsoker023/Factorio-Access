@@ -30,6 +30,28 @@ The probability multiplier of getting the next level of quality.
 
 **Read type:** `double`
 
+### chain_probability
+
+Probability of additional quality increase happening after quality was increased to reach this quality in the same crafting/mining operation.
+
+**Read type:** `double`
+
+### previous
+
+**Read type:** `LuaQualityPrototype`
+
+### previous_probability
+
+The probability multiplier of getting the previous level of quality.
+
+**Read type:** `double`
+
+### previous_chain_probability
+
+Probability of additional quality decrease happening after quality was decreased to reach this quality in the same crafting/mining operation.
+
+**Read type:** `double`
+
 ### draw_sprite_by_default
 
 **Read type:** `boolean`
@@ -59,6 +81,18 @@ The probability multiplier of getting the next level of quality.
 **Read type:** `double`
 
 ### inventory_size_multiplier
+
+**Read type:** `double`
+
+### cargo_wagon_inventory_size_multiplier
+
+**Read type:** `double`
+
+### locomotive_power_multiplier
+
+**Read type:** `double`
+
+### rolling_stock_max_speed_multiplier
 
 **Read type:** `double`
 
@@ -115,6 +149,30 @@ The probability multiplier of getting the next level of quality.
 **Read type:** `float`
 
 ### mining_drill_mining_radius_bonus
+
+**Read type:** `float`
+
+### module_consumption_multiplier
+
+**Read type:** `float`
+
+### module_speed_multiplier
+
+**Read type:** `float`
+
+### module_productivity_multiplier
+
+**Read type:** `float`
+
+### module_pollution_multiplier
+
+**Read type:** `float`
+
+### module_quality_multiplier
+
+**Read type:** `float`
+
+### spoil_ticks_multiplier
 
 **Read type:** `float`
 

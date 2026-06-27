@@ -8,7 +8,7 @@ Called after a player mines tiles.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -22,7 +22,7 @@ The surface the tile(s) were mined from.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

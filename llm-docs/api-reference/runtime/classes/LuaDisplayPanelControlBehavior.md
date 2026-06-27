@@ -6,7 +6,19 @@ Control behavior for display panels.
 
 ## Attributes
 
-### messages
+### max_records_count
+
+Provides a maximum amount of records that can be added to this behavior. When at full capacity, attempts to add more records will fail.
+
+**Read type:** `uint32`
+
+### records_count
+
+Current amount of records this control behavior has.
+
+**Read type:** `uint32`
+
+### records
 
 The full list of configured messages.
 
@@ -28,24 +40,54 @@ The class name of this object. Available even when `valid` is false. For LuaStru
 
 ## Methods
 
-### get_message
+### add_record
 
-Get a specific message definition
+Adds a single message record.
 
 **Parameters:**
 
-- `index` `uint32` - Message index.
+- `message` `DisplayPanelMessageDefinition` - Message record to be added.
+- `index` `uint32` *(optional)* - Index at which this record should be inserted. Must be within [1, [records_count](runtime:LuaDisplayPanelControlBehavior::records_count) + 1]. When not provided, record will be appended.
 
 **Returns:**
 
-- `DisplayPanelMessageDefinition` - The message definition at the specified index.
+- `boolean` - If a message record was added.
 
-### set_message
+### remove_record
 
-Set the message at the specified index
+Removes message record at specified index.
 
 **Parameters:**
 
-- `index` `int32` - Message index. Use `-1` to append new element.
-- `message` `DisplayPanelMessageDefinition` | `nil` - The message definition for the specified index. Specify `nil` to remove the message.
+- `index` `uint32` - Index of the message record to be removed. Must be within [1, [records_count](runtime:LuaDisplayPanelControlBehavior::records_count)].
+
+### move_record
+
+Moves record from old position to a new position
+
+**Parameters:**
+
+- `old_index` `uint32` - Index where the record to be moved is currently.
+- `new_index` `uint32` - Index where the record should be moved to.
+
+### get_record
+
+Get a single record.
+
+**Parameters:**
+
+- `index` `uint32` - Index of the record to read.
+
+**Returns:**
+
+- `DisplayPanelMessageDefinition`
+
+### set_record
+
+Change content of a specific record.
+
+**Parameters:**
+
+- `index` `uint32` - Index of the record to change
+- `record` `DisplayPanelMessageDefinition`
 

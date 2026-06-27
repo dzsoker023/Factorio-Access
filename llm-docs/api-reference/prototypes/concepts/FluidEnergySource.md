@@ -20,6 +20,12 @@ All standard fluid box configurations are acceptable, but the type must be `"inp
 
 **Required:** Yes
 
+### output_fluid_box
+
+**Type:** `FluidBox`
+
+**Optional:** Yes
+
 ### smoke
 
 **Type:** Array[`SmokeSource`]
@@ -95,4 +101,12 @@ Only loaded if `burns_fluid` is `false`.
 **Optional:** Yes
 
 **Default:** 0
+
+### spent_fluid
+
+Fluid and amount produced per 1 unit of fluid consumed. Only used when `output_fluid_box` is defined. If this value is not provided, [FluidPrototype::spent_fluid](prototype:FluidPrototype::spent_fluid) will be used based on the input fluid being consumed.
+
+**Type:** `SpentFluidSpecification`
+
+**Optional:** Yes
 

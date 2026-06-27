@@ -78,6 +78,8 @@ Size of the starting area. The starting area only effects enemy placement, and h
 
 **Optional:** Yes
 
+**Default:** 1
+
 ### peaceful_mode
 
 If true, enemy creatures will not attack unless the player first attacks them.

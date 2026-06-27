@@ -11,7 +11,7 @@ A generic container, such as a chest, that interacts with the logistics network.
 
 The way this chest interacts with the logistic network.
 
-**Type:** `"active-provider"` | `"passive-provider"` | `"requester"` | `"storage"` | `"buffer"`
+**Type:** `LogisticMode`
 
 **Required:** Yes
 
@@ -41,27 +41,9 @@ Whether the "no network" icon should be rendered on this entity if the entity is
 
 **Default:** True
 
-### opened_duration
+### robot_door
 
-**Type:** `uint8`
-
-**Optional:** Yes
-
-**Default:** 0
-
-### animation
-
-Drawn when a robot brings/takes items from this container.
-
-**Type:** `Animation`
-
-**Optional:** Yes
-
-### landing_location_offset
-
-The offset from the center of this container where a robot visually brings/takes items.
-
-**Type:** `Vector`
+**Type:** `RobotDoorSpecification`
 
 **Optional:** Yes
 
@@ -74,12 +56,4 @@ Whether logistic robots have to deliver the exact amount of items requested to t
 **Optional:** Yes
 
 **Default:** False
-
-### animation_sound
-
-Played when a robot brings/takes items from this container. Only loaded if `animation` is defined.
-
-**Type:** `Sound`
-
-**Optional:** Yes
 

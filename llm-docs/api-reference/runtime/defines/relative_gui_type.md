@@ -12,6 +12,8 @@
 
 ### agriculture_tower_gui
 
+### alerts_config_gui
+
 ### arithmetic_combinator_gui
 
 ### armor_gui
@@ -29,6 +31,8 @@
 ### blueprint_library_gui
 
 ### blueprint_setup_gui
+
+### boiler_gui
 
 ### bonus_gui
 
@@ -50,6 +54,8 @@
 
 ### display_panel_gui
 
+### electric_energy_interface_equipment_gui
+
 ### electric_energy_interface_gui
 
 ### electric_network_gui
@@ -69,6 +75,8 @@
 ### global_electric_network_gui
 
 ### heat_interface_gui
+
+### heat_pipe_gui
 
 ### infinity_pipe_gui
 
@@ -108,6 +116,8 @@
 
 ### pump_gui
 
+### radar_gui
+
 ### rail_signal_base_gui
 
 ### reactor_gui
@@ -131,8 +141,6 @@
 ### splitter_gui
 
 ### standalone_character_gui
-
-### storage_tank_gui
 
 ### tile_variations_gui
 

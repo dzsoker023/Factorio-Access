@@ -1,5 +1,7 @@
 # TabStyleSpecification
 
+Root style: `"tab"`
+
 **Type:** `Struct`
 
 ## Properties
@@ -16,6 +18,8 @@
 
 Name of a [FontPrototype](prototype:FontPrototype).
 
+Required on the root style.
+
 **Type:** `string`
 
 **Optional:** Yes
@@ -24,11 +28,15 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 Name of a [FontPrototype](prototype:FontPrototype).
 
+Required on the root style.
+
 **Type:** `string`
 
 **Optional:** Yes
 
 ### badge_horizontal_spacing
+
+Required on the root style.
 
 **Type:** `int16`
 
@@ -36,11 +44,15 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 ### default_font_color
 
+Required on the root style.
+
 **Type:** `Color`
 
 **Optional:** Yes
 
 ### selected_font_color
+
+Required on the root style.
 
 **Type:** `Color`
 
@@ -48,11 +60,15 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 ### disabled_font_color
 
+Required on the root style.
+
 **Type:** `Color`
 
 **Optional:** Yes
 
 ### default_badge_font_color
+
+Required on the root style.
 
 **Type:** `Color`
 
@@ -60,11 +76,15 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 ### selected_badge_font_color
 
+Required on the root style.
+
 **Type:** `Color`
 
 **Optional:** Yes
 
 ### disabled_badge_font_color
+
+Required on the root style.
 
 **Type:** `Color`
 
@@ -72,11 +92,15 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 ### override_graphics_on_edges
 
+Required on the root style.
+
 **Type:** `boolean`
 
 **Optional:** Yes
 
 ### increase_height_when_selected
+
+Required on the root style.
 
 **Type:** `boolean`
 
@@ -84,11 +108,15 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 ### left_edge_selected_graphical_set
 
+Required on the root style.
+
 **Type:** `ElementImageSet`
 
 **Optional:** Yes
 
 ### right_edge_selected_graphical_set
+
+Required on the root style.
 
 **Type:** `ElementImageSet`
 
@@ -96,11 +124,15 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 ### default_badge_graphical_set
 
+Required on the root style.
+
 **Type:** `ElementImageSet`
 
 **Optional:** Yes
 
 ### selected_badge_graphical_set
+
+Required on the root style.
 
 **Type:** `ElementImageSet`
 
@@ -108,17 +140,23 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 ### hover_badge_graphical_set
 
+Required on the root style.
+
 **Type:** `ElementImageSet`
 
 **Optional:** Yes
 
 ### press_badge_graphical_set
 
+Required on the root style.
+
 **Type:** `ElementImageSet`
 
 **Optional:** Yes
 
 ### disabled_badge_graphical_set
+
+Required on the root style.
 
 **Type:** `ElementImageSet`
 
@@ -129,4 +167,6 @@ Name of a [FontPrototype](prototype:FontPrototype).
 **Type:** `boolean`
 
 **Optional:** Yes
+
+**Default:** False
 

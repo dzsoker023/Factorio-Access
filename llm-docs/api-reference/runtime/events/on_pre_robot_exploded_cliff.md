@@ -18,7 +18,7 @@ The cliff explosive used.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### quality
 
@@ -32,7 +32,7 @@ The quality of the cliff explosive used.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

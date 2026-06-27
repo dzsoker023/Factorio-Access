@@ -54,6 +54,14 @@ The prototype name of the quality. `nil` for any quality.
 
 **Optional:** Yes
 
+### request_from
+
+From which sources items should be requested for space platforms.
+
+**Type:** `RequestFromLocation`
+
+**Optional:** Yes
+
 ### type
 
 The type of the logistic filter.

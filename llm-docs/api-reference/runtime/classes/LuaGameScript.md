@@ -8,17 +8,11 @@ Main toplevel type, provides access to most of the API though its members. An in
 
 Whether players who are not [admins](runtime:LuaPlayer::admin) can access all debug settings. Set this to false to disallow access to most debug settings for non-admins.
 
-The following debug settings are always available to all players: `"show-fps"`, `"show-clock"`, `"show-time-to-next-autosave"`, `"show-detailed-info"`, `"show-time-usage"`, `"show-entity-time-usage"`, `"show-gpu-time-usage"`, `"show-sprite-counts"`, `"show-particle-counts"`, `"show-collector-navmesh-time-usage"`, `"show-lua-object-statistics"`, `"show-heat-buffer-info"`, `"show-multiplayer-waiting-icon"`, `"show-multiplayer-statistics"`, `"show-multiplayer-server-name"`, `"show-debug-info-in-tooltips"`, `"show-resistances-in-tooltips-always"`, `"hide-mod-guis"`, `"show-tile-grid"`, `"show-blueprint-grid"`, `"show-intermediate-volume-of-working-sounds"`, `"show-decorative-names"`, `"allow-increased-zoom"`, `"show-train-no-path-details"`, `"show-entity-tick"`, `"show-update-tick"`
+The following debug settings are always available to all players: `"show-fps"`, `"show-playtime"`, `"show-clock"`, `"show-time-to-next-autosave"`, `"show-detailed-info"`, `"show-time-usage"`, `"show-entity-time-usage"`, `"show-gpu-time-usage"`, `"show-sprite-counts"`, `"show-particle-counts"`, `"show-collector-navmesh-time-usage"`, `"show-lua-object-statistics"`, `"show-heat-buffer-info"`, `"show-multiplayer-ups"`, `"show-multiplayer-waiting-icon"`, `"show-multiplayer-statistics"`, `"show-multiplayer-server-name"`, `"show-debug-info-in-tooltips"`, `"show-resistances-in-tooltips-always"`, `"hide-mod-guis"`, `"show-tile-grid"`, `"show-blueprint-grid"`, `"show-intermediate-volume-of-working-sounds"`, `"show-decorative-names"`, `"allow-increased-zoom"`, `"show-train-no-path-details"`, `"show-entity-tick"`, `"show-update-tick"`
 
 **Read type:** `boolean`
 
 **Write type:** `boolean`
-
-### object_name
-
-The class name of this object. Available even when `valid` is false. For LuaStruct objects it may also be suffixed with a dotted path to a member of the struct.
-
-**Read type:** `string`
 
 ### player
 
@@ -214,6 +208,12 @@ Can't be modified in a simulation (menu screen, tips and tricks simulation, fact
 
 **Write type:** `boolean`
 
+### object_name
+
+The class name of this object. Available even when `valid` is false. For LuaStruct objects it may also be suffixed with a dotted path to a member of the struct.
+
+**Read type:** `string`
+
 ## Methods
 
 ### set_game_state
@@ -369,6 +369,7 @@ Take a screenshot of the technology screen and save it to the `script-output` fo
 - `selected_technology` `TechnologyID` *(optional)* - The technology to highlight.
 - `skip_disabled` `boolean` *(optional)* - If `true`, disabled technologies will be skipped. Their successors will be attached to the disabled technology's parents. Defaults to `false`.
 - `quality` `int32` *(optional)* - The `.jpg` render quality as a percentage (from 0% to 100% inclusive), if used. A lower value means a more compressed image. Defaults to `80`.
+- `allow_in_replay` `boolean` *(optional)* - Whether to save the screenshot even during replay playback. Defaults to `false`.
 
 ### remove_offline_players
 
@@ -441,6 +442,7 @@ Only the server will save in multiplayer. In single player a standard auto-save 
 **Parameters:**
 
 - `name` `string` *(optional)* - The autosave name if any. Saves will be named _autosave-*name* when provided.
+- `allow_in_replay` `boolean` *(optional)* - Whether to save the auto-save even during replay playback. Defaults to `false`
 
 ### delete_surface
 
@@ -453,6 +455,16 @@ Deletes the given surface and all entities on it if possible.
 **Returns:**
 
 - `boolean` - If the surface was queued to be deleted.
+
+### delete_blueprint_library
+
+Deletes the blueprint library of the given player.
+
+Note: the player must be offline (disconnected).
+
+**Parameters:**
+
+- `player` `PlayerIdentification`
 
 ### disable_replay
 
@@ -492,6 +504,14 @@ The sound is not played if its location is not [charted](runtime:LuaForce::chart
 **Parameters:**
 
 - `sound_specification` `PlaySoundSpecification` - The sound to play.
+
+### play_music
+
+Play a music track for every player in the game.
+
+**Parameters:**
+
+- `music_specification` `PlayMusicSpecification` - The track to play.
 
 ### kick_player
 
@@ -584,20 +604,6 @@ This is a shortcut for [LuaGameScript::surfaces](runtime:LuaGameScript::surfaces
 **Returns:**
 
 - `LuaSurface` *(optional)*
-
-### create_profiler
-
-Creates a [LuaProfiler](runtime:LuaProfiler), which is used for measuring script performance.
-
-LuaProfiler cannot be serialized.
-
-**Parameters:**
-
-- `stopped` `boolean` *(optional)* - Create the timer stopped
-
-**Returns:**
-
-- `LuaProfiler`
 
 ### create_inventory
 

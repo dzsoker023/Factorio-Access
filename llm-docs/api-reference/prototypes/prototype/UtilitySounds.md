@@ -8,7 +8,43 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ## Properties
 
+### segment_dying_sound
+
+Sound category `"enemy"`.
+
+Only present when the Space Age mod is loaded.
+
+**Type:** `Sound`
+
+**Optional:** Yes
+
 ### gui_click
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### gui_switch
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### gui_toggle
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### gui_tab
+
+Sound category `"gui-effect"`.
 
 **Type:** `Sound`
 
@@ -16,11 +52,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### list_box_click
 
+Sound category `"gui-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### build_small
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -28,11 +68,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### build_medium
 
+Sound category `"game-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### build_large
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -40,11 +84,23 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### build_huge
 
+Sound category `"game-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### build_behemoth
+
+Sound category `"game-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### cannot_build
+
+Sound category `"gui-effect"`.
 
 **Type:** `Sound`
 
@@ -52,11 +108,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### build_blueprint_small
 
+Sound category `"game-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### build_blueprint_medium
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -64,11 +124,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### build_blueprint_large
 
+Sound category `"game-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### build_blueprint_huge
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -76,11 +140,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### build_ghost_upgrade
 
+Sound category `"game-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### build_ghost_upgrade_cancel
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -88,11 +156,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### build_animated_small
 
+Sound category `"game-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### build_animated_medium
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -100,11 +172,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### build_animated_large
 
+Sound category `"game-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### build_animated_huge
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -112,11 +188,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### deconstruct_small
 
+Sound category `"game-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### deconstruct_medium
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -124,11 +204,23 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### deconstruct_large
 
+Sound category `"game-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### deconstruct_huge
+
+Sound category `"game-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### deconstruct_behemoth
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -136,11 +228,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### deconstruct_robot
 
+Sound category `"game-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### rotated_small
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -148,11 +244,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### rotated_medium
 
+Sound category `"game-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### rotated_large
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -160,11 +260,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### rotated_huge
 
+Sound category `"game-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### axe_mining_ore
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -172,11 +276,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### axe_mining_stone
 
+Sound category `"game-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### mining_wood
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -184,11 +292,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### axe_fighting
 
+Sound category `"game-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### alert_destroyed
+
+Sound category `"alert"`.
 
 **Type:** `Sound`
 
@@ -196,11 +308,95 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### console_message
 
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### console_player_joined
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### console_player_respawned
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### console_player_left
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### console_player_paused_game
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### console_player_resumed_game
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### console_player_died
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### console_player_research
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### console_platform_created
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### console_platform_destroyed
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### console_player_changed_logistic_group
+
+Sound category `"gui-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### scenario_message
+
+Sound category `"gui-effect"`.
 
 **Type:** `Sound`
 
@@ -208,11 +404,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### new_objective
 
+Sound category `"gui-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### game_lost
+
+Sound category `"gui-effect"`.
 
 **Type:** `Sound`
 
@@ -220,11 +420,23 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### game_won
 
+Sound category `"gui-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### metal_walking_sound
+
+Sound category `"walking"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### heat_pipe_walking_sound
+
+Sound category `"walking"`.
 
 **Type:** `Sound`
 
@@ -232,11 +444,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### research_completed
 
+Sound category `"gui-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### default_manual_repair
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -244,11 +460,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### crafting_finished
 
+Sound category `"gui-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### inventory_click
+
+Sound category `"gui-effect"`.
 
 **Type:** `Sound`
 
@@ -256,11 +476,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### inventory_move
 
+Sound category `"gui-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### clear_cursor
+
+Sound category `"gui-effect"`.
 
 **Type:** `Sound`
 
@@ -268,11 +492,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### armor_insert
 
+Sound category `"gui-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### armor_remove
+
+Sound category `"gui-effect"`.
 
 **Type:** `Sound`
 
@@ -280,11 +508,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### achievement_unlocked
 
+Sound category `"gui-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### wire_connect_pole
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -292,11 +524,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### wire_disconnect
 
+Sound category `"game-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### wire_pickup
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -304,11 +540,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### tutorial_notice
 
+Sound category `"gui-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### smart_pipette
+
+Sound category `"gui-effect"`.
 
 **Type:** `Sound`
 
@@ -316,11 +556,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### switch_gun
 
+Sound category `"gui-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### picked_up_item
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -328,11 +572,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### paste_activated
 
+Sound category `"gui-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### item_deleted
+
+Sound category `"gui-effect"`.
 
 **Type:** `Sound`
 
@@ -340,11 +588,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### entity_settings_pasted
 
+Sound category `"gui-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### entity_settings_copied
+
+Sound category `"gui-effect"`.
 
 **Type:** `Sound`
 
@@ -352,11 +604,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### item_spawned
 
+Sound category `"gui-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### confirm
+
+Sound category `"gui-effect"`.
 
 **Type:** `Sound`
 
@@ -364,11 +620,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### undo
 
+Sound category `"gui-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### drop_item
+
+Sound category `"game-effect"`.
 
 **Type:** `Sound`
 
@@ -376,11 +636,15 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### rail_plan_start
 
+Sound category `"gui-effect"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
 ### default_driving_sound
+
+Sound category `"walking"`.
 
 **Type:** `InterruptibleSound`
 
@@ -388,15 +652,57 @@ Sounds used by the game that are not specific to certain prototypes.
 
 ### default_landing_steps
 
+Sound category `"walking"`.
+
 **Type:** `Sound`
 
 **Required:** Yes
 
-### segment_dying_sound
+### toggle_show_entity_info
 
-Only present when the Space Age mod is loaded.
+Sound category `"gui-effect"`.
 
 **Type:** `Sound`
 
-**Optional:** Yes
+**Required:** Yes
+
+### cycle_blueprint_book
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### blueprint_preview_build
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### blueprint_preview_mine
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### adjust_blueprint_snapping
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
+
+### change_quality
+
+Sound category `"gui-effect"`.
+
+**Type:** `Sound`
+
+**Required:** Yes
 

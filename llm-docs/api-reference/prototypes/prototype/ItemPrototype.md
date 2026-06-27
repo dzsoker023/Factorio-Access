@@ -135,6 +135,24 @@ The item that is the result when this item gets burned as fuel.
 
 **Optional:** Yes
 
+### spoil_quality_min
+
+**Type:** `QualityID`
+
+**Optional:** Yes
+
+### spoil_quality_max
+
+**Type:** `QualityID`
+
+**Optional:** Yes
+
+### spoil_quality_change
+
+**Type:** `int8`
+
+**Optional:** Yes
+
 ### plant_result
 
 **Type:** `EntityID`
@@ -249,7 +267,7 @@ Must be 0 or positive.
 
 The default weight is calculated automatically from recipes and falls back to [UtilityConstants::default_item_weight](prototype:UtilityConstants::default_item_weight).
 
-More information on how item weight is determined can be found on its [auxiliary page](runtime:item-weight).
+More information on how item weight is determined can be found on its [auxiliary page](auxiliary:item-weight).
 
 **Type:** `Weight`
 
@@ -262,6 +280,16 @@ More information on how item weight is determined can be found on its [auxiliary
 **Optional:** Yes
 
 **Default:** 0.5
+
+### space_platform_request_priority
+
+Used by space platforms to prioritize item requests and make sure there is enough space for priority items before requesting the rest.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
 
 ### fuel_glow_color
 
@@ -412,4 +440,12 @@ Item will not appear in lists of all items such as those for logistics requests,
 **Default:** False
 
 **Overrides parent:** Yes
+
+### lab_ignores_spoil_percent
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
 

@@ -6,7 +6,7 @@ It's recommend to use underscores instead of dashes in `name` so that the name c
 
 **Parent:** [Prototype](Prototype.md)
 **Type name:** `collision-layer`
-**Instance limit:** 55
+**Instance limit:** 256
 
 ## Examples
 

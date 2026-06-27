@@ -8,7 +8,7 @@ Called when one or more chunks are deleted using [LuaSurface::delete_chunk](runt
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### positions
 
@@ -22,7 +22,7 @@ The chunks deleted.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

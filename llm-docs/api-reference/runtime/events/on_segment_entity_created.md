@@ -12,11 +12,11 @@ Called when an individual segment of a SegmentedUnit is created.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

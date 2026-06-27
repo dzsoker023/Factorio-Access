@@ -42,7 +42,7 @@ How much time one unit takes to research. In a lab with a crafting speed of `1`,
 
 ### ingredients
 
-List of ingredients needed for one unit of research. The items must all be [ToolPrototypes](prototype:ToolPrototype).
+List of ingredients needed for one unit of research.
 
 **Type:** Array[`ResearchIngredient`]
 

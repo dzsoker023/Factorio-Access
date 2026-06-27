@@ -26,7 +26,7 @@ The [flat resistance](https://wiki.factorio.com/Damage#Decrease.2C_or_.22flat.22
 
 ### percent
 
-The [percentage resistance](https://wiki.factorio.com/Damage#Percentage_resistance) to the given damage type. (Higher is better)
+The [percentage resistance](https://wiki.factorio.com/Damage#Percentage_resistance) to the given damage type. Expected range is from 0 to 100, e.g. 50 is 50%. (Higher is better.)
 
 **Type:** `float`
 

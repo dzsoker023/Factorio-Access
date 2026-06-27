@@ -47,3 +47,27 @@
 
 **Optional:** Yes
 
+### time_symbol_sprites
+
+**Type:** `Sprite4Way`
+
+**Optional:** Yes
+
+### default_game_tick_output_signal
+
+**Type:** `SignalIDConnector`
+
+**Optional:** Yes
+
+### default_day_tick_output_signal
+
+**Type:** `SignalIDConnector`
+
+**Optional:** Yes
+
+### default_day_length_output_signal
+
+**Type:** `SignalIDConnector`
+
+**Optional:** Yes
+

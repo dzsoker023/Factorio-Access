@@ -14,7 +14,7 @@
 
 ### tile_collision_mask
 
-**Type:** `CollisionMaskConnector`
+**Type:** `TileCollisionMaskConnector`
 
 **Optional:** Yes
 

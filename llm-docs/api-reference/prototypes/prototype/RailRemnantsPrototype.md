@@ -11,7 +11,7 @@ Used for rail corpses.
 
 **Type:** `RailPictureSet`
 
-**Required:** Yes
+**Optional:** Yes
 
 ### related_rail
 

@@ -50,12 +50,6 @@ If a behavior fails this many times, the enemy (or enemy group) is destroyed. Th
 
 **Required:** Yes
 
-### steering
-
-**Type:** `SteeringMapSettings`
-
-**Required:** Yes
-
 ### unit_group
 
 **Type:** `UnitGroupMapSettings`

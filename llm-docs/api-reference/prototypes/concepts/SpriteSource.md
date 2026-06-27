@@ -26,7 +26,7 @@ The width and height of the sprite. If this is a tuple, the first member of the 
 
 Mandatory if `size` is not defined.
 
-Width of the picture in pixels, from 0-4096.
+Width of the sprite in pixels, from 0-4096.
 
 **Type:** `SpriteSizeType`
 
@@ -36,7 +36,7 @@ Width of the picture in pixels, from 0-4096.
 
 Mandatory if `size` is not defined.
 
-Height of the picture in pixels, from 0-4096.
+Height of the sprite in pixels, from 0-4096.
 
 **Type:** `SpriteSizeType`
 
@@ -99,4 +99,16 @@ If `true`, the sprite may be downsampled to half its size on load even when 'Spr
 **Optional:** Yes
 
 **Default:** False
+
+### color_channels
+
+All textures have 4 channels by default. This property can be used for no-atlas textures to force their format to R, RG, RGB or RGBA with 8 bytes for each channel and save VRAM space. Compression setting is based on player config.
+
+We use BC4 compression for R, BC5 for RG, BC1 for RGB, and DXT5_BC3 for RGBA, see "[S3 Texture Compression](https://en.wikipedia.org/wiki/S3_Texture_Compression)" to read more about compression ratios.
+
+**Type:** `1` | `2` | `3` | `4`
+
+**Optional:** Yes
+
+**Default:** 4
 

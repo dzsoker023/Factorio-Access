@@ -12,7 +12,7 @@ Called when an entity is spawned by a EnemySpawner
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### spawner
 
@@ -20,7 +20,7 @@ Identifier of the event
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

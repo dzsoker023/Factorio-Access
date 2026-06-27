@@ -1,6 +1,8 @@
 # LocalisedString
 
-Localised strings are a way to support translation of in-game text. It is an array where the first element is the key and the remaining elements are parameters that will be substituted for placeholders in the template designated by the key.
+Localised strings are a way to support translation of in-game text. They offer a language-independent code representation of the text that should be shown to players.
+
+It is an array where the first element is the key and the remaining elements are parameters that will be substituted for placeholders in the template designated by the key.
 
 The key identifies the string template. For example, `"gui-alert-tooltip.attack"` (for the template `"__1__ objects are being damaged"`; see the file `data/core/locale/en.cfg`).
 

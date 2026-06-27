@@ -14,7 +14,7 @@ The context of the redo action.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -24,7 +24,7 @@ The player who triggered the redo action.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

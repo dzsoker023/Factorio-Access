@@ -78,6 +78,14 @@ If this is defined then it sets the default value for all other properties.
 
 **Default:** True
 
+### show_pins_gui
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
 ### show_map_view_options
 
 **Type:** `boolean`
@@ -141,4 +149,12 @@ If this is defined then it sets the default value for all other properties.
 **Optional:** Yes
 
 **Default:** True
+
+### hide_tall_entities
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
 

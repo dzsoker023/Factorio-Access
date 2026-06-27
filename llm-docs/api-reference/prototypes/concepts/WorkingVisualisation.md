@@ -268,6 +268,8 @@ Only loaded if [WorkingVisualisations::states](prototype:WorkingVisualisations::
 
 ### name
 
+Used by [MainSound::play_for_working_visualisations](prototype:MainSound::play_for_working_visualisations), [SoundAccent::play_for_working_visualisation](prototype:SoundAccent::play_for_working_visualisation), [FluidBox::enable_working_visualisations](prototype:FluidBox::enable_working_visualisations), and [PipeConnectionDefinition::enable_working_visualisations](prototype:PipeConnectionDefinition::enable_working_visualisations).
+
 **Type:** `string`
 
 **Optional:** Yes

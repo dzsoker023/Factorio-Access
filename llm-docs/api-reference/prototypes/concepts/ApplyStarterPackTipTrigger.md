@@ -1,5 +1,7 @@
 # ApplyStarterPackTipTrigger
 
+Triggered when a [space platform starter pack](prototype:SpacePlatformStarterPackPrototype) is used to create a space platform.
+
 **Type:** `Struct`
 
 ## Properties

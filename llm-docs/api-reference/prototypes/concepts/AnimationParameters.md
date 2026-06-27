@@ -92,6 +92,16 @@ How many times to repeat the animation to complete an animation cycle. E.g. if o
 
 **Default:** 1
 
+### allow_reducing_frames
+
+If `true`, the animation frame count may be cut to half depending on detected hardware and other graphics settings.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+
 ### dice
 
 Number of slices this is sliced into when using the "optimized atlas packing" option. If you are a modder, you can just ignore this property. Example: If this is 4, the sprite will be sliced into a 4×4 grid.

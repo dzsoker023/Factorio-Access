@@ -4,6 +4,8 @@
 
 ### achievement
 
+### alerts_config
+
 ### blueprint_library
 
 ### bonus

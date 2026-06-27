@@ -8,7 +8,7 @@ Called when a new train is created either through disconnecting/connecting an ex
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### old_train_id_1
 
@@ -24,7 +24,7 @@ The second old train id when splitting/merging trains.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

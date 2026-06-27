@@ -26,6 +26,16 @@ When true, the gun will be able to shoot even when the target is out of range. O
 
 **Default:** False
 
+### force_clamp_to_max_range
+
+If true, attacks will always be clamped to max range even if the target is within range. Used for shotguns.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+
 ### energy_consumption
 
 Energy consumption of a single shot, if applicable.

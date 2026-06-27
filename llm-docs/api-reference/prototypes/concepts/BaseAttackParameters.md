@@ -66,7 +66,17 @@ A higher penalty will discourage turrets from targeting units that would take lo
 
 ### health_penalty
 
-A higher penalty will discourage turrets from targeting units with higher health. A negative penalty will encourage turrets to target units with higher health.
+A higher penalty will discourage turrets from targeting units with higher health ratio. A negative penalty will encourage turrets to target units with higher health ratio.
+
+**Type:** `float`
+
+**Optional:** Yes
+
+**Default:** 0
+
+### threatening_asteroid_penalty
+
+A higher penalty will discourage turrets from targeting asteroids that are threatening. A negative penalty will encourage turrets to target threatening asteroids.
 
 **Type:** `float`
 

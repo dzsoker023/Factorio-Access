@@ -44,7 +44,7 @@ The prototype name of the custom input that was activated.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -60,7 +60,7 @@ Information about the prototype that is selected when the custom input is used. 
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

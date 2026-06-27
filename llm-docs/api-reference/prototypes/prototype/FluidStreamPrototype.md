@@ -243,3 +243,17 @@ The point in the particles projectile arc to start spawning smoke. 0.5 (the defa
 
 **Default:** False
 
+### selection_priority
+
+The entity with the higher number is selectable before the entity with the lower number.
+
+The value `0` will be treated the same as `nil`.
+
+**Type:** `uint8`
+
+**Optional:** Yes
+
+**Default:** 20
+
+**Overrides parent:** Yes
+

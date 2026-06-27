@@ -20,6 +20,14 @@ Distance in chunks from the furthest base around. This prevents expansions from 
 
 **Required:** Yes
 
+### min_expansion_distance
+
+Distance in chunks from the furthest base around to prevent expansions from being too close to existing bases.
+
+**Type:** `uint32`
+
+**Required:** Yes
+
 ### friendly_base_influence_radius
 
 **Type:** `uint32`
@@ -66,7 +74,7 @@ A chunk has to have at most this much percent unbuildable tiles for it to be con
 
 ### settler_group_min_size
 
-Size of the group that goes to build new base (the game interpolates between min size and max size based on evolution factor).
+Size of the group that goes to build new base.
 
 **Type:** `uint32`
 
@@ -75,6 +83,14 @@ Size of the group that goes to build new base (the game interpolates between min
 ### settler_group_max_size
 
 **Type:** `uint32`
+
+**Required:** Yes
+
+### evolution_group_size_factor
+
+Exponential factor used to determine the size of the settler group based on the evolution factor. The size is calculated as: `size = random(min_size, max_size) * (evolution_group_size_factor ^ evolution_factor)`
+
+**Type:** `double`
 
 **Required:** Yes
 
@@ -87,6 +103,8 @@ Ticks to expand to a single position for a base is used. Cooldown is calculated 
 **Required:** Yes
 
 ### max_expansion_cooldown
+
+In ticks.
 
 **Type:** `uint32`
 

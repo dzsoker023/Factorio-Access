@@ -20,7 +20,7 @@ The effect_id specified in the trigger effect.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### quality
 
@@ -50,7 +50,7 @@ The surface the effect happened on.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

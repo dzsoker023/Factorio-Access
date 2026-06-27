@@ -8,11 +8,17 @@
 
 ### custom_chart_tag
 
+### electric_network
+
+### electric_sub_network
+
 ### entity
 
 ### equipment
 
 ### equipment_grid
+
+### force
 
 ### gui_element
 

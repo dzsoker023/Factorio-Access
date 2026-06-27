@@ -80,7 +80,7 @@ Must be positive.
 
 The minimum radius of empty space a [plant](prototype:PlantPrototype) requires around it to be planted.
 
-Must be >= 0 and <= growth_grid_tile_size / 2
+Must be greater than or equal to 0 and less than or equal to `growth_grid_tile_size / 2`.
 
 **Type:** `double`
 
@@ -92,7 +92,7 @@ Must be >= 0 and <= growth_grid_tile_size / 2
 
 The maximum offset from the grid tile center which will be applied to the planting spot selected by this agricultural tower.
 
-Must be >= 0 and < 1.
+Must be greater than or equal to 0 and less than 1.
 
 **Type:** `double`
 
@@ -225,6 +225,50 @@ The maximum circuit wire distance for this entity.
 When missing, all items with [plant result](prototype:ItemPrototype::plant_result) will be accepted. When provided, only items on this list that have plant result will be accepted.
 
 **Type:** Array[`ItemID`]
+
+**Optional:** Yes
+
+### module_slots
+
+The number of module slots in this machine.
+
+**Type:** `ItemStackIndex`
+
+**Optional:** Yes
+
+### quality_affects_module_slots
+
+If set, [QualityPrototype::mining_drill_module_slots_bonus](prototype:QualityPrototype::mining_drill_module_slots_bonus) will be added to module slots count.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+
+### allowed_effects
+
+Sets the [modules](prototype:ModulePrototype) and [beacon](prototype:BeaconPrototype) effects that are allowed to be used on this machine.
+
+**Type:** `EffectTypeLimitation`
+
+**Optional:** Yes
+
+**Default:** "No effects are allowed"
+
+### allowed_module_categories
+
+Sets the [module categories](prototype:ModuleCategory) that are allowed to be inserted into this machine.
+
+**Type:** Array[`ModuleCategoryID`]
+
+**Optional:** Yes
+
+**Default:** "All module categories are allowed"
+
+### effect_receiver
+
+**Type:** `EffectReceiver`
 
 **Optional:** Yes
 

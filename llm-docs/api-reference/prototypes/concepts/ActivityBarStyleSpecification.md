@@ -1,5 +1,7 @@
 # ActivityBarStyleSpecification
 
+Root style: `"activity_bar"`
+
 **Type:** `Struct`
 
 ## Properties
@@ -14,11 +16,17 @@
 
 ### speed
 
+Required on the root style.
+
 **Type:** `float`
 
 **Optional:** Yes
 
 ### bar_width
+
+The thickness of the bar, not the horizontal size.
+
+Required on the root style.
 
 **Type:** `uint32`
 
@@ -26,11 +34,15 @@
 
 ### color
 
+Required on the root style.
+
 **Type:** `Color`
 
 **Optional:** Yes
 
 ### bar_background
+
+Required on the root style.
 
 **Type:** `ElementImageSet`
 
@@ -38,11 +50,15 @@
 
 ### bar
 
+Required on the root style.
+
 **Type:** `ElementImageSet`
 
 **Optional:** Yes
 
 ### bar_size_ratio
+
+Required on the root style.
 
 **Type:** `float`
 

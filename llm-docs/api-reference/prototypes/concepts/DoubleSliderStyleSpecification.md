@@ -1,5 +1,7 @@
 # DoubleSliderStyleSpecification
 
+Root style: `"double_slider"`
+
 **Type:** `Struct`
 
 ## Properties

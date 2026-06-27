@@ -11,7 +11,7 @@ A recipe. It can be a crafting recipe, a smelting recipe, or a custom type of re
 {
   type = "recipe",
   name = "iron-plate",
-  category = "smelting",
+  categories = {"smelting"},
   energy_required = 3.5,
   ingredients = {{type = "item", name = "iron-ore", amount = 1}},
   results = {{type = "item", name = "iron-plate", amount = 1}}
@@ -22,7 +22,7 @@ A recipe. It can be a crafting recipe, a smelting recipe, or a custom type of re
 {
   type = "recipe",
   name = "coal-liquefaction",
-  category = "oil-processing",
+  categories = {"oil-processing"},
   subgroup = "fluid-recipes",
   order = "a[oil-processing]-c[coal-liquefaction]",
   enabled = false,
@@ -47,29 +47,25 @@ A recipe. It can be a crafting recipe, a smelting recipe, or a custom type of re
 
 ## Properties
 
-### category
+### categories
 
-The [category](prototype:RecipeCategory) of this recipe. Controls which machines can craft this recipe.
+The [categories](prototype:RecipeCategory) of this recipe. Controls which machines can craft this recipe.
 
 The built-in categories can be found [here](https://wiki.factorio.com/Data.raw#recipe-category). The base `"crafting"` category can not contain recipes with fluid ingredients or products.
 
-**Type:** `RecipeCategoryID`
-
-**Optional:** Yes
-
-**Default:** "crafting"
-
-**Examples:**
-
-```
-category = "smelting"
-```
-
-### additional_categories
+The array must contain at least one category, it cannot be empty.
 
 **Type:** Array[`RecipeCategoryID`]
 
 **Optional:** Yes
+
+**Default:** "`{"crafting"}`"
+
+**Examples:**
+
+```
+categories = {"smelting"}
+```
 
 ### crafting_machine_tint
 
@@ -121,9 +117,9 @@ Only loaded if `icons` is not defined.
 
 A table containing ingredient names and amounts. Can also contain information about fluid temperature and whether some of the amount is ignored by production statistics.
 
-The maximum ingredient amount is 65 535. Can be set to an empty table to create a recipe that needs no ingredients.
+Can be set to an empty table to create a recipe that needs no ingredients. [Assembling machines](prototype:AssemblingMachinePrototype::ingredient_count) do not support recipes with more than 65 535 different item ingredients.
 
-Duplicate ingredients, e.g. two entries with the same name, are *not* allowed. In-game, the item ingredients are ordered by [ItemGroup::order_in_recipe](prototype:ItemGroup::order_in_recipe).
+Duplicate ingredients, e.g. two entries with the same name, are *not* allowed. In-game, the item ingredients are ordered by [ItemGroup::order_in_recipe](prototype:ItemGroup::order_in_recipe) if [RecipePrototype::sort_item_ingredients](prototype:RecipePrototype::sort_item_ingredients) is set to `true`.
 
 **Type:** Array[`IngredientPrototype`]
 
@@ -153,7 +149,9 @@ ingredients =
 
 A table containing result names and amounts. Products also contain information such as fluid temperature, probability of results and whether some of the amount is ignored by productivity.
 
-Can be set to an empty table to create a recipe that produces nothing. Duplicate results, e.g. two entries with the same name, are allowed.
+Can be set to an empty table to create a recipe that produces nothing. [Assembling machines](prototype:AssemblingMachinePrototype::max_item_product_count) do not support recipes with more than 65 535 different item products.
+
+Duplicate results, e.g. two entries with the same name, are allowed.
 
 **Type:** Array[`ProductPrototype`]
 
@@ -330,25 +328,15 @@ Whether the "Made in: <Machine>" part of the tool-tip should always be present, 
 
 **Default:** False
 
-### show_amount_in_title
+### requires_ingredients_to_unlock_results
 
-Whether the recipe name should have the product amount in front of it. E.g. "2x Transport belt".
-
-**Type:** `boolean`
-
-**Optional:** Yes
-
-**Default:** True
-
-### always_show_products
-
-Whether the products are always shown in the recipe tooltip.
+Whether enabling this recipe requires the ingredients be unlocked before the products are marked as unlocked.
 
 **Type:** `boolean`
 
 **Optional:** Yes
 
-**Default:** False
+**Default:** "Value of `hidden`"
 
 ### unlock_results
 
@@ -361,26 +349,6 @@ Whether enabling this recipe unlocks its item products to show in selection list
 **Default:** True
 
 ### preserve_products_in_machine_output
-
-**Type:** `boolean`
-
-**Optional:** Yes
-
-**Default:** False
-
-### result_is_always_fresh
-
-When set to true, the recipe will always produce fresh (non-spoiled) item even when the ingredients are spoiled.
-
-**Type:** `boolean`
-
-**Optional:** Yes
-
-**Default:** False
-
-### reset_freshness_on_craft
-
-When set to true, if the recipe successfully finishes crafting without spoiling, the result is produced fresh (non-spoiled).
 
 **Type:** `boolean`
 
@@ -523,4 +491,26 @@ Hides the recipe from crafting menus and other recipe selection lists.
 **Default:** False
 
 **Overrides parent:** Yes
+
+### sort_item_ingredients
+
+When set to `true`, item ingredients will be sorted based on [ItemGroup::order_in_recipe](prototype:ItemGroup::order_in_recipe).
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
+### can_set_quality
+
+When set to `true`, player can set quality of this recipe to craft. If set to `false` then this recipe can only be crafted at normal quality.
+
+Defaults to `true` if recipe is a parameter, or has at least one item ingredient that does not have any of [quality_min](prototype:ItemIngredientPrototype::quality_min), [quality_max](prototype:ItemIngredientPrototype::quality_max),  or [quality_change](prototype:ItemIngredientPrototype::quality_change) set.
+
+This property also influences the automatic [Furnace Recipe Selection](auxiliary:furnace-recipe-selection).
+
+**Type:** `boolean`
+
+**Optional:** Yes
 

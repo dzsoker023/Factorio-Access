@@ -50,6 +50,14 @@
 
 **Default:** True
 
+### require_origin_is_valid
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+
 ### collision_mode
 
 **Type:** `"distance-from-collision-box"` | `"distance-from-center"`

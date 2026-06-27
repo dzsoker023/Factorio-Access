@@ -1,5 +1,7 @@
 # GlowStyleSpecification
 
+Root style: `"glow"`
+
 **Type:** `Struct`
 
 ## Properties
@@ -13,6 +15,8 @@
 **Required:** Yes
 
 ### image_set
+
+Required on the root style.
 
 **Type:** `ElementImageSet`
 

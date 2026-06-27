@@ -12,15 +12,37 @@
 
 ### circuit_condition_enabled
 
+Defaults to `false`.
+
 **Type:** `boolean`
 
-**Required:** Yes
+**Optional:** Yes
 
-### circuit_mode_of_operation
+### input_networks
 
-Defaults to `send_contents`.
+**Type:** `CircuitNetworkSelection`
 
-**Type:** `defines.control_behavior.logistic_container.exclusive_mode`
+**Optional:** Yes
+
+### output_networks
+
+**Type:** `CircuitNetworkSelection`
+
+**Optional:** Yes
+
+### read_contents
+
+Defaults to `true`.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+### set_requests
+
+Defaults to `false`.
+
+**Type:** `boolean`
 
 **Optional:** Yes
 

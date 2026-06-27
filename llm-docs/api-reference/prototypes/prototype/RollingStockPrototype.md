@@ -11,11 +11,11 @@ The abstract base of all rolling stock.
 
 Maximum speed of the rolling stock in tiles/tick.
 
-In-game, the max speed of a train is `min(all_rolling_stock_max_speeds) × average(all_fuel_modifiers_in_all_locomotives)`. This calculated train speed is then silently capped to 7386.3km/h.
+In-game, the max speed of a train is `average(all_rolling_stock_max_speeds) × average(all_fuel_modifiers_in_all_locomotives)`. If this value is not provided it is ignored for the average(all_rolling_stock_max_speed) calculation. This calculated train speed is then silently capped to 7386.3km/h.
 
 **Type:** `double`
 
-**Required:** Yes
+**Optional:** Yes
 
 ### air_resistance
 
@@ -136,6 +136,14 @@ In tiles. Used to determine how often `drive_over_tie_trigger` is triggered.
 **Default:** False
 
 ### default_copy_color_from_train_stop
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+
+### quality_affects_max_speed
 
 **Type:** `boolean`
 

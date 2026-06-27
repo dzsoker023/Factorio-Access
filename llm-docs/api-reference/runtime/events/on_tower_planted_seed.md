@@ -8,7 +8,7 @@ Called before an agricultural tower plants a seed.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### plant
 
@@ -24,7 +24,7 @@ The seed that was used.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

@@ -18,7 +18,7 @@ Note that once the entity has been placed, placing new tiles is not always restr
 
 ### required_tiles
 
-**Type:** `CollisionMaskConnector`
+**Type:** `TileCollisionMaskConnector`
 
 **Optional:** Yes
 
@@ -26,7 +26,7 @@ Note that once the entity has been placed, placing new tiles is not always restr
 
 ### colliding_tiles
 
-**Type:** `CollisionMaskConnector`
+**Type:** `TileCollisionMaskConnector`
 
 **Optional:** Yes
 

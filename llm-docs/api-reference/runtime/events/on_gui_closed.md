@@ -48,7 +48,7 @@ The item whose GUI was closed.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### other_player
 
@@ -70,7 +70,7 @@ The surface index of the global electric network whose GUI was closed.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

@@ -39,7 +39,7 @@
 ```
 ```
 -- These are the effects of the vanilla Speed Module 3
-{speed = 0.5, consumption = 0.7, quality = -0.25}
+{speed = 0.5, consumption = 0.7, quality = -0.025}
 ```
 ```
 

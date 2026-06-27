@@ -38,7 +38,7 @@ The comparator for quality. `nil` if any quality.
 
 ### minimum_delivery_count
 
-Defaults to 0.
+Defaults to `0`.
 
 **Type:** `ItemCountType`
 
@@ -57,6 +57,14 @@ Name of the logistic filter.
 The prototype name of the quality. `nil` for any quality.
 
 **Type:** `string`
+
+**Optional:** Yes
+
+### request_from
+
+From which sources items should be requested for space platforms. Defaults to `"planet"`.
+
+**Type:** `RequestFromLocation`
 
 **Optional:** Yes
 

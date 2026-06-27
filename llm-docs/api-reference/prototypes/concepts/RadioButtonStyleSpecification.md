@@ -1,5 +1,7 @@
 # RadioButtonStyleSpecification
 
+Root style: `"radiobutton"`
+
 **Type:** `Struct`
 
 ## Properties
@@ -16,11 +18,15 @@
 
 Name of a [FontPrototype](prototype:FontPrototype).
 
+Required on the root style.
+
 **Type:** `string`
 
 **Optional:** Yes
 
 ### font_color
+
+Required on the root style.
 
 **Type:** `Color`
 
@@ -28,11 +34,15 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 ### disabled_font_color
 
+Required on the root style.
+
 **Type:** `Color`
 
 **Optional:** Yes
 
 ### text_padding
+
+Required on the root style.
 
 **Type:** `uint32`
 

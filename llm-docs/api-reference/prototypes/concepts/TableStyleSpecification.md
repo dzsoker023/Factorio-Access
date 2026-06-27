@@ -1,5 +1,7 @@
 # TableStyleSpecification
 
+Root style: `"table"`
+
 **Type:** `Struct`
 
 ## Properties
@@ -14,11 +16,15 @@
 
 ### horizontal_spacing
 
+Required on the root style.
+
 **Type:** `int32` | Array[`SpacingItem`]
 
 **Optional:** Yes
 
 ### vertical_spacing
+
+Required on the root style.
 
 **Type:** `int32` | Array[`SpacingItem`]
 
@@ -38,11 +44,15 @@ Sets `top_cell_padding`, `right_cell_padding`, `bottom_cell_padding` and `left_c
 
 **Optional:** Yes
 
+**Default:** 0
+
 ### right_cell_padding
 
 **Type:** `int16`
 
 **Optional:** Yes
+
+**Default:** 0
 
 ### bottom_cell_padding
 
@@ -50,11 +60,15 @@ Sets `top_cell_padding`, `right_cell_padding`, `bottom_cell_padding` and `left_c
 
 **Optional:** Yes
 
+**Default:** 0
+
 ### left_cell_padding
 
 **Type:** `int16`
 
 **Optional:** Yes
+
+**Default:** 0
 
 ### apply_row_graphical_set_per_column
 
@@ -62,11 +76,15 @@ Sets `top_cell_padding`, `right_cell_padding`, `bottom_cell_padding` and `left_c
 
 **Optional:** Yes
 
+**Default:** False
+
 ### wide_as_column_count
 
 **Type:** `boolean`
 
 **Optional:** Yes
+
+**Default:** False
 
 ### column_graphical_set
 
@@ -74,11 +92,15 @@ Sets `top_cell_padding`, `right_cell_padding`, `bottom_cell_padding` and `left_c
 
 **Optional:** Yes
 
+**Default:** "Not drawn"
+
 ### default_row_graphical_set
 
 **Type:** `ElementImageSet`
 
 **Optional:** Yes
+
+**Default:** "Not drawn"
 
 ### even_row_graphical_set
 
@@ -86,11 +108,15 @@ Sets `top_cell_padding`, `right_cell_padding`, `bottom_cell_padding` and `left_c
 
 **Optional:** Yes
 
+**Default:** "Not drawn"
+
 ### odd_row_graphical_set
 
 **Type:** `ElementImageSet`
 
 **Optional:** Yes
+
+**Default:** "Not drawn"
 
 ### hovered_graphical_set
 
@@ -98,11 +124,15 @@ Sets `top_cell_padding`, `right_cell_padding`, `bottom_cell_padding` and `left_c
 
 **Optional:** Yes
 
+**Default:** "Not drawn"
+
 ### clicked_graphical_set
 
 **Type:** `ElementImageSet`
 
 **Optional:** Yes
+
+**Default:** "Not drawn"
 
 ### selected_graphical_set
 
@@ -110,11 +140,15 @@ Sets `top_cell_padding`, `right_cell_padding`, `bottom_cell_padding` and `left_c
 
 **Optional:** Yes
 
+**Default:** "Not drawn"
+
 ### selected_hovered_graphical_set
 
 **Type:** `ElementImageSet`
 
 **Optional:** Yes
+
+**Default:** "Not drawn"
 
 ### selected_clicked_graphical_set
 
@@ -122,11 +156,15 @@ Sets `top_cell_padding`, `right_cell_padding`, `bottom_cell_padding` and `left_c
 
 **Optional:** Yes
 
+**Default:** "Not drawn"
+
 ### background_graphical_set
 
 **Type:** `ElementImageSet`
 
 **Optional:** Yes
+
+**Default:** "Not drawn"
 
 ### column_alignments
 
@@ -146,11 +184,15 @@ Sets `top_cell_padding`, `right_cell_padding`, `bottom_cell_padding` and `left_c
 
 **Optional:** Yes
 
+**Default:** "`{0, 0, 0, 0}`"
+
 ### selected_row_color
 
 **Type:** `Color`
 
 **Optional:** Yes
+
+**Default:** "`{110, 110, 110}`"
 
 ### vertical_line_color
 
@@ -158,11 +200,15 @@ Sets `top_cell_padding`, `right_cell_padding`, `bottom_cell_padding` and `left_c
 
 **Optional:** Yes
 
+**Default:** "`{110, 110, 110}`"
+
 ### horizontal_line_color
 
 **Type:** `Color`
 
 **Optional:** Yes
+
+**Default:** "`{0, 0, 0, 0}`"
 
 ### column_ordering_ascending_button_style
 
@@ -189,6 +235,8 @@ Sets `top_cell_padding`, `right_cell_padding`, `bottom_cell_padding` and `left_c
 **Optional:** Yes
 
 ### border
+
+Required on the root style.
 
 **Type:** `BorderImageSet`
 

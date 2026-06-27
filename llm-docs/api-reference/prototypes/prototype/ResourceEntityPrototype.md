@@ -34,7 +34,7 @@ A mineable/gatherable entity.
         name = "crude-oil",
         amount_min = 10,
         amount_max = 10,
-        probability = 1
+        independent_probability = 1
       }
     }
   },
@@ -161,7 +161,7 @@ Must be not 0 when `infinite = true`.
 
 ### infinite_depletion_amount
 
-Every time an infinite-type resource "ticks" lower it's lowered by that amount.
+Every time an infinite-type resource is decreased by mining, its current resource amount is lowered by this number.
 
 **Type:** `uint32`
 
@@ -300,4 +300,18 @@ Defaults to the resources map color if left unset and map color is set, otherwis
 **Type:** `Color`
 
 **Optional:** Yes
+
+### selection_priority
+
+The entity with the higher number is selectable before the entity with the lower number.
+
+The value `0` will be treated the same as `nil`.
+
+**Type:** `uint8`
+
+**Optional:** Yes
+
+**Default:** 40
+
+**Overrides parent:** Yes
 

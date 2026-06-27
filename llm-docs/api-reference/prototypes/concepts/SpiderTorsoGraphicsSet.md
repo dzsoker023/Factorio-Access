@@ -14,6 +14,8 @@
 
 ### shadow_base_animation
 
+If no sprite flags are defined, then this animation is loaded and treated as a shadow by default.
+
 **Type:** `RotatedAnimation`
 
 **Optional:** Yes
@@ -25,6 +27,8 @@
 **Optional:** Yes
 
 ### shadow_animation
+
+If no sprite flags are defined, then this animation is loaded and treated as a shadow by default.
 
 **Type:** `RotatedAnimation`
 

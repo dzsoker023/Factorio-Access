@@ -26,7 +26,47 @@ Defaults to `false`.
 
 **Optional:** Yes
 
+### enable_harvesting_condition
+
+Defaults to `false`.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+### enable_planting_condition
+
+Defaults to `false`.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+### harvesting_condition
+
+**Type:** `CircuitCondition`
+
+**Optional:** Yes
+
+### input_networks
+
+**Type:** `CircuitNetworkSelection`
+
+**Optional:** Yes
+
 ### logistic_condition
+
+**Type:** `CircuitCondition`
+
+**Optional:** Yes
+
+### output_networks
+
+**Type:** `CircuitNetworkSelection`
+
+**Optional:** Yes
+
+### planting_condition
 
 **Type:** `CircuitCondition`
 

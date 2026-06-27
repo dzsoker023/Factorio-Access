@@ -1,5 +1,7 @@
 # MinimapStyleSpecification
 
+Root style: `"minimap"`
+
 **Type:** `Struct`
 
 ## Properties

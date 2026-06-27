@@ -16,7 +16,7 @@ The force entities where reassigned to.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### source_index
 
@@ -32,7 +32,7 @@ The force destroyed.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

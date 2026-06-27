@@ -4,7 +4,7 @@ A set of chunks on a single [LuaSurface](runtime:LuaSurface) that can be guarded
 
 A territory is owned by the surface for which it was created. It comprises any number of disconnected or connected chunks. A chunk can only be owned by at most one territory. A territory's chunks may or may not be generated.
 
-Territories may be patrolled by any number of [LuaSegmentedUnit](runtime:LuaSegmentedUnit)s. A territory with no units will not appear on player's maps.
+Territories may be patrolled by any number of [LuaSegmentedUnit](runtime:LuaSegmentedUnit)s. A territory with default visibility condition but with no units will not appear on player's maps.
 
 Territories may define a patrol path that [LuaSegmentedUnit](runtime:LuaSegmentedUnit)s will follow. If no such path is defined, then units will wander randomly throughout the territory chunks. If a territory contains no patrol path and no chunks, then units will behave as if they are assigned to any territory.
 
@@ -17,6 +17,14 @@ The game will automatically destroy any territory that does not have at least on
 The surface on which this territory is located.
 
 **Read type:** `LuaSurface`
+
+### visibility_condition
+
+Condition when this territory is visible.
+
+**Read type:** `TerritoryVisibilityCondition`
+
+**Write type:** `TerritoryVisibilityCondition`
 
 ### valid
 

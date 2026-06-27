@@ -50,6 +50,14 @@ How much of this product is ignored by statistics.
 
 **Optional:** Yes
 
+### independent_probability
+
+A value in range `[0, 1]`. Fluid is only given with this probability; otherwise no product is produced.
+
+**Type:** `double`
+
+**Required:** Yes
+
 ### name
 
 Prototype name of the result.
@@ -58,11 +66,9 @@ Prototype name of the result.
 
 **Required:** Yes
 
-### probability
+### shared_probability
 
-A value in range `[0, 1]`. Fluid is only given with this probability; otherwise no product is produced.
-
-**Type:** `double`
+**Type:** `SharedProbabilityDefinition`
 
 **Required:** Yes
 

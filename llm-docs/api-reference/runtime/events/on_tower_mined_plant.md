@@ -18,7 +18,7 @@ The temporary inventory that holds the result of mining the entity.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### plant
 
@@ -28,7 +28,7 @@ The entity that has been mined.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

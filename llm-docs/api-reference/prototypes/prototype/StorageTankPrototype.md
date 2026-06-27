@@ -87,3 +87,21 @@ Whether the "alt-mode icon" should be drawn at all.
 
 **Optional:** Yes
 
+### default_fluid_temperature_signal
+
+**Type:** `SignalIDConnector`
+
+**Optional:** Yes
+
+### show_fluid_visualization_when_in_cursor
+
+When this is true, fluid pipelines will be visualized when this entity is held in the cursor.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
+**Overrides parent:** Yes
+

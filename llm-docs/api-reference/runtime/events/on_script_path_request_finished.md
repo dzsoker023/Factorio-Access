@@ -14,7 +14,7 @@ Handle to associate the callback with a particular call to [LuaSurface::request_
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### path
 
@@ -24,7 +24,7 @@ The actual path that the pathfinder has determined. `nil` if pathfinding failed.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

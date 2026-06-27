@@ -32,7 +32,7 @@ Write operation requires a valid space location and will cancel pending item req
 
 **Read type:** `LuaSpaceLocationPrototype`
 
-**Write type:** `LuaSpaceLocationPrototype`
+**Write type:** `SpaceLocationID`
 
 **Optional:** Yes
 
@@ -52,7 +52,7 @@ Write operation requires a valid space connection and it sets the distance to 0.
 
 **Read type:** `LuaSpaceConnectionPrototype`
 
-**Write type:** `LuaSpaceConnectionPrototype`
+**Write type:** `SpaceConnectionID`
 
 **Optional:** Yes
 
@@ -98,9 +98,11 @@ The surface that belongs to this platform (if it has been created yet).
 
 ### hub
 
-The hub on this platform. `nil` if the platform has not had the starter pack applied or hub was destroyed but the platform not yet deleted.
+The hub on this platform, if it exists. It does not exist if the platform has not had the starter pack applied.
 
-If the hub is destroyed the platform will be deleted at the end of the tick but is otherwise valid to use until that point.
+If the hub [dies](runtime:LuaEntity::die) the platform will be deleted at the end of the tick but is otherwise valid to use until that point.
+
+If the hub is [destroyed](runtime:LuaEntity::destroy) the platform is not affected.
 
 **Read type:** `LuaEntity`
 
@@ -111,6 +113,8 @@ If the hub is destroyed the platform will be deleted at the end of the tick but 
 This platform's current schedule, if any. Set to `nil` to clear.
 
 The schedule can't be changed by modifying the returned table. Instead, changes must be made by assigning a new table to this attribute.
+
+This is a simplified schedule that does **not** include groups and interrupts. See [LuaSpacePlatform::get_schedule](runtime:LuaSpacePlatform::get_schedule) for full access to the schedule, including interrupts and groups.
 
 **Read type:** `PlatformSchedule`
 
@@ -178,7 +182,7 @@ Schedules this space platform for deletion.
 
 **Parameters:**
 
-- `ticks` `uint32` *(optional)* - The number of ticks from now when this platform will be deleted.
+- `ticks` `MapTick` *(optional)* - The number of ticks from now when this platform will be deleted.
 
 ### cancel_deletion
 
@@ -187,6 +191,10 @@ Cancels deletion of this space platform if it was scheduled for deletion.
 ### apply_starter_pack
 
 Applies the starter pack for this platform if it hasn't already been applied.
+
+**Parameters:**
+
+- `silent` `boolean` *(optional)* - If the platform creation is announced to players on the force. Defaults to `false`.
 
 **Returns:**
 
@@ -269,6 +277,8 @@ Returns `true` when the space platform isn't waiting on any delivery from the pl
 - `boolean`
 
 ### get_schedule
+
+This allows full access to the space platform schedule, including modifying the schedule records, the group and the interrupts.
 
 **Returns:**
 

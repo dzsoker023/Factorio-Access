@@ -51,6 +51,18 @@ An [inserter](https://wiki.factorio.com/Inserter).
 
 **Optional:** Yes
 
+### platform_picture_flipped
+
+**Type:** `Sprite4Way`
+
+**Optional:** Yes
+
+### platform_frozen_flipped
+
+**Type:** `Sprite4Way`
+
+**Optional:** Yes
+
 ### hand_base_picture
 
 **Type:** `Sprite`
@@ -219,6 +231,14 @@ If inserter waits for full hand it could become stuck when item in hand changed 
 
 **Default:** False
 
+### use_mirroring
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
 ### max_belt_stack_size
 
 This inserter will not create stacks on belt with more than this amount of items. Must be >= 1.
@@ -312,6 +332,12 @@ Stack size bonus that is inherent to the prototype without having to be research
 **Default:** 0
 
 ### circuit_connector
+
+**Type:** (`CircuitConnectorDefinition`, `CircuitConnectorDefinition`, `CircuitConnectorDefinition`, `CircuitConnectorDefinition`)
+
+**Optional:** Yes
+
+### circuit_connector_flipped
 
 **Type:** (`CircuitConnectorDefinition`, `CircuitConnectorDefinition`, `CircuitConnectorDefinition`, `CircuitConnectorDefinition`)
 

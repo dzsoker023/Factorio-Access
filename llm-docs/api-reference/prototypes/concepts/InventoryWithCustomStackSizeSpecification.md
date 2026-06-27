@@ -28,11 +28,13 @@ Must be >= 1.
 
 ### stack_size_max
 
-Must be >= stack_size_min.
+Must be >= stack_size_min and <= 1000000000.
 
 **Type:** `ItemCountType`
 
 **Optional:** Yes
+
+**Default:** 1000000000
 
 ### stack_size_override
 

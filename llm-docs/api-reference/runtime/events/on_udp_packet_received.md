@@ -8,7 +8,7 @@ Called when new packets are processed by [LuaHelpers::recv_udp](runtime:LuaHelpe
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### payload
 
@@ -30,7 +30,7 @@ The source port the packet was received from
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

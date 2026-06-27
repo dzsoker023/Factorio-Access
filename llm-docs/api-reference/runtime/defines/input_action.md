@@ -82,6 +82,8 @@
 
 ### change_programmable_speaker_parameters
 
+### change_research_condition
+
 ### change_riding_state
 
 ### change_selector_combinator_parameters
@@ -89,6 +91,8 @@
 ### change_shooting_state
 
 ### change_train_name
+
+### change_train_station
 
 ### change_train_stop_station
 
@@ -156,6 +160,8 @@
 
 ### drag_decider_combinator_output
 
+### drag_research_condition
+
 ### drag_train_schedule
 
 ### drag_train_schedule_interrupt
@@ -213,6 +219,12 @@
 ### gui_elem_changed
 
 ### gui_hover
+
+### gui_inventory_action
+
+### gui_inventory_bar_changed
+
+### gui_inventory_filter_changed
 
 ### gui_leave
 
@@ -314,6 +326,8 @@
 
 ### place_equipment
 
+### providing_to_other_platforms
+
 ### quick_bar_pick_slot
 
 ### quick_bar_set_selected_page
@@ -396,6 +410,10 @@
 
 ### set_combinator_description
 
+### set_control_behavior_input_networks
+
+### set_control_behavior_output_networks
+
 ### set_copy_color_from_train_stop
 
 ### set_deconstruction_item_tile_selection_mode
@@ -406,6 +424,8 @@
 
 ### set_entity_energy_property
 
+### set_equipment_energy_property
+
 ### set_filter
 
 ### set_ghost_cursor
@@ -415,6 +435,8 @@
 ### set_heat_interface_temperature
 
 ### set_infinity_container_filter_item
+
+### set_infinity_container_logistic_mode
 
 ### set_infinity_container_remove_unfiltered_items
 
@@ -520,6 +542,8 @@
 
 ### toggle_artillery_auto_targeting
 
+### toggle_blueprint_snap_to_grid
+
 ### toggle_deconstruction_item_entity_filter_mode
 
 ### toggle_deconstruction_item_tile_filter_mode
@@ -542,7 +566,7 @@
 
 ### toggle_show_entity_info
 
-### translate_string
+### toggle_tall_entity_visibility
 
 ### trash_not_requested_items
 

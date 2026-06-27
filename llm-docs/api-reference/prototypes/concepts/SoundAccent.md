@@ -30,3 +30,11 @@ The name cannot be empty.
 
 **Optional:** Yes
 
+### play_for_directions
+
+The `sound` is played when the entity has one the specified direction.
+
+**Type:** Array[`defines.direction`]
+
+**Optional:** Yes
+

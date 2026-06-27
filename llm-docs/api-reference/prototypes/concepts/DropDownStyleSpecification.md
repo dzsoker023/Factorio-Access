@@ -1,5 +1,7 @@
 # DropDownStyleSpecification
 
+Root style: `"dropdown"`
+
 **Type:** `Struct`
 
 ## Properties
@@ -14,11 +16,15 @@
 
 ### button_style
 
+Required on the root style.
+
 **Type:** `ButtonStyleSpecification`
 
 **Optional:** Yes
 
 ### icon
+
+Required on the root style.
 
 **Type:** `Sprite`
 
@@ -26,17 +32,23 @@
 
 ### list_box_style
 
+Required on the root style.
+
 **Type:** `ListBoxStyleSpecification`
 
 **Optional:** Yes
 
 ### selector_and_title_spacing
 
+Required on the root style.
+
 **Type:** `int16`
 
 **Optional:** Yes
 
 ### opened_sound
+
+Required on the root style.
 
 **Type:** `Sound`
 

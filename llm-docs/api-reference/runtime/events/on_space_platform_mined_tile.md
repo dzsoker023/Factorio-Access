@@ -8,7 +8,7 @@ Called after a platform mines tiles.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### platform
 
@@ -24,7 +24,7 @@ The surface the tile(s) were mined on.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

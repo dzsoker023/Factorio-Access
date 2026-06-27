@@ -10,7 +10,7 @@ Depending on when a given object is destroyed, this event will be fired at the e
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### registration_number
 
@@ -20,7 +20,7 @@ The number returned by [register_on_object_destroyed](runtime:LuaBootstrap::regi
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 
@@ -28,11 +28,11 @@ Tick the event was generated.
 
 **Type:** `defines.target_type`
 
-Type of the object that was destroyed. Same as third value returned by [LuaBootstrap::register_on_object_destroyed](runtime:LuaBootstrap::register_on_object_destroyed)
+Type of the object that was destroyed. Same as third value returned by [LuaBootstrap::register_on_object_destroyed](runtime:LuaBootstrap::register_on_object_destroyed).
 
 ### useful_id
 
 **Type:** `uint64`
 
-The [useful identifier](runtime:RegistrationTarget) of the object. Same as second value returned by [LuaBootstrap::register_on_object_destroyed](runtime:LuaBootstrap::register_on_object_destroyed)
+The [useful identifier](runtime:RegistrationTarget) of the object or `0` if the object does not have a useful id. Same as second value returned by [LuaBootstrap::register_on_object_destroyed](runtime:LuaBootstrap::register_on_object_destroyed).
 

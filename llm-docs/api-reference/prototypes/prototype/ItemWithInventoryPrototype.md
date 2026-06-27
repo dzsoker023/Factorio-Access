@@ -15,6 +15,14 @@ The inventory size of the item.
 
 **Required:** Yes
 
+### quality_affects_inventory_size
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+
 ### item_filters
 
 A list of explicit item names to be used as filters.

@@ -34,15 +34,9 @@ Can the recipe be used?
 
 **Write type:** `boolean`
 
-### category
+### categories
 
-Category of the recipe.
-
-**Read type:** `string`
-
-### additional_categories
-
-Additional categories of this recipe.
+Categories of the recipe.
 
 **Read type:** Array[`string`]
 

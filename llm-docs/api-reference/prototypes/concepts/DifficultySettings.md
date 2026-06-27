@@ -8,7 +8,7 @@
 
 ### technology_price_multiplier
 
-Must be >= 0.001 and <= 1000.
+Must be >= 0.001 and <= 100000.
 
 **Type:** `double`
 

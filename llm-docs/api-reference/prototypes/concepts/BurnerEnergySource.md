@@ -82,3 +82,13 @@ The energy source can be used with fuel from these [fuel categories](prototype:F
 
 **Default:** 0.25
 
+### auto_refuel
+
+If this burner attempts to auto-refill fuel from the owner character, car, spider vehicle, cargo wagon, or artillery wagon.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+

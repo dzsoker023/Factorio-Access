@@ -1,5 +1,7 @@
 # TextBoxStyleSpecification
 
+Root style: `"textbox"`
+
 **Type:** `Struct`
 
 ## Properties
@@ -16,11 +18,15 @@
 
 Name of a [FontPrototype](prototype:FontPrototype).
 
+Required on the root style.
+
 **Type:** `string`
 
 **Optional:** Yes
 
 ### font_color
+
+Required on the root style.
 
 **Type:** `Color`
 
@@ -28,11 +34,15 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 ### disabled_font_color
 
+Required on the root style.
+
 **Type:** `Color`
 
 **Optional:** Yes
 
 ### selection_background_color
+
+Required on the root style.
 
 **Type:** `Color`
 
@@ -40,11 +50,15 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 ### default_background
 
+Required on the root style.
+
 **Type:** `ElementImageSet`
 
 **Optional:** Yes
 
 ### active_background
+
+Required on the root style.
 
 **Type:** `ElementImageSet`
 
@@ -52,11 +66,15 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 ### game_controller_hovered_background
 
+Required on the root style.
+
 **Type:** `ElementImageSet`
 
 **Optional:** Yes
 
 ### disabled_background
+
+Required on the root style.
 
 **Type:** `ElementImageSet`
 
@@ -64,11 +82,15 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 ### rich_text_setting
 
+Required on the root style.
+
 **Type:** `RichTextSetting`
 
 **Optional:** Yes
 
 ### rich_text_highlight_error_color
+
+Required on the root style.
 
 **Type:** `Color`
 
@@ -76,11 +98,15 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 ### rich_text_highlight_warning_color
 
+Required on the root style.
+
 **Type:** `Color`
 
 **Optional:** Yes
 
 ### rich_text_highlight_ok_color
+
+Required on the root style.
 
 **Type:** `Color`
 
@@ -88,17 +114,23 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 ### selected_rich_text_highlight_error_color
 
+Required on the root style.
+
 **Type:** `Color`
 
 **Optional:** Yes
 
 ### selected_rich_text_highlight_warning_color
 
+Required on the root style.
+
 **Type:** `Color`
 
 **Optional:** Yes
 
 ### selected_rich_text_highlight_ok_color
+
+Required on the root style.
 
 **Type:** `Color`
 

@@ -34,7 +34,7 @@ Prototype of a heat buffer.
 
 ### connections
 
-**Read type:** Array[`HeatConnection`]
+**Read type:** Array[`HeatConnectionDefinition`]
 
 ### valid
 

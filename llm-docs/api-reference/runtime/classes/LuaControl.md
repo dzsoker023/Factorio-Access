@@ -140,7 +140,7 @@ Current riding state of this car, or of the car this player is riding in.
 
 ### mining_state
 
-Current mining state.
+Current mining state. Will error if written to with a [controller_type](runtime:LuaPlayer::controller_type) other than `character`, `god`, or `editor`.
 
 When the player isn't mining tiles the player will mine whatever entity is currently selected. See [LuaControl::selected](runtime:LuaControl::selected) and [LuaControl::update_selected_entity](runtime:LuaControl::update_selected_entity).
 
@@ -171,6 +171,18 @@ Current repair state.
 **Read type:** Table (see below for parameters)
 
 **Write type:** Table (see below for parameters)
+
+### mining_progress
+
+For characters and players the number is between 0 and 1.
+
+For mining drills the number is with the range [0, mining_target.prototype.mineable_properties.mining_time].
+
+For all other types the number is 0.
+
+**Read type:** `double`
+
+**Write type:** `double`
 
 ### cursor_stack
 
@@ -213,6 +225,8 @@ The blueprint record in the player's cursor.
 The current crafting queue items.
 
 **Read type:** Array[`CraftingQueueItem`]
+
+**Optional:** Yes
 
 ### following_robots
 

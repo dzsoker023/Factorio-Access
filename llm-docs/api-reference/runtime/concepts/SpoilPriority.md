@@ -1,4 +1,4 @@
 # SpoilPriority
 
-**Type:** `"fresh_first"` | `"none"` | `"spoiled_first"`
+**Type:** `"fresh-first"` | `"none"` | `"spoiled-first"`
 

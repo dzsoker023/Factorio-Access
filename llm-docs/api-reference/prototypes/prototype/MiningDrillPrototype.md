@@ -15,6 +15,22 @@ The position where any item results are placed, when the mining drill is facing 
 
 **Required:** Yes
 
+### use_mirroring
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
+### require_resources_to_place
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
 ### resource_searching_radius
 
 The distance from the center of the mining drill to search for resources in.
@@ -93,7 +109,19 @@ Note: Categories containing resources which produce items, fluids, or items+flui
 
 **Optional:** Yes
 
+### graphics_set_flipped
+
+**Type:** `MiningDrillGraphicsSet`
+
+**Optional:** Yes
+
 ### wet_mining_graphics_set
+
+**Type:** `MiningDrillGraphicsSet`
+
+**Optional:** Yes
+
+### wet_mining_graphics_set_flipped
 
 **Type:** `MiningDrillGraphicsSet`
 
@@ -104,14 +132,6 @@ Note: Categories containing resources which produce items, fluids, or items+flui
 Affects animation speed.
 
 **Type:** `PerceivedPerformance`
-
-**Optional:** Yes
-
-### base_picture
-
-Used by the [pumpjack](https://wiki.factorio.com/Pumpjack) to have a static 4 way sprite.
-
-**Type:** `Sprite4Way`
 
 **Optional:** Yes
 
@@ -192,14 +212,6 @@ The maximum circuit wire distance for this entity.
 **Optional:** Yes
 
 **Default:** True
-
-### base_render_layer
-
-**Type:** `RenderLayer`
-
-**Optional:** Yes
-
-**Default:** "lower-object"
 
 ### resource_drain_rate_percent
 
@@ -287,6 +299,12 @@ When this mining drill is connected to the circuit network, the resource that it
 
 **Optional:** Yes
 
+### circuit_connector_flipped
+
+**Type:** (`CircuitConnectorDefinition`, `CircuitConnectorDefinition`, `CircuitConnectorDefinition`, `CircuitConnectorDefinition`)
+
+**Optional:** Yes
+
 ### filter_count
 
 How many filters this mining drill has. Maximum count of filtered resources in a mining drill is 5.
@@ -296,4 +314,14 @@ How many filters this mining drill has. Maximum count of filtered resources in a
 **Optional:** Yes
 
 **Default:** 0
+
+### migrate_horizontal_mirroring
+
+When a save file from version 2.0.x or older is loaded and this property is `true`, entities facing east or west direction are migrated to flipped state.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
 

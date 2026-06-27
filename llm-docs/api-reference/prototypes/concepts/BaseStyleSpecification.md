@@ -40,11 +40,15 @@ Styles without a parent property default to the root style for their type. The e
 
 **Optional:** Yes
 
+**Default:** False
+
 ### never_hide_by_search
 
 **Type:** `boolean`
 
 **Optional:** Yes
+
+**Default:** False
 
 ### horizontally_stretchable
 

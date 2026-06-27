@@ -12,7 +12,7 @@ Called when a technology research starts.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### research
 
@@ -22,7 +22,7 @@ The technology being researched
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

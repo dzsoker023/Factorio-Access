@@ -20,7 +20,7 @@ The item type used to build the tiles.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### quality
 
@@ -42,7 +42,7 @@ The surface the tile(s) are build on.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

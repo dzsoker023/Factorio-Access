@@ -110,6 +110,35 @@ Insert items into this inventory.
 
 - `uint32` - Number of items actually inserted.
 
+### transfer_from_stack
+
+Transfer items from provided LuaItemStack into this inventory.
+
+Note that source stack must not belong to this inventory.
+
+**Parameters:**
+
+- `source` `LuaItemStack`
+
+**Returns:**
+
+- `uint32` - Number of items actually transferred.
+
+### transfer_from_inventory
+
+Transfer items from provided LuaInventory into this inventory.
+
+Note that source inventory must be different than this inventory.
+
+**Parameters:**
+
+- `source` `LuaInventory`
+- `filter` `ItemFilter` *(optional)*
+
+**Returns:**
+
+- `uint32` - Number of items actually transferred.
+
 ### remove
 
 Remove items from this inventory.
@@ -182,7 +211,7 @@ Get counts of all items in this inventory.
 
 **Returns:**
 
-- `ItemWithQualityCounts` - List of all items in the inventory.
+- Array[`ItemWithQualityCount`] - List of all items in the inventory.
 
 ### supports_bar
 

@@ -16,6 +16,8 @@ Name of this style.
 
 **Read type:** `string`
 
+**Write type:** `string`
+
 ### minimal_width
 
 Minimal width ensures, that the widget will never be smaller than than that size. It can't be squashed to be smaller.
@@ -66,51 +68,51 @@ Natural height specifies the height of the element tries to have, but it can sti
 
 ### top_padding
 
-**Read type:** `int32`
+**Read type:** `int16`
 
-**Write type:** `int32`
+**Write type:** `int16`
 
 ### right_padding
 
-**Read type:** `int32`
+**Read type:** `int16`
 
-**Write type:** `int32`
+**Write type:** `int16`
 
 ### bottom_padding
 
-**Read type:** `int32`
+**Read type:** `int16`
 
-**Write type:** `int32`
+**Write type:** `int16`
 
 ### left_padding
 
-**Read type:** `int32`
+**Read type:** `int16`
 
-**Write type:** `int32`
+**Write type:** `int16`
 
 ### top_margin
 
-**Read type:** `int32`
+**Read type:** `int16`
 
-**Write type:** `int32`
+**Write type:** `int16`
 
 ### right_margin
 
-**Read type:** `int32`
+**Read type:** `int16`
 
-**Write type:** `int32`
+**Write type:** `int16`
 
 ### bottom_margin
 
-**Read type:** `int32`
+**Read type:** `int16`
 
-**Write type:** `int32`
+**Write type:** `int16`
 
 ### left_margin
 
-**Read type:** `int32`
+**Read type:** `int16`
 
-**Write type:** `int32`
+**Write type:** `int16`
 
 ### horizontal_align
 
@@ -148,9 +150,9 @@ Vertical align of the inner content of the widget, if any.
 
 Space between the table cell contents top and border.
 
-**Read type:** `int32`
+**Read type:** `int16`
 
-**Write type:** `int32`
+**Write type:** `int16`
 
 **Subclasses:** LuaTableStyle
 
@@ -158,9 +160,9 @@ Space between the table cell contents top and border.
 
 Space between the table cell contents right and border.
 
-**Read type:** `int32`
+**Read type:** `int16`
 
-**Write type:** `int32`
+**Write type:** `int16`
 
 **Subclasses:** LuaTableStyle
 
@@ -168,9 +170,9 @@ Space between the table cell contents right and border.
 
 Space between the table cell contents bottom and border.
 
-**Read type:** `int32`
+**Read type:** `int16`
 
-**Write type:** `int32`
+**Write type:** `int16`
 
 **Subclasses:** LuaTableStyle
 
@@ -178,9 +180,9 @@ Space between the table cell contents bottom and border.
 
 Space between the table cell contents left and border.
 
-**Read type:** `int32`
+**Read type:** `int16`
 
-**Write type:** `int32`
+**Write type:** `int16`
 
 **Subclasses:** LuaTableStyle
 
@@ -272,9 +274,9 @@ How this GUI element handles rich text.
 
 ### clicked_vertical_offset
 
-**Read type:** `int32`
+**Read type:** `uint32`
 
-**Write type:** `int32`
+**Write type:** `uint32`
 
 **Subclasses:** LuaButtonStyle
 
@@ -347,6 +349,8 @@ Vertical space between individual cells.
 **Subclasses:** LuaFrameStyle
 
 ### bar_width
+
+The thickness of the bar, not the horizontal width.
 
 **Read type:** `uint32`
 
@@ -528,7 +532,7 @@ Sets top/right/bottom/left paddings to this value.
 
 An array with two values sets top/bottom padding to the first value and left/right padding to the second value. An array with four values sets top, right, bottom, left padding respectively.
 
-**Write type:** `int32` | Array[`int32`]
+**Write type:** `int16` | Array[`int16`]
 
 ### margin
 
@@ -536,13 +540,13 @@ Sets top/right/bottom/left margins to this value.
 
 An array with two values sets top/bottom margin to the first value and left/right margin to the second value. An array with four values sets top, right, bottom, left margin respectively.
 
-**Write type:** `int32` | Array[`int32`]
+**Write type:** `int16` | Array[`int16`]
 
 ### cell_padding
 
 Space between the table cell contents and border. Sets top/right/bottom/left cell paddings to this value.
 
-**Write type:** `int32`
+**Write type:** `int16`
 
 **Subclasses:** LuaTableStyle
 
@@ -557,4 +561,23 @@ Is this object valid? This Lua object holds a reference to an object within the 
 The class name of this object. Available even when `valid` is false. For LuaStruct objects it may also be suffixed with a dotted path to a member of the struct.
 
 **Read type:** `string`
+
+## Methods
+
+### get_style
+
+Gets the given sub-style of this style if it exists. See [StyleSpecification](prototype:StyleSpecification) types for what sub styles are usable.
+
+Note: when creating sub-styles they have no set values and have the parent set to the styles top-level default.
+
+Note: when the parent [LuaGuiElement::style](runtime:LuaGuiElement::style) is directly changed (element.style = "new_style") any sub-styles will be invalidated.
+
+**Parameters:**
+
+- `style_name` `string` - The style to get.
+- `create` `boolean` *(optional)* - If true, and the given sub-style is valid - it will be created if it does not exist. Defaults to `false`.
+
+**Returns:**
+
+- `LuaStyle` *(optional)*
 

@@ -1,5 +1,7 @@
 # CheckBoxStyleSpecification
 
+Root style: `"checkbox"`
+
 **Type:** `Struct`
 
 ## Properties
@@ -16,11 +18,15 @@
 
 Name of a [FontPrototype](prototype:FontPrototype).
 
+Required on the root style.
+
 **Type:** `string`
 
 **Optional:** Yes
 
 ### font_color
+
+Required on the root style.
 
 **Type:** `Color`
 
@@ -28,11 +34,15 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 ### disabled_font_color
 
+Required on the root style.
+
 **Type:** `Color`
 
 **Optional:** Yes
 
 ### checkmark
+
+Required on the root style.
 
 **Type:** `Sprite`
 
@@ -40,17 +50,23 @@ Name of a [FontPrototype](prototype:FontPrototype).
 
 ### disabled_checkmark
 
+Required on the root style.
+
 **Type:** `Sprite`
 
 **Optional:** Yes
 
 ### intermediate_mark
 
+Required on the root style.
+
 **Type:** `Sprite`
 
 **Optional:** Yes
 
 ### text_padding
+
+Required on the root style.
 
 **Type:** `uint32`
 

@@ -8,7 +8,7 @@ Called when a player clicks a gps tag
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -30,7 +30,7 @@ Surface name contained in gps tag, even when such surface does not exists
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

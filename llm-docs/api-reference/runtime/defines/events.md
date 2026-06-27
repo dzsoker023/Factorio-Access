@@ -12,6 +12,8 @@ See the [events page](runtime:events) for more info on what events contain and w
 
 ### on_biter_base_built
 
+### on_blueprint_settings_pasted
+
 ### on_brush_cloned
 
 ### on_build_base_arrived
@@ -104,6 +106,8 @@ See the [events page](runtime:events) for more info on what events contain and w
 
 ### on_gui_hover
 
+### on_gui_inventory_action
+
 ### on_gui_leave
 
 ### on_gui_location_changed
@@ -172,6 +176,8 @@ See the [events page](runtime:events) for more info on what events contain and w
 
 ### on_player_clicked_gps_tag
 
+### on_player_color_changed
+
 ### on_player_configured_blueprint
 
 ### on_player_controller_changed
@@ -225,6 +231,8 @@ See the [events page](runtime:events) for more info on what events contain and w
 ### on_player_mined_item
 
 ### on_player_mined_tile
+
+### on_player_music_changed
 
 ### on_player_muted
 

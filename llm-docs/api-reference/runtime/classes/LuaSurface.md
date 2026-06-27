@@ -1,6 +1,6 @@
 # LuaSurface
 
-A "domain" of the world. Surfaces can only be created and deleted through the API. Surfaces are uniquely identified by their name. Every game contains at least the surface "nauvis".
+A "domain" of the world, such as a planet or space platform. Surfaces are uniquely identified by their name. Every game contains at least the surface "nauvis".
 
 ## Attributes
 
@@ -188,6 +188,8 @@ Default is `{0, 0, 0}`, which means no influence.
 
 If clouds are shown on this surface. If false, clouds are never shown. If true the player must also have clouds enabled in graphics settings for them to be shown.
 
+By default, clouds are shown on all surfaces.
+
 **Read type:** `boolean`
 
 **Write type:** `boolean`
@@ -238,6 +240,20 @@ The type of pollutant enabled on the surface, or `nil` if no pollutant is enable
 
 **Optional:** Yes
 
+### override_pollution_type
+
+If set, this pollution type will be used over any other planet or platform values.
+
+If set to an empty table, pollution is disabled. If set to `nil`, the override is 'unset'.
+
+Reading will be `nil` if unset or a table with the current override (`nil` if overridden to disabled).
+
+**Read type:** `Pollutant`
+
+**Write type:** `Pollutant`
+
+**Optional:** Yes
+
 ### localised_name
 
 Localised name of this surface. When set, will replace the internal surface name in places where a player sees surface name.
@@ -268,7 +284,17 @@ The pollution statistics for this surface.
 
 The global electric network statistics for this surface.
 
+If this global network is disabled or this surface is removed, the flow statistics obtained from it will also become invalid. However if the surface index of a deleted surface is reused, the related flow statistics may become valid again.
+
 **Read type:** `LuaFlowStatistics`
+
+**Optional:** Yes
+
+### global_electric_network
+
+Global electric network for this surface.
+
+**Read type:** `LuaElectricSubNetwork`
 
 **Optional:** Yes
 
@@ -1183,6 +1209,14 @@ The sound is not played if its location is not [charted](runtime:LuaForce::chart
 
 - `sound_specification` `PlaySoundSpecification` - The sound to play.
 
+### play_music
+
+Play a music track for every player on this surface.
+
+**Parameters:**
+
+- `music_specification` `PlayMusicSpecification` - The track to play.
+
 ### get_resource_counts
 
 Gets the resource amount of all resources on this surface
@@ -1193,11 +1227,11 @@ Gets the resource amount of all resources on this surface
 
 ### get_random_chunk
 
-Gets a random generated chunk position or 0,0 if no chunks have been generated on this surface.
+Gets a random generated chunk position or nil if no chunks have been generated on this surface.
 
 **Returns:**
 
-- `ChunkPosition`
+- `ChunkPosition` *(optional)*
 
 ### clone_area
 

@@ -10,17 +10,27 @@ A [tile](https://wiki.factorio.com/Tile).
 
 ### collision_mask
 
-**Type:** `CollisionMaskConnector`
+**Type:** `TileCollisionMaskConnector`
 
 **Required:** Yes
 
 ### layer
 
-Specifies transition drawing priority.
+Specifies transition drawing priority. This represents the positive offset from this tile's `layer_group`. Internally, the final layer is computed as `layer_group + layer` (a [uint16](prototype:uint16)), wrapping back to `"zero"` after the `"top"` layer.
 
 **Type:** `uint8`
 
 **Required:** Yes
+
+### layer_group
+
+The base group of render layers this tile belongs to. It can be moved up inside this group using the `layer` property. See the [TileRenderLayer](prototype:TileRenderLayer) page to see the sizes of all layer groups.
+
+**Type:** `TileRenderLayer`
+
+**Optional:** Yes
+
+**Default:** "ground-natural"
 
 ### build_animations
 
@@ -115,14 +125,6 @@ For surfaces that use [fog effect](prototype:SurfaceRenderParameters::fog) of ty
 **Optional:** Yes
 
 **Default:** "any"
-
-### layer_group
-
-**Type:** `TileRenderLayer`
-
-**Optional:** Yes
-
-**Default:** "ground-natural"
 
 ### transition_merges_with_tile
 

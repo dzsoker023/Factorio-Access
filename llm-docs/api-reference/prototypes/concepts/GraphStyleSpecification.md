@@ -1,5 +1,7 @@
 # GraphStyleSpecification
 
+Root style: `"graph"`
+
 **Type:** `Struct`
 
 ## Properties
@@ -14,11 +16,15 @@
 
 ### background_color
 
+Required on the root style.
+
 **Type:** `Color`
 
 **Optional:** Yes
 
 ### line_colors
+
+Required on the root style.
 
 **Type:** Array[`Color`]
 
@@ -26,11 +32,15 @@
 
 ### horizontal_label_style
 
+Required on the root style.
+
 **Type:** `LabelStyleSpecification`
 
 **Optional:** Yes
 
 ### vertical_label_style
+
+Required on the root style.
 
 **Type:** `LabelStyleSpecification`
 
@@ -38,11 +48,15 @@
 
 ### minimal_horizontal_label_spacing
 
+Required on the root style.
+
 **Type:** `uint32`
 
 **Optional:** Yes
 
 ### minimal_vertical_label_spacing
+
+Required on the root style.
 
 **Type:** `uint32`
 
@@ -50,11 +64,15 @@
 
 ### horizontal_labels_margin
 
+Required on the root style.
+
 **Type:** `uint32`
 
 **Optional:** Yes
 
 ### vertical_labels_margin
+
+Required on the root style.
 
 **Type:** `uint32`
 
@@ -62,11 +80,15 @@
 
 ### graph_top_margin
 
+Required on the root style.
+
 **Type:** `uint32`
 
 **Optional:** Yes
 
 ### graph_right_margin
+
+Required on the root style.
 
 **Type:** `uint32`
 
@@ -74,11 +96,15 @@
 
 ### data_line_highlight_distance
 
+Required on the root style.
+
 **Type:** `uint32`
 
 **Optional:** Yes
 
 ### selection_dot_radius
+
+Required on the root style.
 
 **Type:** `uint32`
 
@@ -86,11 +112,15 @@
 
 ### grid_lines_color
 
+Required on the root style.
+
 **Type:** `Color`
 
 **Optional:** Yes
 
 ### guide_lines_color
+
+Required on the root style.
 
 **Type:** `Color`
 
@@ -99,6 +129,8 @@
 ### font
 
 Name of a [FontPrototype](prototype:FontPrototype).
+
+Required on the root style.
 
 **Type:** `string`
 

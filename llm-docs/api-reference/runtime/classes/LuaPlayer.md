@@ -6,6 +6,12 @@ A player in the game. Pay attention that a player may or may not have a characte
 
 ## Attributes
 
+### quick_bar_width
+
+Amount of slots one row(page) of quickbar has.
+
+**Read type:** `uint8`
+
 ### physical_surface
 
 The surface this player's physical controller is on.
@@ -146,6 +152,14 @@ The player's game view settings.
 
 **Write type:** `boolean`
 
+### disable_space_map
+
+Set to `true` to disallow opening the space map and hide the space map button.
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
+
 ### color
 
 The color associated with the player. This will be used to tint the player's character as well as their buildings and vehicles.
@@ -198,6 +212,8 @@ The source entity used during entity settings copy-paste, if any.
 
 **Read type:** `LuaEntity`
 
+**Write type:** `LuaEntity`
+
 **Optional:** Yes
 
 ### afk_time
@@ -247,6 +263,18 @@ Set to any positive value to trigger the respawn state for this player.
 **Read type:** `uint32`
 
 **Write type:** `uint32`
+
+**Optional:** Yes
+
+### respawn_quality
+
+The quality used when this player respawns.
+
+This can be set at any time however it is best to set it during the [defines.events.on_player_died](runtime:defines.events.on_player_died) event.
+
+**Read type:** `LuaQualityPrototype`
+
+**Write type:** `QualityID`
 
 **Optional:** Yes
 
@@ -381,6 +409,24 @@ The wire drag target for this player, if any.
 The player's map view settings. To write to this, use a table containing the fields that should be changed.
 
 **Write type:** `MapViewSettings`
+
+### current_music
+
+The name of an ambient sound (music) the player is currently listening to.
+
+If music is not playing, returns an empty string.
+
+If the player is disconnected, returns the last played ambient sound.
+
+**Read type:** `string`
+
+### saved_logistic_filters
+
+The filters that will be applied when this player respawns. These only have meaning if the player is actively waiting to respawn.
+
+**Read type:** `SavedLogisticFilters`
+
+**Write type:** `SavedLogisticFilters`
 
 ### valid
 
@@ -555,13 +601,7 @@ Removes all alerts matching the given filters or if an empty filters table is gi
 
 **Parameters:**
 
-- `entity` `LuaEntity` *(optional)*
-- `prototype` `EntityID` *(optional)*
-- `position` `MapPosition` *(optional)*
-- `type` `defines.alert_type` *(optional)*
-- `surface` `SurfaceIdentification` *(optional)*
-- `icon` `SignalID` *(optional)*
-- `message` `LocalisedString` *(optional)*
+- `filter` `AlertFilter`
 
 ### get_alerts
 
@@ -569,11 +609,7 @@ Get all alerts matching the given filters, or all alerts if no filters are given
 
 **Parameters:**
 
-- `entity` `LuaEntity` *(optional)*
-- `prototype` `LuaEntityPrototype` *(optional)*
-- `position` `MapPosition` *(optional)*
-- `type` `defines.alert_type` *(optional)*
-- `surface` `SurfaceIdentification` *(optional)*
+- `filter` `AlertFilter`
 
 **Returns:**
 
@@ -665,28 +701,15 @@ Adds a pin to this player for the given pin specification. Either entity, player
 - `surface` `SurfaceIdentification` *(optional)* - The surface to create the pin on.
 - `position` `MapPosition` *(optional)* - Where to create the pin. Required when surface is defined.
 
-### pipette_entity
-
-Invokes the "smart pipette" action on the player as if the user pressed it. This method is deprecated in favor of [LuaPlayer::pipette](runtime:LuaPlayer::pipette) and should not be used.
-
-**Parameters:**
-
-- `entity` `EntityWithQualityID`
-- `allow_ghost` `boolean` *(optional)* - Defaults to false.
-
-**Returns:**
-
-- `boolean` - Whether the smart pipette found something to place.
-
 ### pipette
 
-Invokes the "smart pipette" action on the player as if the user pressed it.
+Emulates the player using the "smart pipette" that results in the given id and quality.
 
 **Parameters:**
 
 - `id` `PipetteID`
 - `quality` `QualityID` *(optional)*
-- `allow_ghost` `boolean` *(optional)* - Defaults to false.
+- `allow_ghost` `boolean` *(optional)* - Defaults to `false`.
 
 **Returns:**
 
@@ -746,6 +769,14 @@ The sound is not played if its location is not [charted](runtime:LuaForce::chart
 **Parameters:**
 
 - `sound_specification` `PlaySoundSpecification` - The sound to play.
+
+### play_music
+
+Play a music track for this player.
+
+**Parameters:**
+
+- `music_specification` `PlayMusicSpecification` - The track to play.
 
 ### get_associated_characters
 
@@ -823,11 +854,12 @@ Gets the quick bar filter for the given slot or `nil`.
 
 **Parameters:**
 
-- `index` `uint32` - The slot index. 1 for the first slot of page one, 2 for slot two of page one, 11 for the first slot of page 2, etc.
+- `page_index` `uint8`
+- `slot_index` `uint8`
 
 **Returns:**
 
-- `ItemFilter` *(optional)*
+- `QuickBarSlot` *(optional)*
 
 ### set_quick_bar_slot
 
@@ -835,8 +867,9 @@ Sets the quick bar filter for the given slot. If a [LuaItemStack](runtime:LuaIte
 
 **Parameters:**
 
-- `index` `uint32` - The slot index. 1 for the first slot of page one, 2 for slot two of page one, 11 for the first slot of page 2, etc.
-- `filter` `LuaItemStack` | `ItemWithQualityID` | `nil` - The filter or `nil` to clear it.
+- `page_index` `uint8`
+- `slot_index` `uint8`
+- `filter` `LuaItemStack` | `ItemWithQualityID` | `QuickBarSlot` | `nil` - The filter or `nil` to clear it.
 
 ### get_active_quick_bar_page
 
@@ -921,6 +954,8 @@ Make a custom Lua shortcut available or unavailable.
 
 Asks the player if they would like to connect to the given server.
 
+If the "auto-accept-connect-to-server" interface setting is enabled, the prompt is skipped.
+
 This only does anything when used on a multiplayer peer. Single player and server hosts will ignore the prompt.
 
 **Parameters:**
@@ -936,9 +971,9 @@ Toggles this player into or out of the map editor. Does nothing if this player i
 
 ### request_translation
 
-Requests a translation for the given localised string. If the request is successful, the [on_string_translated](runtime:on_string_translated) event will be fired with the results.
+Requests a translation for the given localised string. The [on_string_translated](runtime:on_string_translated) event will be fired with the results.
 
-Does nothing if this player is not connected (see [LuaPlayer::connected](runtime:LuaPlayer::connected)).
+If this player is not connected (see [LuaPlayer::connected](runtime:LuaPlayer::connected)) the translation will happen next time they connect.
 
 **Parameters:**
 
@@ -946,13 +981,13 @@ Does nothing if this player is not connected (see [LuaPlayer::connected](runtime
 
 **Returns:**
 
-- `uint32` *(optional)* - The unique ID for the requested translation.
+- `uint32` - The unique ID for the requested translation.
 
 ### request_translations
 
-Requests translation for the given set of localised strings. If the request is successful, a [on_string_translated](runtime:on_string_translated) event will be fired for each string with the results.
+Requests translation for the given set of localised strings. A [on_string_translated](runtime:on_string_translated) event will be fired for each string with the results.
 
-Does nothing if this player is not connected (see [LuaPlayer::connected](runtime:LuaPlayer::connected)).
+If this player is not connected (see [LuaPlayer::connected](runtime:LuaPlayer::connected)) the translation will happen next time they connect.
 
 **Parameters:**
 
@@ -960,7 +995,7 @@ Does nothing if this player is not connected (see [LuaPlayer::connected](runtime
 
 **Returns:**
 
-- Array[`uint32`] *(optional)* - The unique IDs for the requested translations.
+- Array[`uint32`] - The unique IDs for the requested translations.
 
 ### get_infinity_inventory_filter
 
@@ -1068,4 +1103,53 @@ Sets the zoom limits for a specific controller type. To reset a controller's zoo
 
 - `controller_type` `defines.controllers` - The type of the controller to set the zoom limits for.
 - `zoom_limits` `ZoomLimits` - The new zoom limits. See [LuaPlayer::zoom_limits](runtime:LuaPlayer::zoom_limits) for usage information.
+
+### stack_transfers
+
+Performs the given transfer action between the source and target as if the player did the action.
+
+This can be paired with [defines.events.on_gui_inventory_action](runtime:defines.events.on_gui_inventory_action) to make custom inventory GUIs that act like builtin inventories.
+
+Reach distance is ignored and can be checked using [LuaControl::can_reach_entity](runtime:LuaControl::can_reach_entity) if wanted.
+
+**Parameters:**
+
+- `source_inventory` `LuaInventory` - The inventory to transfer from.
+- `index` `uint32` - The inventory slot index.
+- `target` `LuaInventory` | `LuaEntity` | `LuaPlayer` | `LuaItem` | `LuaItemStack` | `LuaEquipment`
+- `transfer_type` `defines.inventory_actions` - The type of transfer to perform. Only stack_transfer, stack_split, inventory_transfer, and inventory_split can be used.
+- `target_equipment_grid` `boolean` *(optional)* - If true - when transferring into vehicles - only placeable equipment items will be placed into the equipment grid as equipment and normal items are skipped. Defaults to `false`.
+- `play_transfer_sound` `boolean` *(optional)* - If the standard sound for transferring items should be played on success. Defaults to `true`.
+- `check_for_invalid_armor_removal` `boolean` *(optional)* - If transfer from the player armor inventory is blocked when flying or if it would shrink the inventory to the point items would spill. Defaults to `true`.
+- `notify_if_invalid_armor_removal` `boolean` *(optional)* - If on being blocked by invalid armor removal it sends a notification to the player that the transfer is blocked. Defaults to `true`.
+
+**Returns:**
+
+- Array[`ItemWithQualityCount`] *(optional)* - List of all items moved. This will be `nil` if the transfer was blocked.
+
+### cursor_transfer
+
+Performs the cursor transfer action on the given inventory at the given index as if the player did it.
+
+**Parameters:**
+
+- `inventory` `LuaInventory`
+- `index` `uint32`
+
+**Returns:**
+
+- `boolean` - If the action succeeded.
+
+### cursor_split
+
+Performs the cursor split action on the given inventory at the given index as if the player did it.
+
+**Parameters:**
+
+- `inventory` `LuaInventory`
+- `index` `uint32`
+
+**Returns:**
+
+- `boolean` - If the action succeeded.
 

@@ -1,5 +1,7 @@
 # CameraStyleSpecification
 
+Root style: `"camera"`
+
 **Type:** `Struct`
 
 ## Properties

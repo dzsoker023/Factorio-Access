@@ -26,7 +26,7 @@ The equipment grid removed from.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### quality
 
@@ -36,7 +36,7 @@ The equipment quality.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

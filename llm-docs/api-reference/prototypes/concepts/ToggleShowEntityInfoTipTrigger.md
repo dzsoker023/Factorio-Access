@@ -1,5 +1,7 @@
 # ToggleShowEntityInfoTipTrigger
 
+Triggered when the player turns "alt-mode" on or off.
+
 **Type:** `Struct`
 
 ## Properties

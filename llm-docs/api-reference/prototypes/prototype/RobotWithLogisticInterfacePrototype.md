@@ -75,6 +75,16 @@ Applied when the robot expires (runs out of energy and [FlyingRobotPrototype::sp
 
 **Default:** True
 
+### require_charge_to_mine
+
+If true, this can't be mined unless it has more than [FlyingRobotPrototype::max_to_charge](prototype:FlyingRobotPrototype::max_to_charge) energy, or the players personal roboports have enough energy to charge it.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+
 ### charging_sound
 
 **Type:** `InterruptibleSound`

@@ -14,7 +14,7 @@ Area of the chunk.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### position
 
@@ -30,7 +30,7 @@ The surface the chunk is on.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

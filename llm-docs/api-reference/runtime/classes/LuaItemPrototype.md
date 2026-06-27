@@ -126,6 +126,22 @@ The spoil result of this item, if any
 
 **Optional:** Yes
 
+### spoil_quality_min
+
+**Read type:** `LuaQualityPrototype`
+
+**Optional:** Yes
+
+### spoil_quality_max
+
+**Read type:** `LuaQualityPrototype`
+
+**Optional:** Yes
+
+### spoil_quality_change
+
+**Read type:** `int8`
+
 ### plant_result
 
 The result entity when planting this item as a seed.
@@ -148,7 +164,7 @@ The result entity when planting this item as a seed.
 
 ### weight
 
-Weight of this item. More information on how item weight is determined can be found on its [auxiliary page](runtime:item-weight).
+Weight of this item. More information on how item weight is determined can be found on its [auxiliary page](auxiliary:item-weight).
 
 **Read type:** `Weight`
 
@@ -178,6 +194,28 @@ An alternative prototype that will be used to display info about this prototype 
 
 **Read type:** `boolean`
 
+### lab_ignores_spoil_percent
+
+**Read type:** `boolean`
+
+### space_platform_request_priority
+
+**Read type:** `boolean`
+
+### color_hint
+
+**Read type:** `ColorHintSpecification`
+
+### spoil_level
+
+**Read type:** `uint8`
+
+### used_by_labs
+
+Whether this item is referenced by any [lab input](prototype:LabPrototype::inputs).
+
+**Read type:** `boolean`
+
 ### ammo_category
 
 **Read type:** `LuaAmmoCategoryPrototype`
@@ -201,6 +239,14 @@ Size of full magazine.
 Amount of extra time (in ticks) it takes to reload the weapon after depleting the magazine.
 
 **Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** AmmoItem
+
+### shoot_protected
+
+**Read type:** `boolean`
 
 **Optional:** Yes
 
@@ -274,6 +320,14 @@ The capsule action for this capsule item prototype.
 
 **Subclasses:** Capsule
 
+### cuts
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** CopyPasteTool
+
 ### attack_parameters
 
 The gun attack parameters.
@@ -283,16 +337,6 @@ The gun attack parameters.
 **Optional:** Yes
 
 **Subclasses:** Gun
-
-### inventory_size
-
-The main inventory size for item-with-inventory-prototype.
-
-**Read type:** `uint32`
-
-**Optional:** Yes
-
-**Subclasses:** ItemWithInventoryPrototype
 
 ### item_filters
 
@@ -333,6 +377,14 @@ The filter mode used by this item with inventory.
 The localised string used when the player attempts to put items into this item with inventory that aren't allowed.
 
 **Read type:** `LocalisedString`
+
+**Optional:** Yes
+
+**Subclasses:** ItemWithInventory
+
+### quality_affects_inventory_size
+
+**Read type:** `boolean`
 
 **Optional:** Yes
 
@@ -414,6 +466,46 @@ Tier of the module inside its category. Used when upgrading modules: Ctrl + clic
 
 **Subclasses:** ModuleItem
 
+### consumption_quality_multiplier
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** ModuleItem
+
+### speed_quality_multiplier
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** ModuleItem
+
+### productivity_quality_multiplier
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** ModuleItem
+
+### pollution_quality_multiplier
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** ModuleItem
+
+### quality_quality_multiplier
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** ModuleItem
+
 ### rails
 
 Prototypes of all rails possible to be used by this rail planner prototype.
@@ -461,26 +553,6 @@ If this selection tool skips things covered by fog of war.
 **Optional:** Yes
 
 **Subclasses:** SelectionTool
-
-### entity_filter_slots
-
-The number of entity filters this deconstruction item has.
-
-**Read type:** `uint32`
-
-**Optional:** Yes
-
-**Subclasses:** DeconstructionItem
-
-### tile_filter_slots
-
-The number of tile filters this deconstruction item has.
-
-**Read type:** `uint32`
-
-**Optional:** Yes
-
-**Subclasses:** DeconstructionItem
 
 ### durability_description_key
 
@@ -615,6 +687,18 @@ The type of this ammo prototype.
 ### get_inventory_size_bonus
 
 The inventory size bonus for this armor prototype.
+
+**Parameters:**
+
+- `quality` `QualityID` *(optional)*
+
+**Returns:**
+
+- `uint32` *(optional)*
+
+### get_inventory_size
+
+The main inventory size for item-with-inventory-prototype.
 
 **Parameters:**
 

@@ -8,7 +8,7 @@ Called when a combat robot expires through a lack of energy, or timeout.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### owner
 
@@ -22,7 +22,7 @@ The entity that owns the robot if any.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

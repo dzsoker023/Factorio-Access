@@ -10,7 +10,7 @@ Prototype of a tile.
 
 The collision mask this tile uses
 
-**Read type:** `CollisionMask`
+**Read type:** `TileCollisionMask`
 
 ### layer
 

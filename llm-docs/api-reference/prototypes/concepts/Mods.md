@@ -25,3 +25,12 @@ end
 ```
 ```
 
+```
+```
+-- uses a features only available past a certain base mod version
+if helpers.compare_version(mods["base"], "2.0.56") >= 0 then
+  use_new_features()
+end
+```
+```
+

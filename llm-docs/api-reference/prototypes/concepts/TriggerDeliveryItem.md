@@ -10,7 +10,7 @@ The abstract base of all [TriggerDeliveries](prototype:TriggerDelivery).
 
 ### source_effects
 
-Provides the source of the TriggerDelivery as as both the source and target of the effect.
+Provides the source of the TriggerDelivery as both the source and target of the effect.
 
 **Type:** `TriggerEffect`
 

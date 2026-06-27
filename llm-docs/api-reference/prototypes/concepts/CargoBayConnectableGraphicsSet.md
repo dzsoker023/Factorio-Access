@@ -8,7 +8,7 @@
 
 ### picture
 
-**Type:** `LayeredSprite`
+**Type:** `LayeredSprite4Way`
 
 **Optional:** Yes
 

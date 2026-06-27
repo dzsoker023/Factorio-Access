@@ -8,7 +8,7 @@ A static event that mods can use to tell other mods they destroyed a segmented u
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### segmented_unit
 
@@ -18,7 +18,7 @@ The segmented unit that was destroyed.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

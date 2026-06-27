@@ -1,5 +1,7 @@
 # UseConfirmTipTrigger
 
+Triggered when using E to confirm a GUI that allows to pick from a certain kind of prototype.
+
 **Type:** `Struct`
 
 ## Properties

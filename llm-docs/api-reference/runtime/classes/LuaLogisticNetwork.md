@@ -130,19 +130,19 @@ All things that have storage points in this network.
 
 ### robots
 
-All robots in this logistic network.
+All currently deployed robots in this logistic network.
 
 **Read type:** Array[`LuaEntity`]
 
 ### construction_robots
 
-All construction robots in this logistic network.
+All currently deployed construction robots in this logistic network.
 
 **Read type:** Array[`LuaEntity`]
 
 ### logistic_robots
 
-All logistic robots in this logistic network.
+All currently deployed logistic robots in this logistic network.
 
 **Read type:** Array[`LuaEntity`]
 
@@ -183,7 +183,7 @@ Get item counts for the entire network, similar to how [LuaInventory::get_conten
 
 **Returns:**
 
-- `ItemWithQualityCounts` - List of all items in the network.
+- Array[`ItemWithQualityCount`] - List of all items in the network.
 
 ### remove_item
 

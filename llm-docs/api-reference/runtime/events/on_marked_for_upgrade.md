@@ -12,7 +12,7 @@ Called when an entity is marked for upgrade with the upgrade planner or via scri
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -42,7 +42,7 @@ The target quality.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

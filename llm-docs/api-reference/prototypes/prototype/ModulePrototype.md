@@ -53,3 +53,53 @@ Chooses with what art style the module is shown inside [beacons](prototype:Beaco
 
 **Optional:** Yes
 
+### consumption_quality_multiplier
+
+0.0 means that no quality scaling is applied (common for penalties). 1.0 means that the full scaling of the quality prototype applies.
+
+Defaults to 1.0 if the module consumption effect is < 0, otherwise 0.0.
+
+**Type:** `float`
+
+**Optional:** Yes
+
+### speed_quality_multiplier
+
+0.0 means that no quality scaling is applied (common for penalties). 1.0 means that the full scaling of the quality prototype applies.
+
+Defaults to 1.0 if the module speed effect is > 0, otherwise 0.0.
+
+**Type:** `float`
+
+**Optional:** Yes
+
+### productivity_quality_multiplier
+
+0.0 means that no quality scaling is applied (common for penalties). 1.0 means that the full scaling of the quality prototype applies.
+
+Defaults to 1.0 if the module productivity effect is > 0, otherwise 0.0.
+
+**Type:** `float`
+
+**Optional:** Yes
+
+### pollution_quality_multiplier
+
+0.0 means that no quality scaling is applied (common for penalties). 1.0 means that the full scaling of the quality prototype applies.
+
+Defaults to 1.0 if the module pollution effect is < 0, otherwise 0.0.
+
+**Type:** `float`
+
+**Optional:** Yes
+
+### quality_quality_multiplier
+
+0.0 means that no quality scaling is applied (common for penalties). 1.0 means that the full scaling of the quality prototype applies.
+
+Defaults to 1.0 if the module quality effect is > 0, otherwise 0.0.
+
+**Type:** `float`
+
+**Optional:** Yes
+

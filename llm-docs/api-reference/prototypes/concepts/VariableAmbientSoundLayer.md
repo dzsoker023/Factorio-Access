@@ -24,6 +24,8 @@ Number of samples must be the same across all variants.
 
 Samples cannot have variable volume and all samples must have the same default volume.
 
+Samples are required to have sampling frequency of 44.1kHz. This is checked at runtime.
+
 **Type:** Array[`Sound`]
 
 **Required:** Yes
