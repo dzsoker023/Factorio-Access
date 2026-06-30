@@ -1043,7 +1043,10 @@ local function ent_info_fluid_connections(ctx)
    TH.retain_unordered(points, function(p)
       -- If this entity is a pipe and the connection goes to nothing, then do
       -- not announce this connection because pipe shapes are handled elsewhere.
-      if p.raw.target == nil and ctx.ent.type == "pipe" or ctx.ent.type == "infinity-pipe" then return false end
+      if p.raw.target == nil then
+         local etype = ctx.ent.type == "entity-ghost" and ctx.ent.ghost_type or ctx.ent.type
+         if etype == "pipe" or etype == "infinity-pipe" then return false end
+      end
 
       if p.raw.target and p.raw.target.type == "pipe" and ctx.ent.type == "pipe" then return false end
 
