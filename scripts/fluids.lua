@@ -95,6 +95,9 @@ fluidboxes until one is found.  We don't look further than that. for now.
 ---@param index number
 ---@return string?
 local function get_fluidbox_constraint(entity, index)
+   -- 2.1: ghosts no longer have fluidboxes at all, and so calling some APIs throws.
+   if entity.type == "entity-ghost" then return end
+
    local first_attempt = get_local_fluidbox_constraint(entity, index)
    if first_attempt then return first_attempt end
 
