@@ -80,6 +80,7 @@ end
 ---@param index number
 ---@return string?
 local function get_local_fluidbox_constraint(entity, index)
+   if not entity.has_fluid_segment(index) then return end
    local filt = entity.get_fluid_filter(index)
    if filt and filt.fluid then return fluid_id_name(filt.fluid) end
    local seg = entity.get_fluid_segment_fluid(index)
@@ -115,6 +116,9 @@ end
 function mod.get_connection_points(ent)
    ---@type fa.Fluids.ConnectionPoint[]
    local res = {}
+
+   -- Entities here claim fluids, but do not support the fluids API.
+   if ent.type == "fluid-wagon" then return {} end
 
    local is_crafting_machine = Consts.CRAFTING_MACHINES[ent.type]
 
