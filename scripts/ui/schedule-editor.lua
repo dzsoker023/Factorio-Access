@@ -800,7 +800,7 @@ local function render_interrupt_tab(ctx, interrupt_index)
          label_ctx.message:list_item(interrupt.name)
       end,
       on_click = function(click_ctx)
-         click_ctx.controller:open_textbox(interrupt.name, "rename_interrupt", {
+         click_ctx.controller:open_textbox(interrupt.name, "interrupt-name", {
             intro_message = { "fa.schedule-enter-interrupt-name" },
          })
       end,
