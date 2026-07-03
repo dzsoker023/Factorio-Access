@@ -80,9 +80,9 @@ end
 ---@param index number
 ---@return string?
 local function get_local_fluidbox_constraint(entity, index)
-   if not entity.has_fluid_segment(index) then return end
    local filt = entity.get_fluid_filter(index)
    if filt and filt.fluid then return fluid_id_name(filt.fluid) end
+   if not entity.has_fluid_segment(index) then return end
    local seg = entity.get_fluid_segment_fluid(index)
    if seg then return seg.name end
 end
