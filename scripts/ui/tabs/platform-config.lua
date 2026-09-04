@@ -1,232 +1,108 @@
 --[[
-Locomotive configuration tab.
+Space platform hub configuration tab.
 
-Provides a configuration form for locomotives with:
-- Manual/automatic mode toggle
-- Train name
-- Train driving (go to stop)
-- Train contents
-- Train fuel
+Provides a configuration form for space platform hubs with:
+- Manual/automatic mode toggle (pauses thrust, halts the schedule)
+- Platform name
+- Schedule editing, shared with the locomotive schedule editor
+- Platform location/travel and damage status
+- Landing the current player on the platform's current planet
 ]]
 
 local FormBuilder = require("scripts.ui.form-builder")
-local InventoryUtils = require("scripts.inventory-utils")
 local UiKeyGraph = require("scripts.ui.key-graph")
 local Router = require("scripts.ui.router")
 local UiSounds = require("scripts.ui.sounds")
-local Speech = require("scripts.speech")
-local TrainHelpers = require("scripts.rails.train-helpers")
-
----Build a vtable for a "go to stop" button that adds a temporary schedule entry
----@param entity LuaEntity The locomotive entity
----@param wait_condition_type WaitConditionType The wait condition type to use
----@param label LocalisedString The button label
----@param node_key string The node key for child context
----@return fa.ui.graph.NodeVtable
-local function build_go_to_stop_vtable(entity, wait_condition_type, label, node_key)
-   return {
-      label = function(ctx)
-         ctx.message:fragment(label)
-      end,
-      on_click = function(ctx)
-         local surface = entity.valid and entity.surface or nil
-         ctx.controller:open_child_ui(Router.UI_NAMES.STOP_SELECTOR, { surface = surface }, { node = node_key })
-      end,
-      on_child_result = function(ctx, result)
-         local station_name = result
-         if not station_name or station_name == "" then
-            UiSounds.play_ui_edge(ctx.pindex)
-            ctx.controller.message:fragment({ "fa.locomotive-no-station-selected" })
-            return
-         end
-
-         local train = entity.train
-         if not train then
-            UiSounds.play_ui_edge(ctx.pindex)
-            ctx.controller.message:fragment({ "fa.locomotive-train-invalid" })
-            return
-         end
-
-         local schedule = train.get_schedule()
-         if not schedule then
-            UiSounds.play_ui_edge(ctx.pindex)
-            ctx.controller.message:fragment({ "fa.locomotive-no-schedule" })
-            return
-         end
-
-         -- Add temporary stop with wait condition
-         local new_index = schedule.add_record({
-            station = station_name,
-            temporary = true,
-            wait_conditions = { { type = wait_condition_type } },
-         })
-
-         if new_index then
-            -- Go to the new station (sets train to automatic)
-            schedule.go_to_station(new_index)
-            ctx.controller.message:fragment({ "fa.locomotive-going-to-stop", station_name })
-         else
-            UiSounds.play_ui_edge(ctx.pindex)
-            ctx.controller.message:fragment({ "fa.locomotive-failed-to-add-stop" })
-         end
-      end,
-   }
-end
 
 local mod = {}
 
 ---@class fa.ui.PlatformTabContext: fa.ui.TabContext
 ---@field tablist_shared_state fa.ui.EntityUI.SharedState
 
----Render the locomotive configuration form
----@param ctx fa.ui.LocomotiveTabContext
+---Render the space platform hub configuration form
+---@param ctx fa.ui.PlatformTabContext
 ---@return fa.ui.graph.Render?
-local function render_locomotive_config(ctx)
+local function render_platform_config(ctx)
    local entity = ctx.tablist_shared_state.entity
    if not entity or not entity.valid then return nil end
-   
+   assert(entity.type == "space-platform-hub", "render: entity is not a space platform hub")
 
+   local platform = entity.surface and entity.surface.platform
+   if not platform then return nil end
 
    local builder = FormBuilder.FormBuilder.new()
 
-   -- Train name field
+   -- Platform name field
    builder:add_item("name", {
       label = function(ctx)
-         local name = entity.surface.platform.name
+         local name = platform.name
          local value_text = name ~= "" and name or { "fa.empty" }
          ctx.message:fragment(value_text)
-         ctx.message:fragment({ "fa.locomotive-train-name" })
+         ctx.message:fragment({ "fa.platform-name" })
       end,
       on_click = function(ctx)
-         ctx.controller:open_textbox("", "name")
+         ctx.controller:open_textbox(platform.name or "", "name")
       end,
       on_child_result = function(ctx, result)
          if not result or result == "" then
             UiSounds.play_ui_edge(ctx.pindex)
-            ctx.controller.message:fragment({ "fa.locomotive-name-cannot-be-empty" })
+            ctx.controller.message:fragment({ "fa.platform-name-cannot-be-empty" })
          else
-            entity.surface.platform.name = result
+            platform.name = result
             ctx.controller.message:fragment(result)
          end
       end,
    })
 
-   builder:add_action("land_on_planet", "land_on_planet", function(controller)
-      local player = game.get_player(ctx.pindex)
-      if not player then return end
-            player.land_on_planet()
-   end)
-   
-
-   -- Manual mode, edit schedule, and train group in a row
    builder:start_row("controls")
 
-   -- Manual/automatic mode checkbox
-   builder:add_checkbox("manual_mode", { "fa.locomotive-manual-mode" }, function()
-      return entity.surface.platform.paused
+   -- Manual/automatic mode checkbox (paused thrust = manual mode, same concept as locomotive.manual_mode)
+   builder:add_checkbox("manual_mode", { "fa.platform-manual-mode" }, function()
+      return platform.paused
    end, function(value)
-      entity.surface.platform.paused = value
+      platform.paused = value
    end)
 
-   -- Edit schedule button
-   builder:add_action("edit_schedule", { "fa.locomotive-edit-schedule" }, function(controller)
+   -- Edit schedule button, shared with locomotives (see schedule-editor.lua)
+   builder:add_action("edit_schedule", { "fa.platform-edit-schedule" }, function(controller)
       controller:open_child_ui(Router.UI_NAMES.SCHEDULE_EDITOR, { entity = entity })
    end)
 
-   -- Train group control
-   builder:add_item("train_group", {
-      label = function(ctx)
-         local player = game.get_player(ctx.pindex)
-         if not player then return end
-         local train = entity.train
-         if not train then return end
+   builder:end_row()
 
-         local group = train.group or ""
-         if group == "" then
-            ctx.message:fragment({ "fa.train-no-group" })
-         else
-            ctx.message:fragment(group)
-         end
-         ctx.message:fragment({ "fa.locomotive-train-group" })
-         ctx.message:fragment({ "fa.locomotive-group-hint" })
+   -- Land the current player on the platform's current planet, if any
+   builder:add_item("land_on_planet", {
+      label = function(ctx)
+         ctx.message:fragment({ "fa.platform-land-on-planet" })
       end,
       on_click = function(ctx)
          local player = game.get_player(ctx.pindex)
          if not player then return end
 
-         local groups = TrainHelpers.get_train_groups(player.force)
-         if #groups > 0 then
-            ctx.controller:open_child_ui(Router.UI_NAMES.TRAIN_GROUP_SELECTOR, {}, { node = "train_group" })
-         else
+         local landed = player.land_on_planet()
+         if not landed then
             UiSounds.play_ui_edge(ctx.pindex)
-            ctx.controller.message:fragment({ "fa.locomotive-no-groups-available" })
-         end
-      end,
-      on_child_result = function(ctx, result)
-         if result ~= nil then
-            local train = entity.train
-            if not train then return end
-
-            train.group = result
-            if result == "" then
-               ctx.controller.message:fragment({ "fa.locomotive-group-cleared" })
-            else
-               ctx.controller.message:fragment({ "fa.locomotive-group-set", result })
-            end
-         end
-      end,
-      on_clear = function(ctx)
-         local train = entity.train
-         if not train then return end
-
-         train.group = ""
-         ctx.controller.message:fragment({ "fa.locomotive-group-cleared" })
-      end,
-      on_action1 = function(ctx)
-         ctx.controller:open_textbox("", { node = "train_group" }, { "fa.locomotive-train-group" })
-      end,
-      on_textbox_result = function(ctx, result)
-         if result and result ~= "" then
-            local train = entity.train
-            if not train then return end
-
-            train.group = result
-            ctx.controller.message:fragment({ "fa.locomotive-group-set", result })
-         else
-            UiSounds.play_ui_edge(ctx.pindex)
-            ctx.controller.message:fragment({ "fa.locomotive-name-cannot-be-empty" })
+            ctx.controller.message:fragment({ "fa.platform-cannot-land" })
          end
       end,
    })
 
-   builder:end_row()
+   -- Status label: current/last known location and travel state
+   builder:add_label("location", function(label_ctx)
+      local location = platform.space_location
+      if location then
+         label_ctx.message:fragment({ "fa.platform-at-location", location.localised_name })
+      elseif platform.space_connection then
+         label_ctx.message:fragment({ "fa.platform-in-transit", platform.space_connection.localised_name })
+      else
+         label_ctx.message:fragment({ "fa.platform-location-unknown" })
+      end
+   end)
 
-   -- Train driving row
-   builder:start_row("driving")
-
-   builder:add_item(
-      "go_to_wait_passenger",
-      build_go_to_stop_vtable(
-         entity,
-         "passenger_present",
-         { "fa.locomotive-go-wait-passenger" },
-         "go_to_wait_passenger"
-      )
-   )
-
-   builder:add_item(
-      "go_to_wait_disembark",
-      build_go_to_stop_vtable(
-         entity,
-         "passenger_not_present",
-         { "fa.locomotive-go-wait-disembark" },
-         "go_to_wait_disembark"
-      )
-   )
-
-   builder:end_row()
-
-   -- Train contents label (items)
+   -- Damage label: how many of the platform's foundation tiles are currently damaged
+   builder:add_label("damage", function(label_ctx)
+      label_ctx.message:fragment({ "fa.platform-damaged-tiles", #platform.damaged_tiles })
+   end)
 
    return builder:build()
 end
@@ -234,8 +110,8 @@ end
 -- Create the tab descriptor
 mod.platform_config_tab = UiKeyGraph.declare_graph({
    name = "platform-config",
-   title = { "fa.locomotive-config-title" },
-   render_callback = render_locomotive_config,
+   title = { "fa.platform-config-title" },
+   render_callback = render_platform_config,
 })
 
 return mod

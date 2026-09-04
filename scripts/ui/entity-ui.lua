@@ -201,9 +201,10 @@ local function build_configuration_tabs(entity)
 
    -- Add locomotive configuration
    if prototype.type == "locomotive" then table.insert(tabs, locomotive_config_tab.locomotive_config_tab) end
-   
+
+   -- Add space platform hub configuration
    if prototype.type == "space-platform-hub" then table.insert(tabs, platform_config_tab.platform_config_tab) end
-   
+
    -- Add roboport configuration
    if prototype.type == "roboport" then table.insert(tabs, roboport_config_tab.roboport_config_tab) end
 

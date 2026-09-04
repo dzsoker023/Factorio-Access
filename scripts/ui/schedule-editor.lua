@@ -75,6 +75,50 @@ local TYPES_WITH_COMPARATOR = {
    fuel_item_count_any = true,
 }
 
+---Is this entity a space platform hub, as opposed to a locomotive?
+---@param entity LuaEntity
+---@return boolean
+local function is_platform_hub(entity)
+   return entity.type == "space-platform-hub"
+end
+
+---Wait condition types offered when cycling through a schedule record's main
+---conditions. Space platforms additionally offer damage_taken, since unlike
+---trains they can take asteroid damage while in transit.
+---@param entity LuaEntity
+---@return string[]
+local function get_main_condition_types(entity)
+   if not is_platform_hub(entity) then return MAIN_SCHEDULE_CONDITION_TYPES end
+   local types = {}
+   for _, t in ipairs(MAIN_SCHEDULE_CONDITION_TYPES) do
+      table.insert(types, t)
+   end
+   table.insert(types, "damage_taken")
+   return types
+end
+
+---Interrupt trigger condition types; platforms additionally get damage_taken.
+---@param entity LuaEntity
+---@return string[]
+local function get_interrupt_condition_types(entity)
+   if not is_platform_hub(entity) then return INTERRUPT_TRIGGER_CONDITION_TYPES end
+   local types = {}
+   for _, t in ipairs(INTERRUPT_TRIGGER_CONDITION_TYPES) do
+      table.insert(types, t)
+   end
+   table.insert(types, "damage_taken")
+   return types
+end
+
+---Which selector UI to open for picking a schedule destination: trains pick
+---a named station, space platforms pick a discovered space location.
+---@param entity LuaEntity
+---@return fa.ui.UiName
+local function get_destination_selector_ui(entity)
+   if is_platform_hub(entity) then return Router.UI_NAMES.PLANET_SELECTOR end
+   return Router.UI_NAMES.STOP_SELECTOR
+end
+
 ---Get the next or previous condition type in the cycle
 ---@param current_type WaitConditionType
 ---@param allowed_types string[]? List of allowed types (defaults to MAIN_SCHEDULE_CONDITION_TYPES)
@@ -163,13 +207,19 @@ local function get_condition_key(records, record_index, condition_index, prefix)
    return record_key .. "-c" .. tostring(condition_index)
 end
 
----Get the LuaSchedule from the train
----@param entity LuaEntity Locomotive entity
+---Get the LuaSchedule from a locomotive's train, or a space platform hub's
+---platform. LuaTrain and LuaSpacePlatform both expose an identical
+---get_schedule(), so the rest of this file works unchanged for either.
+---@param entity LuaEntity Locomotive or space platform hub entity
 ---@return LuaSchedule?
 local function get_schedule(entity)
    local train = entity.train
-   if not train then return nil end
-   return train.get_schedule()
+   if train then return train.get_schedule() end
+
+   local platform = entity.surface and entity.surface.platform
+   if platform then return platform.get_schedule() end
+
+   return nil
 end
 
 ---Extract station name from rich text result, announcing any errors
@@ -442,11 +492,11 @@ local function build_condition_vtable(
                -- Shift+M: textbox with rich text for typing station name
                ctx.controller:open_textbox("", { node = row_key, target = "p1" }, { rich_text = true })
             else
-               -- M: open stop selector
+               -- M: open stop/planet selector
                local entity = ctx.global_parameters and ctx.global_parameters.entity
                local surface = entity and entity.valid and entity.surface or nil
                ctx.controller:open_child_ui(
-                  Router.UI_NAMES.STOP_SELECTOR,
+                  get_destination_selector_ui(entity),
                   { surface = surface },
                   { node = row_key, target = "p1" }
                )
@@ -640,11 +690,11 @@ local function build_record_vtable(schedule, record_position, record, row_key, k
       end,
 
       on_click = function(ctx)
-         -- Open station selector filtered to same surface
+         -- Open station/planet selector filtered to same surface
          local entity = ctx.global_parameters and ctx.global_parameters.entity
          local surface = entity and entity.valid and entity.surface or nil
          ctx.controller:open_child_ui(
-            Router.UI_NAMES.STOP_SELECTOR,
+            get_destination_selector_ui(entity),
             { surface = surface },
             { node = row_key, target = "station" }
          )
@@ -717,7 +767,8 @@ end
 ---@param schedule LuaSchedule
 ---@param interrupt_index number? Optional interrupt index
 ---@param key_prefix string? Prefix for node keys
-local function build_records_list(builder, schedule, interrupt_index, key_prefix)
+---@param entity LuaEntity Locomotive or space platform hub, used to pick allowed condition types
+local function build_records_list(builder, schedule, interrupt_index, key_prefix, entity)
    key_prefix = key_prefix or ""
 
    local records
@@ -749,7 +800,16 @@ local function build_records_list(builder, schedule, interrupt_index, key_prefix
             local condition_key = get_condition_key(records, i, j, key_prefix)
             builder:add_item(
                condition_key,
-               build_condition_vtable(schedule, record_position, j, condition, condition_key, key_prefix, records)
+               build_condition_vtable(
+                  schedule,
+                  record_position,
+                  j,
+                  condition,
+                  condition_key,
+                  key_prefix,
+                  records,
+                  get_main_condition_types(entity)
+               )
             )
          end
       else
@@ -780,7 +840,10 @@ end
 local function render_interrupt_tab(ctx, interrupt_index)
    local entity = ctx.global_parameters and ctx.global_parameters.entity
    assert(entity and entity.valid, "render_interrupt_tab: entity is nil or invalid")
-   assert(entity.type == "locomotive", "render_interrupt_tab: entity is not a locomotive")
+   assert(
+      entity.type == "locomotive" or entity.type == "space-platform-hub",
+      "render_interrupt_tab: entity is not a locomotive or space platform hub"
+   )
 
    local schedule = get_schedule(entity)
    if not schedule then return nil end
@@ -854,7 +917,7 @@ local function render_interrupt_tab(ctx, interrupt_index)
             condition_key,
             key_prefix,
             {},
-            INTERRUPT_TRIGGER_CONDITION_TYPES
+            get_interrupt_condition_types(entity)
          )
 
          builder:add_item(condition_key, interrupt_vtable)
@@ -879,7 +942,7 @@ local function render_interrupt_tab(ctx, interrupt_index)
    builder:add_label("target-stops-header", { "fa.schedule-interrupt-targets" })
 
    -- Build the interrupt's target stops using build_records_list
-   build_records_list(builder, schedule, interrupt_index, key_prefix)
+   build_records_list(builder, schedule, interrupt_index, key_prefix, entity)
 
    -- Add target stop button
    builder:add_clickable("add-target-stop", { "fa.schedule-add-target-stop" }, {
@@ -887,7 +950,7 @@ local function render_interrupt_tab(ctx, interrupt_index)
          local entity = click_ctx.global_parameters and click_ctx.global_parameters.entity
          local surface = entity and entity.valid and entity.surface or nil
          click_ctx.controller:open_child_ui(
-            Router.UI_NAMES.STOP_SELECTOR,
+            get_destination_selector_ui(entity),
             { surface = surface },
             { node = "add-target-stop" }
          )
@@ -926,7 +989,10 @@ end
 local function render_schedule_editor(ctx)
    local entity = ctx.global_parameters and ctx.global_parameters.entity
    assert(entity and entity.valid, "render_schedule_editor: entity is nil or invalid")
-   assert(entity.type == "locomotive", "render_schedule_editor: entity is not a locomotive")
+   assert(
+      entity.type == "locomotive" or entity.type == "space-platform-hub",
+      "render_schedule_editor: entity is not a locomotive or space platform hub"
+   )
 
    local schedule = get_schedule(entity)
    if not schedule then return nil end
@@ -943,7 +1009,7 @@ local function render_schedule_editor(ctx)
    end)
 
    -- Build the main schedule records list
-   build_records_list(builder, schedule, nil, "main-")
+   build_records_list(builder, schedule, nil, "main-", entity)
 
    -- Add stop buttons row
    builder:start_row("add-stops-row")
@@ -952,7 +1018,7 @@ local function render_schedule_editor(ctx)
       on_click = function(click_ctx)
          local entity = click_ctx.global_parameters and click_ctx.global_parameters.entity
          local surface = entity and entity.valid and entity.surface or nil
-         click_ctx.controller:open_child_ui(Router.UI_NAMES.STOP_SELECTOR, { surface = surface }, { node = "add_stop" })
+         click_ctx.controller:open_child_ui(get_destination_selector_ui(entity), { surface = surface }, { node = "add_stop" })
       end,
       on_action1 = function(click_ctx)
          click_ctx.controller:open_textbox(
@@ -983,7 +1049,7 @@ local function render_schedule_editor(ctx)
          local entity = click_ctx.global_parameters and click_ctx.global_parameters.entity
          local surface = entity and entity.valid and entity.surface or nil
          click_ctx.controller:open_child_ui(
-            Router.UI_NAMES.STOP_SELECTOR,
+            get_destination_selector_ui(entity),
             { surface = surface },
             { node = "add_temp_stop" }
          )

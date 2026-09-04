@@ -1,8 +1,8 @@
 --[[
-Train group selector UI.
+Space platform selector UI.
 
-Allows selecting a train group from existing groups or typing a new one.
-Returns the selected group name to the parent UI.
+Allows selecting one of this force's built space platforms (by hub entity),
+for use as a rocket/cargo launch destination.
 ]]
 
 local OptionsSelector = require("scripts.ui.selectors.options-selector")
@@ -10,7 +10,7 @@ local Router = require("scripts.ui.router")
 
 local mod = {}
 
----Get train group options for the selector
+---Get this force's platform options for the selector
 ---@param pindex number
 ---@param parameters table
 ---@return fa.ui.selectors.OptionsResult
@@ -20,25 +20,28 @@ local function get_available_platforms(pindex, parameters)
 
    local options = {}
 
-   -- Get existing groups and add them
+   -- force.platforms is a dictionary keyed by platform index, not an array
    local platforms = parameters.ent.force.platforms
-   for _, platform in ipairs(platforms) do
-      table.insert(options, {
-         label = platform.name,
-         value = platform.hub,
-      })
+   for _, platform in pairs(platforms) do
+      -- hub can be nil if the starter pack hasn't been applied yet
+      if platform.hub then
+         table.insert(options, {
+            label = platform.name,
+            value = platform.hub,
+         })
+      end
    end
 
    return { options = options }
 end
 
--- Create and register the train group selector UI
-mod.group_selector_ui = OptionsSelector.declare_options_selector({
+-- Create and register the platform selector UI
+mod.platform_selector_ui = OptionsSelector.declare_options_selector({
    ui_name = Router.UI_NAMES.PLATFORM_SELECTOR,
-   title = { "fa.train-select-group" },
+   title = { "fa.platform-select" },
    get_options = get_available_platforms,
 })
 
-Router.register_ui(mod.group_selector_ui)
+Router.register_ui(mod.platform_selector_ui)
 
 return mod

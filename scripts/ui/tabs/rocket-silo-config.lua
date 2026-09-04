@@ -3,7 +3,9 @@ Rocket silo configuration tab.
 
 Provides controls for:
 - Rocket parts progress (read-only label)
-- Auto-launch setting
+- Launching the rocket's cargo/pilot to an existing space platform
+- Creating a new space platform from a starter pack loaded in the silo
+- Auto-launch and orbit-request settings
 ]]
 
 local FormBuilder = require("scripts.ui.form-builder")
@@ -11,30 +13,38 @@ local UiKeyGraph = require("scripts.ui.key-graph")
 local Router = require("scripts.ui.router")
 local UiSounds = require("scripts.ui.sounds")
 
-local function new_platform_from_silo(name,silo)
-   local inventory=silo.get_inventory(defines.inventory.rocket_silo_rocket)
+---Apply the starter pack currently loaded in the silo's rocket to create a
+---new space platform.
+---@param name string
+---@param silo LuaEntity
+---@return LuaSpacePlatform?
+local function new_platform_from_silo(name, silo)
+   local inventory = silo.get_inventory(defines.inventory.rocket_silo_rocket)
    local pack = nil
-   for _,i in pairs(inventory.get_contents()) do
-      if prototypes.item[i.name].type == 'space-platform-starter-pack' then
-         pack = i
+   for _, item in pairs(inventory.get_contents()) do
+      if prototypes.item[item.name].type == "space-platform-starter-pack" then
+         pack = item
          break
       end
    end
-   if not pack then
-      UiSounds.play_ui_edge(ctx.pindex)
-      ctx.controller.message:fragment("no platform starter pack found. ")
+   if not pack then return nil end
 
-   end
-   local args={
+   return silo.force.create_space_platform({
       name = name,
       planet = silo.surface.planet.name,
-      starter_pack=pack
-   }
-   silo.force.create_space_platform(args)
+      starter_pack = pack,
+   })
+end
+
+---Whether the force has any built platforms (force.platforms is a dictionary,
+---not an array, so this can't just check #platforms)
+---@param force LuaForce
+---@return boolean
+local function force_has_platforms(force)
+   return next(force.platforms) ~= nil
 end
 
 local mod = {}
-
 
 ---Render the rocket silo configuration form
 ---@param ctx fa.ui.TabContext
@@ -56,59 +66,45 @@ local function render_rocket_silo_config(ctx)
 
    form:add_item("launch_item", {
       label = function(ctx)
-         local player = game.get_player(ctx.pindex)
-         if not player then return end
-         ctx.message:fragment("launch item")
+         ctx.message:fragment({ "fa.rocket-silo-launch-item" })
       end,
       on_click = function(ctx)
-         local player = game.get_player(ctx.pindex)
-         if not player then return end
-
-         local platforms = entity.force.platforms
-         if #platforms > 0 then
-            ctx.controller:open_child_ui(Router.UI_NAMES.PLATFORM_SELECTOR, {ent = entity }, { node = "launch_item" })
+         if force_has_platforms(entity.force) then
+            ctx.controller:open_child_ui(Router.UI_NAMES.PLATFORM_SELECTOR, { ent = entity }, { node = "launch_item" })
          else
             UiSounds.play_ui_edge(ctx.pindex)
-            ctx.controller.message:fragment({ "fa.locomotive-no-groups-available" })
+            ctx.controller.message:fragment({ "fa.rocket-silo-no-platforms-available" })
          end
       end,
       on_child_result = function(ctx, result)
-         if result ~= nil then
+         if result == nil then return end
 
-            local target = {defines.cargo_destination.station, result}
-            ctx.controller.message:fragment({ "fa.locomotive-group-set", result.name })
-            ent.launch_rocket(target)
-         end
+         -- result is the target platform's hub entity (see platform-selector.lua)
+         local target = { type = defines.cargo_destination.station, station = result }
+         entity.launch_rocket(target)
+         ctx.controller.message:fragment({ "fa.rocket-silo-launching-to", result.surface.platform.name })
       end,
    })
 
    form:add_item("launch_player", {
       label = function(ctx)
-         local player = game.get_player(ctx.pindex)
-         if not player then return end
-         ctx.message:fragment("launch_player")
+         ctx.message:fragment({ "fa.rocket-silo-launch-player" })
       end,
       on_click = function(ctx)
-         local player = game.get_player(ctx.pindex)
-         if not player then return end
-
-         local platforms = entity.force.platforms
-         if #platforms > 0 then
-            ctx.controller:open_child_ui(Router.UI_NAMES.PLATFORM_SELECTOR, {ent = entity }, { node = "launch_player" })
+         if force_has_platforms(entity.force) then
+            ctx.controller:open_child_ui(Router.UI_NAMES.PLATFORM_SELECTOR, { ent = entity }, { node = "launch_player" })
          else
             UiSounds.play_ui_edge(ctx.pindex)
-            ctx.controller.message:fragment({ "fa.locomotive-no-groups-available" })
+            ctx.controller.message:fragment({ "fa.rocket-silo-no-platforms-available" })
          end
       end,
       on_child_result = function(ctx, result)
          local player = game.get_player(ctx.pindex)
-         if not player then return end
-         if result ~= nil then
+         if not player or result == nil then return end
 
-            local target = {type = defines.cargo_destination.station, station = result}
-            ctx.controller.message:fragment({ "fa.locomotive-group-set", result.name })
-            entity.launch_rocket(target, player.character)
-         end
+         local target = { type = defines.cargo_destination.station, station = result }
+         entity.launch_rocket(target, player.character)
+         ctx.controller.message:fragment({ "fa.rocket-silo-launching-to", result.surface.platform.name })
       end,
    })
 
@@ -116,7 +112,7 @@ local function render_rocket_silo_config(ctx)
 
    form:add_item("create_platform", {
       label = function(ctx)
-         ctx.message:fragment("Create platform")
+         ctx.message:fragment({ "fa.rocket-silo-create-platform" })
       end,
       on_click = function(ctx)
          ctx.controller:open_textbox("", "create_platform")
@@ -126,8 +122,13 @@ local function render_rocket_silo_config(ctx)
             UiSounds.play_ui_edge(ctx.pindex)
             ctx.controller.message:fragment({ "fa.locomotive-name-cannot-be-empty" })
          else
-            new_platform_from_silo(result,entity)
-            ctx.controller.message:fragment(result)
+            local new_platform = new_platform_from_silo(result, entity)
+            if new_platform then
+               ctx.controller.message:fragment(result)
+            else
+               UiSounds.play_ui_edge(ctx.pindex)
+               ctx.controller.message:fragment({ "fa.rocket-silo-no-starter-pack" })
+            end
          end
       end,
    })
@@ -138,11 +139,11 @@ local function render_rocket_silo_config(ctx)
    end, function(value)
       entity.send_to_orbit_automatically = value
    end)
-   
-   form:add_checkbox("auto_satisfy_requests", "satisfy requests from orbit", function()
+
+   form:add_checkbox("auto_satisfy_requests", { "fa.rocket-silo-satisfy-requests" }, function()
       return entity.use_transitional_requests
    end, function(value)
-      entity.use_transitional_requests= value
+      entity.use_transitional_requests = value
    end)
 
    return form:build()

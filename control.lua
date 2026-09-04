@@ -116,6 +116,7 @@ require("scripts.ui.logistics-config")
 require("scripts.ui.selectors.logistic-group-selector")
 require("scripts.ui.selectors.train-group-selector")
 require("scripts.ui.selectors.platform-selector")
+require("scripts.ui.selectors.planet-selector")
 require("scripts.ui.selectors.interrupt-selector")
 require("scripts.ui.selectors.stop-selector")
 require("scripts.ui.constant-combinator")
@@ -223,7 +224,7 @@ local function read_hand(pindex)
       local vp = Viewpoint.get_viewpoint(pindex)
       local out = { "fa.cursor-description" }
       table.insert(out, cursor_ghost.name.localised_name)
-      local build_entity = cursor_ghost.place_result
+      local build_entity = cursor_ghost.name.place_result
       if build_entity and build_entity.supports_direction then
          table.insert(out, 1)
          table.insert(out, { "fa.facing-direction", FaUtils.direction_lookup(vp:get_hand_direction()) })

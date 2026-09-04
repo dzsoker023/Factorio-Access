@@ -59,7 +59,6 @@ end
 local function handle_recipe_click(ctx, recipe, modifiers)
    local player = ctx.player
    local count = 1
-if player.hub ~= nil then    player.cursor_ghost = { name = recipe.name } end 
    if modifiers.shift and modifiers.control then
       count = get_craftable_count(player, recipe)
    elseif modifiers.shift then
