@@ -99,6 +99,7 @@ end
 ---@param vehicle LuaEntity
 ---@return boolean
 local function is_trackable_vehicle(vehicle)
+      if vehicle == nil then return false end
    if vehicle.train then
       return vehicle.train.speed ~= 0
    elseif vehicle.type == "car" then

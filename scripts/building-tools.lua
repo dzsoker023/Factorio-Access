@@ -65,13 +65,21 @@ function mod.calculate_build_params(params)
    Graphics.sync_build_cursor_graphics(pindex)
 
    -- Handle entities
-   if stack.prototype.place_result ~= nil then
-      local ent = stack.prototype.place_result
-      local placing_underground_belt = stack.prototype.place_result.type == "underground-belt"
+   local item_prototype = nil
+   if stack == nil or not stack.valid_for_read then
+      local ghost = p.cursor_ghost
+      if ghost == nil then return nil end
+      item_prototype = ghost.name        -- ez adja vissza a LuaItemPrototype-ot olvasáskor
+   else
+      item_prototype = stack.prototype
+   end
+   if item_prototype.place_result ~= nil then
+      local ent = item_prototype .place_result
+      local placing_underground_belt = item_prototype.place_result.type == "underground-belt"
 
       -- Calculate footprint using centralized function
       local footprint = FaUtils.calculate_building_footprint({
-         entity_prototype = stack.prototype.place_result,
+         entity_prototype = item_prototype.place_result,
          position = pos,
          building_direction = building_direction,
       })
@@ -96,7 +104,7 @@ function mod.calculate_build_params(params)
       end
 
       return {
-         entity_name = stack.prototype.place_result.name,
+         entity_name = item_prototype.place_result.name,
          tile_name = nil,
          position = position,
          direction = actual_build_direction,
@@ -106,7 +114,7 @@ function mod.calculate_build_params(params)
          footprint_right_bottom = footprint.right_bottom,
          is_tile = false,
       }
-   elseif stack and stack.valid_for_read and stack.valid and stack.prototype.place_as_tile_result ~= nil then
+   elseif stack and stack.valid_for_read and stack.valid and item_prototype.place_as_tile_result ~= nil then
       -- Tile placement
       local cursor_size = vp:get_cursor_size()
       local t_size = cursor_size * 2 + 1
@@ -117,7 +125,7 @@ function mod.calculate_build_params(params)
 
       return {
          entity_name = nil,
-         tile_name = stack.prototype.place_as_tile_result.name,
+         tile_name = item_prototype.place_as_tile_result.name,
          position = pos,
          direction = building_direction,
          flip_horizontal = false,

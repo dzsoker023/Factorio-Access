@@ -115,6 +115,7 @@ local MessageLists = require("scripts.message-lists")
 require("scripts.ui.logistics-config")
 require("scripts.ui.selectors.logistic-group-selector")
 require("scripts.ui.selectors.train-group-selector")
+require("scripts.ui.selectors.platform-selector")
 require("scripts.ui.selectors.interrupt-selector")
 require("scripts.ui.selectors.stop-selector")
 require("scripts.ui.constant-combinator")
@@ -221,7 +222,7 @@ local function read_hand(pindex)
       --Any ghost
       local vp = Viewpoint.get_viewpoint(pindex)
       local out = { "fa.cursor-description" }
-      table.insert(out, cursor_ghost.localised_name)
+      table.insert(out, cursor_ghost.name.localised_name)
       local build_entity = cursor_ghost.place_result
       if build_entity and build_entity.supports_direction then
          table.insert(out, 1)
@@ -1783,7 +1784,7 @@ local function read_coords(pindex, start_phrase)
    local position = vp:get_cursor_pos()
    local marked_pos = { x = position.x, y = position.y }
 
-   if game.get_player(pindex).driving then
+   if game.get_player(pindex).driving and game.get_player(pindex).vehicle ~= nil then
       --Give vehicle coords and orientation and speed --laterdo find exact speed coefficient
       local vehicle = game.get_player(pindex).vehicle
       assert(vehicle ~= nil) -- When driving is true, vehicle is guaranteed to exist

@@ -27,6 +27,7 @@ local inserter_config_tab = require("scripts.ui.tabs.inserter-config")
 local locomotive_config_tab = require("scripts.ui.tabs.locomotive-config")
 local roboport_config_tab = require("scripts.ui.tabs.roboport-config")
 local rocket_silo_config_tab = require("scripts.ui.tabs.rocket-silo-config")
+local platform_config_tab = require("scripts.ui.tabs.platform-config")
 local selector_combinator_tab = require("scripts.ui.tabs.selector-combinator")
 local spidertron_config_tab = require("scripts.ui.tabs.spidertron-config")
 local splitter_config_tab = require("scripts.ui.tabs.splitter-config")
@@ -51,6 +52,7 @@ local ENTITY_TYPES_WITH_UI = {
    ["artillery-wagon"] = true,
    ["locomotive"] = true,
    ["roboport"] = true,
+   ["space-platform-hub"] = true,
 }
 
 -- Entity types that should show configuration section before inventories
@@ -199,7 +201,9 @@ local function build_configuration_tabs(entity)
 
    -- Add locomotive configuration
    if prototype.type == "locomotive" then table.insert(tabs, locomotive_config_tab.locomotive_config_tab) end
-
+   
+   if prototype.type == "space-platform-hub" then table.insert(tabs, platform_config_tab.platform_config_tab) end
+   
    -- Add roboport configuration
    if prototype.type == "roboport" then table.insert(tabs, roboport_config_tab.roboport_config_tab) end
 

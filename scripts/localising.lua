@@ -49,11 +49,11 @@ end
 ---@param what { name: string, localised_name: LocalisedString? } | LuaItemStack | LuaEntity | LuaPrototypeBase | LuaTile
 ---@return LocalisedString
 function mod.get_localised_name_with_fallback(what)
-   assert(what ~= nil, "get_localised_name_with_fallback called with nil")
+   --assert(what ~= nil, "get_localised_name_with_fallback called with nil")
    -- We could do a bunch of complex object type checking, or we can just chain out pcall.  The issue is that Factorio
    -- objects hard error on properties that don't exist rather than giving back nil.  This is a *VERY BAD* antipattern
    -- in the general case, but this function needs to work with effectively anything you might pass it.
-
+if what == nil then return "unknown" end
    local fallback_name = wrapped_pcall(function()
       return what.prototype.name
    end) or wrapped_pcall(function()
