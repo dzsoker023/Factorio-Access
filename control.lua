@@ -453,19 +453,21 @@ EventManager.on_event(
       BumpDetection.reset_bump_stats(pindex)
       MovementHistory.reset_and_increment_generation(pindex)
       game.get_player(pindex).clear_cursor()
-      if game.get_player(pindex).driving then
-         storage.players[pindex].last_vehicle = game.get_player(pindex).vehicle
-         Speech.speak(
-            pindex,
-            { "fa.vehicle-entered", Localising.get_localised_name_with_fallback(game.get_player(pindex).vehicle) }
-         )
-      elseif storage.players[pindex].last_vehicle ~= nil then
+      local vehicle = game.get_player(pindex).vehicle
+      -- Note: `driving` can be true with a nil `vehicle` (e.g. `LuaPlayer.land_on_planet()` toggles the driving
+      -- state without attaching a real vehicle), so both must be checked before announcing an entered vehicle.
+      if game.get_player(pindex).driving and vehicle then
+         storage.players[pindex].last_vehicle = vehicle
+         Speech.speak(pindex, { "fa.vehicle-entered", Localising.get_localised_name_with_fallback(vehicle) })
+      elseif storage.players[pindex].last_vehicle ~= nil and storage.players[pindex].last_vehicle.valid then
          Speech.speak(
             pindex,
             { "fa.vehicle-exited", Localising.get_localised_name_with_fallback(storage.players[pindex].last_vehicle) }
          )
          Teleport.teleport_to_closest(pindex, storage.players[pindex].last_vehicle.position, true, true)
+         storage.players[pindex].last_vehicle = nil
       else
+         storage.players[pindex].last_vehicle = nil
          Speech.speak(pindex, { "fa.driving-state-changed" })
       end
    end

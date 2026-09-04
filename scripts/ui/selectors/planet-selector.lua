@@ -1,10 +1,12 @@
 --[[
-Planet (space location) selector UI.
+Planet selector UI.
 
-Lists space locations that the player's force has already discovered/unlocked,
-for use as space platform schedule destinations. Unlike trains, platforms
-travel between space locations rather than named stations, and only locations
-the force has already unlocked make sense to offer here.
+Lists actual planets (not every space location - e.g. the solar system edge,
+or a non-planet surface some other mod happens to register as a space
+location) that the player's force has already discovered/unlocked, for use
+as space platform schedule destinations. Unlike trains, platforms travel
+between space locations rather than named stations, and only locations the
+force has already unlocked make sense to offer here.
 ]]
 
 local OptionsSelector = require("scripts.ui.selectors.options-selector")
@@ -23,10 +25,14 @@ local function get_discovered_planets(pindex, parameters)
    local force = player.force
    local options = {}
 
-   for name, location in pairs(prototypes.space_location) do
+   -- `game.planets` is the runtime's own list of actual planets (LuaPlanet), as opposed to
+   -- `prototypes.space_location`, which is a superset that also includes non-planet space
+   -- locations (e.g. the solar system edge) and, depending on other installed mods, surfaces
+   -- that were registered as a space location for unrelated reasons without being real planets.
+   for name, planet in pairs(game.planets) do
       if force.is_space_location_unlocked(name) then
          table.insert(options, {
-            label = location.localised_name,
+            label = planet.prototype.localised_name,
             value = name,
          })
       end
