@@ -22,9 +22,9 @@ Control behavior for furnaces.
 
 **Write type:** `boolean`
 
-### include_fuel
+### read_fuel
 
-`true` if the read contents should include fuel (content of energy source)
+`true` if the fuel (content of energy source) should be read.
 
 **Read type:** `boolean`
 

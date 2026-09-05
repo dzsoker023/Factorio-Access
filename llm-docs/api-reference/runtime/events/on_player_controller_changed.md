@@ -8,7 +8,7 @@ Called after a player changes controller types.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### old_type
 
@@ -24,7 +24,7 @@ The player who changed controllers.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

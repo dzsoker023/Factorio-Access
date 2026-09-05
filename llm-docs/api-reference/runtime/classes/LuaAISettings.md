@@ -1,6 +1,6 @@
 # LuaAISettings
 
-Collection of settings for overriding default ai behavior.
+Collection of settings for overriding default AI behavior.
 
 ## Attributes
 

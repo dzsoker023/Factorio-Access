@@ -8,7 +8,7 @@ Called after a player leaves the game. This is not called when closing a save fi
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -20,7 +20,7 @@ Identifier of the event
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

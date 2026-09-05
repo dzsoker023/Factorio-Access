@@ -20,7 +20,7 @@ The force who's friends changed.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### other_force
 
@@ -30,7 +30,7 @@ Which force was added or removed.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

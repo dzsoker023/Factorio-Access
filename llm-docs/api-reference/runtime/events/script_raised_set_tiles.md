@@ -8,7 +8,7 @@ A static event mods can use to tell other mods they changed tiles on a surface b
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### surface_index
 
@@ -18,7 +18,7 @@ The surface whose tiles were changed.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

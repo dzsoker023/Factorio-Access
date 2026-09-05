@@ -13,9 +13,15 @@ Entity that moves around and attacks players, for example [biters and spitters](
 
 **Required:** Yes
 
+### steering
+
+**Type:** `SteeringSettings`
+
+**Optional:** Yes
+
 ### attack_parameters
 
-Requires animation in attack_parameters. Requires ammo_type in attack_parameters.
+Requires `animation` in attack_parameters. Requires `ammo_type` in attack_parameters.
 
 **Type:** `AttackParameters`
 
@@ -23,7 +29,7 @@ Requires animation in attack_parameters. Requires ammo_type in attack_parameters
 
 ### warcry
 
-A sound the unit makes when it sets out to attack.
+A sound this unit makes when it sets out to attack.
 
 **Type:** `Sound`
 
@@ -31,7 +37,7 @@ A sound the unit makes when it sets out to attack.
 
 ### movement_speed
 
-Movement speed of the unit in the world, in tiles per tick. Must be equal to or greater than 0.
+Movement speed of this unit in the world, in tiles per tick. Must be equal to or greater than 0.
 
 **Type:** `float`
 
@@ -73,7 +79,7 @@ Note: Setting to 50 or above can lead to undocumented behavior of individual uni
 
 ### dying_sound
 
-The sound file to play when entity dies.
+The sound file to play this unit dies.
 
 **Type:** `Sound`
 
@@ -91,7 +97,7 @@ In ticks.
 
 ### has_belt_immunity
 
-If the unit is immune to movement by belts.
+If this unit is immune to movement by belts.
 
 **Type:** `boolean`
 
@@ -141,6 +147,8 @@ In chunks. The radius of how many chunks this unit charts around itself.
 
 ### affected_by_tiles
 
+Whether this unit is affected by tile [walking speed modifiers](prototype:TilePrototype::walking_speed_modifier).
+
 **Type:** `boolean`
 
 **Optional:** Yes
@@ -163,17 +171,31 @@ In chunks. The radius of how many chunks this unit charts around itself.
 
 ### absorptions_to_join_attack
 
+The pollution amount that has to be absorbed by the unit's [spawner](prototype:EnemySpawnerPrototype) before the unit will leave the spawner and attack the source of the pollution.
+
 **Type:** Dictionary[`AirbornePollutantID`, `float`]
 
 **Optional:** Yes
 
 ### spawning_time_modifier
 
+Multiplier for the [EnemySpawnerPrototype::spawning_cooldown](prototype:EnemySpawnerPrototype::spawning_cooldown) after it spawns this unit.
+
 **Type:** `double`
 
 **Optional:** Yes
 
 **Default:** 1
+
+### buildable_entities
+
+A list of entity prototypes that this unit can build when given the build base command.
+
+If empty or not specified, the unit cannot build anything.
+
+**Type:** Array[`EntityID`]
+
+**Optional:** Yes
 
 ### walking_sound
 
@@ -188,6 +210,8 @@ In chunks. The radius of how many chunks this unit charts around itself.
 **Optional:** Yes
 
 ### running_sound_animation_positions
+
+List of positions in the `run_animation` when the `walking_sound` is played.
 
 Only loaded if `walking_sound` is defined.
 

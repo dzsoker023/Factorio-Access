@@ -14,7 +14,7 @@ The force whose research was cancelled.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -30,7 +30,7 @@ A mapping of technology name to how many times it was cancelled.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

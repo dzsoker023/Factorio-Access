@@ -10,7 +10,7 @@ This refers to an index in the table previously passed to set_controller which s
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -20,7 +20,7 @@ The player index of the player viewing the cutscene.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

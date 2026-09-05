@@ -425,7 +425,7 @@ local function ent_info_fluid_contents(ctx)
    if Consts.CRAFTING_MACHINES[ctx.ent.type] then return end
 
    -- If it can't hold fluids, no point. Fluid wagons have no fluidbox but do have get_fluid_contents.
-   if #ctx.ent.fluidbox == 0 and ctx.ent.type ~= "fluid-wagon" then return end
+   if ctx.ent.fluids_count == 0 and ctx.ent.type ~= "fluid-wagon" then return end
 
    local fluids = ctx.ent.get_fluid_contents()
 
@@ -567,10 +567,10 @@ local function ent_info_pipe_shape(ctx)
       local shape_info = Fluids.get_pipe_shape(ctx.ent)
       local s, d = shape_info.shape, shape_info.direction
       local d_str = FaUtils.direction_lookup(d)
-      local conns = ctx.ent.fluidbox.get_pipe_connections(1)
+      local conns = ctx.ent.get_fluid_box_pipe_connections(1)
       local pipe_conn_count = 0
       for _, c in pairs(conns) do
-         if c.target and (c.target.owner.type == "pipe" or c.target.owner.type == "infinity-pipe") then
+         if c.target and (c.target.type == "pipe" or c.target.type == "infinity-pipe") then
             pipe_conn_count = pipe_conn_count + 1
          end
       end
@@ -877,11 +877,11 @@ end
 local function ent_info_underground_belt_connection(ctx)
    local ent = ctx.ent
    if ent.type == "underground-belt" then
-      if ent.neighbours ~= nil then
+      if ent.underground_belt_neighbour ~= nil then
          ctx.message:fragment({
             "fa.ent-info-underground-belt-connection",
-            FaUtils.direction(ent.position, ent.neighbours.position),
-            math.floor(FaUtils.distance(ent.position, ent.neighbours.position)),
+            FaUtils.direction(ent.position, ent.underground_belt_neighbour.position),
+            math.floor(FaUtils.distance(ent.position, ent.underground_belt_neighbour.position)),
          })
       else
          ctx.message:fragment({ "fa.ent-info-underground-belt-not-connected" })
@@ -1043,9 +1043,12 @@ local function ent_info_fluid_connections(ctx)
    TH.retain_unordered(points, function(p)
       -- If this entity is a pipe and the connection goes to nothing, then do
       -- not announce this connection because pipe shapes are handled elsewhere.
-      if p.raw.target == nil and ctx.ent.type == "pipe" or ctx.ent.type == "infinity-pipe" then return false end
+      if p.raw.target == nil then
+         local etype = ctx.ent.type == "entity-ghost" and ctx.ent.ghost_type or ctx.ent.type
+         if etype == "pipe" or etype == "infinity-pipe" then return false end
+      end
 
-      if p.raw.target and p.raw.target.owner.type == "pipe" and ctx.ent.type == "pipe" then return false end
+      if p.raw.target and p.raw.target.type == "pipe" and ctx.ent.type == "pipe" then return false end
 
       return FaUtils.distance(p.position, cursor_center) < 0.5
    end)

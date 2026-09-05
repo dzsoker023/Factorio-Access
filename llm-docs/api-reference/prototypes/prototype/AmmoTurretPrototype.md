@@ -21,13 +21,15 @@ A turret that consumes [ammo items](prototype:AmmoItemPrototype).
 
 ### inventory_size
 
+Size of the ammo inventory.
+
 **Type:** `ItemStackIndex`
 
 **Required:** Yes
 
 ### automated_ammo_count
 
-Shift of the "alt-mode icon" relative to the turret's position.
+The amount of ammo that inserters automatically insert into this turret.
 
 **Type:** `ItemCountType`
 

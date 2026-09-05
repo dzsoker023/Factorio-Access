@@ -12,11 +12,11 @@ Called when a new unit group is created, before any members are added to it.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

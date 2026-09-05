@@ -109,3 +109,49 @@ Whether this prototype should be a high priority target for enemy forces. See [M
 
 **Overrides parent:** Yes
 
+### selection_priority
+
+The entity with the higher number is selectable before the entity with the lower number.
+
+The value `0` will be treated the same as `nil`.
+
+**Type:** `uint8`
+
+**Optional:** Yes
+
+**Default:** 45
+
+**Overrides parent:** Yes
+
+### circuit_wire_max_distance
+
+The maximum circuit wire distance for this entity.
+
+**Type:** `double`
+
+**Optional:** Yes
+
+**Default:** 0
+
+### draw_copper_wires
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
+### draw_circuit_wires
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
+### circuit_connector
+
+**Type:** `CircuitConnectorDefinition`
+
+**Optional:** Yes
+

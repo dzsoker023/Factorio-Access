@@ -96,11 +96,15 @@ Whether this active defense equipment is automatic. Returns false if not active 
 
 **Read type:** `double`
 
+**Optional:** Yes
+
 **Subclasses:** SolarPanelEquipment
 
 ### solar_panel_performance_at_night
 
 **Read type:** `double`
+
+**Optional:** Yes
 
 **Subclasses:** SolarPanelEquipment
 
@@ -108,7 +112,25 @@ Whether this active defense equipment is automatic. Returns false if not active 
 
 **Read type:** `LuaSurfacePropertyPrototype`
 
+**Optional:** Yes
+
 **Subclasses:** SolarPanelEquipment
+
+### gui_mode
+
+**Read type:** `"all"` | `"none"` | `"admins"`
+
+**Optional:** Yes
+
+**Subclasses:** ElectricEnergyInterfaceEquipment
+
+### darkness_to_turn_on
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** NightVisionEquipment
 
 ### valid
 

@@ -22,20 +22,31 @@ python json_to_markdown.py --type prototype \
 
 ## Example
 
-From the FactorioAccess mod directory:
+From the FactorioAccess mod directory (the JSON dumps ship with the Factorio
+install at `../../doc-html/` and update when you upgrade the game):
 
 ```bash
 # Convert runtime docs
-python scripts/json_to_markdown.py \
+python json_to_markdown.py \
     --type runtime \
-    --input "D:\projects\in_progress\factorio_access\factorio\doc-html\runtime-api.json" \
-    --output docs/
+    --input ../../doc-html/runtime-api.json \
+    --output llm-docs/api-reference
 
 # Convert prototype docs
-python scripts/json_to_markdown.py \
+python json_to_markdown.py \
     --type prototype \
-    --input "D:\projects\in_progress\factorio_access\factorio\doc-html\prototype-api.json" \
-    --output docs/
+    --input ../../doc-html/prototype-api.json \
+    --output llm-docs/api-reference
+```
+
+**Note:** the generator only creates and overwrites files; it never deletes.
+To pick up APIs removed by a game upgrade (so `git diff` shows the deletions),
+clear the generated subdirs first, preserving the hand-written
+`llm-docs/api-reference/CLAUDE.md`:
+
+```bash
+git rm -r --quiet llm-docs/api-reference/runtime llm-docs/api-reference/prototypes
+# ...then run the two commands above and `git add -A llm-docs/api-reference`
 ```
 
 ## Output Structure
@@ -89,10 +100,10 @@ output/
 
 ## Statistics
 
-For Factorio 2.0.66:
-- **Runtime API**: ~835 files (147 classes, 411 concepts, 217 events, 60 defines)
-- **Prototype API**: ~965 files (278 prototypes, 687 types/concepts)
-- **Total**: ~1800 markdown files
+For Factorio 2.0.73:
+- **Runtime API**: 933 files (148 classes, 417 concepts, 219 events, 60 defines)
+- **Prototype API**: 965 files (278 prototypes, 686 types/concepts)
+- **Total**: 1898 markdown files
 
 ## Requirements
 

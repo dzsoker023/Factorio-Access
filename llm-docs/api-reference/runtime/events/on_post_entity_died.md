@@ -32,7 +32,7 @@ The ghost created by the entity dying if any.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### position
 
@@ -60,7 +60,7 @@ The surface the entity was on.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

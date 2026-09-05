@@ -8,7 +8,7 @@ Called after a player respawns.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -22,7 +22,7 @@ The player port used to respawn if one was used.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

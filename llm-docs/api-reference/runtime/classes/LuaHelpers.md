@@ -4,15 +4,21 @@ Provides various helper and utility functions. It is accessible through the glob
 
 ## Attributes
 
-### object_name
-
-The class name of this object. Available even when `valid` is false. For LuaStruct objects it may also be suffixed with a dotted path to a member of the struct.
-
-**Read type:** `string`
-
 ### game_version
 
 Current version of game
+
+**Read type:** `string`
+
+### stage
+
+Stage of scripting that is currently running
+
+**Read type:** `"settings"` | `"prototype"` | `"runtime"`
+
+### object_name
+
+The class name of this object. Available even when `valid` is false. For LuaStruct objects it may also be suffixed with a dotted path to a member of the struct.
 
 **Read type:** `string`
 
@@ -182,6 +188,20 @@ Not available in settings and prototype stages.
 
 - `boolean`
 
+### is_valid_ambient_sound
+
+Checks if an ambient sound of a given name is valid.
+
+Not available in settings and prototype stages.
+
+**Parameters:**
+
+- `name` `string` - Name of the ambient sound.
+
+**Returns:**
+
+- `boolean`
+
 ### is_valid_sprite_path
 
 Checks if the given SpritePath is valid and contains a loaded sprite. The existence of the image is not checked for paths of type `file`.
@@ -191,6 +211,20 @@ Not available in settings and prototype stages.
 **Parameters:**
 
 - `sprite_path` `SpritePath` - Path to the image.
+
+**Returns:**
+
+- `boolean`
+
+### is_valid_animation_path
+
+Checks if the given animation name is valid and contains a loaded animation.
+
+Not available in settings and prototype stages.
+
+**Parameters:**
+
+- `name` `string` - Name of an [AnimationPrototype](prototype:AnimationPrototype).
 
 **Returns:**
 

@@ -72,7 +72,7 @@ The spoil percent for this item if the item can spoil. Defaults to `0`.
 
 Tags of the items with tags in the stack.
 
-**Type:** Array[`string`]
+**Type:** `Tags`
 
 **Optional:** Yes
 

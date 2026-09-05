@@ -37,7 +37,7 @@ Controls which players can control what the chest spawns.
 
 The way this chest interacts with the logistic network.
 
-**Type:** `"active-provider"` | `"passive-provider"` | `"requester"` | `"storage"` | `"buffer"`
+**Type:** `LogisticMode`
 
 **Optional:** Yes
 

@@ -26,6 +26,10 @@
 
 [LuaAsteroidCollectorControlBehavior](runtime:LuaAsteroidCollectorControlBehavior)
 
+### boiler
+
+[LuaBoilerControlBehavior](runtime:LuaBoilerControlBehavior)
+
 ### cargo_landing_pad
 
 [LuaCargoLandingPadControlBehavior](runtime:LuaCargoLandingPadControlBehavior)
@@ -54,13 +58,25 @@
 
 [LuaGenericOnOffControlBehavior](runtime:LuaGenericOnOffControlBehavior)
 
+### heat_pipe
+
+[LuaHeatPipeControlBehavior](runtime:LuaHeatPipeControlBehavior)
+
 ### inserter
 
 [LuaInserterControlBehavior](runtime:LuaInserterControlBehavior)
 
+### lab
+
+[LuaLabControlBehavior](runtime:LuaLabControlBehavior)
+
 ### lamp
 
 [LuaLampControlBehavior](runtime:LuaLampControlBehavior)
+
+### land_mine
+
+[LuaLandMineControlBehavior](runtime:LuaLandMineControlBehavior)
 
 ### loader
 
@@ -114,6 +130,10 @@
 
 [LuaSelectorCombinatorControlBehavior](runtime:LuaSelectorCombinatorControlBehavior)
 
+### single_fluid_box
+
+[LuaSingleFluidBoxControlBehavior](runtime:LuaSingleFluidBoxControlBehavior)
+
 ### space_platform_hub
 
 [LuaSpacePlatformHubControlBehavior](runtime:LuaSpacePlatformHubControlBehavior)
@@ -121,10 +141,6 @@
 ### splitter
 
 [LuaSplitterControlBehavior](runtime:LuaSplitterControlBehavior)
-
-### storage_tank
-
-[LuaStorageTankControlBehavior](runtime:LuaStorageTankControlBehavior)
 
 ### train_stop
 

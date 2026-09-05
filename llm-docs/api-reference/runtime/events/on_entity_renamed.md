@@ -16,7 +16,7 @@ Called after an entity has been renamed either by the player or through script.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### old_name
 
@@ -30,7 +30,7 @@ If by_script is true this will not be included.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

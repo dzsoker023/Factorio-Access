@@ -190,6 +190,22 @@ When true, cars/tanks that support logistics will be able to use them.
 
 **Write type:** `boolean`
 
+### unlock_logistic_network
+
+When true, a "connect to logistic network" button will become enabled for entities that can connect to a logistic network.
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
+
+### unlock_travel_to_space_platforms
+
+Whether traveling to space platforms via rockets is unlocked.
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
+
 ### players
 
 Players belonging to this force.
@@ -311,6 +327,22 @@ The time, in ticks, before a deconstruction order is removed.
 **Read type:** `boolean`
 
 **Write type:** `boolean`
+
+### cargo_landing_pad_limit
+
+The maximum cargo landing pads that can be built per surface by this force.
+
+**Read type:** `uint32`
+
+**Write type:** `uint32`
+
+### max_cargo_bay_unloading_distance
+
+Maximum distance between cargo bay from its connected cargo landing pad that allows unloading. Only relevant for cargo bays that have both [LuaEntityPrototype::allow_unloading](runtime:LuaEntityPrototype::allow_unloading) and [LuaEntityPrototype::use_unloading_distance_limit](runtime:LuaEntityPrototype::use_unloading_distance_limit) set to `true`.
+
+**Read type:** `double`
+
+**Write type:** `double`
 
 ### rockets_launched
 
@@ -478,7 +510,7 @@ Research all technologies.
 
 ### reset_technologies
 
-Load the original versions of technologies from prototypes. Preserves research state of technologies.
+Load the original versions of technologies from prototypes. Preserves research, enabled and visible_when_disabled state of technologies.
 
 ### reset
 
@@ -824,6 +856,14 @@ The sound is not played if its location is not [charted](runtime:LuaForce::chart
 
 - `sound_specification` `PlaySoundSpecification` - The sound to play.
 
+### play_music
+
+Play a music track for every player in this force.
+
+**Parameters:**
+
+- `music_specification` `PlayMusicSpecification` - The track to play.
+
 ### get_hand_crafting_disabled_for_recipe
 
 Gets if the given recipe is explicitly disabled from being hand crafted.
@@ -921,6 +961,39 @@ Is the specified planet unlocked for this force?
 **Parameters:**
 
 - `name` `SpaceLocationID` - Name of the planet.
+
+### is_visible
+
+Is the given unlockable ID visible either through computed technologies or script set state.
+
+**Parameters:**
+
+- `unlockable` `UnlockableID`
+
+**Returns:**
+
+- `boolean`
+
+### set_script_visible
+
+Sets the given unlockable ID state. When set to explicitly hidden or visible the value overrides the state computed through technologies.
+
+**Parameters:**
+
+- `unlockable` `UnlockableID`
+- `value` `boolean` *(optional)*
+
+### get_script_visible
+
+Gets the unlockable script state for the given ID.
+
+**Parameters:**
+
+- `unlockable` `UnlockableID`
+
+**Returns:**
+
+- `boolean` *(optional)*
 
 ### lock_quality
 
@@ -1175,4 +1248,32 @@ Trigger the "scripted" [research trigger](runtime:ResearchTrigger) of a technolo
 **Parameters:**
 
 - `technology` `TechnologyID`
+
+### add_alert
+
+Adds an alert to every connected player on this force.
+
+**Parameters:**
+
+- `entity` `LuaEntity`
+- `type` `defines.alert_type`
+
+### add_custom_alert
+
+Adds a custom alert to every connected player on this force.
+
+**Parameters:**
+
+- `entity` `LuaEntity` - If the alert is clicked, the map will open at the position of this entity.
+- `icon` `SignalID`
+- `message` `LocalisedString`
+- `show_on_map` `boolean`
+
+### remove_alert
+
+For every connected player on this force - removes all alerts matching the given filters or if an empty filters table is given all alerts are removed.
+
+**Parameters:**
+
+- `filter` `AlertFilter`
 

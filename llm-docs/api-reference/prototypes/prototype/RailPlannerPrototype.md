@@ -9,7 +9,7 @@ A [rail planner](https://wiki.factorio.com/Rail_planner).
 
 ### rails
 
-May not be an empty array. Entities must be rails and their first item-to-place must be this item.
+May not be an empty array. Entities must be rails.
 
 **Type:** Array[`EntityID`]
 

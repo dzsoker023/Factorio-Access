@@ -20,3 +20,11 @@ Name of the signal.
 
 **Required:** Yes
 
+### quality
+
+Defaults to `normal`.
+
+**Type:** `QualityID`
+
+**Optional:** Yes
+

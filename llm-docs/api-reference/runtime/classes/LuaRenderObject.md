@@ -42,17 +42,17 @@ For example, when the interval is 60, the object is visible for 60 ticks and hid
 
 ### forces
 
-Forces for which this object is rendered or `nil` if visible to all forces. Writing nil or empty array will make object to be visible to all forces.
+Forces for which this object is rendered or `nil` if visible to all forces. Writing `nil` or empty array will make this object visible to all forces.
 
-**Read type:** Array[`LuaForce`] | `ForceSet`
+**Read type:** Array[`LuaForce`]
 
-**Write type:** Array[`LuaForce`] | `ForceSet`
+**Write type:** `ForceSet`
 
 **Optional:** Yes
 
 ### players
 
-Players for which this object is visible or `nil` if visible to all players.
+Players for which this object is visible or `nil` if visible to all players. Writing `nil` or empty array will make this object visible to all players.
 
 **Read type:** Array[`LuaPlayer`] | Array[`PlayerIdentification`]
 
@@ -423,6 +423,16 @@ Offsets the center of the sprite or animation if `orientation_target` is given. 
 **Read type:** `Vector`
 
 **Write type:** `Vector`
+
+**Subclasses:** Sprite, Animation
+
+### light_mode
+
+Whether this sprite or animation should be rendered as a sprite, light or both at once.
+
+**Read type:** `ScriptSpriteLightMode`
+
+**Write type:** `ScriptSpriteLightMode`
 
 **Subclasses:** Sprite, Animation
 

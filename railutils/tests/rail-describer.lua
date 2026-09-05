@@ -110,7 +110,7 @@ function mod.TestDescriber_TurnDetection_IsolatedCurve()
 
    -- Without the full turn, should fall back to left/right of cardinal
    lu.assertTrue(
-      desc.kind:find("north") ~= nil,
+      (desc.kind --[[@as string]]):find("north") ~= nil,
       "Isolated curved rail should use fallback description, got: " .. desc.kind
    )
    lu.assertTrue(desc.kind ~= "bottom-of-east-to-south-turn", "Isolated curve should not detect as turn")
@@ -153,13 +153,13 @@ function mod.TestDescriber_CompleteTurn()
 
       -- Should detect as east-to-south turn (use plain text search to avoid hyphen pattern issues)
       lu.assertTrue(
-         desc.kind:find("east-to-south-turn", 1, true) ~= nil,
+         (desc.kind --[[@as string]]):find("east-to-south-turn", 1, true) ~= nil,
          string.format("Piece %d should be detected as east-to-south turn, got: %s", i, desc.kind)
       )
 
       -- Should have correct position label (use plain text search)
       lu.assertTrue(
-         desc.kind:find(expected_positions[i], 1, true) ~= nil,
+         (desc.kind --[[@as string]]):find(expected_positions[i], 1, true) ~= nil,
          string.format("Piece %d should be %s, got: %s", i, expected_positions[i], desc.kind)
       )
    end

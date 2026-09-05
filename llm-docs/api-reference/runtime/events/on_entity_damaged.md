@@ -40,7 +40,7 @@ The force that did the attacking if any.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### original_damage_amount
 
@@ -56,7 +56,7 @@ The entity that is directly dealing the damage, if available (e.g. the projectil
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

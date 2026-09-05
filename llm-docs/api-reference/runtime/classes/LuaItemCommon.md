@@ -164,7 +164,7 @@ The description for this blueprint or blueprint book
 
 List of raw materials required to build this blueprint.
 
-**Read type:** `ItemWithQualityCounts`
+**Read type:** Array[`ItemWithQualityCount`]
 
 **Subclasses:** BlueprintItem
 
@@ -336,7 +336,7 @@ The custom description this item-with-tags. This is shown over the normal item d
 
 ### entity_filter_count
 
-The number of entity filters this deconstruction item supports.
+The number of entity filters this deconstruction item has.
 
 **Read type:** `uint32`
 
@@ -354,7 +354,7 @@ The entity filters for this deconstruction item. The attribute is a sparse array
 
 ### tile_filter_count
 
-The number of tile filters this deconstruction item supports.
+The number of tile filters this deconstruction item has.
 
 **Read type:** `uint32`
 
@@ -418,6 +418,16 @@ The current count of mappers in the upgrade item.
 
 **Subclasses:** UpgradeItem
 
+### planner_description
+
+The description for this deconstruction planner or upgrade planner
+
+**Read type:** `string`
+
+**Write type:** `string`
+
+**Subclasses:** DeconstructionItem, UpgradeItem
+
 ### durability
 
 Durability of the contained item. Automatically capped at the item's maximum durability.
@@ -478,8 +488,8 @@ Built entities can be come invalid between the building of the blueprint and the
 - `direction` `defines.direction` *(optional)* - The direction to use when building
 - `build_mode` `defines.build_mode` *(optional)* - If `normal`, blueprint will not be built if any one thing can't be built. If `forced`, anything that can be built is built and obstructing nature entities will be deconstructed. If `superforced`, all obstructions will be deconstructed and the blueprint will be built.
 - `skip_fog_of_war` `boolean` *(optional)* - If chunks covered by fog-of-war are skipped.
-- `by_player` `PlayerIdentification` *(optional)* - The player to use if any. If provided [defines.events.on_built_entity](runtime:defines.events.on_built_entity) will also be fired on successful entity creation.
-- `raise_built` `boolean` *(optional)* - If true; [defines.events.script_raised_built](runtime:defines.events.script_raised_built) will be fired on successful entity creation. Note: this is ignored if by_player is provided.
+- `by_player` `PlayerIdentification` *(optional)* - The player to use if any. If provided [defines.events.on_built_entity](runtime:defines.events.on_built_entity) will be fired for new entities and [defines.events.on_blueprint_settings_pasted](runtime:defines.events.on_blueprint_settings_pasted) will be fired for existing entities that are updated.
+- `raise_built` `boolean` *(optional)* - If true; [defines.events.script_raised_built](runtime:defines.events.script_raised_built) will be fired for new entities and [defines.events.on_blueprint_settings_pasted](runtime:defines.events.on_blueprint_settings_pasted) will be fired for existing entities that are updated. Note: this is ignored if by_player is provided.
 
 **Returns:**
 
@@ -621,6 +631,14 @@ Removes a tag with the given name.
 **Returns:**
 
 - `boolean` - If the tag existed and was removed.
+
+### get_tag_names
+
+Gets the names of all tags on this item.
+
+**Returns:**
+
+- Array[`string`]
 
 ### get_entity_filter
 

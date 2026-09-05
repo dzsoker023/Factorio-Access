@@ -2,6 +2,10 @@
 
 ## Values
 
+### armed
+
+Used by land mines.
+
 ### broken
 
 Only used if set through [ContainerPrototype::default_status](prototype:ContainerPrototype::default_status).
@@ -48,7 +52,7 @@ Used by burner energy sources.
 
 ### full_output
 
-Used by crafting machines, boilers, burner energy sources and reactors: Reactor/burner has full burnt result inventory, boiler has full output fluidbox.
+Used by crafting machines, boilers, burner energy sources, and reactors: Reactor/burner has full burnt result inventory, boiler has full output fluidbox.
 
 ### fully_charged
 
@@ -57,6 +61,10 @@ Used by accumulators.
 ### ghost
 
 Used by ghosts.
+
+### hatches_blocked_by_elevated_rail
+
+Used by cargo bays.
 
 ### item_ingredient_shortage
 
@@ -110,7 +118,7 @@ Used by furnaces.
 
 ### no_input_fluid
 
-Used by boilers, fluid turrets and fluid energy sources: Boiler has no fluid to work with.
+Used by boilers, fluid turrets, and fluid energy sources: Boiler has no fluid to work with.
 
 ### no_minable_resources
 
@@ -176,7 +184,7 @@ Used by space platform hubs.
 
 ### pipeline_overextended
 
-Used by pipes, pipes to ground and storage tanks.
+Used by pipes, pipes to ground, and storage tanks.
 
 ### preparing_rocket_for_launch
 
@@ -197,6 +205,10 @@ Used by assembling machines.
 ### thrust_not_required
 
 Used by thrusters.
+
+### too_far_from_pad_to_unload
+
+Used by some cargo bays.
 
 ### turned_off_during_daytime
 
@@ -224,7 +236,7 @@ Used by inserters.
 
 ### waiting_for_space_in_destination
 
-Used by inserters and mining drills.
+Used by inserters, mining drills, and crafting machines using vector_to_place_result.
 
 ### waiting_for_space_in_platform_hub
 
@@ -238,7 +250,15 @@ Used by inserters targeting entity ghosts.
 
 Used by inserters targeting rails.
 
+### waiting_for_upgrade
+
+Used by trains.
+
 ### waiting_in_orbit
+
+Used by space platform hubs.
+
+### waiting_to_clear_drop_slots
 
 Used by space platform hubs.
 

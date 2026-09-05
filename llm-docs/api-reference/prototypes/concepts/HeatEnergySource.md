@@ -94,7 +94,7 @@ Must be >= `default_temperature` and <= `max_temperature`.
 
 May contain up to 32 connections.
 
-**Type:** Array[`HeatConnection`]
+**Type:** Array[`HeatConnectionDefinition`]
 
 **Optional:** Yes
 

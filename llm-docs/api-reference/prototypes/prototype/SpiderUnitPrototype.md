@@ -59,6 +59,16 @@ The orientation of the torso of the spider affects the shooting direction and th
 
 **Default:** 1
 
+### buildable_entities
+
+A list of entity prototypes that this spider unit can build when given the build base command.
+
+If empty or not specified, the spider unit cannot build anything.
+
+**Type:** Array[`EntityID`]
+
+**Optional:** Yes
+
 ### radar_range
 
 In chunks. The radius of how many chunks this spider unit charts around itself.
@@ -68,6 +78,12 @@ In chunks. The radius of how many chunks this spider unit charts around itself.
 **Optional:** Yes
 
 **Default:** 0
+
+### steering
+
+**Type:** `SteeringSettings`
+
+**Optional:** Yes
 
 ### attack_parameters
 

@@ -7,26 +7,6 @@ A [deconstruction planner](https://wiki.factorio.com/Deconstruction_planner).
 
 ## Properties
 
-### entity_filter_count
-
-Can't be > 255.
-
-**Type:** `ItemStackIndex`
-
-**Optional:** Yes
-
-**Default:** 0
-
-### tile_filter_count
-
-Can't be > 255.
-
-**Type:** `ItemStackIndex`
-
-**Optional:** Yes
-
-**Default:** 0
-
 ### stack_size
 
 Count of items of the same name that can be stored in one inventory slot. Must be 1 when the `"not-stackable"` flag is set.

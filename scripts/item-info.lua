@@ -810,7 +810,7 @@ function mod.get_product_info(message, product, quality, options)
       end
    else
       -- Unknown product type
-      message:fragment(product.name)
+      message:fragment((product --[[@as fa.ItemInfo.Product]]).name)
    end
 end
 

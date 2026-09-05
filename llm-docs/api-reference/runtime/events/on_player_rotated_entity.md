@@ -16,7 +16,7 @@ The rotated entity.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -28,9 +28,13 @@ Identifier of the event
 
 The previous direction
 
+### previous_mirroring
+
+**Type:** `boolean`
+
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

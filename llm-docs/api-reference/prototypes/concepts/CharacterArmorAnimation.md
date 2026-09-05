@@ -126,7 +126,7 @@ Will be clamped to range [0, 1000]. When the character is flying, each [SmokeSou
 
 List of positions in the mining with tool animation when the mining sound and mining particles are created.
 
-Overrides [CharacterPrototype::mining_with_tool_particles_animation_positions](prototype:CharacterPrototype::mining_with_tool_particles_animation_positions) if defined
+Overrides [CharacterPrototype::mining_with_tool_particles_animation_positions](prototype:CharacterPrototype::mining_with_tool_particles_animation_positions) if defined.
 
 **Type:** Array[`float`]
 

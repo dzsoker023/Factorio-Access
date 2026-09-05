@@ -52,7 +52,7 @@ When searching for the nearest enemy to attack, `fire_penalty` is added to the e
 
 ### health_penalty
 
-When searching for an enemy to attack, a higher `health_penalty` will discourage targeting enemies with high health. A negative penalty will do the opposite.
+When searching for an enemy to attack, a higher `health_penalty` will discourage targeting enemies with high health ratio. A negative penalty will do the opposite.
 
 **Type:** `float`
 
@@ -105,6 +105,14 @@ Defines how the range is determined.
 ### rotate_penalty
 
 When searching for an enemy to attack, a higher `rotate_penalty` will discourage targeting enemies that would take longer to turn to face.
+
+**Type:** `float`
+
+**Required:** Yes
+
+### threatening_asteroid_penalty
+
+When searching for an enemy to attack, a higher `threatening_asteroid_penalty` will discourage targeting asteroids that pose a threat. A negative penalty will do the opposite.
 
 **Type:** `float`
 

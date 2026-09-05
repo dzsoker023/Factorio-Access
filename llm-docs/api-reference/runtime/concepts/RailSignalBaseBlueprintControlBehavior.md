@@ -34,9 +34,21 @@
 
 **Optional:** Yes
 
+### input_networks
+
+**Type:** `CircuitNetworkSelection`
+
+**Optional:** Yes
+
 ### orange_output_signal
 
 **Type:** `SignalID`
+
+**Optional:** Yes
+
+### output_networks
+
+**Type:** `CircuitNetworkSelection`
 
 **Optional:** Yes
 

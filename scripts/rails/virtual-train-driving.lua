@@ -878,6 +878,7 @@ end
 ---@return boolean handled Whether this event was handled (prevents fallthrough)
 ---@return boolean should_read_tile Whether caller should read the tile
 function mod.on_kb_descriptive_action_name(event)
+   ---@cast event EventData.CustomInputEvent
    local pindex = event.player_index
    local state = vtd_storage[pindex]
 

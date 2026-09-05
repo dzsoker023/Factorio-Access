@@ -9,7 +9,7 @@ The corpse of a [CharacterPrototype](prototype:CharacterPrototype).
 
 ### time_to_live
 
-0 for infinite.
+In ticks. 0 for infinite.
 
 **Type:** `uint32`
 
@@ -33,7 +33,7 @@ Mandatory if `picture` is not defined.
 
 ### picture
 
-Mandatory if `pictures` is not defined.
+Only loaded, and mandatory if `pictures` is not defined.
 
 **Type:** `Animation`
 
@@ -41,7 +41,9 @@ Mandatory if `pictures` is not defined.
 
 ### armor_picture_mapping
 
-Table of key value pairs, the keys are armor names and the values are numbers. The number is the Animation that is associated with the armor, e.g. using `1` will associate the armor with the first Animation in the pictures table.
+A mapping of [ArmorPrototype](prototype:ArmorPrototype) name to a number. The number is the Animation that is associated with the armor, e.g. using `1` will associate the armor with the first Animation in the `pictures` table.
+
+This mapping can be empty to have no sprite changes based on armor.
 
 **Type:** Dictionary[`ItemID`, `int32`]
 

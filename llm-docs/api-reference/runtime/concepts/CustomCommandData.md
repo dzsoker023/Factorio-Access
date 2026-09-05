@@ -32,7 +32,7 @@ The player who issued the command, or `nil` if it was issued from the server con
 
 The tick the command was used in.
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 **Required:** Yes
 

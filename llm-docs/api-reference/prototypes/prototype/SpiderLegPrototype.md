@@ -97,6 +97,8 @@ The height of the foot from the ground when at rest.
 
 ### walking_sound_volume_modifier
 
+Cannot be negative.
+
 **Type:** `float`
 
 **Optional:** Yes
@@ -104,6 +106,8 @@ The height of the foot from the ground when at rest.
 **Default:** 1
 
 ### walking_sound_speed_modifier
+
+Must be larger than 0.
 
 **Type:** `float`
 
@@ -122,4 +126,18 @@ The height of the foot from the ground when at rest.
 **Type:** Array[`SpiderLegTriggerEffect`]
 
 **Optional:** Yes
+
+### selection_priority
+
+The entity with the higher number is selectable before the entity with the lower number.
+
+The value `0` will be treated the same as `nil`.
+
+**Type:** `uint8`
+
+**Optional:** Yes
+
+**Default:** 20
+
+**Overrides parent:** Yes
 

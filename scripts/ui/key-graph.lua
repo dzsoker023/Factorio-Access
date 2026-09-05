@@ -176,6 +176,7 @@ mod.TRANSITION_DIR = {
 ---@field name string
 ---@field on_accelerator_callback fun(ctx: fa.ui.graph.Ctx, accelerator_name: string)? Handler for accelerator events
 ---@field get_help_metadata_callback (fun(ctx: fa.ui.TabContext): fa.ui.help.HelpItem[]?)?
+---@field get_binds_callback (fun(ctx: fa.ui.TabContext): fa.ui.Bind[]?)?
 local Graph = {}
 local Graph_meta = { __index = Graph }
 

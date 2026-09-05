@@ -48,7 +48,7 @@ The table of emissions of this energy source in `pollution/Joule`, indexed by po
 
 ### connections
 
-**Read type:** Array[`HeatConnection`]
+**Read type:** Array[`HeatConnectionDefinition`]
 
 ### heat_buffer_prototype
 

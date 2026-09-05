@@ -14,7 +14,7 @@ The last selected entity if it still exists and there was one.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -24,7 +24,7 @@ The player whose selected entity changed.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

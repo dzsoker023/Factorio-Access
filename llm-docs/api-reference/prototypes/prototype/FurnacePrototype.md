@@ -1,6 +1,8 @@
 # FurnacePrototype
 
-A furnace. Normal furnaces only process "smelting" category recipes, but you can make furnaces that process other [recipe categories](prototype:RecipeCategory). The difference to assembling machines is that furnaces automatically choose their recipe based on input.
+A furnace. Normal furnaces only process "smelting" category recipes, but you can make furnaces that process other [recipe categories](prototype:RecipeCategory).
+
+The difference to assembling machines is that furnaces automatically choose their recipe based on input. See [Furnace Recipe Selection](auxiliary:furnace-recipe-selection) for how the recipe is chosen.
 
 **Parent:** [CraftingMachinePrototype](CraftingMachinePrototype.md)
 **Type name:** `furnace`

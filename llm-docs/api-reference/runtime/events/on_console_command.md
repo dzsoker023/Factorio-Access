@@ -14,7 +14,7 @@ The command as typed without the preceding forward slash ('/').
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### parameters
 
@@ -30,7 +30,7 @@ The player if any.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

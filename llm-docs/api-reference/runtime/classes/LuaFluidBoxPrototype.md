@@ -28,10 +28,6 @@ The production type.
 
 **Read type:** `ProductionType`
 
-### volume
-
-**Read type:** `double`
-
 ### filter
 
 The filter, if any is set.
@@ -79,4 +75,18 @@ Is this object valid? This Lua object holds a reference to an object within the 
 The class name of this object. Available even when `valid` is false. For LuaStruct objects it may also be suffixed with a dotted path to a member of the struct.
 
 **Read type:** `string`
+
+## Methods
+
+### get_volume
+
+Gets the volume of this fluidbox with the given quality.
+
+**Parameters:**
+
+- `quality` `QualityID` *(optional)*
+
+**Returns:**
+
+- `double`
 

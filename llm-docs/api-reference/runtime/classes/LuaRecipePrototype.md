@@ -12,15 +12,9 @@ If this recipe prototype is enabled by default (enabled at the beginning of a ga
 
 **Read type:** `boolean`
 
-### category
+### categories
 
-Category of the recipe.
-
-**Read type:** `string`
-
-### additional_categories
-
-Additional categories of the recipe.
+Categories of the recipe.
 
 **Read type:** Array[`string`]
 
@@ -104,18 +98,6 @@ If this recipe is allowed to use intermediate recipes when hand-crafting.
 
 **Read type:** `boolean`
 
-### show_amount_in_title
-
-If the amount is shown in the recipe tooltip title when the recipe produces more than 1 product.
-
-**Read type:** `boolean`
-
-### always_show_products
-
-If the products are always shown in the recipe tooltip.
-
-**Read type:** `boolean`
-
 ### emissions_multiplier
 
 The emissions multiplier for this recipe.
@@ -124,19 +106,19 @@ The emissions multiplier for this recipe.
 
 ### allow_decomposition
 
-Is this recipe allowed to be broken down for the recipe tooltip "Total raw" calculations?
+Whether this recipe is allowed to be broken down for the recipe tooltip "Total raw" calculations.
 
 **Read type:** `boolean`
 
 ### unlock_results
 
-Is this recipe unlocks the result item(s) so they're shown in filter-select GUIs.
+Whether this recipe unlocks the result item(s) so they're shown in filter-select GUIs.
 
 **Read type:** `boolean`
 
 ### hide_from_signal_gui
 
-Is this recipe is marked to be hidden from the signal GUI.
+Whether this recipe is marked to be hidden from the signal GUI.
 
 **Read type:** `boolean`
 
@@ -161,10 +143,6 @@ The 'trash' items that this recipe might produce as a result of spoiling.
 **Optional:** Yes
 
 ### preserve_products_in_machine_output
-
-**Read type:** `boolean`
-
-### is_parameter
 
 **Read type:** `boolean`
 
@@ -218,11 +196,9 @@ An alternative prototype that will be used to display info about this prototype 
 
 **Optional:** Yes
 
-### result_is_always_fresh
+### can_set_quality
 
-**Read type:** `boolean`
-
-### reset_freshness_on_craft
+True if a player can set quality of the recipe to craft. False when only normal quality recipes can be crafted.
 
 **Read type:** `boolean`
 
@@ -251,4 +227,43 @@ Checks if recipe has given category
 **Returns:**
 
 - `boolean` - `true` if recipe has this category.
+
+### get_ingredient_quality
+
+Ingredient materials required to craft recipe when configured to a specific quality.
+
+**Parameters:**
+
+- `ingredient_index` `uint32`
+- `recipe_quality` `QualityID` *(optional)* - Defaults to `normal`.
+
+**Returns:**
+
+- `LuaQualityPrototype`
+
+### get_product_quality
+
+Quality of the product given when recipe is configured to a specific quality.
+
+**Parameters:**
+
+- `product_index` `uint32`
+- `recipe_quality` `QualityID` *(optional)* - Defaults to `normal`.
+
+**Returns:**
+
+- `LuaQualityPrototype`
+
+### get_product_amount
+
+Average amount of the product given.
+
+**Parameters:**
+
+- `product_index` `uint32`
+- `productivity` `double` *(optional)*
+
+**Returns:**
+
+- `double`
 

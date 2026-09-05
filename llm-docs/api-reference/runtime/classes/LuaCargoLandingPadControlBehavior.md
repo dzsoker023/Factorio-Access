@@ -6,13 +6,17 @@ Control behavior for cargo landing pad.
 
 ## Attributes
 
-### circuit_exclusive_mode_of_operation
+### read_contents
 
-The circuit mode of operations for the cargo landing pad.
+**Read type:** `boolean`
 
-**Read type:** `defines.control_behavior.cargo_landing_pad.exclusive_mode`
+**Write type:** `boolean`
 
-**Write type:** `defines.control_behavior.cargo_landing_pad.exclusive_mode`
+### set_requests
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
 
 ### valid
 

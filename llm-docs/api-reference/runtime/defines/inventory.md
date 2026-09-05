@@ -4,6 +4,8 @@
 
 ### agricultural_tower_input
 
+### agricultural_tower_modules
+
 ### agricultural_tower_output
 
 ### artillery_turret_ammo
@@ -13,22 +15,6 @@
 ### assembling_machine_dump
 
 Used for ejected items, or items held by inserters that can't be inserted due the recipe being changed with the circuit network.
-
-### assembling_machine_input
-
-Deprecated, replaced by `"crafter_input"`.
-
-### assembling_machine_modules
-
-Deprecated, replaced by `"crafter_modules"`.
-
-### assembling_machine_output
-
-Deprecated, replaced by `"crafter_output"`.
-
-### assembling_machine_trash
-
-Deprecated, replaced by `"crafter_trash"`.
 
 ### asteroid_collector_arm
 
@@ -90,22 +76,6 @@ Used for spoil result items that do not fit into the recipe slots, and for items
 
 ### fuel
 
-### furnace_modules
-
-Deprecated, replaced by `"crafter_modules"`.
-
-### furnace_result
-
-Deprecated, replaced by `"crafter_output"`.
-
-### furnace_source
-
-Deprecated, replaced by `"crafter_input"`.
-
-### furnace_trash
-
-Deprecated, replaced by `"crafter_trash"`.
-
 ### god_main
 
 ### hub_main
@@ -136,17 +106,7 @@ Deprecated, replaced by `"crafter_trash"`.
 
 ### robot_repair
 
-### rocket_silo_input
-
-Deprecated, replaced by `"crafter_input"`.
-
-### rocket_silo_modules
-
-Deprecated, replaced by `"crafter_modules"`.
-
-### rocket_silo_output
-
-Deprecated, replaced by `"crafter_output"`.
+### rocket_silo_attached_cargo_unit
 
 ### rocket_silo_rocket
 

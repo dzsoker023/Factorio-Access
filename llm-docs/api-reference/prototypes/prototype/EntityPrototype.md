@@ -151,7 +151,7 @@ drawing_box_vertical_extension = 0.5
 
 ### sticker_box
 
-Used to set the area of the entity that can have stickers on it, currently only used for units to specify the area where the green slow down stickers can appear.
+Used to specify the area where the [sticker](prototype:StickerPrototype) animation can appear for entities that can have stickers on them.
 
 **Type:** `BoundingBox`
 
@@ -361,6 +361,20 @@ Name of a [ImpactCategory](prototype:ImpactCategory).
 
 **Optional:** Yes
 
+**Examples:**
+
+```
+radius_visualisation_specification =
+{
+  sprite =
+  {
+    filename = "__base__/graphics/entity/electric-mining-drill/electric-mining-drill-radius-visualization.png",
+    size = 10
+  },
+  distance = 6
+}
+```
+
 ### stateless_visualisation
 
 **Type:** `StatelessVisualisation` | Array[`StatelessVisualisation`]
@@ -374,14 +388,6 @@ Name of a [ImpactCategory](prototype:ImpactCategory).
 **Optional:** Yes
 
 **Default:** False
-
-### build_base_evolution_requirement
-
-**Type:** `double`
-
-**Optional:** Yes
-
-**Default:** 0
 
 ### alert_icon_shift
 
@@ -436,6 +442,28 @@ When this is true, this entity prototype should be included during tile collisio
 **Optional:** Yes
 
 **Default:** True
+
+### tall
+
+When this is true, this entity prototype will be translucent and unselectable when "Hide tall entities" mode is active.
+
+Rail signals are always treated as 'tall' when built attached to elevated rails.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+
+### show_fluid_visualization_when_in_cursor
+
+When this is true, fluid pipelines will be visualized when this entity is held in the cursor.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
 
 ### heating_energy
 

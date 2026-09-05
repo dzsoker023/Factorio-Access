@@ -16,6 +16,12 @@
 
 **Optional:** Yes
 
+### output_networks
+
+**Type:** `CircuitNetworkSelection`
+
+**Optional:** Yes
+
 ### read_items_mode
 
 **Type:** `boolean`

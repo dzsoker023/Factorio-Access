@@ -10,6 +10,12 @@
 
 **Required:** Yes
 
+### distance_quality_multiplier
+
+**Type:** Dictionary[`string`, `double`]
+
+**Optional:** Yes
+
 ### draw_in_cursor
 
 **Type:** `boolean`

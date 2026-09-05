@@ -1,4 +1,4 @@
 # ScriptRenderMode
 
-**Type:** `"game"` | `"chart"`
+**Type:** `"game"` | `"chart"` | `"build-cursor"`
 

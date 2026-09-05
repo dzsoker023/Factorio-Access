@@ -1,6 +1,6 @@
 # LabPrototype
 
-A [lab](https://wiki.factorio.com/Lab). It consumes [science packs](prototype:ToolPrototype) to research [technologies](prototype:TechnologyPrototype).
+A [lab](https://wiki.factorio.com/Lab). It consumes science packs (items) to research [technologies](prototype:TechnologyPrototype).
 
 **Parent:** [EntityWithOwnerPrototype](EntityWithOwnerPrototype.md)
 **Type name:** `lab`
@@ -139,9 +139,47 @@ Sets the [module categories](prototype:ModuleCategory) that are allowed to be in
 
 **Optional:** Yes
 
+### default_technology_level_signal
+
+**Type:** `SignalIDConnector`
+
+**Optional:** Yes
+
 ### trash_inventory_size
 
 **Type:** `ItemStackIndex`
+
+**Optional:** Yes
+
+### circuit_wire_max_distance
+
+The maximum circuit wire distance for this entity.
+
+**Type:** `double`
+
+**Optional:** Yes
+
+**Default:** 0
+
+### draw_copper_wires
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
+### draw_circuit_wires
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
+### circuit_connector
+
+**Type:** `CircuitConnectorDefinition`
 
 **Optional:** Yes
 

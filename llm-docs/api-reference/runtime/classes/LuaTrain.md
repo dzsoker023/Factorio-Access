@@ -70,6 +70,8 @@ This train's current schedule, if any. Set to `nil` to clear.
 
 The schedule can't be changed by modifying the returned table. Instead, changes must be made by assigning a new table to this attribute.
 
+This is a simplified schedule that does **not** include train groups and interrupts. See [LuaTrain::get_schedule](runtime:LuaTrain::get_schedule) for full access to the train schedule, including interrupts and train groups.
+
 **Read type:** `TrainSchedule`
 
 **Write type:** `TrainSchedule`
@@ -232,7 +234,7 @@ Get a mapping of the train's inventory.
 
 **Returns:**
 
-- `ItemWithQualityCounts` - List of all items in the train.
+- Array[`ItemWithQualityCount`] - List of all items in the train.
 
 ### remove_item
 
@@ -347,6 +349,8 @@ Gets a LuaRailEnd object pointing away from the train at specified end of the tr
 - `LuaRailEnd`
 
 ### get_schedule
+
+This allows full access to the train schedule, including modifying the schedule records, the train group and the interrupts.
 
 **Returns:**
 

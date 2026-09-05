@@ -26,7 +26,7 @@ Name of a fluid that was flushed
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### only_this_entity
 
@@ -42,7 +42,7 @@ Index of the player
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

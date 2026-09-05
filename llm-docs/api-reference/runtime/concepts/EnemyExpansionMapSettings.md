@@ -1,20 +1,20 @@
 # EnemyExpansionMapSettings
 
-Candidate chunks are given scores to determine which one of them should be expanded into. This score takes into account various settings noted below. The iteration is over a square region centered around the chunk for which the calculation is done, and includes the central chunk as well. Distances are calculated as [Manhattan distance](https://en.wikipedia.org/wiki/Taxicab_geometry).
+Candidate chunks are given scores to determine which one of them should be expanded into. This score takes into account various settings noted below. The iteration is over a square region centered around the chunk for which the calculation is done, and includes the central chunk as well. Distances are calculated as [Euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance).
 
 The pseudocode algorithm to determine a chunk's score is as follows:
 
 ```
 player = 0
-for neighbour in all chunks within enemy_building_influence_radius from chunk:
-  player += number of player buildings on neighbour
-    * building_coefficient
-    * neighbouring_chunk_coefficient^distance(chunk, neighbour)
+for neighbour in all chunks within enemy_building_influence_radius from chunk :
+  if neighbour has player buildings :
+    player += neighbouring_chunk_coefficient ^ distance(chunk, neighbour)
+      * building_coefficient
 base = 0
-for neighbour in all chunk within friendly_base_influence_radius from chunk:
-  base += num of enemy bases on neighbour
-    * other_base_coefficient
-    * neighbouring_base_chunk_coefficient^distance(chunk, neighbour)
+for neighbour in all chunks within friendly_base_influence_radius from chunk :
+  if neighbour has enemy bases :
+    base += neighbouring_base_chunk_coefficient ^ distance(chunk, neighbour)
+      * other_base_coefficient
 score(chunk) = 1 / (1 + player + base)
 ```
 
@@ -24,7 +24,7 @@ score(chunk) = 1 / (1 + player + base)
 
 ### building_coefficient
 
-Defaults to `0.1`.
+Defaults to `0.5`.
 
 **Type:** `double`
 
@@ -40,7 +40,7 @@ Whether enemy expansion is enabled at all.
 
 ### enemy_building_influence_radius
 
-Defaults to `2`.
+Defaults to `3`.
 
 **Type:** `uint32`
 
@@ -48,7 +48,7 @@ Defaults to `2`.
 
 ### friendly_base_influence_radius
 
-Defaults to `2`.
+Defaults to `6`.
 
 **Type:** `uint32`
 
@@ -56,7 +56,7 @@ Defaults to `2`.
 
 ### max_colliding_tiles_coefficient
 
-A chunk has to have at most this high of a percentage of unbuildable tiles for it to be considered a candidate to avoid chunks full of water as candidates. Defaults to `0.9`, or 90%.
+A chunk has to have at most this high of a percentage of unbuildable tiles for it to be considered a candidate to avoid chunks full of water as candidates. Defaults to `0.8`, or 80%.
 
 **Type:** `double`
 
@@ -72,7 +72,7 @@ The maximum time between expansions in ticks. The actual cooldown is adjusted to
 
 ### max_expansion_distance
 
-Distance in chunks from the furthest base around to prevent expansions from reaching too far into the player's territory. Defaults to `7`.
+Distance in chunks from the furthest base around to prevent expansions from reaching too far into the player's territory. Defaults to `5`.
 
 **Type:** `uint32`
 
@@ -86,9 +86,17 @@ The minimum time between expansions in ticks. The actual cooldown is adjusted to
 
 **Required:** Yes
 
+### min_expansion_distance
+
+Distance in chunks from the furthest base around to prevent expansions from being too close to existing bases. Defaults to `3`.
+
+**Type:** `uint32`
+
+**Required:** Yes
+
 ### neighbouring_base_chunk_coefficient
 
-Defaults to `0.4`.
+Defaults to `0.5`.
 
 **Type:** `double`
 
@@ -104,7 +112,7 @@ Defaults to `0.5`.
 
 ### other_base_coefficient
 
-Defaults to `2.0`.
+Defaults to `3.0`.
 
 **Type:** `double`
 

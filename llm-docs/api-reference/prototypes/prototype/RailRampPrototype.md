@@ -49,3 +49,15 @@ Requires Space Age to create prototypes with name not starting with `dummy-`. Du
 
 **Overrides parent:** Yes
 
+### tall
+
+When this is true, this entity prototype will be translucent and unselectable when "Hide tall entities" mode is active.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
+**Overrides parent:** Yes
+

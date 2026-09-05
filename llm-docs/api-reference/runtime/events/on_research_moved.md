@@ -14,7 +14,7 @@ The force whose research was re-arranged.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -24,7 +24,7 @@ The player who did the re-arranging if any.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

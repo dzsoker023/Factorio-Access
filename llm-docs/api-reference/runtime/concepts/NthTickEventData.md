@@ -8,7 +8,7 @@
 
 The nth tick this handler was registered to.
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 **Required:** Yes
 
@@ -16,7 +16,7 @@ The nth tick this handler was registered to.
 
 The tick during which the event happened.
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 **Required:** Yes
 

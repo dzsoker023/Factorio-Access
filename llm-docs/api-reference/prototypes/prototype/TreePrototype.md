@@ -53,7 +53,7 @@ Mandatory if `variations` is defined.
 
 ### healing_per_tick
 
-The amount of health automatically regenerated. Trees will regenerate every 60 ticks with `healing_per_tick × 60`.
+The amount of health automatically regenerated.
 
 **Type:** `float`
 

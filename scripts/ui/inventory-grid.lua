@@ -53,10 +53,7 @@ local function get_recipe_locks(entity, inventory_index)
    if not recipe then return {} end
 
    local locks = {}
-   if
-      inventory_index == defines.inventory.assembling_machine_input
-      or inventory_index == defines.inventory.furnace_source
-   then
+   if inventory_index == defines.inventory.crafter_input then
       -- Map ingredients to slots
       local slot = 1
       for _, ingredient in ipairs(recipe.ingredients) do
@@ -65,10 +62,7 @@ local function get_recipe_locks(entity, inventory_index)
             slot = slot + 1
          end
       end
-   elseif
-      inventory_index == defines.inventory.assembling_machine_output
-      or inventory_index == defines.inventory.furnace_result
-   then
+   elseif inventory_index == defines.inventory.crafter_output then
       -- Map products to slots
       local slot = 1
       for _, product in ipairs(recipe.products) do

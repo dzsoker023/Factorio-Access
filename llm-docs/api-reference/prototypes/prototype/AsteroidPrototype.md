@@ -6,9 +6,11 @@
 
 ## Properties
 
-### mass
+### damage_per_hp
 
-**Type:** `double`
+How much damage should entities and tiles get for each asteroid health point lost due to collision with these objects.
+
+**Type:** `float`
 
 **Optional:** Yes
 

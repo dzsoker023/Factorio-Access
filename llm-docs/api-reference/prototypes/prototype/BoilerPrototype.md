@@ -97,3 +97,35 @@ In the `"heat-fluid-inside"` mode, fluid in the `fluid_box` is continuously heat
 
 **Default:** "heat-fluid-inside"
 
+### circuit_wire_max_distance
+
+The maximum circuit wire distance for this entity.
+
+**Type:** `double`
+
+**Optional:** Yes
+
+**Default:** 0
+
+### draw_copper_wires
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
+### draw_circuit_wires
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
+### circuit_connector
+
+**Type:** (`CircuitConnectorDefinition`, `CircuitConnectorDefinition`, `CircuitConnectorDefinition`, `CircuitConnectorDefinition`)
+
+**Optional:** Yes
+

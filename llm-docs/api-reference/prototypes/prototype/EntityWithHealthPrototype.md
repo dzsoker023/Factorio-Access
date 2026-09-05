@@ -53,7 +53,7 @@ max_health = 50
 
 ### healing_per_tick
 
-The amount of health automatically regenerated per tick. The entity must be active for this to work.
+The amount of health automatically regenerated per tick. If the value is in range [-0.0166, 0.0166], then healing is considered slow and will apply 60 * healing_per_tick once every second.
 
 **Type:** `float`
 
@@ -101,7 +101,7 @@ The entities that are spawned in place of this one when it dies.
 
 The loot is dropped on the ground when the entity is killed.
 
-**Type:** Array[`LootItem`]
+**Type:** Array[`ItemProductPrototype`]
 
 **Optional:** Yes
 
@@ -111,10 +111,11 @@ The loot is dropped on the ground when the entity is killed.
 loot =
 {
   {
-    count_max = 10,
-    count_min = 2,
-    item = "stone",
-    probability = 1
+    type = "item",
+    name = "stone",
+    amount_min = 2,
+    amount_max = 10,
+    independent_probability = 1
   }
 }
 ```

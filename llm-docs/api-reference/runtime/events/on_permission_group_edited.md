@@ -20,7 +20,7 @@ The group being edited.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### new_name
 
@@ -48,7 +48,7 @@ The player that did the editing or `nil` if by a mod.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

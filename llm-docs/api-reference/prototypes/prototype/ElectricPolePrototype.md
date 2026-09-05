@@ -79,13 +79,13 @@ Drawn when the electric pole is connected to an electric network.
 
 **Optional:** Yes
 
-### track_coverage_during_build_by_moving
+### track_coverage_during_drag_building
 
 **Type:** `boolean`
 
 **Optional:** Yes
 
-**Default:** False
+**Default:** True
 
 ### auto_connect_up_to_n_wires
 

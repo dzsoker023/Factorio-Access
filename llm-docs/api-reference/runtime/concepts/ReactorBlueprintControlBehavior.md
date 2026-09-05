@@ -4,7 +4,13 @@
 
 ## Parameters
 
-### read_burner_fuel
+### output_networks
+
+**Type:** `CircuitNetworkSelection`
+
+**Optional:** Yes
+
+### read_fuel
 
 Defaults to `false`.
 

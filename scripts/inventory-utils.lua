@@ -191,10 +191,6 @@ end
 ---| "artillery_turret_ammo"
 ---| "artillery_wagon_ammo"
 ---| "assembling_machine_dump"
----| "assembling_machine_input"
----| "assembling_machine_modules"
----| "assembling_machine_output"
----| "assembling_machine_trash"
 ---| "asteroid_collector_arm"
 ---| "asteroid_collector_output"
 ---| "beacon_modules"
@@ -223,10 +219,6 @@ end
 ---| "editor_guns"
 ---| "editor_main"
 ---| "fuel"
----| "furnace_modules"
----| "furnace_result"
----| "furnace_source"
----| "furnace_trash"
 ---| "god_main"
 ---| "hub_main"
 ---| "hub_trash"
@@ -242,9 +234,6 @@ end
 ---| "roboport_robot"
 ---| "robot_cargo"
 ---| "robot_repair"
----| "rocket_silo_input"
----| "rocket_silo_modules"
----| "rocket_silo_output"
 ---| "rocket_silo_rocket"
 ---| "rocket_silo_trash"
 ---| "spider_ammo"
@@ -312,10 +301,8 @@ function mod.find_trash_inventory(entity)
       "character_trash",
       "car_trash",
       "spider_trash",
-      "assembling_machine_trash",
       "cargo_landing_pad_trash",
       "crafter_trash",
-      "furnace_trash",
       "hub_trash",
       "lab_trash",
       "logistic_container_trash",

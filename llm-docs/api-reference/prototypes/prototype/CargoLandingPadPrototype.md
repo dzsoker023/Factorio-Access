@@ -63,35 +63,9 @@ The maximum circuit wire distance for this entity.
 
 **Required:** Yes
 
-### robot_animation
+### robot_door
 
-Drawn when a robot brings/takes items from this landing pad.
-
-**Type:** `Animation`
-
-**Optional:** Yes
-
-### robot_landing_location_offset
-
-The offset from the center of this landing pad where a robot visually brings/takes items.
-
-**Type:** `Vector`
-
-**Optional:** Yes
-
-### robot_opened_duration
-
-**Type:** `uint8`
-
-**Optional:** Yes
-
-**Default:** 0
-
-### robot_animation_sound
-
-Played when a robot brings/takes items from this landing pad. Only loaded if `robot_animation` is defined.
-
-**Type:** `Sound`
+**Type:** `RobotDoorSpecification`
 
 **Optional:** Yes
 
@@ -107,7 +81,15 @@ In chunks. The radius of how many chunks this cargo landing pad charts around it
 
 ### radar_visualisation_color
 
+The visualisation used when showing cargo bay unloading distance limits.
+
 **Type:** `Color`
+
+**Optional:** Yes
+
+### radius_visualisation_picture
+
+**Type:** `Sprite`
 
 **Optional:** Yes
 

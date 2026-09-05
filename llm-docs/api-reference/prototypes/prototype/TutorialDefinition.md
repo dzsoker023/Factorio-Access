@@ -9,7 +9,7 @@ The definition of the tutorial to be used in the tips and tricks, see [TipsAndTr
 
 ### scenario
 
-Name of the folder for this tutorial scenario in the [`tutorials` folder](runtime:mod-structure).
+Name of the folder for this tutorial scenario in the [`tutorials` folder](auxiliary:mod-structure).
 
 **Type:** `string`
 

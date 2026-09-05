@@ -53,6 +53,16 @@ Whether a random graphics variation is chosen when placing the entity/creating i
 
 **Default:** True
 
+### shuffled_variation_on_chunk_generated
+
+If true, map generator will shuffle graphics variations for each chunk and pick the next one in sequence instead of making it purely position-based. This prevents identical entity variations from being too close to each other. This property overrides random_variation_on_create.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+
 ### pictures
 
 Takes priority over `picture` and `animations`.

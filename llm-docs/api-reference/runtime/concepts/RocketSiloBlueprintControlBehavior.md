@@ -4,6 +4,12 @@
 
 ## Parameters
 
+### output_networks
+
+**Type:** `CircuitNetworkSelection`
+
+**Optional:** Yes
+
 ### read_items_mode
 
 Defaults to `logistic_inventory`.

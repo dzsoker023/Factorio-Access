@@ -10,6 +10,12 @@
 
 **Optional:** Yes
 
+### input_networks
+
+**Type:** `CircuitNetworkSelection`
+
+**Optional:** Yes
+
 ### input_right_condition
 
 **Type:** `CircuitCondition`

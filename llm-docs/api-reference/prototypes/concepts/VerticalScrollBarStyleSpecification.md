@@ -1,5 +1,7 @@
 # VerticalScrollBarStyleSpecification
 
+Root style: `"vertical_scrollbar"`
+
 **Type:** `Struct`
 
 ## Properties

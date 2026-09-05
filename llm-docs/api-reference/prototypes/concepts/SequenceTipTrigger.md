@@ -1,5 +1,7 @@
 # SequenceTipTrigger
 
+Triggered when the triggers listed in `triggers` are triggered in order.
+
 **Type:** `Struct`
 
 ## Properties

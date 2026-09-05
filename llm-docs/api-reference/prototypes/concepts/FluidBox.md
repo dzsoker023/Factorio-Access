@@ -54,16 +54,6 @@ Can be used to specify which fluid is allowed to enter this fluid box. See [here
 
 **Default:** False
 
-### hide_connection_info
-
-Hides the blue input/output arrows and icons at each connection point.
-
-**Type:** `boolean`
-
-**Optional:** Yes
-
-**Default:** False
-
 ### volume_reservation_fraction
 
 A fraction of the volume that will be "reserved" and cannot be removed by flow operations. This does nothing if the fluidbox is part of a fluid segment.

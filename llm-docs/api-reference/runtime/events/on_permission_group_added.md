@@ -14,7 +14,7 @@ The group added.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -24,7 +24,7 @@ The player that added the group or `nil` if by a mod.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

@@ -6,17 +6,9 @@ Control behavior for logistic chests.
 
 ## Attributes
 
-### circuit_exclusive_mode_of_operation
-
-The circuit mode of operations for the logistic container. Can only be set on containers whose [logistic_mode](runtime:LuaEntityPrototype::logistic_mode) is set to `"requester"` or `"buffer"`.
-
-**Read type:** `defines.control_behavior.logistic_container.exclusive_mode`
-
-**Write type:** `defines.control_behavior.logistic_container.exclusive_mode`
-
 ### circuit_condition_enabled
 
-Whether the circuit condition is in effect
+Whether the circuit condition is in effect.
 
 **Read type:** `boolean`
 
@@ -29,6 +21,24 @@ The circuit condition for the logistic container.
 **Read type:** `CircuitConditionDefinition`
 
 **Write type:** `CircuitConditionDefinition`
+
+### set_requests
+
+`true` if this logistic container has its requests set by a circuit network.
+
+Can only be set to `true` on containers whose [logistic_mode](runtime:LuaEntityPrototype::logistic_mode) or [override_logistic_mode](runtime:LuaEntity::override_logistic_mode) is set to `"requester"` or `"buffer"`.
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
+
+### read_contents
+
+`true` if this logistic container is sending its content to a circuit network.
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
 
 ### valid
 

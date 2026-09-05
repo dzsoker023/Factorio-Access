@@ -8,7 +8,7 @@ Called when a custom [Lua shortcut](prototype:ShortcutPrototype) is pressed.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -22,7 +22,7 @@ Shortcut prototype name of the shortcut that was clicked.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

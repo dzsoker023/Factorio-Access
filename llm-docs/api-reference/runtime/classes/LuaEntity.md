@@ -16,6 +16,12 @@ Length of this rail piece.
 
 **Subclasses:** Rail
 
+### fluids_count
+
+Returns count of fluid storages. This includes fluid storages provided by fluidboxes but also covers other fluid storages like fluid turret's internal buffer and fluid wagon's fluid.
+
+**Read type:** `uint32`
+
 ### name
 
 Name of the entity prototype. E.g. "inserter" or "fast-inserter".
@@ -82,17 +88,13 @@ This has no effect if the prototype does not support filters.
 
 ### active
 
-Deactivating an entity will stop all its operations (car will stop moving, inserters will stop working, fish will stop moving etc).
+A deactivated entity will stop all of its operations (car will stop moving, inserters will stop working, fish will stop moving, etc).
 
-Reading from this returns `false` if the entity is deactivated in at least one of the following ways: [by script](runtime:LuaEntity::disabled_by_script), [by circuit network](runtime:LuaEntity::disabled_by_control_behavior), [by recipe](runtime:LuaEntity::disabled_by_recipe), [by freezing](runtime:LuaEntity::frozen), or by deconstruction.
+Reading from this returns `false` if the entity is deactivated in at least one of the following ways: [by script](runtime:LuaEntity::disabled_by_script), [by circuit network](runtime:LuaEntity::disabled_by_control_behavior), [by recipe](runtime:LuaEntity::disabled_by_recipe), [by freezing](runtime:LuaEntity::frozen), or by being marked for deconstruction.
 
-Writing to this is deprecated and affects only the [disabled_by_script](runtime:LuaEntity::disabled_by_script) state.
-
-Entities that are not active naturally can't be set to be active (setting it to be active will do nothing). Some entities (Corpse, FireFlame, Roboport, RollingStock, dying entities) need to remain active and will ignore writes.
+If this entity is not considered [updatable](runtime:LuaEntity::is_updatable) then this always returns `false`.
 
 **Read type:** `boolean`
-
-**Write type:** `boolean`
 
 ### destructible
 
@@ -110,11 +112,7 @@ Not minable entities can still be destroyed.
 
 Tells if entity reports as being minable right now. This takes into account `minable_flag` and entity specific conditions (for example rail under rolling stocks is not minable, vehicle with passenger is not minable).
 
-Write to this field since 2.0.26 is deprecated and it will result in write to `minable_flag` instead.
-
 **Read type:** `boolean`
-
-**Write type:** `boolean`
 
 ### minable_flag
 
@@ -137,6 +135,14 @@ Entities that are not rotatable naturally (like chest or furnace) can't be set t
 ### operable
 
 Player can't open gui of this entity and he can't quick insert/input stuff in to the entity when it is not operable.
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
+
+### protected
+
+Automated weapons won't target protected entities.
 
 **Read type:** `boolean`
 
@@ -452,17 +458,33 @@ The train this rolling stock belongs to, if any. `nil` if this is not a rolling 
 
 **Optional:** Yes
 
-### neighbours
+### fluidbox_neighbours
 
-A list of neighbours for certain types of entities. Applies to underground belts, walls, gates, reactors, heat pipes, cliffs, and pipe-connectable entities.
+A list of neighbours connected to fluidboxes of this entity. Neighbours are grouped by index of fluid box of this entity to which they are connected. For more detailed informations please use [LuaEntity::get_fluid_box_neighbours](runtime:LuaEntity::get_fluid_box_neighbours).
 
-**Read type:** Dictionary[`string`, `LuaEntity`] | Array[Array[`LuaEntity`]] | `LuaEntity`
+**Read type:** Array[Array[`LuaEntity`]]
+
+### underground_belt_neighbour
+
+Neighbour underground belt connected to this underground belt through underground lines.
+
+**Read type:** `LuaEntity`
 
 **Optional:** Yes
 
+**Subclasses:** UndergroundBelt
+
+### wall_neighbours
+
+Table of wall-connectable neighbours.
+
+**Read type:** Table (see below for parameters)
+
+**Subclasses:** Wall, Gate
+
 ### belt_neighbours
 
-The belt connectable neighbours of this belt connectable entity. Only entities that input to or are outputs of this entity. Does not contain the other end of an underground belt, see [LuaEntity::neighbours](runtime:LuaEntity::neighbours) for that.
+The belt connectable neighbours of this belt connectable entity. Only entities that input to or are outputs of this entity. Does not contain the other end of an underground belt, see [LuaEntity::underground_belt_neighbour](runtime:LuaEntity::underground_belt_neighbour) for that.
 
 **Read type:** Table (see below for parameters)
 
@@ -474,11 +496,21 @@ The entities connected to this entities heat buffer.
 
 **Read type:** Array[`LuaEntity`]
 
-### fluidbox
+### cliff_neighbours
 
-Fluidboxes of this entity.
+Table of cliff neighbours.
 
-**Read type:** `LuaFluidBox`
+**Read type:** Table (see below for parameters)
+
+**Subclasses:** Cliff
+
+### neighbour_connectable_connections
+
+Connections of a [neighbour connectable](runtime:LuaEntityPrototype::neighbour_connectable) entity. Includes connections that aren't currently connected to another entity.
+
+**Read type:** Array[`NeighbourConnectableConnection`]
+
+**Subclasses:** Reactor, FusionReactor
 
 ### backer_name
 
@@ -698,7 +730,7 @@ The logistic cell this entity is a part of. Will be `nil` if this entity is not 
 
 Items this ghost will request when revived or items this item request proxy is requesting.
 
-**Read type:** `ItemWithQualityCounts`
+**Read type:** Array[`ItemWithQualityCount`]
 
 ### insert_plan
 
@@ -820,16 +852,6 @@ The [unit_number](runtime:LuaEntity::unit_number) of the entity contained in thi
 
 **Subclasses:** EntityGhost
 
-### mining_progress
-
-The mining progress for this mining drill. Is a number in range [0, mining_target.prototype.mineable_properties.mining_time]. `nil` if this isn't a mining drill.
-
-**Read type:** `double`
-
-**Write type:** `double`
-
-**Optional:** Yes
-
 ### bonus_mining_progress
 
 The bonus mining progress for this mining drill. Read yields a number in range [0, mining_target.prototype.mineable_properties.mining_time]. `nil` if this isn't a mining drill.
@@ -847,26 +869,6 @@ Area in which this mining drill looks for resources to mine.
 **Read type:** `BoundingBox`
 
 **Subclasses:** MiningDrill
-
-### power_production
-
-The power production specific to the ElectricEnergyInterface entity type.
-
-**Read type:** `double`
-
-**Write type:** `double`
-
-**Subclasses:** ElectricEnergyInterface
-
-### power_usage
-
-The power usage specific to the ElectricEnergyInterface entity type.
-
-**Read type:** `double`
-
-**Write type:** `double`
-
-**Subclasses:** ElectricEnergyInterface
 
 ### bounding_box
 
@@ -1068,6 +1070,8 @@ The vehicle modifiers applied to this entity through the attached stickers.
 
 The electric network statistics for this electric pole.
 
+If this electric pole becomes invalid, the flow statistics obtained from it will also become invalid. If this electric pole becomes part of a different electric network, the flow statistics will be for the new electric network this pole is part of.
+
 **Read type:** `LuaFlowStatistics`
 
 **Subclasses:** ElectricPole
@@ -1165,6 +1169,74 @@ Number of beacons affecting this effect receiver. Can only be used when the enti
 **Read type:** `uint32`
 
 **Optional:** Yes
+
+### override_logistic_mode
+
+The override logistic mode being used by this infinity container if it is overridden.
+
+**Read type:** `defines.logistic_mode`
+
+**Write type:** `defines.logistic_mode`
+
+**Optional:** Yes
+
+**Subclasses:** InfinityContainer
+
+### saved_request_from_buffers
+
+The saved request from buffers value if one exists.
+
+The value exists when the infinity container was switched away from having the request from buffers option, for example by changing the [logistic mode](runtime:LuaEntity::override_logistic_mode) away from requester.
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** InfinityContainer
+
+### saved_set_requests
+
+The saved set requests value if one exists.
+
+The value exists when the infinity container was switched away from having the set requests option, for example by changing the [logistic mode](runtime:LuaEntity::override_logistic_mode) away from requester or buffer.
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** InfinityContainer
+
+### saved_request_filters
+
+The saved logistic requests if they exist.
+
+They exist when the infinity container was switched away from having the option to set logistic requests, for example by changing the [logistic mode](runtime:LuaEntity::override_logistic_mode) away from requester or buffer.
+
+**Read type:** `SavedLogisticFilters`
+
+**Write type:** `SavedLogisticFilters`
+
+**Optional:** Yes
+
+**Subclasses:** InfinityContainer
+
+### saved_storage_filters
+
+The saved storage filters if they exist.
+
+They exist when the infinity container was switched away from having the option to set storage filters, for example by changing the [logistic mode](runtime:LuaEntity::override_logistic_mode) away from storage.
+
+**Read type:** `SavedLogisticFilters`
+
+**Write type:** `SavedLogisticFilters`
+
+**Optional:** Yes
+
+**Subclasses:** InfinityContainer
 
 ### infinity_container_filters
 
@@ -1406,7 +1478,7 @@ The current total neighbour bonus of this reactor.
 
 ### ai_settings
 
-The ai settings of this unit.
+The AI settings of this unit.
 
 **Read type:** `LuaAISettings`
 
@@ -1476,21 +1548,25 @@ The player that this `simple-entity-with-owner`, `simple-entity-with-force`, or 
 
 The forces that this `simple-entity-with-owner` or `simple-entity-with-force` is visible to. `nil` or an empty array when this entity is rendered for all forces.
 
-Reading will always give an array of [LuaForce](runtime:LuaForce)
-
-**Read type:** `ForceSet`
+**Read type:** Array[`LuaForce`]
 
 **Write type:** `ForceSet`
 
 **Optional:** Yes
 
-### pump_rail_target
+### pump_input_rail_targets
 
-The rail target of this pump, if any.
+The rail targets of this pump's input
 
-**Read type:** `LuaEntity`
+**Read type:** Array[`LuaEntity`]
 
-**Optional:** Yes
+**Subclasses:** Pump
+
+### pump_output_rail_targets
+
+The rail targets of this pump's output
+
+**Read type:** Array[`LuaEntity`]
 
 **Subclasses:** Pump
 
@@ -1516,15 +1592,41 @@ Returns the id of the electric network that this entity is connected to, if any.
 
 **Optional:** Yes
 
+### electric_network
+
+Electric network this entity is connected to.
+
+This can be used with electric poles, in which case the network will be the same as the one obtained from copper wire connector.
+
+If this entity has an electric energy source, only a primary network will be provided. To also get other networks for entities in range of multiple networks, use [LuaEntity::electric_networks](runtime:LuaEntity::electric_networks) instead.
+
+**Read type:** `LuaElectricSubNetwork`
+
+**Optional:** Yes
+
+### electric_networks
+
+Electric networks this entity with an electric energy source is connected to.
+
+No array is given if this entity has no electric energy source.
+
+Empty array will be given if this entity is not in range of any networks.
+
+Compared to [LuaEntity::electric_network](runtime:LuaEntity::electric_network), this does not work with electric poles since they do not have an electric energy source and as such can only belong to one network at a time.
+
+**Read type:** Array[`LuaElectricSubNetwork`]
+
+**Optional:** Yes
+
 ### allow_dispatching_robots
 
-Whether this character's personal roboports are allowed to dispatch robots.
+Whether this entity's personal roboports are allowed to dispatch robots.
 
 **Read type:** `boolean`
 
 **Write type:** `boolean`
 
-**Subclasses:** Character
+**Subclasses:** Character, Vehicle
 
 ### energy_generated_last_tick
 
@@ -1608,6 +1710,18 @@ Destination of this spidertron's autopilot, if any. Writing `nil` clears all des
 
 **Subclasses:** SpiderVehicle
 
+### autopilot_patrol_size
+
+When there are this many waypoints left the spider vehicle will start patrolling along them.
+
+Setting this to 0 will disable patrolling.
+
+**Read type:** `uint32`
+
+**Write type:** `uint32`
+
+**Subclasses:** SpiderVehicle
+
 ### autopilot_destinations
 
 The queued destination positions of spidertron's autopilot.
@@ -1624,6 +1738,8 @@ Train may be included multiple times when braking distance covers this train sto
 
 Value may be read even when train stop has no control behavior.
 
+This value is equal to LuaEntity::train_reservations_count + LuaEntity::script_reservations_count.
+
 **Read type:** `uint32`
 
 **Subclasses:** TrainStop
@@ -1633,6 +1749,24 @@ Value may be read even when train stop has no control behavior.
 Amount of trains above which no new trains will be sent to this train stop. Writing nil will disable the limit (will set a maximum possible value).
 
 When a train stop has a control behavior with wire connected and set_trains_limit enabled, this value will be overwritten by it.
+
+**Read type:** `uint32`
+
+**Write type:** `uint32`
+
+**Subclasses:** TrainStop
+
+### train_reservations_count
+
+Amount of train stop reservations taken by trains.
+
+**Read type:** `uint32`
+
+**Subclasses:** TrainStop
+
+### script_reservations_count
+
+Amount of train stop reservations taken by script.
 
 **Read type:** `uint32`
 
@@ -1891,12 +2025,6 @@ Returns a LuaCommandable for this entity or nil if entity is not commandable. Un
 **Read type:** `LuaCommandable`
 
 **Optional:** Yes
-
-### fluids_count
-
-Returns count of fluid storages. This includes fluid storages provided by fluidboxes but also covers other fluid storages like fluid turret's internal buffer and fluid wagon's fluid since they are not fluidbox and cannot be exposed through [LuaFluidBox](runtime:LuaFluidBox).
-
-**Read type:** `uint32`
 
 ### tick_grown
 
@@ -2174,9 +2302,9 @@ Inventory index of the inventory that is exposed by this ProxyContainer
 
 Text visible on the display panel. Can be written only when it is not set by control behavior.
 
-**Read type:** `LocalisedString`
+**Read type:** `string`
 
-**Write type:** `LocalisedString`
+**Write type:** `string`
 
 **Subclasses:** DisplayPanel
 
@@ -2207,6 +2335,56 @@ Icon visible on the display panel. Can be written only when it is not set by con
 **Write type:** `boolean`
 
 **Subclasses:** DisplayPanel
+
+### power_production
+
+The power production specific to the ElectricEnergyInterface entity type.
+
+**Read type:** `double`
+
+**Write type:** `double`
+
+**Subclasses:** ElectricEnergyInterface
+
+### power_usage
+
+The power usage specific to the ElectricEnergyInterface entity type.
+
+**Read type:** `double`
+
+**Write type:** `double`
+
+**Subclasses:** ElectricEnergyInterface
+
+### input_flow_limit
+
+Max amount of energy this ElectricEnergyInterface will take from electric network in one tick.
+
+**Read type:** `double`
+
+**Write type:** `double`
+
+**Subclasses:** ElectricEnergyInterface
+
+### output_flow_limit
+
+Max amount of energy this ElectricEnergyInterface will provide to electric network in one tick.
+
+**Read type:** `double`
+
+**Write type:** `double`
+
+**Subclasses:** ElectricEnergyInterface
+
+### electric_interface_mode
+
+Mode this ElectricEnergyInterface is in. Mode changes how the interface interacts with electric network: if its an electric producer, consumer and what priority it has.
+
+**Read type:** `defines.electric_interface_mode`
+
+**Write type:** `defines.electric_interface_mode`
+
+**Subclasses:** ElectricEnergyInterface
 
 ### valid
 
@@ -2463,7 +2641,7 @@ Upgrades this entity in place if it's marked to be upgraded.
 **Returns:**
 
 - `LuaEntity` *(optional)* - The first upgraded entity - `nil` if this entity is not marked for upgrade.
-- `LuaEntity` *(optional)* - The second upgraded entity - `nil` if this entity is not marked for upgrade.
+- `LuaEntity` *(optional)* - When upgrading underground belts, the other underground belt end that was also upgraded - `nil` if this entity is not marked for upgrade.
 
 ### is_crafting
 
@@ -2529,6 +2707,7 @@ Get an item insert specification onto a belt connectable: for a given map positi
 **Parameters:**
 
 - `position` `MapPosition` - Position where the item is to be inserted.
+- `mirrored` `boolean` *(optional)* - When inserting at position exactly in between lines, mirroring is used to choose line.
 
 **Returns:**
 
@@ -2578,7 +2757,7 @@ Revive a ghost, which turns it from a ghost into a real entity or tile.
 
 **Returns:**
 
-- Dictionary[`string`, `uint32`] *(optional)* - Any items the new real entity collided with or `nil` if the ghost could not be revived.
+- Array[`ItemWithQualityCount`] *(optional)* - Any items the new real entity collided with or `nil` if the ghost could not be revived.
 - `LuaEntity` *(optional)* - The revived entity if an entity ghost was successfully revived.
 - `LuaEntity` *(optional)* - The item request proxy if one was created.
 
@@ -2593,7 +2772,7 @@ Revives a ghost silently, so the revival makes no sound and no smoke is created.
 
 **Returns:**
 
-- `ItemWithQualityCounts` - Any items the new real entity collided with or `nil` if the ghost could not be revived.
+- Array[`ItemWithQualityCount`] - Any items the new real entity collided with or `nil` if the ghost could not be revived.
 - `LuaEntity` *(optional)* - The revived entity if an entity ghost was successfully revived.
 - `LuaEntity` *(optional)* - The item request proxy if one was created.
 
@@ -2898,7 +3077,7 @@ Copies settings from the given entity onto this entity.
 
 **Returns:**
 
-- `ItemWithQualityCounts` - Any items removed from this entity as a result of copying the settings.
+- Array[`ItemWithQualityCount`] - Any items removed from this entity as a result of copying the settings.
 
 ### get_logistic_point
 
@@ -2974,7 +3153,7 @@ Sets the given recipe in this assembly machine.
 
 **Returns:**
 
-- `ItemWithQualityCounts` - Any items removed from this entity as a result of setting the recipe.
+- Array[`ItemWithQualityCount`] - Any items removed from this entity as a result of setting the recipe.
 
 ### rotate
 
@@ -2988,6 +3167,19 @@ Rotates this entity as if the player rotated it.
 **Returns:**
 
 - `boolean` - Whether the rotation was successful.
+
+### flip
+
+Flips this entity
+
+**Parameters:**
+
+- `horizontal` `boolean`
+- `by_player` `PlayerIdentification` *(optional)*
+
+**Returns:**
+
+- `boolean` - Whether the flip was successful.
 
 ### get_driver
 
@@ -3070,7 +3262,7 @@ Clones this entity.
 
 Get the amount of all or some fluid in this entity.
 
-If information about fluid temperatures is required, [LuaEntity::fluidbox](runtime:LuaEntity::fluidbox) should be used instead.
+If information about fluid temperatures is required, [LuaEntity::get_fluid](runtime:LuaEntity::get_fluid) should be used instead.
 
 **Parameters:**
 
@@ -3078,35 +3270,333 @@ If information about fluid temperatures is required, [LuaEntity::fluidbox](runti
 
 **Returns:**
 
-- `double`
+- `FluidAmount`
 
 ### get_fluid_contents
 
 Get amounts of all fluids in this entity.
 
-If information about fluid temperatures is required, [LuaEntity::get_fluid](runtime:LuaEntity::get_fluid) or [LuaEntity::fluidbox](runtime:LuaEntity::fluidbox) should be used instead.
+If information about fluid temperatures is required, [LuaEntity::get_fluid](runtime:LuaEntity::get_fluid) should be used instead.
 
 **Returns:**
 
 - Dictionary[`string`, `FluidAmount`] - The amounts, indexed by fluid names.
 
-### remove_fluid
+### clear_fluids
 
-Remove fluid from this entity.
-
-If temperature is given only fluid matching that exact temperature is removed. If minimum and maximum is given fluid within that range is removed.
-
-**Parameters:**
-
-- `name` `string` - Fluid prototype name.
-- `amount` `double` - Amount to remove
-- `minimum_temperature` `double` *(optional)*
-- `maximum_temperature` `double` *(optional)*
-- `temperature` `double` *(optional)*
+Clears all fluids in this entity but will not clear fluids in any fluid segments fluidboxes may be part of.
 
 **Returns:**
 
-- `double` - Amount of fluid actually removed.
+- Array[`Fluid`] - The fluids removed.
+
+### get_fluid
+
+Gets the fluid in the entity's given fluid storage if one exists.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+
+**Returns:**
+
+- `Fluid` *(optional)* - The fluid in this storage. `nil` if fluid storage is empty.
+
+### set_fluid
+
+Sets the fluid in the entity's given fluid storage to the provided fluid if possible.
+
+Fluid filters may block setting the fluid, or less fluid may be set if it's more than the maximum capacity.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+- `fluid` `Fluid`
+
+**Returns:**
+
+- `FluidAmount` - How much of the given fluid was actually set.
+
+### add_fluid
+
+Adds the given fluid to the entity's given fluid storage if possible.
+
+If the current fluid conflicts or the current filter conflicts the fluid may not be added.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+- `fluid` `Fluid`
+
+**Returns:**
+
+- `FluidAmount` - The amount of fluid added.
+
+### remove_fluid
+
+Removes the given fluid amount from the entity's given fluid storage if possible.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+- `amount` `FluidAmount`
+
+**Returns:**
+
+- `Fluid` *(optional)* - The fluid removed.
+
+### clear_fluid
+
+Removes all fluid from the entity's given fluid storage if possible.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+
+**Returns:**
+
+- `Fluid` *(optional)* - The fluid cleared.
+
+### get_fluid_filter
+
+Get a fluidbox filter, such as the filter of a pump.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+
+**Returns:**
+
+- `FluidFilter` *(optional)*
+
+### set_fluid_filter
+
+Set a fluidbox filter, such as the filter of a pump.
+
+Some entities cannot have their fluidbox filter set, notably fluid wagons and crafting machines.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+- `filter` `FluidFilter` *(optional)*
+
+**Returns:**
+
+- `boolean` - Whether the filter was set.
+
+### get_fluid_capacity
+
+Gets the maximum capacity of the entity's given fluid storage.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+
+**Returns:**
+
+- `FluidAmount`
+
+### get_fluid_box_prototype
+
+The prototype of the entity's given fluid storage if one exists. If this is used on a fluidbox of a crafting machine which due to recipe was created by merging multiple prototypes, a table of prototypes that were merged will be returned instead For storages on entities that have fluid storage but no prototype for those storages (fluid wagons, and fluid turrets) this returns `nil`.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+
+**Returns:**
+
+- `LuaFluidBoxPrototype` | Array[`LuaFluidBoxPrototype`] *(optional)*
+
+### get_fluid_box_neighbours
+
+The entities the given fluidbox is connected to.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+
+**Returns:**
+
+- Array[`FluidBoxNeighbourRecord`] *(optional)*
+
+### get_fluid_box_pipe_connections
+
+Get the given connections and associated data of the fluidbox.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+
+**Returns:**
+
+- Array[`PipeConnection`] *(optional)*
+
+### add_fluid_box_linked_connection
+
+Registers a linked fluidbox connection between this entity and other entity. Because entity may have multiple fluidboxes, each with multiple connections that could be linked, a unique value for this and other linked_connection_id may need to be given.
+
+It may happen a linked fluidbox connection is not established immediately due to crafting machines being possible to not have certain fluidboxes exposed at a given point in time, but once they appear (due to recipe changes that would use them) they will be linked. Linked connections are persisted as (this_entity, this_linked_connection_id, other_entity, other_linked_connection_id) so if a pipe connection definition's value of linked_connection_id changes existing connections may not restore correct connections.
+
+Every fluidbox connection that was defined in prototypes as connection_type=="linked" may be linked to at most 1 other fluidbox. When trying to connect already used connection, previous connection will be removed.
+
+Linked connections cannot go to the same entity even if they would be part of other fluidbox.
+
+**Parameters:**
+
+- `this_linked_connection_id` `uint32`
+- `other_entity` `LuaEntity`
+- `other_linked_connection_id` `uint32`
+
+### remove_fluid_box_linked_connection
+
+Removes linked fluidbox connection record. If connected, other end will be also removed.
+
+**Parameters:**
+
+- `this_linked_connection_id` `uint32`
+
+### get_fluid_box_linked_connection
+
+Returns other end of a linked fluidbox connection.
+
+**Parameters:**
+
+- `this_linked_connection_id` `uint32`
+
+**Returns:**
+
+- `LuaEntity` *(optional)* - Other entity to which a linked fluidbox connection was made
+- `uint32` *(optional)* - linked_connection_id on other entity
+
+### get_fluid_box_linked_connections
+
+Returns list of all linked fluidbox connections registered for this entity.
+
+**Returns:**
+
+- Array[`FluidBoxConnectionRecord`]
+
+### has_fluid_segment
+
+Whether the given fluid storage has a fluid segment.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+
+**Returns:**
+
+- `boolean`
+
+### get_fluid_segment_fluid
+
+The fluid within the given storage's fluid segment.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+
+**Returns:**
+
+- `Fluid` *(optional)*
+
+### set_fluid_segment_fluid
+
+Sets the fluid within the given storage's fluid segment.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+- `fluid` `Fluid`
+
+**Returns:**
+
+- `FluidAmount` - The amount of fluid set.
+
+### add_fluid_segment_fluid
+
+Adds the given fluid to the given storage's fluid segment if possible.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+- `fluid` `Fluid`
+
+**Returns:**
+
+- `FluidAmount` - The amount of fluid added.
+
+### clear_fluid_segment_fluid
+
+Clears the given fluid storage's fluid segment.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+
+**Returns:**
+
+- `Fluid` *(optional)* - The fluid cleared.
+
+### remove_fluid_segment_fluid
+
+Removes the given fluid amount from the given storage's fluid segment if possible.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+- `amount` `FluidAmount`
+
+**Returns:**
+
+- `Fluid` *(optional)* - The fluid removed.
+
+### get_fluid_segment_filter
+
+Gets the filter of the given fluid storage's segment. The filter is based on the filters set on the fluidboxes of the segment, so it can't be set directly on the segment.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+
+**Returns:**
+
+- `FluidFilter` *(optional)*
+
+### get_fluid_segment_capacity
+
+Gets the maximum capacity of the given fluid storage's segment.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+
+**Returns:**
+
+- `FluidAmount`
+
+### get_fluid_segment_extent_bounding_box
+
+Gets the current extent bounding box of of the given fluid storage's segment.
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+
+**Returns:**
+
+- `BoundingBox`
+
+### get_fluid_segment_id
+
+**Parameters:**
+
+- `index` `FluidStorageIndex`
+
+**Returns:**
+
+- `uint32`
 
 ### insert_fluid
 
@@ -3118,11 +3608,29 @@ Insert fluid into this entity. Fluidbox is chosen automatically.
 
 **Returns:**
 
-- `double` - Amount of fluid actually inserted.
+- `FluidAmount` - Amount of fluid actually inserted.
+
+### extract_fluid
+
+Remove fluid from this entity.
+
+If temperature is given only fluid matching that exact temperature is removed. If minimum and maximum is given fluid within that range is removed.
+
+**Parameters:**
+
+- `name` `string` - Fluid prototype name.
+- `amount` `FluidAmount` - Amount to remove
+- `minimum_temperature` `double` *(optional)*
+- `maximum_temperature` `double` *(optional)*
+- `temperature` `double` *(optional)*
+
+**Returns:**
+
+- `FluidAmount` - Amount of fluid actually removed.
 
 ### clear_fluid_inside
 
-Remove all fluids from this entity.
+Remove all fluids from this entity and connected fluid segments.
 
 ### get_beam_source
 
@@ -3338,6 +3846,7 @@ Adds the given position to this spidertron's autopilot's queue of destinations.
 **Parameters:**
 
 - `position` `MapPosition` - The position the spidertron should move to.
+- `attempt_patrol` `boolean` *(optional)* - If the autopilot logic should attempt to initiate patrol mode at the given position. Defaults to `false`.
 
 ### connect_linked_belts
 
@@ -3459,6 +3968,7 @@ Cargo pod will be created with [invalid](runtime:defines.cargo_destination.inval
 **Parameters:**
 
 - `cargo_hatch` `LuaCargoHatch` *(optional)* - The hatch to create the pod at. A random (available) one is picked if not provided.
+- `cargo_pod_prototype` `EntityID` *(optional)* - The cargo pod prototype to create. If not provided, the default cargo pod prototype of the hatch is used.
 
 **Returns:**
 
@@ -3607,33 +4117,6 @@ Note that for combat robots this does not affect the constant drift in the direc
 - `direction` `Vector` - This normalized form of this vector is used for the movement direction.
 - `speed` `double` - Speed in tiles per tick. Cannot be less than 0.
 
-### get_fluid
-
-Gets fluid of the index-th fluid storage. This includes fluidbox and non-fluidbox fluid storages like fluid wagon contents. Refer to [LuaEntity::fluids_count](runtime:LuaEntity::fluids_count) for more information on available storages.
-
-**Parameters:**
-
-- `index` `uint32` - Fluid storage index. Valid values are from 1 up to [LuaEntity::fluids_count](runtime:LuaEntity::fluids_count).
-
-**Returns:**
-
-- `Fluid` *(optional)* - Fluid in this storage. `nil` if fluid storage is empty.
-
-### set_fluid
-
-Sets fluid to the index-th fluid storage. This includes fluidbox and non-fluidbox fluid storages like fluid wagon contents. Refer to [LuaEntity::fluids_count](runtime:LuaEntity::fluids_count) for more information on available storages.
-
-Fluid storages that are part of fluidboxes (also available through [LuaFluidBox](runtime:LuaFluidBox)) may reject some fluids if they do not match filters or are above the fluidbox volume. To verify how much fluid was set a return value can be used which is the same as value that would be returned by [LuaEntity::get_fluid](runtime:LuaEntity::get_fluid).
-
-**Parameters:**
-
-- `index` `uint32` - Fluid storage index. Valid values are from 1 up to [LuaEntity::fluids_count](runtime:LuaEntity::fluids_count).
-- `fluid` `Fluid` *(optional)* - Fluid to set. Fluid storage will be cleared if this is not provided.
-
-**Returns:**
-
-- `Fluid` *(optional)* - Fluid in this storage after it was set. `nil` if fluid storage is empty.
-
 ### get_logistic_sections
 
 Gives logistic sections of this entity if it uses logistic sections.
@@ -3679,4 +4162,67 @@ Checks what is expected fluid to be produced from the offshore pump's source til
 **Returns:**
 
 - `string` *(optional)* - Name of fluid that should be produced by this offshore pump based on existing tiles.
+
+### clear_stored_durability
+
+### get_stored_durability
+
+**Parameters:**
+
+- `item` `ItemID` - Item for which a stored durability is requested.
+
+**Returns:**
+
+- `LabStoredDurability` - Durability stored.
+
+### set_stored_durability
+
+**Parameters:**
+
+- `item` `ItemID` - Item for which a stored durability is requested.
+- `durability` `LabStoredDurability` - Durability to set.
+
+### clear_tooltip_fields
+
+Removes all runtime tooltip fields attached to this entity.
+
+### get_tooltip_fields
+
+Gets all runtime tooltip fields attached to this entity.
+
+**Returns:**
+
+- Array[`RuntimeTooltipField`]
+
+### clear_tooltip_field
+
+Removes selected runtime tooltip field.
+
+**Parameters:**
+
+- `id` `uint32`
+
+### get_tooltip_field
+
+Gets selected runtime tooltip field.
+
+**Parameters:**
+
+- `id` `uint32`
+
+**Returns:**
+
+- `RuntimeTooltipField` *(optional)*
+
+### set_tooltip_field
+
+Adds or changes runtime tooltip field. If `id` is not given a new one will be allocated in a way that makes it unique within this entity. If a value is given that is already used, existing line will be updated.
+
+**Parameters:**
+
+- `field` `RuntimeTooltipField`
+
+**Returns:**
+
+- `uint32` - Identifier of the record that was given or allocated.
 

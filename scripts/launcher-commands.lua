@@ -1,6 +1,6 @@
----@class LauncherCommands
 local VanillaMode = require("scripts.vanilla-mode")
 
+---@class LauncherCommands
 local mod = {}
 
 -- Generate a delimiter that's unlikely to appear in clipboard content

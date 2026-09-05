@@ -22,6 +22,18 @@
 
 **Required:** Yes
 
+### input_networks
+
+**Type:** `CircuitNetworkSelection`
+
+**Optional:** Yes
+
+### output_networks
+
+**Type:** `CircuitNetworkSelection`
+
+**Optional:** Yes
+
 ### output_signal
 
 **Type:** `SignalID`

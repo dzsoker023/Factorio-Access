@@ -36,7 +36,7 @@ Can't be used when `match_progress_to_activity` is `true`.
 
 **Optional:** Yes
 
-**Default:** 0
+**Default:** 8
 
 ### fade_out_ticks
 
@@ -46,7 +46,7 @@ Can't be used when `match_progress_to_activity` is `true`.
 
 **Optional:** Yes
 
-**Default:** 0
+**Default:** 20
 
 ### activity_to_volume_modifiers
 
@@ -95,6 +95,16 @@ The `sound` is played when at least one of the specified working visualisations 
 Unused when [WorkingSound::persistent](prototype:WorkingSound::persistent) is `true`.
 
 **Type:** Array[`string`]
+
+**Optional:** Yes
+
+### play_for_directions
+
+The `sound` is played when the entity has one the specified direction.
+
+Unused when [WorkingSound::persistent](prototype:WorkingSound::persistent) is `true`.
+
+**Type:** Array[`defines.direction`]
 
 **Optional:** Yes
 

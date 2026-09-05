@@ -36,6 +36,14 @@ The minimum count that will be delivered to a space platform. `nil` if unchanged
 
 **Optional:** Yes
 
+### request_from
+
+From which sources items should be requested for space platforms. Defaults to `"planet"`.
+
+**Type:** `RequestFromLocation`
+
+**Optional:** Yes
+
 ### value
 
 The item filter to put into the slot.

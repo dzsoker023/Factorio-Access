@@ -1,6 +1,6 @@
 # FishPrototype
 
-Entity that spawns in water tiles, which can be mined. Moves around unless deactivated with [LuaEntity::active](runtime:LuaEntity::active) = false.
+Entity that spawns in water tiles, which can be mined. Moves around unless it is [LuaEntity::disabled_by_script](runtime:LuaEntity::disabled_by_script) or marked for deconstruction.
 
 **Parent:** [EntityWithHealthPrototype](EntityWithHealthPrototype.md)
 **Type name:** `fish`

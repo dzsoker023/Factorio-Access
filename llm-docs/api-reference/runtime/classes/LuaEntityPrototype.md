@@ -124,6 +124,18 @@ The values in the dictionary are meaningless and exists just to allow the dictio
 
 **Read type:** Dictionary[`string`, `boolean`]
 
+### attack_target_mask
+
+**Read type:** `TriggerTargetMask`
+
+**Subclasses:** Turret
+
+### ignore_target_mask
+
+**Read type:** `TriggerTargetMask`
+
+**Subclasses:** Turret
+
 ### healing_per_tick
 
 Amount this entity can heal per tick, if any.
@@ -148,6 +160,14 @@ Corpses used when this entity is destroyed. It is a dictionary indexed by the co
 
 **Subclasses:** EntityWithHealth
 
+### folded_turret_corpses
+
+**Read type:** Dictionary[`string`, `LuaEntityPrototype`]
+
+**Optional:** Yes
+
+**Subclasses:** Turret
+
 ### selectable_in_game
 
 Is this entity selectable?
@@ -169,6 +189,16 @@ The weight of this vehicle prototype.
 **Optional:** Yes
 
 **Subclasses:** Vehicle
+
+### platform_weight
+
+Weight which this entity adds to total space platform weight when placed.
+
+**Read type:** `Weight`
+
+**Optional:** Yes
+
+**Subclasses:** SpacePlatformHub
 
 ### resistances
 
@@ -214,7 +244,7 @@ The definition of where and how the alt-mode icons of this entity should be draw
 
 Loot that will be dropped when this entity is killed, if any.
 
-**Read type:** Array[`Loot`]
+**Read type:** Array[`ItemProduct`]
 
 **Optional:** Yes
 
@@ -230,11 +260,29 @@ Repair-speed modifier for this entity, if any. Actual repair speed will be `tool
 
 **Subclasses:** EntityWithHealth
 
+### platform_repair_speed_modifier
+
+Repair speed of entities is multiplied by this value when they are on a space platform with this hub prototype.
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** SpacePlatformHub
+
 ### turret_range
 
 The range of this turret.
 
 **Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** Turret
+
+### turret_prepare_range
+
+**Read type:** `double`
 
 **Optional:** Yes
 
@@ -278,13 +326,13 @@ The attack result of this entity, if any.
 
 ### final_attack_result
 
-The final attack result for this projectile.
+The final attack result for this entity if it has one.
 
 **Read type:** Array[`TriggerItem`]
 
 **Optional:** Yes
 
-**Subclasses:** Projectile
+**Subclasses:** Projectile, ArtilleryProjectile
 
 ### attack_parameters
 
@@ -324,6 +372,16 @@ The mining radius of this mining drill prototype.
 
 **Subclasses:** MiningDrill
 
+### drops_full_belt_stacks
+
+If this mining drill puts full belt stacks onto belts.
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** MiningDrill
+
 ### quality_affects_mining_radius
 
 **Read type:** `boolean`
@@ -355,6 +413,16 @@ The resource drain rate percent of this mining drill prototype.
 ### uses_force_mining_productivity_bonus
 
 If this drill uses force productivity bonus
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** MiningDrill
+
+### require_resources_to_place
+
+If this drill requires minable resources before it can be placed.
 
 **Read type:** `boolean`
 
@@ -436,7 +504,7 @@ The trigger effects to run every tick when on cooldown.
 
 **Optional:** Yes
 
-**Subclasses:** Segment
+**Subclasses:** Segment, Sticker
 
 ### update_effects_while_enraged
 
@@ -468,12 +536,6 @@ The enemy map color used when charting this entity.
 
 **Read type:** `Color`
 
-### build_base_evolution_requirement
-
-The evolution requirement to build this entity as a base when expanding enemy bases.
-
-**Read type:** `double`
-
 ### instruments
 
 The instruments for this programmable speaker.
@@ -498,6 +560,8 @@ The maximum polyphony for this programmable speaker.
 
 The module inventory size. `nil` if this entity doesn't support modules.
 
+Returns the inventory size if this entity is of normal quality. Use [LuaEntityPrototype::get_inventory_size](runtime:LuaEntityPrototype::get_inventory_size) for other qualities.
+
 **Read type:** `uint32`
 
 **Optional:** Yes
@@ -509,6 +573,12 @@ The module inventory size. `nil` if this entity doesn't support modules.
 **Optional:** Yes
 
 **Subclasses:** Beacon, CraftingMachine, MiningDrill, Lab
+
+### module_slots_quality_bonus
+
+**Read type:** Dictionary[`QualityID`, `ItemStackIndex`]
+
+**Subclasses:** CraftingMachine
 
 ### inventory_type
 
@@ -530,9 +600,17 @@ Weight limit of the inventory if inventory_type is `"with_weight_limit"`.
 
 **Subclasses:** ContainerEntity, LinkedContainer
 
+### quality_affects_inventory_size
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** ContainerEntity, CargoWagon
+
 ### inventory_properties
 
-Properties of custom inventory. Only provided if inventory_type is `"with_custom_stack_size"`.
+Properties of custom inventory. Only provided if `inventory_type` is `"with_custom_stack_size"`.
 
 **Read type:** `InventoryWithCustomStackSizeSpecification`
 
@@ -560,6 +638,12 @@ The max number of item products this crafting machine prototype supports.
 
 **Subclasses:** CraftingMachine
 
+### crafting_speed_quality_multiplier
+
+**Read type:** Dictionary[`QualityID`, `double`]
+
+**Subclasses:** CraftingMachine
+
 ### crafting_categories
 
 The [crafting categories](runtime:LuaRecipeCategoryPrototype) this entity prototype supports.
@@ -571,6 +655,20 @@ The value in the dictionary is meaningless and exists just to allow for easy loo
 **Optional:** Yes
 
 **Subclasses:** CraftingMachine, Character
+
+### quality_affects_energy_usage
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** CraftingMachine
+
+### energy_usage_quality_multiplier
+
+**Read type:** Dictionary[`QualityID`, `double`]
+
+**Subclasses:** CraftingMachine
 
 ### resource_categories
 
@@ -674,13 +772,13 @@ The rotation snap angle of this car prototype.
 
 ### turret_rotation_speed
 
-The turret rotation speed of this car prototype.
+The turret rotation speed of this prototype.
 
 **Read type:** `float`
 
 **Optional:** Yes
 
-**Subclasses:** Car
+**Subclasses:** Car, ArtilleryTurret, ArtilleryWagon
 
 ### guns
 
@@ -702,13 +800,13 @@ A vector of the gun prototypes of this car, spider vehicle, artillery wagon, or 
 
 ### speed
 
-The default speed of this flying robot, rolling stock or unit. For rolling stocks, this is their `max_speed`.
+The default speed of this flying robot, or unit.
 
 **Read type:** `double`
 
 **Optional:** Yes
 
-**Subclasses:** FlyingRobot, RollingStock, Unit
+**Subclasses:** FlyingRobot, Unit
 
 ### speed_multiplier_when_out_of_energy
 
@@ -735,6 +833,16 @@ The cargo carrying capacity of this logistics or construction robot.
 The maximum possible cargo carrying capacity of this logistics or construction robot. Bonuses from technologies/forces can't increase the carrying capacity beyond this number.
 
 **Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** RobotWithLogisticsInterface
+
+### require_charge_to_mine
+
+If this robot with logistic interface requires it be charged to manually mine.
+
+**Read type:** `boolean`
 
 **Optional:** Yes
 
@@ -844,16 +952,6 @@ The log2 of [grid size](prototype:EntityPrototype::build_grid_size) of the build
 
 **Read type:** `uint32`
 
-### fluid_usage_per_tick
-
-The fluid usage of this generator prototype. This property is deprecated in favor of [LuaEntityPrototype::get_fluid_usage_per_tick](runtime:LuaEntityPrototype::get_fluid_usage_per_tick) and should not be used.
-
-**Read type:** `double`
-
-**Optional:** Yes
-
-**Subclasses:** Generator
-
 ### maximum_temperature
 
 The maximum fluid temperature of this generator prototype.
@@ -894,15 +992,13 @@ Whether this generator prototype destroys non-fuel fluids.
 
 **Subclasses:** Generator
 
-### max_power_output
+### spent_fluid
 
-The default maximum power output of this generator prototype. This property is deprecated in favor of [LuaEntityPrototype::get_max_power_output](runtime:LuaEntityPrototype::get_max_power_output) and should not be used.
-
-**Read type:** `double`
+**Read type:** `SpentFluidSpecification`
 
 **Optional:** Yes
 
-**Subclasses:** BurnerGenerator, Generator
+**Subclasses:** Generator
 
 ### target_temperature
 
@@ -931,16 +1027,6 @@ The fluid capacity of this entity or 0 if this entity doesn't support fluids.
 Crafting machines will report 0 due to their fluid capacity being whatever a given recipe needs.
 
 **Read type:** `double`
-
-### pumping_speed
-
-The pumping speed of this offshore pump or normal pump. This property is deprecated in favor of [LuaEntityPrototype::get_pumping_speed](runtime:LuaEntityPrototype::get_pumping_speed) and should not be used.
-
-**Read type:** `double`
-
-**Optional:** Yes
-
-**Subclasses:** OffshorePump, Pump
 
 ### valve_mode
 
@@ -1046,6 +1132,16 @@ True if this inserter chases items on belts for pickup.
 
 **Subclasses:** Inserter
 
+### inserter_max_belt_stack_size
+
+The max belt stack size for this inserter.
+
+**Read type:** `uint8`
+
+**Optional:** Yes
+
+**Subclasses:** Inserter
+
 ### loader_max_belt_stack_size
 
 The max belt stack size for this loader.
@@ -1096,19 +1192,25 @@ If this simple-entity is counted as a rock for the deconstruction planner "trees
 
 ### filter_count
 
-The filter count of this inserter, loader, mining drill or logistic chest. For logistic containers, `nil` means no limit.
+The filter count of this inserter, loader, mining drill, roboport or logistic chest. For logistic containers, `nil` means no limit.
 
 **Read type:** `uint32`
 
 **Optional:** Yes
 
-**Subclasses:** Inserter, Loader, LogisticContainer, MiningDrill
+**Subclasses:** Inserter, Loader, LogisticContainer, MiningDrill, Roboport
 
 ### time_to_live
 
 The time to live for this prototype or `0` if prototype doesn't have time_to_live or time_before_removed.
 
+**Read type:** `MapTick`
+
+### alert_after_time
+
 **Read type:** `uint32`
+
+**Subclasses:** TemporaryContainer
 
 ### distribution_effectivity
 
@@ -1145,6 +1247,14 @@ The beacon profile: extra multiplier applied to the effects received from beacon
 The beacon counter used by effect receiver when deciding which sample to take from beacon profile.
 
 **Read type:** `"total"` | `"same_type"`
+
+**Optional:** Yes
+
+**Subclasses:** Beacon
+
+### quality_affects_supply_area_distance
+
+**Read type:** `boolean`
 
 **Optional:** Yes
 
@@ -1198,7 +1308,7 @@ Whether this turret raises an alert when attacking
 
 **Optional:** Yes
 
-**Subclasses:** Turret
+**Subclasses:** Turret, ArtilleryTurret
 
 ### color
 
@@ -1247,6 +1357,14 @@ The allowed module categories for this entity, if any.
 The rocket parts required for this rocket silo prototype.
 
 **Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** RocketSilo
+
+### lift_weight
+
+**Read type:** `Weight`
 
 **Optional:** Yes
 
@@ -1342,9 +1460,19 @@ The flying acceleration for this rocket silo rocket prototype.
 
 ### fixed_recipe
 
-The fixed recipe name for this assembling machine prototype, if any.
+The fixed recipe for this assembling machine prototype, if any.
 
-**Read type:** `string`
+**Read type:** `LuaRecipePrototype`
+
+**Optional:** Yes
+
+**Subclasses:** AssemblingMachine
+
+### fixed_quality
+
+The fixed recipe quality for this assembling machine prototype, if any.
+
+**Read type:** `LuaQualityPrototype`
 
 **Optional:** Yes
 
@@ -1470,13 +1598,13 @@ The fluidbox prototypes for this entity.
 
 ### automated_ammo_count
 
-The amount of ammo that inserters automatically insert into this ammo-turret or artillery-turret.
+The amount of ammo that inserters automatically insert into this ammo turret, artillery turret or artillery wagon.
 
 **Read type:** `uint32`
 
 **Optional:** Yes
 
-**Subclasses:** ArtilleryTurret, AmmoTurret
+**Subclasses:** ArtilleryTurret, ArtilleryWagon, AmmoTurret
 
 ### max_speed
 
@@ -1544,7 +1672,7 @@ The maximum darkness at which this unit spawner can spawn entities.
 
 **Optional:** Yes
 
-**Subclasses:** Spawner
+**Subclasses:** Spawner, Turret
 
 ### max_count_of_owned_units
 
@@ -1684,13 +1812,11 @@ The maximum pursue distance of this unit prototype.
 
 ### radar_range
 
-The radar range of this unit prototype.
-
 **Read type:** `uint32`
 
 **Optional:** Yes
 
-**Subclasses:** SpiderUnit, Unit
+**Subclasses:** SpiderUnit, Unit, Roboport
 
 ### move_while_shooting
 
@@ -1764,6 +1890,14 @@ The item prototype names that are the inputs of this lab prototype.
 
 **Subclasses:** Lab
 
+### uses_quality_drain_modifier
+
+If this lab uses the quality drain modifier when consuming science packs.
+
+**Read type:** `boolean`
+
+**Subclasses:** Lab
+
 ### science_pack_drain_rate_percent
 
 How much science pack durability is required to research one science point.
@@ -1772,15 +1906,23 @@ How much science pack durability is required to research one science point.
 
 **Subclasses:** Lab
 
+### default_technology_level_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** Lab
+
 ### effect_receiver
 
-Effect receiver prototype of this crafting machine, lab, or mining drill.
+Effect receiver prototype of crafting machine, lab, mining drill, or agricultural tower.
 
 **Read type:** `EffectReceiver`
 
 **Optional:** Yes
 
-**Subclasses:** CraftingMachine, Lab, MiningDrill
+**Subclasses:** CraftingMachine, Lab, MiningDrill, AgriculturalTower
 
 ### allow_access_to_all_forces
 
@@ -1894,13 +2036,13 @@ The logistic parameters for this roboport.
 
 ### height
 
-The height of this spider vehicle prototype.
+The height of this spider unit, spider vehicle or projectile.
 
 **Read type:** `double`
 
 **Optional:** Yes
 
-**Subclasses:** SpiderUnit, SpiderVehicle
+**Subclasses:** SpiderUnit, SpiderVehicle, Projectile
 
 ### torso_rotation_speed
 
@@ -1975,6 +2117,26 @@ The animation speed coefficient of this belt connectable prototype.
 The manual range modifier for this artillery turret or wagon prototype.
 
 **Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryWagon, ArtilleryTurret
+
+### disable_automatic_firing
+
+If automatic firing is disabled for this artillery turret or artillery wagon.
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryWagon, ArtilleryTurret
+
+### ammo_stack_limit
+
+The max stack size of ammo in this artillery turret or artillery wagon.
+
+**Read type:** `ItemCountType`
 
 **Optional:** Yes
 
@@ -2132,6 +2294,22 @@ A table of pollutants that this plant will release when it is harvested.
 
 **Subclasses:** AgriculturalTower
 
+### randomize_planting_tile
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** AgriculturalTower
+
+### random_growth_offset
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** AgriculturalTower
+
 ### vector_to_place_result
 
 **Read type:** `Vector`
@@ -2206,7 +2384,7 @@ An alternative prototype that will be used to display info about this prototype 
 
 **Optional:** Yes
 
-**Subclasses:** EnemySpawnerPrototype
+**Subclasses:** Spawner
 
 ### min_performance
 
@@ -2230,7 +2408,7 @@ An alternative prototype that will be used to display info about this prototype 
 
 **Optional:** Yes
 
-**Subclasses:** FusionReactor
+**Subclasses:** StorageTank, FusionReactor, Generator
 
 ### perceived_performance
 
@@ -2255,6 +2433,14 @@ An alternative prototype that will be used to display info about this prototype 
 **Optional:** Yes
 
 **Subclasses:** EntityWithHealth
+
+### rocket_dying_explosion
+
+**Read type:** `LuaEntityPrototype`
+
+**Optional:** Yes
+
+**Subclasses:** RocketSiloRocket
 
 ### dying_trigger_effect
 
@@ -2302,7 +2488,7 @@ An alternative prototype that will be used to display info about this prototype 
 
 **Optional:** Yes
 
-**Subclasses:** FusionReactor
+**Subclasses:** Reactor, FusionReactor
 
 ### tile_buildability_rules
 
@@ -2317,6 +2503,22 @@ An alternative prototype that will be used to display info about this prototype 
 **Optional:** Yes
 
 **Subclasses:** RailSupport, RailRamp
+
+### reversing_power_modifier
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** Locomotive
+
+### use_mirroring
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** CraftingMachine, MiningDrill, Inserter
 
 ### territory_radius
 
@@ -2532,9 +2734,65 @@ The movement speed of this character prototype.
 
 **Subclasses:** Character
 
+### grounded_landing_search_radius
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** Character
+
+### tool_attack_distance
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** Character
+
+### flying_collision_mask
+
+**Read type:** `CollisionMask`
+
+**Optional:** Yes
+
+**Subclasses:** Character
+
+### tool_attack_result
+
+**Read type:** Array[`TriggerItem`]
+
+**Optional:** Yes
+
+**Subclasses:** Character
+
+### footstep_particle_triggers
+
+**Read type:** Dictionary[`LuaTilePrototype`, Array[`TriggerEffectItem`]]
+
+**Optional:** Yes
+
+**Subclasses:** Character
+
+### synced_footstep_particle_triggers
+
+**Read type:** Dictionary[`LuaTilePrototype`, Array[`TriggerEffectItem`]]
+
+**Optional:** Yes
+
+**Subclasses:** Character
+
+### footprint_particles
+
+**Read type:** Dictionary[`LuaTilePrototype`, Array[`LuaParticlePrototype`]]
+
+**Optional:** Yes
+
+**Subclasses:** Character
+
 ### arm_inventory_size_quality_increase
 
-**Read type:** `uint32`
+**Read type:** `ItemStackIndex`
 
 **Optional:** Yes
 
@@ -2542,7 +2800,7 @@ The movement speed of this character prototype.
 
 ### inventory_size_quality_increase
 
-**Read type:** `uint32`
+**Read type:** `ItemStackIndex`
 
 **Optional:** Yes
 
@@ -2754,11 +3012,35 @@ The movement speed of this character prototype.
 
 **Optional:** Yes
 
-**Subclasses:** CombatRobot
+**Subclasses:** CombatRobot, CaptureRobot, RobotWithLogisticInterface
 
 ### follows_player
 
 **Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** CombatRobot
+
+### separation_range
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** CombatRobot
+
+### max_separation_force
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** CombatRobot
+
+### separation_force_factor
+
+**Read type:** `double`
 
 **Optional:** Yes
 
@@ -2784,11 +3066,13 @@ The movement speed of this character prototype.
 
 When lightning strikes something that is not a lightning attractor, this damage is applied to the target.
 
-**Read type:** `double`
+For stickers the damage is applied every [LuaEntityPrototype::damage_interval](runtime:LuaEntityPrototype::damage_interval) ticks.
+
+**Read type:** `DamageParameters`
 
 **Optional:** Yes
 
-**Subclasses:** Lightning
+**Subclasses:** Lightning, Sticker
 
 ### energy
 
@@ -2800,11 +3084,1879 @@ When lightning hits a lightning attractor this amount of energy is transferred t
 
 **Subclasses:** Lightning
 
+### source_offset
+
+**Read type:** `Vector`
+
+**Optional:** Yes
+
+**Subclasses:** Lightning
+
+### source_variance
+
+**Read type:** `Vector`
+
+**Optional:** Yes
+
+**Subclasses:** Lightning
+
+### time_to_damage
+
+**Read type:** `uint16`
+
+**Optional:** Yes
+
+**Subclasses:** Lightning
+
+### effect_duration
+
+**Read type:** `uint16`
+
+**Optional:** Yes
+
+**Subclasses:** Lightning
+
 ### connection_category
 
 **Read type:** Array[`string`]
 
 **Subclasses:** FluidWagon
+
+### quality_affects_capacity
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** FluidWagon
+
+### default_output_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** Accumulator
+
+### energy_per_shot
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** AmmoTurret
+
+### prepare_with_no_ammo
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** AmmoTurret
+
+### life_time
+
+**Read type:** `uint16`
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryFlare
+
+### regular_trigger_effect
+
+**Read type:** Array[`TriggerEffectItem`]
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryFlare
+
+### regular_trigger_effect_frequency
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryFlare
+
+### ended_in_water_trigger_effect
+
+**Read type:** Array[`TriggerEffectItem`]
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryFlare
+
+### movement_modifier_when_on_ground
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryFlare
+
+### movement_modifier
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryFlare
+
+### creation_shift
+
+**Read type:** `Vector`
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryFlare
+
+### initial_speed
+
+**Read type:** `Vector`
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryFlare
+
+### initial_height
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryFlare
+
+### initial_vertical_speed
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryFlare
+
+### shots_per_flare
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryFlare
+
+### early_death_ticks
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryFlare
+
+### shot_category
+
+**Read type:** `LuaAmmoCategoryPrototype`
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryFlare
+
+### height_from_ground
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryProjectile
+
+### reveal_map
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** ArtilleryProjectile
+
+### gui_title_key
+
+**Read type:** `string`
+
+**Optional:** Yes
+
+**Subclasses:** AssemblingMachine
+
+### default_recipe_finished_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** AssemblingMachine
+
+### default_working_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** AssemblingMachine
+
+### disabled_when_recipe_not_researched
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** AssemblingMachine
+
+### fluid_boxes_off_when_no_fluid_recipe
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** AssemblingMachine
+
+### damage_per_hp
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Asteroid
+
+### width
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Beam, Stream
+
+### damage_interval
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** Beam, Sticker
+
+### action_triggered_automatically
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Beam
+
+### steering_settings
+
+**Read type:** `SteeringSettings`
+
+**Optional:** Yes
+
+**Subclasses:** SpiderUnit, Unit
+
+### ai_settings
+
+**Read type:** `UnitAISettings`
+
+**Optional:** Yes
+
+**Subclasses:** SpiderUnit, Unit
+
+### capture_speed
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** CaptureRobot
+
+### search_radius
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** CaptureRobot
+
+### auto_sort_inventory
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Car
+
+### immune_to_tree_impacts
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Car
+
+### immune_to_rock_impacts
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Car
+
+### immune_to_cliff_impacts
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Car
+
+### immune_to_all_impacts
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Car
+
+### track_particle_triggers
+
+**Read type:** Dictionary[`LuaTilePrototype`, Array[`TriggerEffectItem`]]
+
+**Subclasses:** Car
+
+### destroy_on_empty
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** TemporaryContainer
+
+### has_direction
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** CargoBay
+
+### allow_unloading
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** CargoBay
+
+### use_unloading_distance_limit
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** CargoBay
+
+### hatch_definitions
+
+**Read type:** Array[`CargoHatchDefinition`]
+
+**Optional:** Yes
+
+**Subclasses:** CargoBay
+
+### connectable_box
+
+**Read type:** `BoundingBox`
+
+**Optional:** Yes
+
+**Subclasses:** CargoBay, CargoLandingPad
+
+### cargo_station_parameters
+
+**Read type:** `CargoStationParameters`
+
+**Optional:** Yes
+
+**Subclasses:** CargoLandingPad, SpacePlatformHub
+
+### shadow_slave_entity
+
+**Read type:** `LuaEntityPrototype`
+
+**Optional:** Yes
+
+**Subclasses:** CargoPod, RocketSiloRocket
+
+### sticker_movement_modifiers
+
+**Read type:** Table (see below for parameters)
+
+**Optional:** Yes
+
+**Subclasses:** Sticker
+
+### sticker_vehicle_modifiers
+
+**Read type:** Table (see below for parameters)
+
+**Optional:** Yes
+
+**Subclasses:** Sticker
+
+### fire_spread_entity
+
+**Read type:** `LuaEntityPrototype`
+
+**Optional:** Yes
+
+**Subclasses:** Sticker
+
+### fire_spread_cooldown
+
+**Read type:** `uint8`
+
+**Optional:** Yes
+
+**Subclasses:** Sticker
+
+### fire_spread_radius
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Sticker
+
+### stickers_per_square_meter
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Sticker
+
+### should_ground_target
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Sticker
+
+### force_visibility
+
+**Read type:** `ForceCondition`
+
+**Optional:** Yes
+
+**Subclasses:** Sticker, Projectile, SimpleEntityWithOwner
+
+### use_damage_substitute
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Sticker
+
+### orientations
+
+**Read type:** `OrientedCliffPrototypeSet`
+
+**Optional:** Yes
+
+**Subclasses:** Cliff
+
+### grid_size
+
+**Read type:** `Vector`
+
+**Optional:** Yes
+
+**Subclasses:** Cliff
+
+### grid_offset
+
+**Read type:** `Vector`
+
+**Optional:** Yes
+
+**Subclasses:** Cliff
+
+### place_as_crater
+
+**Read type:** `CraterPlacementDefinition`
+
+**Optional:** Yes
+
+**Subclasses:** Cliff
+
+### pulse_duration
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** ConstantCombinator
+
+### direction_count
+
+**Read type:** `uint8`
+
+**Optional:** Yes
+
+**Subclasses:** Container
+
+### default_status
+
+**Read type:** `defines.entity_status`
+
+**Optional:** Yes
+
+**Subclasses:** Container
+
+### expires
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Corpse
+
+### remove_on_entity_placement
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Corpse
+
+### remove_on_tile_placement
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Corpse
+
+### input_connection_bounding_box
+
+**Read type:** `BoundingBox`
+
+**Optional:** Yes
+
+**Subclasses:** Combinator
+
+### output_connection_bounding_box
+
+**Read type:** `BoundingBox`
+
+**Optional:** Yes
+
+**Subclasses:** Combinator
+
+### max_text_width
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** DisplayPanel
+
+### max_text_length
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** DisplayPanel
+
+### max_records_count
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** DisplayPanel
+
+### gui_mode
+
+**Read type:** `"all"` | `"none"` | `"admins"`
+
+**Optional:** Yes
+
+**Subclasses:** InfinityContainer, InfinityPipe, InfinityCargoWagon, HeatInterface, LinkedContainer
+
+### track_coverage_during_drag_building
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** ElectricPole
+
+### auto_connect_up_to_n_wires
+
+**Read type:** `uint8`
+
+**Optional:** Yes
+
+**Subclasses:** ElectricPole
+
+### start_attacking_only_when_can_shoot
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Turret
+
+### leave_attacking_if_shoot_fails
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Turret
+
+### shoot_in_prepare_state
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Turret
+
+### allow_turning_when_starting_attack
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Turret
+
+### can_retarget_while_starting_attack
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Turret
+
+### turret_base_has_direction
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Turret
+
+### max_richness_for_spawn_shift
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** Spawner
+
+### absorptions_per_second
+
+**Read type:** Dictionary[`string`, `EnemySpawnerAbsorption`]
+
+**Subclasses:** Spawner
+
+### time_to_capture
+
+**Read type:** `MapTick`
+
+**Optional:** Yes
+
+**Subclasses:** Spawner
+
+### spawn_blocked_trigger
+
+**Read type:** Array[`TriggerItem`]
+
+**Optional:** Yes
+
+**Subclasses:** Spawner
+
+### smoke
+
+**Read type:** `LuaTrivialSmokePrototype`
+
+**Optional:** Yes
+
+**Subclasses:** Explosion
+
+### smoke_count
+
+**Read type:** `uint16`
+
+**Optional:** Yes
+
+**Subclasses:** Explosion
+
+### explosion_effect
+
+**Read type:** Array[`TriggerItem`]
+
+**Optional:** Yes
+
+**Subclasses:** Explosion
+
+### spawn_entity
+
+**Read type:** `LuaEntityPrototype`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### damage_per_tick
+
+**Read type:** `DamageParameters`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### maximum_spread_count
+
+**Read type:** `uint16`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### initial_flame_count
+
+**Read type:** `uint8`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### uses_alternative_behavior
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### limit_overlapping_particles
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### spread_delay
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### spread_delay_deviation
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### tree_dying_factor
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### initial_lifetime
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### damage_multiplier_decrease_per_tick
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### damage_multiplier_increase_per_added_fuel
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### maximum_damage_multiplier
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### lifetime_increase_by
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### lifetime_increase_cooldown
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### maximum_lifetime
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### add_fuel_cooldown
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### delay_between_initial_flames
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### on_fuel_added_action
+
+**Read type:** Array[`TriggerItem`]
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### on_damage_tick_effect
+
+**Read type:** Array[`TriggerItem`]
+
+**Optional:** Yes
+
+**Subclasses:** Fire
+
+### smoke_sources
+
+**Read type:** Array[`SmokeSource`]
+
+**Optional:** Yes
+
+**Subclasses:** Fire, Stream, Generator, ParticleSource, Projectile
+
+### initial_action
+
+**Read type:** Array[`TriggerItem`]
+
+**Optional:** Yes
+
+**Subclasses:** Stream
+
+### special_neutral_target_damage
+
+**Read type:** `DamageParameters`
+
+**Optional:** Yes
+
+**Subclasses:** Stream
+
+### particle_buffer_size
+
+**Read type:** `uint16`
+
+**Optional:** Yes
+
+**Subclasses:** Stream
+
+### particle_spawn_interval
+
+**Read type:** `uint16`
+
+**Optional:** Yes
+
+**Subclasses:** Stream
+
+### particle_spawn_timeout
+
+**Read type:** `uint16`
+
+**Optional:** Yes
+
+**Subclasses:** Stream
+
+### stream_particle_horizontal_speed
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Stream
+
+### stream_particle_horizontal_speed_deviation
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Stream
+
+### particle_vertical_acceleration
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Stream
+
+### progress_to_create_smoke
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Stream
+
+### target_position_deviation
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** Stream
+
+### target_initial_position_only
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Stream
+
+### drive_over_tie_trigger
+
+**Read type:** Array[`TriggerEffectItem`]
+
+**Optional:** Yes
+
+**Subclasses:** RollingStock
+
+### drive_over_tie_trigger_minimal_speed
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** RollingStock
+
+### tie_distance
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** RollingStock
+
+### allow_manual_color
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** RollingStock
+
+### allow_robot_dispatch_in_automatic_mode
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** RollingStock
+
+### default_copy_color_from_train_stop
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** RollingStock
+
+### quality_affects_max_speed
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** RollingStock
+
+### transition_collision_mask
+
+**Read type:** `CollisionMask`
+
+**Optional:** Yes
+
+**Subclasses:** RollingStock
+
+### elevated_collision_mask
+
+**Read type:** `CollisionMask`
+
+**Optional:** Yes
+
+**Subclasses:** RollingStock, RailSignalBase
+
+### elevated_selection_priority
+
+**Read type:** `uint8`
+
+**Optional:** Yes
+
+**Subclasses:** RollingStock, RailSignalBase
+
+### drive_over_elevated_tie_trigger
+
+**Read type:** Array[`TriggerEffectItem`]
+
+**Optional:** Yes
+
+**Subclasses:** RollingStock
+
+### cant_insert_at_source_message_key
+
+**Read type:** `string`
+
+**Optional:** Yes
+
+**Subclasses:** Furnace
+
+### custom_input_slot_tooltip_key
+
+**Read type:** `string`
+
+**Optional:** Yes
+
+**Subclasses:** Furnace
+
+### opening_speed
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Gate
+
+### activation_distance
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** Gate
+
+### timeout_to_close
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** Gate
+
+### opened_collision_mask
+
+**Read type:** `CollisionMask`
+
+**Optional:** Yes
+
+**Subclasses:** Gate
+
+### heating_radius
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** HeatPipe, HeatInterface, Reactor
+
+### erase_contents_when_mined
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** InfinityCargoWagon, InfinityChest
+
+### preserve_contents_when_created
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** InfinityCargoWagon, InfinityChest
+
+### energy_per_movement
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** Inserter
+
+### energy_per_rotation
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** Inserter
+
+### use_easter_egg
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Inserter
+
+### grab_less_to_match_belt_stack
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Inserter
+
+### wait_for_full_hand
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Inserter
+
+### enter_drop_mode_if_held_stack_spoiled
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Inserter
+
+### default_stack_control_input_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** Inserter
+
+### default_red_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** Lamp
+
+### default_green_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** Lamp
+
+### default_blue_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** Lamp
+
+### default_rgb_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** Lamp
+
+### trigger_interval
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** Landmine
+
+### trigger_radius
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** Landmine
+
+### force_die_on_attack
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Landmine
+
+### trigger_force
+
+**Read type:** `ForceCondition`
+
+**Optional:** Yes
+
+**Subclasses:** Landmine
+
+### allow_clone_connection
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** LinkedBelt
+
+### allow_blueprint_connection
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** LinkedBelt
+
+### allow_side_loading
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** LinkedBelt
+
+### allow_rail_interaction
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Loader
+
+### allow_container_interaction
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Loader
+
+### energy_per_item
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** Loader
+
+### max_snap_to_train_stop_distance
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Locomotive
+
+### shuffle_resources_to_mine
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** MiningDrill
+
+### remove_on_tile_collision
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** OffshorePump
+
+### particle
+
+**Read type:** `LuaParticlePrototype`
+
+**Optional:** Yes
+
+**Subclasses:** ParticleSource
+
+### particle_time_to_live
+
+**Read type:** `DeviatedValue`
+
+**Optional:** Yes
+
+**Subclasses:** ParticleSource
+
+### particle_time_before_start
+
+**Read type:** `DeviatedValue`
+
+**Optional:** Yes
+
+**Subclasses:** ParticleSource
+
+### particle_height
+
+**Read type:** `DeviatedValue`
+
+**Optional:** Yes
+
+**Subclasses:** ParticleSource
+
+### particle_vertical_speed
+
+**Read type:** `DeviatedValue`
+
+**Optional:** Yes
+
+**Subclasses:** ParticleSource
+
+### particle_horizontal_speed
+
+**Read type:** `DeviatedValue`
+
+**Optional:** Yes
+
+**Subclasses:** ParticleSource
+
+### rotatable
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Projectile
+
+### direction_only
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Projectile
+
+### hit_at_collision_position
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Projectile
+
+### piercing_damage
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Projectile
+
+### acceleration
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** Projectile
+
+### turn_speed
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Projectile
+
+### speed_modifier
+
+**Read type:** `Vector`
+
+**Optional:** Yes
+
+**Subclasses:** Projectile
+
+### hit_collision_mask
+
+**Read type:** `CollisionMask`
+
+**Optional:** Yes
+
+**Subclasses:** Projectile
+
+### turning_speed_increases_exponentially_with_projectile_speed
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Projectile
+
+### fluid_wagon_connector_speed
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** Pump
+
+### fluid_wagon_tank_valve_max_distance
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** Pump
+
+### energy_per_sector
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** Radar
+
+### energy_per_nearby_scan
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** Radar
+
+### connects_to_other_radars
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Radar
+
+### energy_fraction_to_connect
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Radar
+
+### energy_fraction_to_disconnect
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** Radar
+
+### default_universe_channel
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** Radar
+
+### default_red_output_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** RailSignalBase
+
+### default_orange_output_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** RailSignalBase
+
+### default_green_output_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** RailSignalBase
+
+### default_blue_output_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** RailSignalBase
+
+### collision_mask_allow_on_deep_oil_ocean
+
+**Read type:** `CollisionMask`
+
+**Optional:** Yes
+
+**Subclasses:** RailRamp, RailSupport
+
+### related_rail
+
+**Read type:** `LuaEntityPrototype`
+
+**Optional:** Yes
+
+**Subclasses:** RailRemnants
+
+### not_buildable_if_no_rails
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** RailSupport
+
+### snap_to_spots_distance
+
+**Read type:** `float`
+
+**Optional:** Yes
+
+**Subclasses:** RailSupport
+
+### elevated_selection_boxes
+
+**Read type:** Array[`BoundingBox`]
+
+**Optional:** Yes
+
+**Subclasses:** RailSupport
+
+### meltdown_action
+
+**Read type:** Array[`TriggerItem`]
+
+**Optional:** Yes
+
+**Subclasses:** Reactor
+
+### scale_energy_usage
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** Reactor
+
+### default_temperature_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** Reactor
+
+### map_grid
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** ResourceEntity
+
+### resource_patch_search_radius
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** ResourceEntity
+
+### tree_removal_probability
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** ResourceEntity
+
+### cliff_removal_probability
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** ResourceEntity
+
+### tree_removal_max_distance
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** ResourceEntity
+
+### recharge_minimum
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** Roboport
+
+### open_door_trigger_effect
+
+**Read type:** Array[`TriggerEffectItem`]
+
+**Optional:** Yes
+
+**Subclasses:** Roboport
+
+### close_door_trigger_effect
+
+**Read type:** Array[`TriggerEffectItem`]
+
+**Optional:** Yes
+
+**Subclasses:** Roboport
+
+### default_available_logistic_output_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** Roboport
+
+### default_total_logistic_output_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** Roboport
+
+### default_available_construction_output_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** Roboport
+
+### default_total_construction_output_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** Roboport
+
+### default_roboport_count_output_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** Roboport
+
+### cargo_pod_entity
+
+**Read type:** `LuaEntityPrototype`
+
+**Optional:** Yes
+
+**Subclasses:** RocketSiloRocket
+
+### flying_trigger
+
+**Read type:** Array[`TriggerEffectItem`]
+
+**Optional:** Yes
+
+**Subclasses:** RocketSiloRocket
+
+### rocket_parts_storage_cap
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** RocketSilo
+
+### rocket_quick_relaunch_start_offset
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** RocketSilo
+
+### rocket_rising_speed_modifier_per_quality_level
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** RocketSilo
+
+### rocket_engine_starting_speed_modifier_per_quality_level
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** RocketSilo
+
+### arms_speed_modifier_per_quality_level
+
+**Read type:** `double`
+
+**Optional:** Yes
+
+**Subclasses:** RocketSilo
+
+### alarm_trigger
+
+**Read type:** Array[`TriggerEffectItem`]
+
+**Optional:** Yes
+
+**Subclasses:** RocketSilo
+
+### clamps_on_trigger
+
+**Read type:** Array[`TriggerEffectItem`]
+
+**Optional:** Yes
+
+**Subclasses:** RocketSilo
+
+### clamps_off_trigger
+
+**Read type:** Array[`TriggerEffectItem`]
+
+**Optional:** Yes
+
+**Subclasses:** RocketSilo
+
+### doors_trigger
+
+**Read type:** Array[`TriggerEffectItem`]
+
+**Optional:** Yes
+
+**Subclasses:** RocketSilo
+
+### raise_rocket_trigger
+
+**Read type:** Array[`TriggerEffectItem`]
+
+**Optional:** Yes
+
+**Subclasses:** RocketSilo
+
+### can_launch_without_landing_pads
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** RocketSilo
+
+### default_game_tick_output_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** SelectorCombinator
+
+### default_day_tick_output_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** SelectorCombinator
+
+### default_day_length_output_signal
+
+**Read type:** `SignalID`
+
+**Optional:** Yes
+
+**Subclasses:** SelectorCombinator
+
+### action
+
+**Read type:** Array[`TriggerItem`]
+
+**Optional:** Yes
+
+**Subclasses:** SmokeWithTrigger
+
+### action_cooldown
+
+**Read type:** `uint32`
+
+**Optional:** Yes
+
+**Subclasses:** SmokeWithTrigger
+
+### particle_count
+
+**Read type:** `uint8`
+
+**Optional:** Yes
+
+**Subclasses:** SmokeWithTrigger
+
+### attach_to_target
+
+**Read type:** `boolean`
+
+**Optional:** Yes
+
+**Subclasses:** SmokeWithTrigger
 
 ### valid
 
@@ -2843,7 +4995,7 @@ Gets the base size of the given inventory on this entity or `nil` if the given i
 
 **Returns:**
 
-- `uint32` *(optional)*
+- `ItemStackIndex` *(optional)*
 
 ### get_crafting_speed
 
@@ -3048,6 +5200,38 @@ The maximum flow rate through this valve.
 **Returns:**
 
 - `double`
+
+### get_max_speed
+
+The maximum speed of this rolling stock if defined.
+
+**Parameters:**
+
+- `quality` `QualityID` *(optional)*
+
+**Returns:**
+
+- `double` *(optional)*
+
+### get_duration
+
+**Parameters:**
+
+- `quality` `QualityID` *(optional)*
+
+**Returns:**
+
+- `uint32` *(optional)*
+
+### get_inventory_size_bonus
+
+**Parameters:**
+
+- `quality` `QualityID` *(optional)*
+
+**Returns:**
+
+- `ItemStackIndex` *(optional)*
 
 ### get_mining_drill_radius
 

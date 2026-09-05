@@ -224,19 +224,7 @@ mod.INVENTORY_PRIORITIES = {
    -- Rocket silo special (priority 8)
    rocket_silo_rocket = 8,
 
-   -- Deprecated inventories (map to their replacements for compatibility)
-   assembling_machine_input = 2, -- maps to crafter_input
-   assembling_machine_output = 3, -- maps to crafter_output
-   assembling_machine_modules = 4, -- maps to crafter_modules
-   assembling_machine_trash = 5, -- maps to crafter_trash
    assembling_machine_dump = 5,
-   furnace_source = 2, -- maps to crafter_input
-   furnace_result = 3, -- maps to crafter_output
-   furnace_modules = 4, -- maps to crafter_modules
-   furnace_trash = 5, -- maps to crafter_trash
-   rocket_silo_input = 2, -- maps to crafter_input
-   rocket_silo_output = 3, -- maps to crafter_output
-   rocket_silo_modules = 4, -- maps to crafter_modules
 }
 
 -- Logic signal names (virtual signals with special combinator behavior)

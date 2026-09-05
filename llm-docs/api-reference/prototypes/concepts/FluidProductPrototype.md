@@ -50,20 +50,6 @@ If set to a number that is less than `amount_min`, the game will use `amount_min
 
 **Optional:** Yes
 
-### probability
-
-Value between 0 and 1, `0` for 0% chance and `1` for 100% chance.
-
-The effect of probability is no product, or a linear distribution on [min, max]. For a recipe with probability `p`, amount_min `min`, and amount_max `max`, the Expected Value of this product can be expressed as `p * (0.5 * (max + min))`. This is what will be shown in a recipe tooltip. The effect of `ignored_by_productivity` on the product is not shown.
-
-When `amount_min` and `amount_max` are not provided, `amount` applies as min and max. The Expected Value simplifies to `p * amount`, providing `0` product, or `amount` product, on recipe completion.
-
-**Type:** `double`
-
-**Optional:** Yes
-
-**Default:** 1
-
 ### ignored_by_stats
 
 Amount that should not be included in the fluid production statistics, typically with a matching ingredient having the same amount set as [ignored_by_stats](prototype:FluidIngredientPrototype::ignored_by_stats).
@@ -110,13 +96,23 @@ Used to specify which [CraftingMachinePrototype::fluid_boxes](prototype:Crafting
 
 **Default:** 0
 
-### show_details_in_recipe_tooltip
+### fluidbox_multiplier
 
-When hovering over a recipe in the crafting menu the recipe tooltip will be shown. An additional item tooltip will be shown for every product, as a separate tooltip, if the item tooltip has a description and/or properties to show and if `show_details_in_recipe_tooltip` is `true`.
+Used to set crafting machine fluidbox volumes. Must be at least 1.
 
-**Type:** `boolean`
+**Type:** `uint8`
 
 **Optional:** Yes
 
-**Default:** True
+**Default:** 3
+
+### optional_fluidbox_indexes
+
+Additional fluid boxes that will be also used by this fluid product. If a machine does not have a fluid box with that index, then this index will be silently skipped without making recipe uncraftable.
+
+Only loaded if `fluidbox_index` is defined.
+
+**Type:** Array[`uint32`]
+
+**Optional:** Yes
 

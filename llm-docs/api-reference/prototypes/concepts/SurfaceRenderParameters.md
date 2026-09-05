@@ -60,3 +60,9 @@ When set to `true` and `clouds` property is not set, the legacy sprite clouds wi
 
 **Optional:** Yes
 
+### platform_backdrop
+
+**Type:** `PlatformBackdrop`
+
+**Optional:** Yes
+

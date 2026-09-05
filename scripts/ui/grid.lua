@@ -139,7 +139,8 @@ function GridBuilder:build()
          local node = self.cells[x][y]
          if not node then
             node = {
-               vtable = self.default_cell_vtab,
+               -- GridNodeVtable only adds optional fields, so a base NodeVtable is structurally valid.
+               vtable = self.default_cell_vtab --[[@as fa.ui.grid.GridNodeVtable]],
             }
             self.cells[x][y] = node
          end

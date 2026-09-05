@@ -1,6 +1,6 @@
 # AmbientSound
 
-This prototype is used to make sound while playing the game. This includes the game's [music](https://store.steampowered.com/app/436090/Factorio__Soundtrack/), composed by Daniel James Taylor.
+This prototype is used to make sound while playing the game. This includes the [base game's music](https://store.steampowered.com/app/436090/Factorio__Soundtrack/), composed by Daniel James Taylor and the [Space Age's music](https://store.steampowered.com/app/3311770/Factorio_Space_Age__Soundtrack/), composed by Petr Wajsar.
 
 **Type name:** `ambient-sound`
 
@@ -37,11 +37,19 @@ Unique textual identification of the prototype.
 
 **Required:** Yes
 
+### title
+
+Alternative name of the track. It doesn't need to be unique.
+
+**Type:** `string`
+
+**Optional:** Yes
+
 ### weight
 
 Cannot be less than zero.
 
-Cannot be defined if `track_type` is `"hero-track"`.
+Cannot be defined if `track_type` is `"hero-track"` or `"script-track"`.
 
 **Type:** `double`
 
@@ -55,11 +63,69 @@ Cannot be defined if `track_type` is `"hero-track"`.
 
 **Required:** Yes
 
-### planet
+### planets
 
-Track without a planet is bound to space platforms.
+The track can play only on specified planets.
 
-**Type:** `SpaceLocationID`
+If neither `planets` nor `surface_names` is given, the track plays on space platforms and in the space map.
+
+Cannot be defined if `track_type` is `"script-track"`.
+
+Cannot be defined when `play_on_all_surfaces` is true.
+
+**Type:** Array[`SpaceLocationID`]
+
+**Optional:** Yes
+
+### surface_names
+
+The track can play only on surfaces with specified names. It's enough if the specified name is a sub-string of the surface name.
+
+If neither `planets` nor `surface_names` is given, the track plays on space platforms and in the space map.
+
+Cannot be defined if `track_type` is `"hero-track"` or `"script-track"`.
+
+Cannot be defined when `play_on_all_surfaces` is true.
+
+**Type:** Array[`string`]
+
+**Optional:** Yes
+
+### play_on_all_surfaces
+
+The track can play everywhere.
+
+Cannot be defined if `track_type` is `"hero-track"` or `"script-track"`.
+
+Cannot be true if `planets` or `surface_names` are defined.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+
+### exclude_planets
+
+The track cannot play on specified planets.
+
+Can be used only if `play_on_all_surfaces` is true or `surface_names` are defined.
+
+Cannot be used when `planets` are defined.
+
+**Type:** Array[`SpaceLocationID`]
+
+**Optional:** Yes
+
+### exclude_surface_names
+
+The track cannot play on surfaces with specified name. It's enough if the specified name is a sub-string of the surface name.
+
+Can be used only if `play_on_all_surfaces` is true or `surface_names` are defined.
+
+Cannot exclude a name given in `surface_names`.
+
+**Type:** Array[`string`]
 
 **Optional:** Yes
 

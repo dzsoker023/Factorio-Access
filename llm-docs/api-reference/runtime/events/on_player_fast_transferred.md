@@ -26,7 +26,7 @@ Whether the transfer was a split action (half stack).
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -36,7 +36,7 @@ The player transferred from or to.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

@@ -1,6 +1,6 @@
 # ToolPrototype
 
-Items with a "durability". Used for [science packs](https://wiki.factorio.com/Science_pack).
+Items with a "durability".
 
 **Parent:** [ItemPrototype](ItemPrototype.md)
 **Type name:** `tool`

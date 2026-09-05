@@ -27,12 +27,6 @@ Name of the map-settings. Base game uses "map-settings".
 
 **Required:** Yes
 
-### steering
-
-**Type:** `SteeringSettings`
-
-**Required:** Yes
-
 ### enemy_evolution
 
 **Type:** `EnemyEvolutionSettings`

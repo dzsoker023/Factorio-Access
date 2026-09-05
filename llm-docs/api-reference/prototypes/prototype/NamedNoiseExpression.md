@@ -6,7 +6,7 @@ Named noise expressions can be used by [MapGenSettings](prototype:MapGenSettings
 
 Alternate expressions can be made available in the map generator GUI by setting their `intended_property` to the name of the property they should override.
 
-Named noise expressions can also be used as [noise variables](runtime:noise-expressions) e.g. `var("my-noise-expression")`.
+Named noise expressions can also be used as [noise variables](auxiliary:noise-expressions) e.g. `var("my-noise-expression")`.
 
 **Parent:** [Prototype](Prototype.md)
 **Type name:** `noise-expression`

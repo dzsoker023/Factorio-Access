@@ -163,3 +163,17 @@ Defaults to the mask from [UtilityConstants::default_collision_masks](prototype:
 
 **Optional:** Yes
 
+### selection_priority
+
+The entity with the higher number is selectable before the entity with the lower number.
+
+The value `0` will be treated the same as `nil`.
+
+**Type:** `uint8`
+
+**Optional:** Yes
+
+**Default:** 20
+
+**Overrides parent:** Yes
+

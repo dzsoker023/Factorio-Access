@@ -1,5 +1,7 @@
 # VerticalFlowStyleSpecification
 
+Root style: `"vertical_flow"`
+
 **Type:** `Struct`
 
 ## Properties
@@ -13,6 +15,8 @@
 **Required:** Yes
 
 ### vertical_spacing
+
+Required on the root style.
 
 **Type:** `int32`
 

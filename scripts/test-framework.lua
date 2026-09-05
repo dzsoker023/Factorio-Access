@@ -445,7 +445,7 @@ function mod._finish_tests()
       duration = duration,
       errors = test_results.errors,
    }
-   helpers.write_file("test-results.json", game.table_to_json(results_data), false)
+   helpers.write_file("test-results.json", helpers.table_to_json(results_data), false)
 
    -- Exit with appropriate code
    if test_results.failed > 0 then

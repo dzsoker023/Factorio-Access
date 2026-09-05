@@ -74,6 +74,16 @@ Used to specify which [CraftingMachinePrototype::fluid_boxes](prototype:Crafting
 
 **Default:** 0
 
+### optional_fluidbox_indexes
+
+Additional fluid boxes that will be also used by this fluid ingredient. If a machine does not have a fluid box with that index, then this index will be silently skipped without making recipe uncraftable.
+
+Only loaded if `fluidbox_index` is defined.
+
+**Type:** Array[`uint32`]
+
+**Optional:** Yes
+
 ### fluidbox_multiplier
 
 Used to set crafting machine fluidbox volumes. Must be at least 1.
@@ -82,7 +92,7 @@ Used to set crafting machine fluidbox volumes. Must be at least 1.
 
 **Optional:** Yes
 
-**Default:** 2
+**Default:** 3
 
 ## Examples
 

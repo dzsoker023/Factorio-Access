@@ -14,6 +14,12 @@ Control behavior for space platform hubs
 
 **Write type:** `boolean`
 
+### set_requests
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
+
 ### send_to_platform
 
 Whether the signals are used for circuit conditions in the platform's schedule

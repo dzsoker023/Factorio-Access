@@ -24,7 +24,7 @@ The entity that has been mined.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -34,7 +34,7 @@ The index of the player doing the mining.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

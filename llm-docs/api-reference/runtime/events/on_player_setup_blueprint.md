@@ -32,7 +32,7 @@ The blueprint entity index to source entity mapping. Note: if any mod changes th
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -50,7 +50,7 @@ The item quality used to select the area.
 
 **Type:** `LuaRecord` *(optional)*
 
-The record that is being reassigned.
+The record that is being reassigned. This blueprint record is writable even if it is in the "my blueprints" shelf.
 
 ### stack
 
@@ -66,7 +66,7 @@ The surface selected.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

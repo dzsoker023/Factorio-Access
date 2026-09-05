@@ -1,5 +1,7 @@
 # HorizontalScrollBarStyleSpecification
 
+Root style: `"horizontal_scrollbar"`
+
 **Type:** `Struct`
 
 ## Properties

@@ -8,7 +8,7 @@ Called before an agricultural tower mines a plant.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### plant
 
@@ -18,7 +18,7 @@ The plant that is about to be mined.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

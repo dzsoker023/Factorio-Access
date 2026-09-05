@@ -81,3 +81,35 @@ Applied when the combat robot expires (runs out of `time_to_live`).
 
 **Optional:** Yes
 
+### separation_range
+
+The range within which the robot will try to separate itself from other friendly combat robots.
+
+**Type:** `double`
+
+**Optional:** Yes
+
+**Default:** 0.0
+
+### max_separation_force
+
+The maximum force that can be applied to separate from other friendly combat robots.
+
+**Type:** `double`
+
+**Optional:** Yes
+
+**Default:** 0.0
+
+### separation_force_factor
+
+A factor determining how strongly the robot will try to separate from other friendly combat robots.
+
+Higher values result in stronger separation forces.
+
+**Type:** `double`
+
+**Optional:** Yes
+
+**Default:** 0.0
+

@@ -4,11 +4,31 @@
 
 ## Parameters
 
-### circuit_mode_of_operation
+### input_networks
 
-Defaults to `send_contents`.
+**Type:** `CircuitNetworkSelection`
 
-**Type:** `defines.control_behavior.cargo_landing_pad.exclusive_mode`
+**Optional:** Yes
+
+### output_networks
+
+**Type:** `CircuitNetworkSelection`
+
+**Optional:** Yes
+
+### read_contents
+
+Defaults to `true`.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+### set_requests
+
+Defaults to `false`.
+
+**Type:** `boolean`
 
 **Optional:** Yes
 

@@ -1,5 +1,7 @@
 # ImageStyleSpecification
 
+Root style: `"image"`
+
 **Type:** `Struct`
 
 ## Properties
@@ -14,11 +16,15 @@
 
 ### graphical_set
 
+Required on the root style.
+
 **Type:** `ElementImageSet`
 
 **Optional:** Yes
 
 ### stretch_image_to_widget_size
+
+Required on the root style.
 
 **Type:** `boolean`
 
@@ -29,6 +35,8 @@
 **Type:** `boolean`
 
 **Optional:** Yes
+
+**Default:** False
 
 ## Examples
 

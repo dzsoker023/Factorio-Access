@@ -56,7 +56,7 @@ Only loaded if `icons` is not defined.
 
 ### order_in_recipe
 
-Item ingredients in recipes are ordered by item group. The `order_in_recipe` property can be used to specify the ordering in recipes without affecting the inventory order.
+Item ingredients in recipes are ordered by item group if [RecipePrototype::sort_item_ingredients](prototype:RecipePrototype::sort_item_ingredients) is set to `true`. The `order_in_recipe` property can be used to specify the ordering in recipes with sorted ingredients without affecting the item group's inventory order.
 
 **Type:** `Order`
 

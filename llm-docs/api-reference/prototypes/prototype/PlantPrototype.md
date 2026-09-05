@@ -28,3 +28,19 @@ The burst of pollution to emit when the plant is harvested.
 
 **Optional:** Yes
 
+### growth_variations
+
+If defined, it can't be empty.
+
+**Type:** Array[`TreeGrowth`]
+
+**Optional:** Yes
+
+### growth_mounds
+
+Mound sprite drawn under growing trees which fades close to full growth. If defined, it can't be empty.
+
+**Type:** Array[`Sprite`]
+
+**Optional:** Yes
+

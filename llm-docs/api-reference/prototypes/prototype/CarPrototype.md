@@ -133,6 +133,16 @@ If this car gets damaged by driving against [cliffs](prototype:CliffPrototype).
 
 **Default:** True
 
+### immune_to_all_impacts
+
+If this car gets damaged by driving into anything.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+
 ### turret_rotation_speed
 
 **Type:** `float`
@@ -180,6 +190,16 @@ If set to 0 then the car will not have a Logistics tab.
 **Type:** `Sound`
 
 **Optional:** Yes
+
+### driving_sound_volume_modifier
+
+Cannot be negative.
+
+**Type:** `float`
+
+**Optional:** Yes
+
+**Default:** 1.0
 
 ### darkness_to_render_light_animation
 

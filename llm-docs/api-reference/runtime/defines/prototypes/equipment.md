@@ -8,6 +8,8 @@
 
 ### belt-immunity-equipment
 
+### electric-energy-interface-equipment
+
 ### energy-shield-equipment
 
 ### equipment-ghost

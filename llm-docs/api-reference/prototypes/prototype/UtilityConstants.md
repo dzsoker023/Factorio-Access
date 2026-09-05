@@ -8,6 +8,28 @@ Constants used by the game that are not specific to certain prototypes. See [uti
 
 ## Properties
 
+### chart
+
+Chart means map and minimap.
+
+**Type:** `ChartUtilityConstants`
+
+**Required:** Yes
+
+### bonus_gui_ordering
+
+The base game uses more entries here that are applied via the `ammo-category.lua` file.
+
+**Type:** `BonusUtilityConstants`
+
+**Required:** Yes
+
+### map_editor
+
+**Type:** `EditorUtilityConstants`
+
+**Required:** Yes
+
 ### entity_button_background_color
 
 **Type:** `Color`
@@ -39,6 +61,22 @@ Constants used by the game that are not specific to certain prototypes. See [uti
 **Required:** Yes
 
 ### building_no_tint
+
+**Type:** `Color`
+
+**Required:** Yes
+
+### tall_entity_tint
+
+Tall entities will be tinted with this value when "Hide tall entities" mode is active.
+
+**Type:** `Color`
+
+**Required:** Yes
+
+### tall_entity_smoke_tint
+
+All trivial smoke will be tinted with this value when "Hide tall entities" mode is active.
 
 **Type:** `Color`
 
@@ -80,6 +118,12 @@ Constants used by the game that are not specific to certain prototypes. See [uti
 
 **Required:** Yes
 
+### ghost_product_count_tint
+
+**Type:** `Color`
+
+**Required:** Yes
+
 ### zero_count_value_tint
 
 **Type:** `Color`
@@ -99,6 +143,18 @@ Constants used by the game that are not specific to certain prototypes. See [uti
 **Required:** Yes
 
 ### equipment_default_grabbed_background_color
+
+**Type:** `Color`
+
+**Required:** Yes
+
+### equipment_disabled_background_tint
+
+**Type:** `Color`
+
+**Required:** Yes
+
+### equipment_disabled_tint
 
 **Type:** `Color`
 
@@ -125,14 +181,6 @@ Constants used by the game that are not specific to certain prototypes. See [uti
 ### artillery_range_visualization_color
 
 **Type:** `Color`
-
-**Required:** Yes
-
-### chart
-
-Chart means map and minimap.
-
-**Type:** `ChartUtilityConstants`
 
 **Required:** Yes
 
@@ -232,6 +280,78 @@ Chart means map and minimap.
 
 **Required:** Yes
 
+### select_group_row_count
+
+Will be clamped to the range [1, 100].
+
+**Type:** `uint8`
+
+**Required:** Yes
+
+### select_slot_row_count
+
+Will be clamped to the range [1, 100].
+
+**Type:** `uint8`
+
+**Required:** Yes
+
+### logistic_slots_per_row
+
+Will be clamped to the range [2, 100].
+
+**Type:** `uint8`
+
+**Required:** Yes
+
+### crafting_queue_slots_per_row
+
+Will be clamped to the range [1, 100].
+
+**Type:** `uint8`
+
+**Required:** Yes
+
+### blueprint_big_slots_per_row
+
+Will be clamped to the range [2, 100].
+
+**Type:** `uint8`
+
+**Required:** Yes
+
+### blueprint_small_slots_per_row
+
+Will be clamped to the range [2, 100].
+
+**Type:** `uint8`
+
+**Required:** Yes
+
+### inventory_width
+
+Will be clamped to the range [1, 100].
+
+**Type:** `uint8`
+
+**Required:** Yes
+
+### module_inventory_width
+
+Will be clamped to the range [1, 100].
+
+**Type:** `uint8`
+
+**Required:** Yes
+
+### trash_inventory_width
+
+Will be clamped to the range [1, 100].
+
+**Type:** `uint8`
+
+**Required:** Yes
+
 ### max_terrain_building_size
 
 **Type:** `uint8`
@@ -251,6 +371,12 @@ Chart means map and minimap.
 **Required:** Yes
 
 ### large_area_size
+
+**Type:** `float`
+
+**Required:** Yes
+
+### huge_area_size
 
 **Type:** `float`
 
@@ -348,17 +474,9 @@ The table with `name = "default"` must exist and be the first member of the arra
 
 **Optional:** Yes
 
-### bonus_gui_ordering
-
-The base game uses more entries here that are applied via the ammo-category.lua file.
-
-**Type:** `BonusGuiOrdering`
-
-**Required:** Yes
-
 ### merge_bonus_gui_production_bonuses
 
-If not set, defaults to 'true' when modded and 'false' when vanilla.
+If not set, defaults to `true` when modded and `false` when vanilla.
 
 **Type:** `boolean`
 
@@ -382,15 +500,15 @@ If not set, defaults to 'true' when modded and 'false' when vanilla.
 
 **Required:** Yes
 
-### map_editor
+### default_platform_surface_render_parameters
 
-**Type:** `MapEditorConstants`
+**Type:** `SurfaceRenderParameters`
 
 **Required:** Yes
 
 ### drop_item_radius
 
-**Type:** `float`
+**Type:** `double`
 
 **Required:** Yes
 
@@ -580,6 +698,12 @@ Can be set to anything from range 0 to 255, but larger values will be clamped to
 
 **Required:** Yes
 
+### far_away_chunk_generation_radius
+
+**Type:** `uint8`
+
+**Required:** Yes
+
 ### tree_leaf_distortion_strength_far
 
 **Type:** `Vector`
@@ -684,18 +808,6 @@ The strings represent the names of the simulations.
 
 **Optional:** Yes
 
-### minimap_slot_hovered_tint
-
-**Type:** `Color`
-
-**Required:** Yes
-
-### minimap_slot_clicked_tint
-
-**Type:** `Color`
-
-**Required:** Yes
-
 ### clear_cursor_volume_modifier
 
 **Type:** `float`
@@ -782,7 +894,7 @@ The strings represent the names of the simulations.
 
 ### space_platform_acceleration_expression
 
-Variables: speed, thrust, weight, width, height
+Variables: `speed, thrust, weight, width, height`
 
 **Type:** `MathExpression`
 
@@ -844,7 +956,9 @@ How many asteroid chunks should be processed per tick, see [space_platform_max_r
 
 **Required:** Yes
 
-### rocket_lift_weight
+### default_rocket_lift_weight
+
+Used for "Rocket capacity" item tooltip and for comparing rocket silo lift weight in GUI to this value.
 
 **Type:** `Weight`
 
@@ -853,12 +967,6 @@ How many asteroid chunks should be processed per tick, see [space_platform_max_r
 ### factoriopedia_recycling_recipe_categories
 
 **Type:** Array[`RecipeCategoryID`]
-
-**Required:** Yes
-
-### max_fluid_flow
-
-**Type:** `FluidAmount`
 
 **Required:** Yes
 
@@ -980,7 +1088,7 @@ The strings can be entity types or custom strings.
 
 ### water_collision_mask
 
-**Type:** `CollisionMaskConnector`
+**Type:** `TileCollisionMaskConnector`
 
 **Required:** Yes
 
@@ -1008,7 +1116,31 @@ The strings can be entity types or custom strings.
 
 **Required:** Yes
 
+### tooltip_monitor_edge_border
+
+Must be >= 1.
+
+**Type:** `int32`
+
+**Required:** Yes
+
+### flying_text_ttl
+
+Must be >= 1.
+
+**Type:** `int32`
+
+**Required:** Yes
+
+### train_path_finding
+
+**Type:** `TrainPathFinderConstants`
+
+**Required:** Yes
+
 ### freezing_temperature
+
+Will be clamped to a positive number, starting at 0.
 
 **Type:** `double`
 
@@ -1090,6 +1222,12 @@ Silently clamped to be between 0 and 1.
 
 **Required:** Yes
 
+### sound_fade_ticks
+
+**Type:** `uint32`
+
+**Required:** Yes
+
 ### starmap_orbit_default_color
 
 **Type:** `Color`
@@ -1153,100 +1291,6 @@ Layer within `ground-natural` [tile render layer](prototype:TileRenderLayer) gro
 Cap for how many steps of quality the output of something (miner/crafter) may be higher than the input (resource/ingredients). Must be >= 1.
 
 **Type:** `uint8`
-
-**Required:** Yes
-
-### select_group_row_count
-
-Will be clamped to the range [1, 100].
-
-**Type:** `uint8`
-
-**Required:** Yes
-
-### select_slot_row_count
-
-Will be clamped to the range [1, 100].
-
-**Type:** `uint8`
-
-**Required:** Yes
-
-### crafting_queue_slots_per_row
-
-Will be clamped to the range [1, 100].
-
-**Type:** `uint8`
-
-**Required:** Yes
-
-### logistic_slots_per_row
-
-Will be clamped to the range [2, 100].
-
-**Type:** `uint8`
-
-**Required:** Yes
-
-### blueprint_big_slots_per_row
-
-Will be clamped to the range [2, 100].
-
-**Type:** `uint8`
-
-**Required:** Yes
-
-### blueprint_small_slots_per_row
-
-Will be clamped to the range [2, 100].
-
-**Type:** `uint8`
-
-**Required:** Yes
-
-### inventory_width
-
-Will be clamped to the range [1, 100].
-
-**Type:** `uint8`
-
-**Required:** Yes
-
-### module_inventory_width
-
-Will be clamped to the range [1, 100].
-
-**Type:** `uint8`
-
-**Required:** Yes
-
-### trash_inventory_width
-
-Will be clamped to the range [1, 100].
-
-**Type:** `uint8`
-
-**Required:** Yes
-
-### tooltip_monitor_edge_border
-
-Must be >= 1.
-
-**Type:** `int32`
-
-**Required:** Yes
-
-### flying_text_ttl
-
-Must be >= 1.
-
-**Type:** `uint32`
-
-**Required:** Yes
-
-### train_path_finding
-
-**Type:** `TrainPathFinderConstants`
 
 **Required:** Yes
 

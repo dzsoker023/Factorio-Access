@@ -48,13 +48,13 @@ This will always be the same as the [LuaLogisticPoint::owner](runtime:LuaLogisti
 
 Items targeted to be picked up from this logistic point by robots.
 
-**Read type:** `ItemWithQualityCounts`
+**Read type:** Array[`ItemWithQualityCount`]
 
 ### targeted_items_deliver
 
-Items targeted to be dropped off into this logistic point by robots.
+Items targeted to be dropped off into this logistic point by robots or cargo pods.
 
-**Read type:** `ItemWithQualityCounts`
+**Read type:** Array[`ItemWithQualityCount`]
 
 ### exact
 

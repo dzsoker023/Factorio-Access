@@ -48,7 +48,7 @@ The rate at which energy can be provided, to the network, from the energy buffer
 
 ### drain
 
-How much energy (per second) will be continuously removed from the energy buffer. In-game, this is shown in the tooltip as "Min. [Minimum] Consumption". Applied as a constant consumption-per-tick, even when the entity has the property [active](runtime:LuaEntity::active) set to `false`.
+How much energy (per second) will be continuously removed from the energy buffer. In-game, this is shown in the tooltip as "Min. [Minimum] Consumption". Applied as a constant consumption-per-tick, even when the entity is not [active](runtime:LuaEntity::active).
 
 **Type:** `Energy`
 

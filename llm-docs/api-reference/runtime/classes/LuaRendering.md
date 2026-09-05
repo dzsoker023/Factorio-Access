@@ -2,7 +2,7 @@
 
 Allows rendering of geometric shapes, text and sprites in the game world through the global object named `rendering`. Each render object is identified by an id that is universally unique for the lifetime of a whole game.
 
-If an entity target of an object is destroyed or changes surface, then the object is also destroyed.
+If an entity target of an object (except its `orientation_target`) is destroyed or changes surface, then the object is also destroyed.
 
 ## Attributes
 
@@ -218,6 +218,7 @@ Create a sprite.
 - `visible` `boolean` *(optional)* - If this is rendered to anyone at all. Defaults to true.
 - `only_in_alt_mode` `boolean` *(optional)* - If this should only be rendered in alt mode. Defaults to false.
 - `render_mode` `ScriptRenderMode` *(optional)* - Mode which this object should render in. Defaults to "game".
+- `light_mode` `ScriptSpriteLightMode` *(optional)* - Whether this object should be rendered as a sprite, light or both at once. Defaults to "occluder".
 
 **Returns:**
 
@@ -237,7 +238,7 @@ rendering.draw_sprite{sprite = "item.iron-plate", target = {entity = game.player
 
 ### draw_light
 
-Create a light.
+Create a gradient light which is not occluded by any sprites. It is rendered at lower resolution, so it takes less GPU power. The same technique is used for lights drawn by [LightDefinition](prototype:LightDefinition).
 
 The base game uses the utility sprites `light_medium` and `light_small` for lights.
 
@@ -290,6 +291,7 @@ Create an animation.
 - `visible` `boolean` *(optional)* - If this is rendered to anyone at all. Defaults to true.
 - `only_in_alt_mode` `boolean` *(optional)* - If this should only be rendered in alt mode. Defaults to false.
 - `render_mode` `ScriptRenderMode` *(optional)* - Mode which this object should render in. Defaults to "game".
+- `light_mode` `ScriptSpriteLightMode` *(optional)* - Whether this object should be rendered as a sprite, light or both at once. Defaults to "occluder".
 
 **Returns:**
 

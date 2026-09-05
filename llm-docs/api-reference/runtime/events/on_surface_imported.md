@@ -8,7 +8,7 @@ Called after a surface is imported via the map editor.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### original_name
 
@@ -22,7 +22,7 @@ The original surface name.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

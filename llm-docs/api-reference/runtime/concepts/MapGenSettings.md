@@ -1,5 +1,7 @@
 # MapGenSettings
 
+When reading MapGenSettings, all properties will always be present, but they can be omitted when writing.
+
 **Type:** Table
 
 ## Parameters
@@ -10,7 +12,7 @@ Indexed by autoplace control prototype name.
 
 **Type:** Dictionary[`string`, `AutoplaceControl`]
 
-**Required:** Yes
+**Optional:** Yes
 
 ### autoplace_settings
 
@@ -18,7 +20,7 @@ Each setting in this dictionary maps the string type to the settings for that ty
 
 **Type:** Dictionary[`"entity"` | `"tile"` | `"decorative"`, `AutoplaceSettings`]
 
-**Required:** Yes
+**Optional:** Yes
 
 ### cliff_settings
 
@@ -26,7 +28,7 @@ Map generation settings for entities of the type "cliff".
 
 **Type:** `CliffPlacementSettings`
 
-**Required:** Yes
+**Optional:** Yes
 
 ### default_enable_all_autoplace_controls
 
@@ -34,7 +36,7 @@ Whether undefined `autoplace_controls` should fall back to the default controls 
 
 **Type:** `boolean`
 
-**Required:** Yes
+**Optional:** Yes
 
 ### height
 
@@ -42,7 +44,7 @@ Height in tiles. If `0`, the map has 'infinite' height, with the actual limitati
 
 **Type:** `uint32`
 
-**Required:** Yes
+**Optional:** Yes
 
 ### no_enemies_mode
 
@@ -50,7 +52,7 @@ Whether enemy creatures will not naturally spawn from spawners, map gen, or trig
 
 **Type:** `boolean`
 
-**Required:** Yes
+**Optional:** Yes
 
 ### peaceful_mode
 
@@ -58,7 +60,7 @@ Whether enemy creatures will not attack unless the player first attacks them.
 
 **Type:** `boolean`
 
-**Required:** Yes
+**Optional:** Yes
 
 ### property_expression_names
 
@@ -66,23 +68,23 @@ Overrides for tile property value generators.
 
 **Type:** `PropertyExpressionNames`
 
-**Required:** Yes
+**Optional:** Yes
 
 ### seed
 
-The random seed used to generated this map.
+) The random seed used to generated this map.
 
 **Type:** `uint32`
 
-**Required:** Yes
+**Optional:** Yes
 
 ### starting_area
 
-Size of the starting area.
+Size of the starting area. Defaults to `1`.
 
 **Type:** `MapGenSize`
 
-**Required:** Yes
+**Optional:** Yes
 
 ### starting_points
 
@@ -90,21 +92,21 @@ Positions of the starting areas.
 
 **Type:** Array[`MapPosition`]
 
-**Required:** Yes
+**Optional:** Yes
 
 ### territory_settings
 
 **Type:** `TerritorySettings`
 
-**Required:** Yes
+**Optional:** Yes
 
 ### width
 
-Width in tiles. If `0`, the map has 'infinite' width, with the actual limitation being one million tiles in each direction from the center.
+) Width in tiles. If `0`, the map has 'infinite' width, with the actual limitation being one million tiles in each direction from the center.
 
 **Type:** `uint32`
 
-**Required:** Yes
+**Optional:** Yes
 
 ## Examples
 

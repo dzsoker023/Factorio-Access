@@ -1,5 +1,7 @@
 # ManualTransferTipTrigger
 
+Triggered when the player manually moves item with the cursor, *without* using shortcuts such as entity transfer or stack split.
+
 **Type:** `Struct`
 
 ## Properties

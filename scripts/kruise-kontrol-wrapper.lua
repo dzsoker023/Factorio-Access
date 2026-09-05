@@ -56,7 +56,7 @@ function mod.activate_kk(pindex)
 
       -- If in a car, make sure to activate it
       if p.vehicle and p.vehicle.type == "car" and p.vehicle.active == false then
-         p.vehicle.active = true
+         p.vehicle.disabled_by_script = false
          p.vehicle.speed = 0
       end
 

@@ -35,3 +35,51 @@ All graphics for this pipe.
 
 **Optional:** Yes
 
+### circuit_wire_max_distance
+
+**Type:** `double`
+
+**Optional:** Yes
+
+**Default:** 0
+
+### draw_copper_wires
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
+### draw_circuit_wires
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
+### circuit_connector
+
+**Type:** (`CircuitConnectorDefinition`, `CircuitConnectorDefinition`, `CircuitConnectorDefinition`, `CircuitConnectorDefinition`)
+
+**Optional:** Yes
+
+### default_fluid_temperature_signal
+
+**Type:** `SignalIDConnector`
+
+**Optional:** Yes
+
+### show_fluid_visualization_when_in_cursor
+
+When this is true, fluid pipelines will be visualized when this entity is held in the cursor.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
+
+**Overrides parent:** Yes
+

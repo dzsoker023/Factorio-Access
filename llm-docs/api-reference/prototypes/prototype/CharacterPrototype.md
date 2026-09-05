@@ -155,6 +155,8 @@ running_sound_animation_positions = {14, 29}
 
 ### moving_sound_animation_positions
 
+List of positions in the running animation when the moving sound is played.
+
 **Type:** Array[`float`]
 
 **Required:** Yes

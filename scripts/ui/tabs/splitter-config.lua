@@ -36,7 +36,7 @@ local function priority_to_text(priority)
 end
 
 ---Render the splitter configuration form
----@param ctx fa.ui.TabContext
+---@param ctx fa.ui.graph.Ctx
 ---@return fa.ui.graph.Render?
 local function render_splitter_config(ctx)
    -- Belt analyzer uses global_parameters.entity, entity-ui uses tablist_shared_state.entity

@@ -68,6 +68,8 @@ Direction of this element's layout.
 
 The style of this element. When read, this evaluates to a [LuaStyle](runtime:LuaStyle). For writing, it only accepts a string that specifies the textual identifier (prototype name) of the desired style.
 
+When writing, this clears all custom values set through [LuaStyle](runtime:LuaStyle).
+
 **Read type:** `LuaStyle` | `string`
 
 **Write type:** `LuaStyle` | `string`
@@ -414,7 +416,7 @@ Whether the contents of this text-box are selectable. Defaults to `true`.
 
 **Write type:** `boolean`
 
-**Subclasses:** text-box
+**Subclasses:** scroll-pane, text-box
 
 ### word_wrap
 
@@ -424,7 +426,7 @@ Whether this text-box will word-wrap automatically. Defaults to `false`.
 
 **Write type:** `boolean`
 
-**Subclasses:** text-box
+**Subclasses:** scroll-pane, text-box
 
 ### read_only
 
@@ -434,7 +436,7 @@ Whether this text-box is read-only. Defaults to `false`.
 
 **Write type:** `boolean`
 
-**Subclasses:** text-box
+**Subclasses:** scroll-pane, text-box
 
 ### enabled
 
@@ -659,6 +661,86 @@ Whether this element will raise [on_gui_hover](runtime:on_gui_hover) and [on_gui
 **Read type:** `boolean`
 
 **Write type:** `boolean`
+
+### inventory
+
+The inventory target for this custom inventory widget.
+
+**Read type:** `LuaInventory`
+
+**Write type:** `LuaInventory`
+
+**Optional:** Yes
+
+**Subclasses:** inventory
+
+### slots_per_row
+
+**Read type:** `uint8`
+
+**Write type:** `uint8`
+
+**Optional:** Yes
+
+**Subclasses:** inventory
+
+### empty_slot_info
+
+**Read type:** `EmptySlotInfo`
+
+**Write type:** `EmptySlotInfo`
+
+**Optional:** Yes
+
+**Subclasses:** inventory
+
+### handle_cursor_transfer
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
+
+**Subclasses:** inventory
+
+### handle_cursor_split
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
+
+**Subclasses:** inventory
+
+### handle_open_item
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
+
+**Subclasses:** inventory
+
+### handle_open_mod_item
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
+
+**Subclasses:** inventory
+
+### handle_send_stack_to_trash
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
+
+**Subclasses:** inventory
+
+### handle_send_stacks_to_trash
+
+**Read type:** `boolean`
+
+**Write type:** `boolean`
+
+**Subclasses:** inventory
 
 ### switch_state
 

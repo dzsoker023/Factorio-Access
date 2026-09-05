@@ -135,7 +135,7 @@ function mod.calculate_build_params(params)
 
       return {
          entity_name = nil,
-         tile_name = item_prototype.place_as_tile_result.result.name,
+         tile_name = stack.prototype.place_as_tile_result.result.name,
          position = pos,
          direction = building_direction,
          flip_horizontal = false,
@@ -1131,7 +1131,7 @@ end
 function mod.get_relevant_fluidbox_and_fluid_name(building, pos, dir_from_pos)
    local relevant_box = nil
    local relevant_fluid_name = nil
-   if building ~= nil and building.valid and building.fluidbox ~= nil then
+   if building ~= nil and building.valid and building.fluids_count > 0 then
       rendering.draw_circle({
          color = { 1, 1, 0 },
          radius = 0.2,
@@ -1141,8 +1141,8 @@ function mod.get_relevant_fluidbox_and_fluid_name(building, pos, dir_from_pos)
          time_to_live = 30,
       })
       --Run checks to see if we have any fluidboxes that are relevant
-      for i = 1, #building.fluidbox, 1 do
-         for j, con in ipairs(building.fluidbox.get_pipe_connections(i)) do
+      for i = 1, building.fluids_count, 1 do
+         for j, con in ipairs(building.get_fluid_box_pipe_connections(i)) do
             local target_pos = con.target_position
             local con_pos = con.position
             rendering.draw_circle({
@@ -1166,13 +1166,17 @@ function mod.get_relevant_fluidbox_and_fluid_name(building, pos, dir_from_pos)
                   surface = building.surface,
                   time_to_live = 30,
                })
-               relevant_box = building.fluidbox[i]
-               if building.fluidbox[i] ~= nil then
-                  relevant_fluid_name = building.fluidbox[i].name
-               elseif building.fluidbox.get_locked_fluid(i) ~= nil then
-                  relevant_fluid_name = building.fluidbox.get_locked_fluid(i)
+               local fluid = building.get_fluid(i)
+               relevant_box = fluid
+               if fluid ~= nil then
+                  relevant_fluid_name = fluid.name
                else
-                  relevant_fluid_name = nil -- Empty pipe, no fluid
+                  local filt = building.get_fluid_filter(i)
+                  if filt and filt.fluid then
+                     relevant_fluid_name = type(filt.fluid) == "string" and filt.fluid or filt.fluid.name
+                  else
+                     relevant_fluid_name = nil -- Empty pipe, no fluid
+                  end
                end
             end
          end
@@ -1302,10 +1306,9 @@ end
 --Identifies if a pipe is a pipe end, so that it can be singled out. The motivation is that pipe ends generally should not exist because the pipes should connect to something.
 ---@param ent LuaEntity
 function mod.is_a_pipe_end(ent)
-   local boxes = ent.fluidbox
    local connections = 0
-   for i = 1, #boxes do
-      local outgoing = boxes.get_pipe_connections(i)
+   for i = 1, ent.fluids_count do
+      local outgoing = ent.get_fluid_box_pipe_connections(i)
       for j = 1, #outgoing do
          if outgoing[j].target then connections = connections + 1 end
          if connections > 1 then return false end

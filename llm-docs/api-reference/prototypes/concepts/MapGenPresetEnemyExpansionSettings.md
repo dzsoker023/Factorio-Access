@@ -12,6 +12,14 @@
 
 **Optional:** Yes
 
+### min_expansion_distance
+
+Distance in chunks from the furthest base around to prevent expansions from being too close to existing bases.
+
+**Type:** `uint32`
+
+**Optional:** Yes
+
 ### max_expansion_distance
 
 Distance in chunks from the furthest base around. This prevents expansions from reaching too far into the player's territory.
@@ -31,6 +39,14 @@ Size of the group that goes to build new base (the game interpolates between min
 ### settler_group_max_size
 
 **Type:** `uint32`
+
+**Optional:** Yes
+
+### evolution_group_size_factor
+
+Factor by which the evolution factor influences the size of the settler group
+
+**Type:** `double`
 
 **Optional:** Yes
 

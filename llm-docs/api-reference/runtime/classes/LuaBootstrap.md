@@ -40,9 +40,9 @@ The class name of this object. Available even when `valid` is false. For LuaStru
 
 Register a function to be run on mod initialization.
 
-This is only called when a new save game is created or when a save file is loaded that previously didn't contain the mod. During it, the mod gets the chance to set up initial values that it will use for its lifetime. It has full access to [LuaGameScript](runtime:LuaGameScript) and the [storage](runtime:storage) table and can change anything about them that it deems appropriate. No other events will be raised for the mod until it has finished this step.
+This is only called when a new save game is created or when a save file is loaded that previously didn't contain the mod. During it, the mod gets the chance to set up initial values that it will use for its lifetime. It has full access to [LuaGameScript](runtime:LuaGameScript) and the [storage](auxiliary:storage) table and can change anything about them that it deems appropriate. No other events will be raised for the mod until it has finished this step.
 
-For more context, refer to the [Data Lifecycle](runtime:data-lifecycle) page.
+For more context, refer to the [Data Lifecycle](auxiliary:data-lifecycle) page.
 
 **Parameters:**
 
@@ -61,7 +61,7 @@ end)
 
 Register a function to be run on save load. This is only called for mods that have been part of the save previously, or for players connecting to a running multiplayer session.
 
-It gives the mod the opportunity to rectify potential differences in local state introduced by the save/load cycle. Doing anything other than the following three will lead to desyncs, breaking multiplayer and replay functionality. Access to [LuaGameScript](runtime:LuaGameScript) is not available. The [storage](runtime:storage) table can be accessed and is safe to read from, but not write to, as doing so will lead to an error.
+It gives the mod the opportunity to rectify potential differences in local state introduced by the save/load cycle. Doing anything other than the following three will lead to desyncs, breaking multiplayer and replay functionality. Access to [LuaGameScript](runtime:LuaGameScript) is not available. The [storage](auxiliary:storage) table can be accessed and is safe to read from, but not write to, as doing so will lead to an error.
 
 The only legitimate uses of this event are these:
 
@@ -69,11 +69,11 @@ The only legitimate uses of this event are these:
 
 - Re-setup conditional event handlers, meaning subscribing to an event only when some condition is met to save processing time.
 
-- Create local references to data stored in the [storage](runtime:storage) table.
+- Create local references to data stored in the [storage](auxiliary:storage) table.
 
-For all other purposes, [LuaBootstrap::on_init](runtime:LuaBootstrap::on_init), [LuaBootstrap::on_configuration_changed](runtime:LuaBootstrap::on_configuration_changed) or [migrations](runtime:migrations) should be used instead.
+For all other purposes, [LuaBootstrap::on_init](runtime:LuaBootstrap::on_init), [LuaBootstrap::on_configuration_changed](runtime:LuaBootstrap::on_configuration_changed) or [migrations](auxiliary:migrations) should be used instead.
 
-For more context, refer to the [Data Lifecycle](runtime:data-lifecycle) page.
+For more context, refer to the [Data Lifecycle](auxiliary:data-lifecycle) page.
 
 **Parameters:**
 
@@ -83,9 +83,9 @@ For more context, refer to the [Data Lifecycle](runtime:data-lifecycle) page.
 
 Register a function to be run when mod configuration changes.
 
-This is called when the game version or any mod version changed, when any mod was added or removed, when a startup setting has changed, when any prototypes have been added or removed, or when a migration was applied. It allows the mod to make any changes it deems appropriate to both the data structures in its [storage](runtime:storage) table or to the game state through [LuaGameScript](runtime:LuaGameScript).
+This is called when the game version or any mod version changed, when any mod was added or removed, when a startup setting has changed, when any prototypes have been added or removed, or when a migration was applied. It allows the mod to make any changes it deems appropriate to both the data structures in its [storage](auxiliary:storage) table or to the game state through [LuaGameScript](runtime:LuaGameScript).
 
-For more context, refer to the [Data Lifecycle](runtime:data-lifecycle) page.
+For more context, refer to the [Data Lifecycle](auxiliary:data-lifecycle) page.
 
 **Parameters:**
 
@@ -122,7 +122,7 @@ Register a handler to run every nth-tick(s). When the game is on tick 0 it will 
 
 **Parameters:**
 
-- `tick` `uint32` | Array[`uint32`] | `nil` - The nth-tick(s) to invoke the handler on. Passing `nil` as the only parameter will unregister all nth-tick handlers.
+- `tick` `MapTick` | Array[`MapTick`] | `nil` - The nth-tick(s) to invoke the handler on. Passing `nil` as the only parameter will unregister all nth-tick handlers.
 - `handler` function(`NthTickEventData`) | `nil` - The handler to run. Passing `nil` will unregister it for the provided nth-tick(s).
 
 ### register_on_object_destroyed
@@ -140,7 +140,7 @@ Depending on when a given object is destroyed, [on_object_destroyed](runtime:on_
 **Returns:**
 
 - `uint64` - The registration number. It is used to identify the object in the [on_object_destroyed](runtime:on_object_destroyed) event.
-- `uint64` - The [useful identifier](runtime:RegistrationTarget) of the object if it has one. This identifier is specific to the object type, for example for trains it is the value [LuaTrain::id](runtime:LuaTrain::id).
+- `uint64` - The [useful identifier](runtime:RegistrationTarget) of the object if it has one or `0` if it doesn't. This identifier is specific to the object type, for example for trains it is the value [LuaTrain::id](runtime:LuaTrain::id).
 - `defines.target_type` - Type of the target object.
 
 ### register_metatable
@@ -151,7 +151,7 @@ The metatable itself will not be saved. Instead, only the linkage to a registere
 
 `register_metatable()` can not be used in the console, in event listeners or during a `remote.call()`.
 
-The metatable first needs to be defined in the mod's root scope, then registered using this method. From then on, it will be properly restored for tables in [storage](runtime:storage).
+The metatable first needs to be defined in the mod's root scope, then registered using this method. From then on, it will be properly restored for tables in [storage](auxiliary:storage).
 
 ```
 local metatable =
@@ -253,6 +253,14 @@ Gets the filters for the given event.
 **Returns:**
 
 - `EventFilter` *(optional)* - The filters or `nil` if none are defined.
+
+### new_notification_queue
+
+Creates new empty instance of LuaNotificationQueue
+
+**Returns:**
+
+- `LuaNotificationQueue`
 
 ### raise_event
 

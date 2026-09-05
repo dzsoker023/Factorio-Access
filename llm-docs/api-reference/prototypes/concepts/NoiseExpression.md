@@ -12,9 +12,11 @@ A boolean or double as simple values or a string that represents a math expressi
 
 - **Operator:** See the list below
 
-Identifiers are used to name functions and variables. The built-in functions and variables are documented in the [auxiliary docs](runtime:noise-expressions). Mods can define their own noise expressions which can be used as variables and functions. The entry points for this are [NamedNoiseFunction](prototype:NamedNoiseFunction) and [NamedNoiseExpression](prototype:NamedNoiseExpression) as well as local functions and expressions.
+Identifiers are used to name functions and variables. The built-in functions and variables are documented in the [auxiliary docs](auxiliary:noise-expressions). Mods can define their own noise expressions which can be used as variables and functions. The entry points for this are [NamedNoiseFunction](prototype:NamedNoiseFunction) and [NamedNoiseExpression](prototype:NamedNoiseExpression) as well as local functions and expressions.
 
 All functions accept both named and positional arguments. To differentiate between these function calls, positional arguments start/end with `(`/`)` and named arguments with `{`/`}`, e.g. `clamp(x, -1, 1)` and `clamp{min = -1, max = 1, value = x}` are the same function call. Because of this, positional arguments can't be mixed with named arguments. A function can't have more than 255 parameters.
+
+Recursion is not supported.
 
 The following operators are available, ordered by precedence:
 

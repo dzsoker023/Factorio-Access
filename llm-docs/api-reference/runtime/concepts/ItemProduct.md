@@ -4,6 +4,18 @@
 
 ## Parameters
 
+### affected_by_quality
+
+**Type:** `boolean`
+
+**Required:** Yes
+
+### always_fresh
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
 ### amount
 
 Amount of the item to give. If not returned, `amount_min` and `amount_max` will be present instead.
@@ -52,6 +64,14 @@ How much of this product is ignored by statistics.
 
 **Optional:** Yes
 
+### independent_probability
+
+A value in range `[0, 1]`. Item is only given with this probability; otherwise no product is produced.
+
+**Type:** `double`
+
+**Required:** Yes
+
 ### name
 
 Prototype name of the result.
@@ -66,11 +86,27 @@ Prototype name of the result.
 
 **Optional:** Yes
 
-### probability
+### quality_change
 
-A value in range `[0, 1]`. Item is only given with this probability; otherwise no product is produced.
+**Type:** `int8`
 
-**Type:** `double`
+**Optional:** Yes
+
+### quality_max
+
+**Type:** `QualityID`
+
+**Optional:** Yes
+
+### quality_min
+
+**Type:** `QualityID`
+
+**Optional:** Yes
+
+### shared_probability
+
+**Type:** `SharedProbabilityDefinition`
 
 **Required:** Yes
 

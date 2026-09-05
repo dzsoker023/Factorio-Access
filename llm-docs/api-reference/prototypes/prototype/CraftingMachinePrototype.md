@@ -251,13 +251,13 @@ Affects animation speed.
 
 **Optional:** Yes
 
-### forced_symmetry
+### use_mirroring
 
-**Type:** `Mirroring`
+Defaults to true if `vector_to_place_result` is given.
+
+**Type:** `boolean`
 
 **Optional:** Yes
-
-**Default:** "none"
 
 ### crafting_speed_quality_multiplier
 

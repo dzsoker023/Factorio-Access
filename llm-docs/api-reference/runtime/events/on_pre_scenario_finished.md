@@ -8,7 +8,7 @@ Called just before the scenario finishes.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_won
 
@@ -18,7 +18,7 @@ If a player won
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

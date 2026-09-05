@@ -116,6 +116,7 @@ function mod.TestPrimitiveWithMultiplier()
 
    local rep = ast.statements[1]
    lu.assertEquals(rep.type, Ast.NODE_TYPE.REPETITION)
+   ---@cast rep syntrax.ast.Repetition
    lu.assertEquals(rep.count, 5)
    lu.assertEquals(rep.body.type, Ast.NODE_TYPE.IMPLICIT_SEQUENCE)
    lu.assertEquals(#rep.body.statements, 1)
@@ -135,6 +136,7 @@ function mod.TestChordMultiplierOnlyLastToken()
 
    local rep = ast.statements[3]
    lu.assertEquals(rep.type, Ast.NODE_TYPE.REPETITION)
+   ---@cast rep syntrax.ast.Repetition
    lu.assertEquals(rep.count, 5)
 end
 

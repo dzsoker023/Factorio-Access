@@ -28,6 +28,8 @@
 
 ### damage_type
 
+If this is not set, any damage type will fulfill the trigger condition.
+
 **Type:** `DamageTypeID`
 
 **Optional:** Yes

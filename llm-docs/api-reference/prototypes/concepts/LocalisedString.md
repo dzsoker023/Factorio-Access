@@ -10,7 +10,7 @@ The template can contain placeholders such as `__1__` or `__2__`. These will be 
 
 There are two special flags for the localised string, indicated by the key being a particular string. First, if the key is the empty string (`""`), then all parameters will be concatenated (after processing, if any are localised strings themselves). Second, if the key is a question mark (`"?"`), then the first valid parameter will be used. A parameter can be invalid if its name doesn't match any string template. If no parameters are valid, the last one is returned. This is useful to implement a fallback for missing locale templates.
 
-Furthermore, when an API function expects a localised string, it will also accept a regular string (i.e. not a table) which will not be translated, as well as a number or boolean, which will be converted to their textual representation.
+Furthermore, when an API function expects a localised string, it will also accept a regular string (i.e. not a table) which will not be translated. In the settings and prototype stages, this string cannot be longer than 200 characters.
 
 See [Tutorial:Localisation](https://wiki.factorio.com/Tutorial:Localisation) for more information.
 

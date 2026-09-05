@@ -14,7 +14,7 @@
 
 ### migrations
 
-Dictionary of prototype changes due to [migrations](runtime:migrations). The inner dictionary maps the old prototype name to the new prototype name. The new name will be an empty string if the prototype was removed. Entries are omitted if the old and new prototype name are the same.
+Dictionary of prototype changes due to [migrations](auxiliary:migrations). The inner dictionary maps the old prototype name to the new prototype name. The new name will be an empty string if the prototype was removed. Entries are omitted if the old and new prototype name are the same.
 
 **Type:** Dictionary[`IDType`, Dictionary[`string`, `string`]]
 

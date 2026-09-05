@@ -26,7 +26,7 @@ The force that did the killing if any.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### segmented_unit
 
@@ -36,7 +36,7 @@ The unit that died.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

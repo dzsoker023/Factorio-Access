@@ -1,5 +1,7 @@
 # HorizontalFlowStyleSpecification
 
+Root style: `"horizontal_flow"`
+
 **Type:** `Struct`
 
 ## Properties
@@ -13,6 +15,8 @@
 **Required:** Yes
 
 ### horizontal_spacing
+
+Required on the root style.
 
 **Type:** `int32`
 

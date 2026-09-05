@@ -233,6 +233,36 @@ The number of crafts that must complete to produce a rocket. This includes bonus
 
 **Required:** Yes
 
+### rocket_rising_speed_modifier_per_quality_level
+
+Must be >= 0.
+
+**Type:** `double`
+
+**Optional:** Yes
+
+**Default:** 0
+
+### rocket_engine_starting_speed_modifier_per_quality_level
+
+Must be >= 0.
+
+**Type:** `double`
+
+**Optional:** Yes
+
+**Default:** 0
+
+### arms_speed_modifier_per_quality_level
+
+Must be >= 0.
+
+**Type:** `double`
+
+**Optional:** Yes
+
+**Default:** 0
+
 ### satellite_animation
 
 **Type:** `Animation`
@@ -395,6 +425,8 @@ Played when switching into the [rocket_rising](runtime:defines.rocket_silo_statu
 
 ### to_be_inserted_to_rocket_inventory_size
 
+When `launch_to_space_platforms` is true, the inventory has dynamic size and is weight-restricted, so this value is ignored.
+
 **Type:** `ItemStackIndex`
 
 **Optional:** Yes
@@ -408,6 +440,16 @@ Played when switching into the [rocket_rising](runtime:defines.rocket_silo_statu
 **Optional:** Yes
 
 **Default:** 0
+
+### lift_weight
+
+When `launch_to_space_platforms` is false, the inventory has no weight restrictions, so this value is ignored.
+
+**Type:** `Weight`
+
+**Optional:** Yes
+
+**Default:** 1000000
 
 ### cargo_station_parameters
 
@@ -434,4 +476,10 @@ Enables 'Space Age' functionality for this rocket silo, allowing it to supply sp
 **Optional:** Yes
 
 **Default:** False
+
+### robot_door
+
+**Type:** `RobotDoorSpecification`
+
+**Optional:** Yes
 

@@ -19,7 +19,7 @@ local ItemInfo = require("scripts.item-info")
 local mod = {}
 
 ---Render the inserter configuration form
----@param ctx fa.ui.TabContext
+---@param ctx fa.ui.graph.Ctx
 ---@return fa.ui.graph.Render?
 local function render_inserter_config(ctx)
    local entity = ctx.tablist_shared_state.entity

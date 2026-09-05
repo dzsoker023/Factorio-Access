@@ -171,6 +171,14 @@ Must be between 0 and 1. Must be less than or equal to `energy_fraction_to_conne
 
 **Default:** 0.1
 
+### default_universe_channel
+
+The default channel for the circuit network connection in universe mode.
+
+**Type:** `SignalIDConnector`
+
+**Optional:** Yes
+
 ### is_military_target
 
 Whether this prototype should be a high priority target for enemy forces. See [Military units and structures](https://wiki.factorio.com/Military_units_and_structures).

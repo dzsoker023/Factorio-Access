@@ -18,7 +18,7 @@ True for pods spawned on a rocket. This event triggers for platform and modded p
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -28,7 +28,7 @@ The player that is riding the cargo pod, if any.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

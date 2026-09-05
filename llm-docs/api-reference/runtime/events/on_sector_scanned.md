@@ -20,7 +20,7 @@ The chunk scanned.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### radar
 
@@ -30,7 +30,7 @@ The radar that did the scanning.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

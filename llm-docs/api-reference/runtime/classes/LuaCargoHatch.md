@@ -42,6 +42,10 @@ The class name of this object. Available even when `valid` is false. For LuaStru
 
 Creates a cargo pod for output at the owning entity hatch location.
 
+**Parameters:**
+
+- `cargo_pod_prototype` `EntityID` *(optional)* - The cargo pod prototype to create. If not provided, the default cargo pod prototype of the hatch is used.
+
 **Returns:**
 
 - `LuaEntity`

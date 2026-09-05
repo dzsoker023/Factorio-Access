@@ -1,5 +1,7 @@
 # LineStyleSpecification
 
+Root style: `"line"`
+
 **Type:** `Struct`
 
 ## Properties
@@ -13,6 +15,8 @@
 **Required:** Yes
 
 ### border
+
+Required on the root style.
 
 **Type:** `BorderImageSet`
 

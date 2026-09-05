@@ -9,7 +9,7 @@ local mod = {}
 ---@type fa.ui.UiPanelBase
 local cursor_coordinate_ui = {
    ui_name = "cursor_coordinate_input",
-   open = nil, -- Defined below
+   open = function() end, -- placeholder; the real method is defined below
    on_child_result = nil, -- Defined below
 }
 

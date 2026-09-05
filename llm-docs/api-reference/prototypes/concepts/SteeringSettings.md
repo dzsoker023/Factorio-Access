@@ -6,15 +6,23 @@
 
 *These properties apply when the value is a struct/table.*
 
-### default
+### stay
 
 **Type:** `StateSteeringSettings`
 
-**Required:** Yes
+**Optional:** Yes
 
-### moving
+### move
 
 **Type:** `StateSteeringSettings`
 
-**Required:** Yes
+**Optional:** Yes
+
+### force_unit_fuzzy_goto_behavior
+
+Used only for special "to look good" purposes (like in trailer).
+
+**Type:** `boolean`
+
+**Optional:** Yes
 

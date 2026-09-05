@@ -12,7 +12,7 @@ Called when a cargo pod departs from a space platform hub or by another method n
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -22,7 +22,7 @@ The player that is riding the cargo pod, if any.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

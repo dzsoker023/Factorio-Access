@@ -18,23 +18,9 @@
 
 **Required:** Yes
 
-### dump_container
-
-Name of a [ContainerPrototype](prototype:ContainerPrototype).
-
-**Type:** `EntityID`
-
-**Required:** Yes
-
 ### persistent_ambient_sounds
 
 **Type:** `PersistentWorldAmbientSoundsDefinition`
-
-**Optional:** Yes
-
-### surface_render_parameters
-
-**Type:** `SurfaceRenderParameters`
 
 **Optional:** Yes
 
@@ -84,6 +70,8 @@ The maximum circuit wire distance for this entity.
 
 ### platform_repair_speed_modifier
 
+Repair speed of entities is multiplied by this value when they are on a space platform with this hub prototype.
+
 **Type:** `float`
 
 **Optional:** Yes
@@ -91,6 +79,8 @@ The maximum circuit wire distance for this entity.
 **Default:** 1
 
 ### weight
+
+Weight which this entity adds to total space platform weight when placed.
 
 **Type:** `Weight`
 

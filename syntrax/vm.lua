@@ -105,7 +105,6 @@ mod.RAIL_KIND = {
 ---@field rail_stack syntrax.vm.RailStackEntry[] Stack of saved traverser states
 ---@field initial_traverser railutils.Traverser? Initial traverser for reset
 ---@field mark_traverser railutils.Traverser? Current mark position (reset jumps here)
-
 local VM = {}
 local VM_meta = { __index = VM }
 

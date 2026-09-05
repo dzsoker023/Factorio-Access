@@ -12,7 +12,7 @@ Called after a cargo pod has delivered its cargo.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### spawned_container
 
@@ -22,7 +22,7 @@ The spawned container if any. Created when destination type is [surface](runtime
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

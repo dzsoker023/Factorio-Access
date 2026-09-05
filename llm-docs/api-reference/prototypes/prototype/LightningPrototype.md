@@ -64,11 +64,9 @@ Effect that is triggered when lightning hits  a [lightning attractor](prototype:
 
 When lightning strikes something that is not a lightning attractor, this damage is applied to the target.
 
-**Type:** `double`
+**Type:** `DamageParameters`
 
 **Optional:** Yes
-
-**Default:** 100
 
 ### energy
 

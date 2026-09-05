@@ -38,15 +38,57 @@ Requires Space Age to use level greater than `0`.
 
 ### next_probability
 
-The quality [effect of the module](prototype:ModulePrototype::effect) is multiplied by this. For example, if a module's quality effect is 0.2 and the current quality's next_probability is 0.1, then the chance to get the next quality item is 2%.
+Probability that a crafting machine affected by a 100% quality [effect from modules](prototype:ModulePrototype::effect) will cause quality to be increased.
 
-Must be in range [0, 1.0].
+Probability is scaled linearly with quality effect. E.g. for `next_probability = 1`, 100% quality effect means quality is always increased, at 50% quality effect the quality is increased 50% of the time and so on.
+
+Must be >= 0.
 
 **Type:** `double`
 
 **Optional:** Yes
 
 **Default:** 0
+
+### chain_probability
+
+Probability of additional quality increase happening after quality was increased to reach this quality in the same crafting/mining operation.
+
+Must be in range `[0, 1]`.
+
+**Type:** `double`
+
+**Optional:** Yes
+
+**Default:** "clamp(`next_probability * 0.1, 0, 1)`"
+
+### previous_probability
+
+Probability that a crafting machine affected by a -100% quality [effect from modules](prototype:ModulePrototype::effect) will cause quality to be decreased.
+
+Probability is scaled linearly with quality effect. E.g. for `previous_probability = 1`, -100% quality effect means quality is always decreased, at -50% quality effect the quality is decreased 50% of the time and so on.
+
+Must be >= 0.
+
+Note: for a machine to have a negative quality effect, [EffectReceiver::quality_limits](prototype:EffectReceiver::quality_limits) needs to be set.
+
+**Type:** `double`
+
+**Optional:** Yes
+
+**Default:** 0
+
+### previous_chain_probability
+
+Probability of additional quality decrease happening after quality was decreased to reach this quality in the same crafting/mining operation.
+
+Must be in range `[0, 1]`.
+
+**Type:** `double`
+
+**Optional:** Yes
+
+**Default:** "clamp(`previous_probability * 0.1, 0, 1)`"
 
 ### icons
 
@@ -80,7 +122,7 @@ Only loaded if `icons` is not defined.
 
 ### beacon_power_usage_multiplier
 
-Must be >= 0.
+Must be >= 0.01.
 
 **Type:** `float`
 
@@ -163,6 +205,36 @@ Must be >= 0.01.
 **Optional:** Yes
 
 **Default:** "Value of `default_multiplier`"
+
+### cargo_wagon_inventory_size_multiplier
+
+Must be >= 0.01.
+
+**Type:** `double`
+
+**Optional:** Yes
+
+**Default:** "Value of `inventory_size_multiplier`"
+
+### locomotive_power_multiplier
+
+Must be >= 0.01.
+
+**Type:** `double`
+
+**Optional:** Yes
+
+**Default:** "1 + 0.01 * `level`"
+
+### rolling_stock_max_speed_multiplier
+
+Must be >= 0.01.
+
+**Type:** `double`
+
+**Optional:** Yes
+
+**Default:** "1 + 0.01 * `level`"
 
 ### lab_research_speed_multiplier
 
@@ -325,6 +397,66 @@ Must be >= 0.
 **Optional:** Yes
 
 **Default:** "Value of `level`"
+
+### module_consumption_multiplier
+
+Must be >= 0.01.
+
+**Type:** `float`
+
+**Optional:** Yes
+
+**Default:** "Value of `default_multiplier`"
+
+### module_speed_multiplier
+
+Must be >= 0.01.
+
+**Type:** `float`
+
+**Optional:** Yes
+
+**Default:** "Value of `default_multiplier`"
+
+### module_productivity_multiplier
+
+Must be >= 0.01.
+
+**Type:** `float`
+
+**Optional:** Yes
+
+**Default:** "Value of `default_multiplier`"
+
+### module_pollution_multiplier
+
+Must be >= 0.01.
+
+**Type:** `float`
+
+**Optional:** Yes
+
+**Default:** "Value of `default_multiplier`"
+
+### module_quality_multiplier
+
+Must be >= 0.01.
+
+**Type:** `float`
+
+**Optional:** Yes
+
+**Default:** "Value of `default_multiplier`"
+
+### spoil_ticks_multiplier
+
+Must be >= 0.01.
+
+**Type:** `float`
+
+**Optional:** Yes
+
+**Default:** "Value of `default_multiplier`"
 
 ### logistic_cell_charging_station_count_bonus
 

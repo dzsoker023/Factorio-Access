@@ -21,27 +21,15 @@ This must have a filter if `max_power_output` is not defined.
 
 **Required:** Yes
 
-### horizontal_animation
+### output_fluid_box
 
-**Type:** `Animation`
-
-**Optional:** Yes
-
-### vertical_animation
-
-**Type:** `Animation`
+**Type:** `FluidBox`
 
 **Optional:** Yes
 
-### horizontal_frozen_patch
+### pictures
 
-**Type:** `Sprite`
-
-**Optional:** Yes
-
-### vertical_frozen_patch
-
-**Type:** `Sprite`
+**Type:** `GeneratorPictureSet`
 
 **Optional:** Yes
 
@@ -117,6 +105,14 @@ In these cases, this property determines whether the fluid should be destroyed, 
 
 **Default:** True
 
+### two_direction_only
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+
 ### perceived_performance
 
 Affects animation speed and working sound.
@@ -132,6 +128,14 @@ The power production of the generator is capped to this value. This is also the 
 `fluid_box` must have a filter if this is not defined.
 
 **Type:** `Energy`
+
+**Optional:** Yes
+
+### spent_fluid
+
+Fluid and amount produced per 1 unit of fluid consumed. Only used when `output_fluid_box` is defined. If this value is not provided, [FluidPrototype::spent_fluid](prototype:FluidPrototype::spent_fluid) will be used based on the input fluid being consumed.
+
+**Type:** `SpentFluidSpecification`
 
 **Optional:** Yes
 

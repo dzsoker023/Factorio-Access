@@ -58,9 +58,21 @@ Defaults to `false`.
 
 **Optional:** Yes
 
+### input_networks
+
+**Type:** `CircuitNetworkSelection`
+
+**Optional:** Yes
+
 ### logistic_condition
 
 **Type:** `CircuitCondition`
+
+**Optional:** Yes
+
+### output_networks
+
+**Type:** `CircuitNetworkSelection`
 
 **Optional:** Yes
 

@@ -101,13 +101,13 @@ Before an turret that was out of fluid ammunition is able to fire again, the `fl
 
 ### enough_fuel_indicator_picture
 
-**Type:** `Sprite4Way`
+**Type:** `Sprite8Way`
 
 **Optional:** Yes
 
 ### not_enough_fuel_indicator_picture
 
-**Type:** `Sprite4Way`
+**Type:** `Sprite8Way`
 
 **Optional:** Yes
 

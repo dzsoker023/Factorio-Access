@@ -162,7 +162,7 @@ Create the particle only when they are within a 200 tile range of any connected 
 
 ### apply_tile_tint
 
-**Type:** `"primary"` | `"secondary"`
+**Type:** `ApplyTileTint`
 
 **Optional:** Yes
 

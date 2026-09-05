@@ -151,6 +151,22 @@ When `use_fuel_glow_color` is true, this is the color used as `working_light_pic
 
 **Default:** "`{1, 1, 1, 1} (white)`"
 
+### temperature_to_suppress_energy_icons
+
+The temperature above which energy icons are suppressed. Defaults to maximum double value.
+
+**Type:** `double`
+
+**Optional:** Yes
+
+### neighbour_connectable
+
+Defines connection points to neighbours used to compute neighbour bonus.
+
+**Type:** `NeighbourConnectable`
+
+**Optional:** Yes
+
 ### circuit_wire_max_distance
 
 The maximum circuit wire distance for this entity.

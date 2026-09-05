@@ -6,9 +6,49 @@ Prototype of a space location, such as a planet.
 
 ## Attributes
 
+### gravity_pull
+
+**Read type:** `double`
+
+### distance
+
+**Read type:** `double`
+
+### orientation
+
+**Read type:** `RealOrientation`
+
+### starmap_icon_orientation
+
+**Read type:** `RealOrientation`
+
 ### position
 
 **Read type:** `MapPosition`
+
+### magnitude
+
+**Read type:** `double`
+
+### parked_platforms_orientation
+
+**Read type:** `RealOrientation`
+
+### parked_platforms_position
+
+**Read type:** `MapPosition`
+
+### label_orientation
+
+**Read type:** `RealOrientation`
+
+### draw_orbit
+
+**Read type:** `boolean`
+
+### fly_condition
+
+**Read type:** `boolean`
 
 ### solar_power_in_space
 

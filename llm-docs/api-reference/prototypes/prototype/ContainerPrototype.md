@@ -1,6 +1,6 @@
 # ContainerPrototype
 
-A generic container, such as a chest. Cannot be rotated.
+A generic container, such as a chest.
 
 **Parent:** [EntityWithOwnerPrototype](EntityWithOwnerPrototype.md)
 **Type name:** `container`
@@ -23,11 +23,21 @@ The number of slots in this container.
 
 **Default:** True
 
+### direction_count
+
+Amount of directions this container should have. Allowed values are 1, 2 and 4.
+
+**Type:** `uint8`
+
+**Optional:** Yes
+
+**Default:** 1
+
 ### picture
 
 The picture displayed for this entity.
 
-**Type:** `Sprite`
+**Type:** `Sprite4Way`
 
 **Optional:** Yes
 
@@ -87,7 +97,9 @@ The maximum circuit wire distance for this container.
 
 ### circuit_connector
 
-**Type:** `CircuitConnectorDefinition`
+If given, there must be exactly `direction_count` elements in the table.
+
+**Type:** Array[`CircuitConnectorDefinition`]
 
 **Optional:** Yes
 

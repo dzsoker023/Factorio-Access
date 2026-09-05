@@ -260,7 +260,6 @@ function mod.drag_wire_and_read(pindex, side)
          msg:fragment({ "fa.circuit-wire-invalid-copper-target", Localising.get_localised_name_with_fallback(c_ent) })
       elseif drag_target ~= nil then
          local target_ent = drag_target.target_entity
-         local target_network = drag_target.target_wire_id
          network_found = c_ent.electric_network_id
          if network_found == nil then
             network_found = "nil"
@@ -692,6 +691,7 @@ end
 ---@return table[] Array of signal info
 function mod.get_constant_combinator_filters(entity)
    local cb = entity.get_control_behavior()
+   ---@cast cb LuaConstantCombinatorControlBehavior
    local all_signals = {}
 
    for _, section in ipairs(cb.sections) do

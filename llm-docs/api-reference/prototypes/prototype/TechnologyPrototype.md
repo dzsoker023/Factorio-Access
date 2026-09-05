@@ -101,6 +101,10 @@ When set to true, and the technology contains several levels, only the relevant 
 
 ### enabled
 
+This can be `false` to disable the technology at the start of the game, or `true` to leave it enabled.
+
+Changes to this property do not affect existing save files, as the enabled state is saved in the save file and not reloaded from the prototype.
+
 **Type:** `boolean`
 
 **Optional:** Yes
@@ -120,6 +124,8 @@ Whether the technology should be shown in the technology tree GUI when "Show onl
 ### visible_when_disabled
 
 Controls whether the technology is shown in the tech GUI when it is not `enabled`.
+
+Changes to this property do not affect existing save files, as the visible_when_disabled state is saved in the save file and not reloaded from the prototype.
 
 **Type:** `boolean`
 

@@ -558,6 +558,8 @@ end
 ---@class fa.ui.CategoryRows
 ---@field render_callback fun(ctx: fa.ui.TabContext): fa.ui.CategoryRows.Render?
 ---@field name string
+---@field user_get_help_metadata (fun(ctx: fa.ui.TabContext): fa.ui.help.HelpItem[]?)?
+---@field get_binds_callback (fun(ctx: fa.ui.TabContext): fa.ui.Bind[]?)?
 local CategoryRows = {}
 local CategoryRows_meta = { __index = CategoryRows }
 

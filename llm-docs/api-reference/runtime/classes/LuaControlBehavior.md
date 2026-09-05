@@ -8,6 +8,30 @@ An control reference becomes invalid once the control behavior is removed or the
 
 ## Attributes
 
+### input_networks
+
+Which circuit networks (red/green) to read signals from. Defaults to both wire colors.
+
+`nil` if this control behavior does not allow selecting the input networks.
+
+**Read type:** `CircuitNetworkSelection`
+
+**Write type:** `CircuitNetworkSelection`
+
+**Optional:** Yes
+
+### output_networks
+
+Which circuit networks (red/green) to send signals to. Defaults to both wire colors.
+
+`nil` if this control behavior does not allow selecting the output networks.
+
+**Read type:** `CircuitNetworkSelection`
+
+**Write type:** `CircuitNetworkSelection`
+
+**Optional:** Yes
+
 ### type
 
 The concrete type of this control behavior.

@@ -44,6 +44,16 @@ If `true`, the [on_trigger_created_entity](runtime:on_trigger_created_entity) ev
 
 **Default:** False
 
+### preserve_ghosts_and_corpses
+
+If `true`, colliding ghosts and corpses will not be removed by the creation of some entity types.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+
 ### show_in_tooltip
 
 **Type:** `boolean`
@@ -51,6 +61,14 @@ If `true`, the [on_trigger_created_entity](runtime:on_trigger_created_entity) ev
 **Optional:** Yes
 
 **Default:** False
+
+### show_details_in_tooltip
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** True
 
 ### only_when_visible
 
@@ -66,7 +84,7 @@ Create the entity only when they are within a 200 tile range of any connected pl
 
 Entity creation will not occur if any tile matches the collision condition. Defaults to no collisions.
 
-**Type:** `CollisionMaskConnector`
+**Type:** `TileCollisionMaskConnector`
 
 **Optional:** Yes
 

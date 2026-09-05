@@ -44,7 +44,7 @@ The item whose GUI was opened.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### other_player
 
@@ -56,7 +56,7 @@ The other player whose GUI was opened.
 
 **Type:** `uint32`
 
-The player closing the GUI.
+The player opening the GUI.
 
 ### surface_index
 
@@ -66,7 +66,7 @@ The surface index of the global electric network whose GUI was opened.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

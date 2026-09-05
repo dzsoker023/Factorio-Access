@@ -8,7 +8,7 @@ local mod = {}
 ---@type fa.ui.UiPanelBase
 local search_setter_ui = {
    ui_name = "search_setter",
-   open = nil, -- Defined below
+   open = function() end, -- placeholder; the real method is defined below
    on_child_result = nil, -- Defined below
 }
 

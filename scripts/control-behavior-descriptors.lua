@@ -118,8 +118,8 @@ local descriptors = {
          },
          {
             type = mod.FIELD_TYPE.BOOLEAN,
-            name = "include_fuel",
-            label = { "fa.cb-field-include-fuel" },
+            name = "read_fuel",
+            label = { "fa.cb-field-read-fuel" },
          },
          {
             type = mod.FIELD_TYPE.BOOLEAN,
@@ -174,23 +174,14 @@ local descriptors = {
       base = nil,
       fields = {
          {
-            type = mod.FIELD_TYPE.CHOICE,
-            name = "circuit_exclusive_mode_of_operation",
-            label = { "fa.cb-field-circuit-exclusive-mode-of-operation" },
-            choices = {
-               {
-                  value = defines.control_behavior.cargo_landing_pad.exclusive_mode.none,
-                  label = { "fa.cb-choice-cargo-landing-pad-exclusive-mode-none" },
-               },
-               {
-                  value = defines.control_behavior.cargo_landing_pad.exclusive_mode.send_contents,
-                  label = { "fa.cb-choice-cargo-landing-pad-exclusive-mode-send-contents" },
-               },
-               {
-                  value = defines.control_behavior.cargo_landing_pad.exclusive_mode.set_requests,
-                  label = { "fa.cb-choice-cargo-landing-pad-exclusive-mode-set-requests" },
-               },
-            },
+            type = mod.FIELD_TYPE.BOOLEAN,
+            name = "read_contents",
+            label = { "fa.cb-field-read-contents" },
+         },
+         {
+            type = mod.FIELD_TYPE.BOOLEAN,
+            name = "set_requests",
+            label = { "fa.cb-field-set-requests" },
          },
       },
    },
@@ -221,8 +212,8 @@ local descriptors = {
          },
          {
             type = mod.FIELD_TYPE.BOOLEAN,
-            name = "include_fuel",
-            label = { "fa.cb-field-include-fuel" },
+            name = "read_fuel",
+            label = { "fa.cb-field-read-fuel" },
          },
          {
             type = mod.FIELD_TYPE.BOOLEAN,
@@ -365,23 +356,14 @@ local descriptors = {
       base = nil,
       fields = {
          {
-            type = mod.FIELD_TYPE.CHOICE,
-            name = "circuit_exclusive_mode_of_operation",
-            label = { "fa.cb-field-circuit-exclusive-mode-of-operation" },
-            choices = {
-               {
-                  value = defines.control_behavior.logistic_container.exclusive_mode.none,
-                  label = { "fa.cb-choice-logistic-container-exclusive-mode-none" },
-               },
-               {
-                  value = defines.control_behavior.logistic_container.exclusive_mode.send_contents,
-                  label = { "fa.cb-choice-logistic-container-exclusive-mode-send-contents" },
-               },
-               {
-                  value = defines.control_behavior.logistic_container.exclusive_mode.set_requests,
-                  label = { "fa.cb-choice-logistic-container-exclusive-mode-set-requests" },
-               },
-            },
+            type = mod.FIELD_TYPE.BOOLEAN,
+            name = "read_contents",
+            label = { "fa.cb-field-read-contents" },
+         },
+         {
+            type = mod.FIELD_TYPE.BOOLEAN,
+            name = "set_requests",
+            label = { "fa.cb-field-set-requests" },
             available = function(entity)
                local prototype = entity.prototype
                local mode = prototype.logistic_mode
@@ -669,7 +651,7 @@ local descriptors = {
       },
    },
 
-   [defines.control_behavior.type.storage_tank] = {
+   [defines.control_behavior.type.single_fluid_box] = {
       base = nil,
       fields = {
          {

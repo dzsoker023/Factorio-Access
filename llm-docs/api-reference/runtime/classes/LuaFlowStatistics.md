@@ -18,17 +18,47 @@ List of input counts indexed by prototype name. Represents the data that is show
 
 **Read type:** Dictionary[`string`, `uint64` | `double`]
 
+### input_quality_counts
+
+A mapping of quality name to a list of input counts indexed by prototype name. Represents the data that is shown on the left side of the GUI for the given statistics.
+
+**Read type:** Dictionary[`string`, Dictionary[`string`, `uint64` | `double`]]
+
+### current_input_quality_samples
+
+A mapping of quality name to a list of current tick input samples indexed by prototype name.
+
+**Read type:** Dictionary[`string`, Dictionary[`string`, `double`]]
+
 ### output_counts
 
 List of output counts indexed by prototype name. Represents the data that is shown in the middle of the GUI for electric networks and on the right side for all other statistics types.
 
 **Read type:** Dictionary[`string`, `uint64` | `double`]
 
+### output_quality_counts
+
+A mapping of quality name to a list of output counts indexed by prototype name. Represents the data that is shown in the middle of the GUI for electric networks and on the right side for all other statistics types.
+
+**Read type:** Dictionary[`string`, Dictionary[`string`, `uint64` | `double`]]
+
+### current_output_quality_samples
+
+A mapping of quality name to a list of current tick output samples indexed by prototype name.
+
+**Read type:** Dictionary[`string`, Dictionary[`string`, `double`]]
+
 ### storage_counts
 
 List of storage counts indexed by prototype name. Represents the data that is shown on the right side of the GUI for electric networks. For other statistics types these values are currently unused and hidden.
 
 **Read type:** Dictionary[`string`, `uint64` | `double`]
+
+### storage_quality_counts
+
+A mapping of quality name to a list of storage counts indexed by prototype name. Represents the data that is shown on the right side of the GUI for electric networks. For other statistics types these values are currently unused and hidden.
+
+**Read type:** Dictionary[`string`, Dictionary[`string`, `uint64` | `double`]]
 
 ### force
 
@@ -51,6 +81,56 @@ The class name of this object. Available even when `valid` is false. For LuaStru
 **Read type:** `string`
 
 ## Methods
+
+### get_current_input_sample
+
+Gets the current-tick input sample for a given prototype.
+
+These values get merged into the input counts at the end of the tick.
+
+**Parameters:**
+
+- `id` `FlowStatisticsID` - The prototype ID.
+
+**Returns:**
+
+- `double`
+
+### set_current_input_sample
+
+Sets the current-tick input sample for a given prototype.
+
+These values get merged into the input counts at the end of the tick.
+
+**Parameters:**
+
+- `id` `FlowStatisticsID` - The prototype ID.
+- `count` `double` - The new count.
+
+### get_current_output_sample
+
+Gets the current-tick output sample for a given prototype.
+
+These values get merged into the output counts at the end of the tick.
+
+**Parameters:**
+
+- `id` `FlowStatisticsID` - The prototype ID.
+
+**Returns:**
+
+- `double`
+
+### set_current_output_sample
+
+Sets the current-tick output sample for a given prototype.
+
+These values get merged into the output counts at the end of the tick.
+
+**Parameters:**
+
+- `id` `FlowStatisticsID` - The prototype ID.
+- `count` `double` - The new count.
 
 ### get_input_count
 

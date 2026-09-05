@@ -823,6 +823,7 @@ register_ui_event("fa-a-e", function(event, pindex)
 
       if ui then
          -- Check if this is a TabList (has descriptors and tab_order)
+         ---@cast ui fa.ui.TabList
          if ui.descriptors and ui.tab_order then
             -- Get the TabList storage directly from storage.players
             local tablist_storage = storage.players[pindex].tab_list

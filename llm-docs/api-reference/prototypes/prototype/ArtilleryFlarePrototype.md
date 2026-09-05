@@ -163,7 +163,7 @@ The value `0` will be treated the same as `nil`.
 
 **Optional:** Yes
 
-**Default:** 48
+**Default:** 20
 
 **Overrides parent:** Yes
 

@@ -42,7 +42,7 @@ The message for a custom alert. Only present for custom alerts.
 
 The tick this alert was created.
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 **Required:** Yes
 

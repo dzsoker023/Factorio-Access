@@ -72,3 +72,13 @@ The maximum deviation of the projectile maximum range from `max_range` is `max_r
 
 **Default:** 0
 
+### inherit_speed
+
+If `true`, the projectile will inherit any positive speed component from the source entity's movement toward the target.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+

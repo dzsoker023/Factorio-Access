@@ -22,6 +22,14 @@ Only present when the Space Age mod is loaded.
 
 **Optional:** Yes
 
+### starmap_star
+
+Only present when the space travel flag is enabled.
+
+**Type:** `Sprite`
+
+**Optional:** Yes
+
 ### bookmark
 
 **Type:** `Sprite`
@@ -125,6 +133,18 @@ Only present when the Space Age mod is loaded.
 **Required:** Yes
 
 ### recipe_arrow
+
+**Type:** `Sprite`
+
+**Required:** Yes
+
+### recipe_ghost_arrow
+
+**Type:** `Sprite`
+
+**Required:** Yes
+
+### recipe_potential_arrow
 
 **Type:** `Sprite`
 
@@ -642,6 +662,12 @@ The sprite will be drawn on top of [fluid turrets](prototype:FluidTurretPrototyp
 
 **Required:** Yes
 
+### cargo_bay_too_far_from_source_icon
+
+**Type:** `Sprite`
+
+**Required:** Yes
+
 ### frozen_icon
 
 **Type:** `Sprite`
@@ -649,6 +675,12 @@ The sprite will be drawn on top of [fluid turrets](prototype:FluidTurretPrototyp
 **Required:** Yes
 
 ### pipeline_disabled_icon
+
+**Type:** `Sprite`
+
+**Required:** Yes
+
+### fluid_mixing_icon
 
 **Type:** `Sprite`
 
@@ -1866,12 +1898,6 @@ The sprite will be drawn on top of [fluid turrets](prototype:FluidTurretPrototyp
 
 **Required:** Yes
 
-### fluid_visualization_extent_arrow
-
-**Type:** `Sprite`
-
-**Required:** Yes
-
 ### starmap_platform_moving
 
 **Type:** `Sprite`
@@ -1921,12 +1947,6 @@ The sprite will be drawn on top of [fluid turrets](prototype:FluidTurretPrototyp
 **Required:** Yes
 
 ### starmap_platform_stacked_clicked
-
-**Type:** `Sprite`
-
-**Required:** Yes
-
-### starmap_star
 
 **Type:** `Sprite`
 
@@ -3414,6 +3434,18 @@ The sprite will be drawn on top of [fluid turrets](prototype:FluidTurretPrototyp
 
 **Optional:** Yes
 
+### max_cargo_bay_unloading_distance_modifier_icon
+
+**Type:** `Sprite`
+
+**Required:** Yes
+
+### max_cargo_bay_unloading_distance_modifier_constant
+
+**Type:** `Sprite`
+
+**Optional:** Yes
+
 ### change_recipe_productivity_modifier_icon
 
 **Type:** `Sprite`
@@ -3505,6 +3537,30 @@ The sprite will be drawn on top of [fluid turrets](prototype:FluidTurretPrototyp
 **Required:** Yes
 
 ### vehicle_logistics_modifier_constant
+
+**Type:** `Sprite`
+
+**Optional:** Yes
+
+### unlock_logistic_network_modifier_icon
+
+**Type:** `Sprite`
+
+**Required:** Yes
+
+### unlock_logistic_network_modifier_constant
+
+**Type:** `Sprite`
+
+**Optional:** Yes
+
+### unlock_travel_to_space_platforms_modifier_icon
+
+**Type:** `Sprite`
+
+**Required:** Yes
+
+### unlock_travel_to_space_platforms_modifier_constant
 
 **Type:** `Sprite`
 

@@ -14,7 +14,7 @@ The entity which is about to be mined.
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### platform
 
@@ -24,7 +24,7 @@ The platform that's about to do the mining.
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 

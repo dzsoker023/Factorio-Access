@@ -148,7 +148,7 @@ Remove all equipment from the grid.
 
 **Returns:**
 
-- `ItemWithQualityCounts` - List of the equipment that has been removed.
+- Array[`ItemWithQualityCount`] - List of the equipment that has been removed.
 
 ### clear
 

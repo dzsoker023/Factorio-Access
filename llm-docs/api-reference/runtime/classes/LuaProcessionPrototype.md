@@ -6,6 +6,24 @@ Prototype of a procession.
 
 ## Attributes
 
+### timeline
+
+**Read type:** `ProcessionTimeline`
+
+### ground_timeline
+
+**Read type:** `ProcessionTimeline`
+
+**Optional:** Yes
+
+### usage
+
+**Read type:** `"departure"` | `"arrival"` | `"intermezzo"`
+
+### procession_style
+
+**Read type:** Array[`uint32`]
+
 ### valid
 
 Is this object valid? This Lua object holds a reference to an object within the game engine. It is possible that the game-engine object is removed whilst a mod still holds the corresponding Lua object. If that happens, the object becomes invalid, i.e. this attribute will be `false`. Mods are advised to check for object validity if any change to the game state might have occurred between the creation of the Lua object and its access.

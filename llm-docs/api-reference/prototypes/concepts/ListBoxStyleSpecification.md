@@ -1,5 +1,7 @@
 # ListBoxStyleSpecification
 
+Root style: `"list_box"`
+
 **Type:** `Struct`
 
 ## Properties
@@ -14,11 +16,15 @@
 
 ### item_style
 
+Required on the root style.
+
 **Type:** `ButtonStyleSpecification`
 
 **Optional:** Yes
 
 ### scroll_pane_style
+
+Required on the root style.
 
 **Type:** `ScrollPaneStyleSpecification`
 

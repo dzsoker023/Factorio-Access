@@ -94,3 +94,27 @@
 
 **Default:** "whitelist"
 
+### ignore_cannot_select_entities
+
+If this is `false`, using any of the mode flags `"blueprint"`, `"deconstruct"`, `"cancel-deconstruct"`, `"upgrade"`, `"cancel-upgrade"` or `"downgrade"` without also specifying another flag that selects entities will result in an error, because the selection tool cannot select any entities and this is likely undesired behavior.
+
+Setting this to `true` disables this error.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+
+### ignore_cannot_select_tiles
+
+If this is `false`, using any of the mode flags `"blueprint"` or `"deconstruct"` without also specifying any flag that selects tiles will result in an error, because the selection tool cannot select any tiles and this is likely undesired behavior.
+
+Setting this to `true` disables this error.
+
+**Type:** `boolean`
+
+**Optional:** Yes
+
+**Default:** False
+

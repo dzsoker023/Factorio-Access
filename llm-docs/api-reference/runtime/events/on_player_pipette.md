@@ -14,7 +14,7 @@ The item put in the cursor
 
 **Type:** `defines.events`
 
-Identifier of the event
+Identifier of the event.
 
 ### player_index
 
@@ -30,7 +30,7 @@ The item quality put in the cursor
 
 ### tick
 
-**Type:** `uint32`
+**Type:** `MapTick`
 
 Tick the event was generated.
 
