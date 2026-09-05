@@ -32,7 +32,15 @@ function mod.kb_pipette_tool(event)
             vp:set_hand_direction(ent.direction)
             cursor_storage[pindex].last_pipette_entity_tick = game.tick
          end
-         p.pipette(ent.prototype)
+         -- For a construction/tile ghost, `ent.prototype` is just the generic "entity-ghost" (or
+         -- "tile-ghost") container prototype - the same for every ghost regardless of what it
+         -- represents, and not something `pipette` can do anything with. The actual entity/tile
+         -- being ghosted is `ent.ghost_prototype`. Also, `pipette`'s third parameter defaults to
+         -- false, meaning it silently ignores ghosts entirely unless told otherwise - so without
+         -- passing `allow_ghost = true`, pipetting a ghost here would do nothing at all.
+         local proto = (ent.type == "entity-ghost" or ent.type == "tile-ghost") and ent.ghost_prototype
+            or ent.prototype
+         p.pipette(proto, nil, true)
       end
    end
 end

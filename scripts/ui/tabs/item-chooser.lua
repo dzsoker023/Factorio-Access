@@ -9,12 +9,21 @@ local mod = {}
 -- Predefined filter types for item chooser
 mod.FILTER_TYPES = {
    MODULE = "module",
+   PLACEABLE = "placeable",
 }
 
 -- Filter functions by type
 local FILTERS = {
    [mod.FILTER_TYPES.MODULE] = function(proto)
       return proto.type == "module"
+   end,
+   -- Items that can be placed as a ghost - either an entity (e.g. a storage tank) or a tile
+   -- (e.g. space platform foundation, landfill). Ghosts of both are placed directly via
+   -- LuaSurface.create_entity (see mod.place_ghost_via_script in building-tools.lua), not through
+   -- LuaPlayer.build_from_cursor - which, as of Factorio 2.0.72, ignores cursor_ghost entirely
+   -- (confirmed engine bug, fixed for 2.1).
+   [mod.FILTER_TYPES.PLACEABLE] = function(proto)
+      return proto.place_result ~= nil or proto.place_as_tile_result ~= nil
    end,
 }
 

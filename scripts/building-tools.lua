@@ -69,7 +69,12 @@ function mod.calculate_build_params(params)
    if stack == nil or not stack.valid_for_read then
       local ghost = p.cursor_ghost
       if ghost == nil then return nil end
-      item_prototype = ghost.name        -- ez adja vissza a LuaItemPrototype-ot olvasáskor
+      -- `cursor_ghost.name` is already a LuaItemPrototype when read (per the API docs for
+      -- ItemIDAndQualityIDPair: "name ... Returns LuaItemPrototype when read"). No lookup needed -
+      -- and `prototypes.item[ghost.name]` would be wrong here, since it would use the prototype
+      -- object itself as a string table key, which never matches anything and always returns nil.
+      item_prototype = ghost.name
+      if item_prototype == nil then return nil end
    else
       item_prototype = stack.prototype
    end
@@ -114,8 +119,13 @@ function mod.calculate_build_params(params)
          footprint_right_bottom = footprint.right_bottom,
          is_tile = false,
       }
-   elseif stack and stack.valid_for_read and stack.valid and item_prototype.place_as_tile_result ~= nil then
-      -- Tile placement
+   elseif item_prototype.place_as_tile_result ~= nil then
+      -- Tile placement. Reachable both with a real item in hand and, since item_prototype was
+      -- already resolved to the cursor ghost's prototype above when there's no valid stack, with a
+      -- tile ghost - build_item_in_hand_with_params places tile ghosts itself via
+      -- mod.place_ghost_via_script rather than through can_build_from_cursor/build_from_cursor
+      -- (which ignore cursor_ghost entirely due to a confirmed upstream engine bug - see the note
+      -- there), so this branch doesn't need to know or care which case it is.
       local cursor_size = vp:get_cursor_size()
       local t_size = cursor_size * 2 + 1
 
@@ -125,7 +135,7 @@ function mod.calculate_build_params(params)
 
       return {
          entity_name = nil,
-         tile_name = item_prototype.place_as_tile_result.name,
+         tile_name = item_prototype.place_as_tile_result.result.name,
          position = pos,
          direction = building_direction,
          flip_horizontal = false,
@@ -185,15 +195,63 @@ function mod.build_item_in_hand_with_params(params)
    -- Calculate what to build (includes graphics sync, storage updates, underground belt logic, etc)
    local decision = mod.calculate_build_params(params)
    if not decision then
-      -- Empty hand or invalid item
+      -- Empty hand or invalid item (or, for a cursor ghost, an item that couldn't be resolved -
+      -- shouldn't normally happen, but speak something instead of just a sound so it's obvious
+      -- this is what happened rather than a build placement failure further down).
       p.play_sound({ path = "utility/cannot_build" })
+      if speak_errors then
+         if stack == nil or not stack.valid_for_read then
+            if p.cursor_ghost then
+               Speech.speak(pindex, { "fa.ghost-item-could-not-be-resolved" })
+            else
+               Speech.speak(pindex, { "fa.cannot-build-item" })
+            end
+         end
+      end
       return false
    end
 
-   -- Prepare build area (clear obstacles, teleport player)
-   mod.prepare_build_area(pindex, decision, teleport_player)
+   -- Prepare build area (clear obstacles, teleport player) - not while remote-controlling
+   -- (remote view, or riding a space platform in transit - the character may still exist,
+   -- e.g. seated in the platform hub, but the remote controller can't mine or move it, and
+   -- can_build_from_cursor's target surface is the remotely-viewed one anyway). Skip straight
+   -- to the build attempt, which for a cursor ghost simply places (or fails to place) the ghost.
+   if p.controller_type ~= defines.controllers.remote then
+      mod.prepare_build_area(pindex, decision, teleport_player)
+   end
 
-   -- Execute the build
+   -- Whether we're building from a cursor ghost rather than a real, held item.
+   local using_ghost = stack == nil or not stack.valid_for_read
+
+   if using_ghost then
+      -- Confirmed upstream Factorio engine bug (as of 2.0.72): LuaPlayer.can_build_from_cursor and
+      -- build_from_cursor simply ignore LuaControl.cursor_ghost entirely - they only ever look at
+      -- cursor_stack. A Factorio developer (Genhis) confirmed this on the bug tracker and said
+      -- "this is fixed for 2.1" (https://forums.factorio.com/viewtopic.php?p=685198) - until that
+      -- ships, calling those two functions for a cursor-ghost-only build is a guaranteed no-op/
+      -- false, regardless of how valid the position is. So for ghosts, place directly via
+      -- LuaSurface.create_entity({name="entity-ghost"/"tile-ghost", inner_name=...}) instead -
+      -- this has always worked for scripted ghost creation and isn't affected by the bug.
+      local success = mod.place_ghost_via_script(pindex, decision)
+      if success then
+         return true
+      else
+         if play_error_sound then p.play_sound({ path = "utility/cannot_build" }) end
+         if speak_errors then
+            if decision.is_tile then
+               Speech.speak(pindex, { "fa.building-tile-cannot-place" })
+            else
+               local build_area = { decision.footprint_left_top, decision.footprint_right_bottom }
+               local result = mod.identify_building_obstacle(pindex, build_area, nil)
+               Speech.speak(pindex, result)
+            end
+         end
+         return false
+      end
+   end
+
+   -- Execute the build (real item in hand - can_build_from_cursor/build_from_cursor work
+   -- correctly here, this isn't the cursor_ghost code path affected by the bug above)
    if decision.is_tile then
       -- Tile placement
       if
@@ -206,6 +264,9 @@ function mod.build_item_in_hand_with_params(params)
          return true
       else
          if play_error_sound then p.play_sound({ path = "utility/cannot_build" }) end
+         -- Previously silent beyond the sound - at least say *something* failed, since tile
+         -- placement has no equivalent of identify_building_obstacle to explain why.
+         if speak_errors then Speech.speak(pindex, { "fa.building-tile-cannot-place" }) end
          return false
       end
    else
@@ -233,6 +294,74 @@ function mod.build_item_in_hand_with_params(params)
          end
          return false
       end
+   end
+end
+
+---Place a ghost (entity or tile) directly via LuaSurface.create_entity, bypassing
+---LuaPlayer.can_build_from_cursor/build_from_cursor - see the note in build_item_in_hand_with_params
+---for why those can't be used for a cursor-ghost-only build right now.
+---@param pindex integer
+---@param decision fa.BuildingTools.BuildDecision
+---@return boolean success
+function mod.place_ghost_via_script(pindex, decision)
+   local p = game.get_player(pindex)
+
+   if decision.is_tile then
+      -- Tile ghosts are inherently one-tile entities (unlike an entity ghost, which is a single
+      -- ghost covering its whole multi-tile footprint) - place one per tile in the built area.
+      local left = math.floor(decision.footprint_left_top.x)
+      local top = math.floor(decision.footprint_left_top.y)
+      local right = math.floor(decision.footprint_right_bottom.x) - 1
+      local bottom = math.floor(decision.footprint_right_bottom.y) - 1
+
+      local placed_any = false
+      local all_ok = true
+      for x = left, right do
+         for y = top, bottom do
+            local ok, ghost = pcall(function()
+               return p.surface.create_entity({
+                  name = "tile-ghost",
+                  inner_name = decision.tile_name,
+                  position = { x = x + 0.5, y = y + 0.5 },
+                  force = p.force,
+                  player = p,
+                  raise_built = true,
+               })
+            end)
+            if ok and ghost then
+               placed_any = true
+            else
+               all_ok = false
+            end
+         end
+      end
+      return placed_any and all_ok
+   else
+      -- Validate first with a direct surface-level check (unaffected by the cursor_ghost bug -
+      -- this is what previous rounds of testing confirmed is accurate) so a genuinely invalid
+      -- position is reported through the normal identify_building_obstacle path rather than
+      -- create_entity just silently returning nil for an unclear reason.
+      local can_place = p.surface.can_place_entity({
+         name = decision.entity_name,
+         position = decision.position,
+         direction = decision.direction,
+         force = p.force,
+         build_check_type = defines.build_check_type.manual_ghost,
+      })
+      if not can_place then return false end
+
+      local ok, ghost = pcall(function()
+         return p.surface.create_entity({
+            name = "entity-ghost",
+            inner_name = decision.entity_name,
+            position = decision.position,
+            direction = decision.direction,
+            force = p.force,
+            player = p,
+            raise_built = true,
+         })
+      end)
+      return ok and ghost ~= nil
    end
 end
 
@@ -412,6 +541,32 @@ function mod.rotate_item_in_hand(event, forward)
          pindex,
          { "fa.building-no-rotate-support", Localising.get_localised_name_with_fallback(stack.prototype) }
       )
+      return
+   end
+
+   -- No usable real stack - try the cursor ghost instead (set via the ghost placement tab). Without
+   -- this, a ghost's direction is stuck at whatever it happened to default to, with no way to fix
+   -- it before placing - the rotate key otherwise only ever looks at cursor_stack.
+   local ghost = p.cursor_ghost
+   if ghost then
+      -- `ghost.name` is already a LuaItemPrototype when read - see the same note in
+      -- calculate_build_params above.
+      local item_prototype = ghost.name
+      local rotation_count = item_prototype and BuildDimensions.get_rotation_count_for_ghost(item_prototype)
+      if rotation_count then
+         if rotation_count == 2 then mult = mult * 2 end
+
+         p.play_sound({ path = "Rotate-Hand-Sound" })
+         local build_dir = vp:get_hand_direction()
+         local new_dir = (build_dir + dirs.east * mult) % (2 * dirs.south)
+         vp:set_hand_direction(new_dir)
+         Speech.speak(pindex, { "fa.building-rotation-in-hand", FaUtils.direction_lookup(new_dir) })
+      elseif item_prototype and item_prototype.place_result then
+         Speech.speak(
+            pindex,
+            { "fa.building-no-rotate-support", Localising.get_localised_name_with_fallback(item_prototype) }
+         )
+      end
       return
    end
 
@@ -1211,6 +1366,38 @@ function mod.identify_building_obstacle(pindex, area, ent_to_ignore)
    elseif #water_tiles_in_area > 0 then
       local water = water_tiles_in_area[1]
       message:fragment({ "fa.building-water-in-way", math.floor(water.position.x), math.floor(water.position.y) })
+   else
+      -- No colliding entity and no water - check whether part of the build *footprint* (not just
+      -- its left-top corner) falls on "out-of-map" tiles: the engine's name for void space beyond
+      -- a space platform's built foundation, or an uncharted/ungenerated area on a normal surface.
+      -- This is the single most common cause of a ghost failing to place while remote-controlling
+      -- a platform: the aim position itself can be on solid foundation while a larger item's
+      -- footprint (e.g. a 3x3 storage tank) still pokes off the edge.
+      local out_of_map_tiles = p.surface.find_tiles_filtered({ area = area, name = "out-of-map" })
+      if #out_of_map_tiles > 0 then
+         local tile = out_of_map_tiles[1]
+         message:fragment({
+            "fa.building-off-platform-edge",
+            p.surface.name,
+            math.floor(tile.position.x),
+            math.floor(tile.position.y),
+         })
+      else
+         -- Still nothing identified - report the surface, position and tile name at the footprint's
+         -- left-top corner so the actual cause can at least be narrowed down further.
+         local left_top = area[1]
+         local good, tile_name = pcall(function()
+            local tile = p.surface.get_tile(left_top.x, left_top.y)
+            return tile and tile.valid and tile.name or "?"
+         end)
+         message:fragment({
+            "fa.building-unknown-obstacle",
+            p.surface.name,
+            math.floor(left_top.x),
+            math.floor(left_top.y),
+            good and tile_name or "?",
+         })
+      end
    end
    return message:build()
 end

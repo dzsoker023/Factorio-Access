@@ -15,6 +15,7 @@ local crafting = require("scripts.ui.menus.crafting")
 local crafting_queue = require("scripts.ui.menus.crafting-queue")
 local research = require("scripts.ui.menus.research")
 local research_queue = require("scripts.ui.menus.research-queue")
+local ghost_placement = require("scripts.ui.tabs.ghost-placement")
 local InventoryGrid = require("scripts.ui.inventory-grid")
 
 local mod = {}
@@ -54,23 +55,40 @@ mod.main_menu = TabList.declare_tablist({
    resets_to_first_tab_on_open = true,
    shared_state_setup = setup_shared_state,
    tabs_callback = function(pindex, params)
-      local sections = {
-         {
+      local player = game.get_player(pindex)
+      -- Remote view, or riding a space platform while it's travelling between locations, both
+      -- use the "remote" controller - crafting and personal-inventory access don't work there
+      -- even though the character entity can still exist (e.g. seated in the platform hub), so
+      -- key off controller_type rather than player.character.
+      local is_remote = player and player.controller_type == defines.controllers.remote
+      local sections = {}
+
+      if not is_remote and player and player.character then
+         table.insert(sections, {
             name = "inventories",
             title = { "fa.section-inventories" },
             tabs = build_inventory_tabs(pindex, params),
-         },
-      }
+         })
 
-      -- Add crafting section
-      table.insert(sections, {
-         name = "crafting",
-         title = { "fa.section-crafting" },
-         tabs = {
-            crafting.crafting_tab,
-            crafting_queue.crafting_queue_tab,
-         },
-      })
+         -- Add crafting section
+         table.insert(sections, {
+            name = "crafting",
+            title = { "fa.section-crafting" },
+            tabs = {
+               crafting.crafting_tab,
+               crafting_queue.crafting_queue_tab,
+            },
+         })
+      else
+         -- Offer ghost placement instead, so ghosts can still be queued up for construction bots.
+         table.insert(sections, {
+            name = "ghost",
+            title = { "fa.section-ghost-placement" },
+            tabs = {
+               ghost_placement.ghost_placement_tab,
+            },
+         })
+      end
 
       -- Add research section
       table.insert(sections, {
@@ -83,7 +101,6 @@ mod.main_menu = TabList.declare_tablist({
       })
 
       -- Equipment section - always visible, last
-      local player = game.get_player(pindex)
       local equipment_tabs = {
          equipment_overview.equipment_overview_tab,
       }
@@ -112,7 +129,25 @@ mod.main_menu = TabList.declare_tablist({
 ---@return boolean success
 function mod.open_main_menu(pindex)
    local player = game.get_player(pindex)
-   if not player or not player.character then return false end
+   if not player then return false end
+
+   local is_remote = player.controller_type == defines.controllers.remote
+
+   if not player.character and not is_remote then
+      -- No character and not remote-controlling either (e.g. spectating) - nothing sensible
+      -- to open the menu for.
+      return false
+   end
+
+   if is_remote then
+      -- Remote view, or riding a space platform in transit - the character may still exist
+      -- (e.g. seated in the platform hub), but the remote controller can't craft or touch
+      -- inventories, so skip straight to opening with the reduced (ghost placement) tab set
+      -- that tabs_callback builds for this case.
+      local router = UiRouter.get_router(pindex)
+      router:open_ui(UiRouter.UI_NAMES.MAIN, {})
+      return true
+   end
 
    local params = {
       player_inventory = {

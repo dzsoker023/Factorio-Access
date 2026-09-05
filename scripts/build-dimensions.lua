@@ -129,6 +129,32 @@ function mod.get_stack_build_dimensions(stack, direction)
    return width, height
 end
 
+---Get the rotation count for an item prototype - shared logic between a real stack
+---(mod.get_rotation_count) and a cursor ghost (mod.get_rotation_count_for_ghost). Blueprints/books
+---can't be cursor ghosts (only single entities/tiles can) and are handled separately by the
+---stack-only caller.
+---@param item_prototype LuaItemPrototype
+---@return integer|nil rotation_count nil (no rotation), 2 (180° only), or 4 (cardinal)
+local function get_rotation_count_for_item_prototype(item_prototype)
+   if not item_prototype or not item_prototype.place_result then return nil end
+   local placed = item_prototype.place_result
+
+   -- Rolling stock (locomotives, wagons) only rotate 180 degrees
+   if
+      placed.type == "locomotive"
+      or placed.type == "cargo-wagon"
+      or placed.type == "fluid-wagon"
+      or placed.type == "artillery-wagon"
+   then
+      return 2
+   end
+
+   -- Cars and entities that support direction are 4-way
+   if placed.supports_direction or placed.type == "car" then return 4 end
+
+   return nil
+end
+
 ---Get the rotation count for a stack
 ---@param stack LuaItemStack The item stack to check
 ---@return integer|nil rotation_count nil (no rotation), 2 (180° only), 4 (cardinal), or 8 (all 8 directions)
@@ -141,25 +167,16 @@ function mod.get_rotation_count(stack)
    -- Blueprints always support 4-way rotation
    if stack.is_blueprint then return 4 end
 
-   -- Regular entities
-   if stack.prototype.place_result then
-      local placed = stack.prototype.place_result
+   return get_rotation_count_for_item_prototype(stack.prototype)
+end
 
-      -- Rolling stock (locomotives, wagons) only rotate 180 degrees
-      if
-         placed.type == "locomotive"
-         or placed.type == "cargo-wagon"
-         or placed.type == "fluid-wagon"
-         or placed.type == "artillery-wagon"
-      then
-         return 2
-      end
-
-      -- Cars and entities that support direction are 4-way
-      if placed.supports_direction or placed.type == "car" then return 4 end
-   end
-
-   return nil
+---Get the rotation count for an item prototype held as a cursor ghost (LuaControl.cursor_ghost).
+---There's no stack to check `valid_for_read` on here - callers pass the ghost's item prototype
+---directly (`cursor_ghost.name`, which is already a LuaItemPrototype when read).
+---@param item_prototype LuaItemPrototype?
+---@return integer|nil rotation_count
+function mod.get_rotation_count_for_ghost(item_prototype)
+   return get_rotation_count_for_item_prototype(item_prototype)
 end
 
 return mod
