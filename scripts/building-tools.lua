@@ -135,7 +135,7 @@ function mod.calculate_build_params(params)
 
       return {
          entity_name = nil,
-         tile_name = stack.prototype.place_as_tile_result.result.name,
+         tile_name = item_prototype.place_as_tile_result.result.name,
          position = pos,
          direction = building_direction,
          flip_horizontal = false,
