@@ -44,6 +44,19 @@ local function force_has_platforms(force)
    return next(force.platforms) ~= nil
 end
 
+---Whether the silo's rocket cargo currently weighs more than the rocket can lift.
+---The rocket_silo_rocket inventory is weight-restricted (not slot-restricted) once
+---the silo can launch to space platforms - LuaInventory.max_weight is only present
+---on this kind of weight-limited inventory, so its absence means there's no weight
+---cap to check (e.g. a non-platform-launching rocket silo).
+---@param silo LuaEntity
+---@return boolean
+local function rocket_is_overloaded(silo)
+   local inventory = silo.get_inventory(defines.inventory.rocket_silo_rocket)
+   if not inventory or not inventory.max_weight then return false end
+   return inventory.weight > inventory.max_weight
+end
+
 local mod = {}
 
 ---Render the rocket silo configuration form
@@ -79,10 +92,26 @@ local function render_rocket_silo_config(ctx)
       on_child_result = function(ctx, result)
          if result == nil then return end
 
+         if rocket_is_overloaded(entity) then
+            UiSounds.play_ui_edge(ctx.pindex)
+            ctx.controller.message:fragment({ "fa.rocket-silo-overloaded" })
+            return
+         end
+
          -- result is the target platform's hub entity (see platform-selector.lua)
          local target = { type = defines.cargo_destination.station, station = result }
-         entity.launch_rocket(target)
-         ctx.controller.message:fragment({ "fa.rocket-silo-launching-to", result.surface.platform.name })
+         -- launch_rocket returns whether the launch actually happened - don't
+         -- assume success and announce a launch that didn't occur.
+         if entity.launch_rocket(target) then
+            ctx.controller.message:fragment({ "fa.rocket-silo-launching-to", result.surface.platform.name })
+            -- Close back to the game on a successful launch, so a stray extra
+            -- press of the same button (or accidentally reopening this tab)
+            -- can't immediately re-trigger another launch.
+            ctx.controller:close()
+         else
+            UiSounds.play_ui_edge(ctx.pindex)
+            ctx.controller.message:fragment({ "fa.rocket-silo-launch-failed" })
+         end
       end,
    })
 
@@ -102,9 +131,24 @@ local function render_rocket_silo_config(ctx)
          local player = game.get_player(ctx.pindex)
          if not player or result == nil then return end
 
+         if rocket_is_overloaded(entity) then
+            UiSounds.play_ui_edge(ctx.pindex)
+            ctx.controller.message:fragment({ "fa.rocket-silo-overloaded" })
+            return
+         end
+
          local target = { type = defines.cargo_destination.station, station = result }
-         entity.launch_rocket(target, player.character)
-         ctx.controller.message:fragment({ "fa.rocket-silo-launching-to", result.surface.platform.name })
+         -- launch_rocket returns whether the launch actually happened - don't
+         -- assume success and announce a launch that didn't occur.
+         if entity.launch_rocket(target, player.character) then
+            ctx.controller.message:fragment({ "fa.rocket-silo-launching-to", result.surface.platform.name })
+            -- Close back to the game on a successful launch (this one launches the
+            -- player themselves!) so a stray extra press can't queue up another one.
+            ctx.controller:close()
+         else
+            UiSounds.play_ui_edge(ctx.pindex)
+            ctx.controller.message:fragment({ "fa.rocket-silo-launch-failed" })
+         end
       end,
    })
 
