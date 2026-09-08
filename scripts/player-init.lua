@@ -36,6 +36,11 @@ function mod.initialize(player)
    end
 
    local character = player.cutscene_character or player.character or player
+   -- character can fall back to `player` itself above, and get_main_inventory()
+   -- returns nil rather than an empty inventory when there's no accessible
+   -- character to represent (e.g. initialize() running while in remote view) -
+   -- guard against that instead of taking the length of a nil value.
+   local character_main_inv = character.get_main_inventory()
    faplayer.num_elements = faplayer.num_elements or 0
 
    if type(faplayer.building_footprint) == "number" then faplayer.building_footprint = nil end
@@ -72,7 +77,7 @@ function mod.initialize(player)
       or {
          index = 1,
          width = 10,
-         max = #character.get_main_inventory(),
+         max = character_main_inv and #character_main_inv or 0,
       }
    faplayer.crafting = faplayer.crafting
       or {

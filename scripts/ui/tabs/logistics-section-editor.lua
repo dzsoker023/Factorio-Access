@@ -111,6 +111,87 @@ local function render_section(ctx, section_index)
                   ctx.message:fragment(stats_message)
                end
             end,
+            -- J (shift+J to reverse): cycle this request's quality, same key as the
+            -- schedule editor's wait-condition-type toggle. Cycle order is
+            -- any -> normal -> uncommon -> rare -> epic -> legendary (by
+            -- LuaQualityPrototype.level, so modded quality tiers are included too).
+            -- "Any quality" is represented the way the API defines it - see
+            -- SignalFilter.quality: "nil for any quality" - and is only offered
+            -- while min is 0, since the API requires an exact quality (and
+            -- comparator "=") once min is non-zero.
+            on_toggle_supertype = function(ctx)
+               if not script.feature_flags.quality then
+                  ctx.controller.message:fragment({ "fa.logistics-quality-feature-disabled" })
+                  return
+               end
+
+               local sections = entity.get_logistic_sections()
+               if not sections then return end
+               local section = sections.get_section(section_index)
+               if not section then return end
+
+               local slot = section.get_slot(i)
+               if not slot or not slot.value then return end
+
+               -- Quality only applies to items and fluids (SignalID.type defaults to
+               -- "item" when unset) - not virtual signals, entities, or recipes, which
+               -- the shared combinator/roboport signal editor can also put here.
+               local sig_type = slot.value.type or "item"
+               if sig_type ~= "item" and sig_type ~= "fluid" then
+                  ctx.controller.message:fragment({ "fa.logistics-quality-not-applicable" })
+                  return
+               end
+
+               local qualities = {}
+               for _, q in pairs(prototypes.quality) do
+                  if not q.hidden then table.insert(qualities, q) end
+               end
+               table.sort(qualities, function(a, b) return a.level < b.level end)
+               if #qualities == 0 then return end
+
+               local can_be_any = (slot.min or 0) == 0
+               local reverse = ctx.modifiers and ctx.modifiers.shift
+
+               local current_name = slot.value.quality
+               local index
+               if current_name then
+                  for idx, q in ipairs(qualities) do
+                     if q.name == current_name then
+                        index = idx
+                        break
+                     end
+                  end
+               end
+               if not index then index = can_be_any and 0 or 1 end
+
+               local lo = can_be_any and 0 or 1
+               local hi = #qualities
+               if reverse then
+                  index = index - 1
+                  if index < lo then index = hi end
+               else
+                  index = index + 1
+                  if index > hi then index = lo end
+               end
+
+               local new_value = { type = slot.value.type, name = slot.value.name }
+               if index == 0 then
+                  new_value.quality = nil
+                  new_value.comparator = nil
+               else
+                  new_value.quality = qualities[index].name
+                  new_value.comparator = "="
+               end
+
+               slot.value = new_value
+               section.set_slot(i, slot)
+
+               if index == 0 then
+                  ctx.controller.message:fragment({ "fa.logistics-quality-any", CircuitNetwork.localise_signal(new_value) })
+               else
+                  ctx.controller.message:fragment(CircuitNetwork.localise_signal(new_value))
+               end
+            end,
          })
 
          -- Item 2: Min value

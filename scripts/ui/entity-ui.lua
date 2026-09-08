@@ -18,6 +18,7 @@ local artillery_config_tab = require("scripts.ui.tabs.artillery-config")
 local assembling_machine_tab = require("scripts.ui.tabs.assembling-machine")
 local circuit_network_tab = require("scripts.ui.tabs.circuit-network")
 local circuit_network_signals_tab = require("scripts.ui.tabs.circuit-network-signals")
+local display_panel_config_tab = require("scripts.ui.tabs.display-panel-config")
 local equipment_grid_tab = require("scripts.ui.tabs.equipment-grid")
 local equipment_overview_tab = require("scripts.ui.tabs.equipment-overview")
 local fluids_tab = require("scripts.ui.tabs.fluids")
@@ -53,6 +54,7 @@ local ENTITY_TYPES_WITH_UI = {
    ["locomotive"] = true,
    ["roboport"] = true,
    ["space-platform-hub"] = true,
+   ["display-panel"] = true,
 }
 
 -- Entity types that should show configuration section before inventories
@@ -84,6 +86,35 @@ local function is_gun_or_ammo_inventory(inv_name)
    return false
 end
 
+---Inventory names that must never be exposed as a generic drag-and-drop tab,
+---because inserting into them this way bypasses validation the game normally
+---applies (e.g. weight limits). "rocket_silo_attached_cargo_unit" (see
+---defines.inventory.rocket_silo_attached_cargo_unit in the API docs) is the
+---rocket's separately-attached cargo pod - distinct from "rocket_silo_rocket",
+---which is the rocket parts/starter-pack inventory and is still needed for
+---"Create platform from starter pack". Manually inserting items into the
+---attached cargo unit through the generic inventory grid skipped the
+---rocket's weight limit entirely, letting things like atomic bombs (which
+---are meant to be too heavy to ever fit) be launched. The rocket silo
+---configuration tab's "Launch cargo to platform"/"Launch self to platform"
+---buttons remain the only supported way to send cargo to a platform, and
+---they weight-check before launching.
+local BLOCKED_GENERIC_INVENTORY_NAMES = {
+   ["rocket_silo_attached_cargo_unit"] = true,
+}
+
+---Inventory names that must still get a generic tab even with 0 slots.
+---Normally a 0-slot inventory means the entity just doesn't have that kind of
+---inventory (e.g. no module slots), so those are filtered out below. But
+---"rocket_silo_rocket" (defines.inventory.rocket_silo_rocket) is different: as
+---of Factorio 2.1.7 it's dynamically sized - it legitimately starts at 0
+---slots and only grows once something is inserted into it - so filtering it
+---out while empty would hide the only way to place the first item (e.g. a
+---space platform starter pack) in it at all.
+local ALWAYS_SHOWN_EVEN_WHEN_EMPTY = {
+   ["rocket_silo_rocket"] = true,
+}
+
 ---Sort inventories by priority, filtering out gun/ammo inventories
 ---@param entity LuaEntity
 ---@return table[] sorted_inventories
@@ -102,10 +133,11 @@ local function sort_inventories(entity)
       local inv = entity.get_inventory(inv_index)
 
       -- Inventory can be nil. Docs don't specify that. The inventory list is actually a sparse array.
-      -- Also filter out inventories with 0 slots (e.g., module inventory on machines that don't support modules)
-      if inv and #inv > 0 then
+      -- Also filter out inventories with 0 slots (e.g., module inventory on machines that don't support modules) -
+      -- except the ones in ALWAYS_SHOWN_EVEN_WHEN_EMPTY, which are dynamically sized and legitimately start at 0.
+      if inv and (#inv > 0 or ALWAYS_SHOWN_EVEN_WHEN_EMPTY[inv.name]) then
          local inv_name = inv.name
-         if inv_name and not is_gun_or_ammo_inventory(inv_name) then
+         if inv_name and not is_gun_or_ammo_inventory(inv_name) and not BLOCKED_GENERIC_INVENTORY_NAMES[inv_name] then
             local priority = Consts.INVENTORY_PRIORITIES[inv_name] or 100
 
             local inv_data = {
@@ -221,6 +253,11 @@ local function build_configuration_tabs(entity)
 
    -- Add splitter configuration
    if splitter_config_tab.is_available(entity) then table.insert(tabs, splitter_config_tab.splitter_config_tab) end
+
+   -- Add display panel configuration
+   if display_panel_config_tab.is_available(entity) then
+      table.insert(tabs, display_panel_config_tab.display_panel_config_tab)
+   end
 
    -- Future: Add other device-specific tabs here
    -- if prototype.type == "mining-drill" then ...

@@ -40,8 +40,13 @@ function mod.mine_area(pindex)
       return
    end
 
-   --Get initial inventory size
-   local init_empty_stacks = game.get_player(pindex).get_main_inventory().count_empty_stacks()
+   --Get initial inventory size. In remote view (or any state without an
+   --accessible character), get_main_inventory() returns nil instead of an
+   --empty inventory, so guard against that - this is otherwise the same
+   --crash as read_hand's, since ghosts (among other things) can be mined
+   --from remote view.
+   local main_inv = game.get_player(pindex).get_main_inventory()
+   local init_empty_stacks = main_inv and main_inv.count_empty_stacks() or 0
 
    --Begin clearing
    if ent then
@@ -126,7 +131,8 @@ function mod.mine_area(pindex)
    end
 
    --Calculate collected stack count
-   local stacks_collected = init_empty_stacks - game.get_player(pindex).get_main_inventory().count_empty_stacks()
+   local final_empty_stacks = main_inv and main_inv.count_empty_stacks() or 0
+   local stacks_collected = init_empty_stacks - final_empty_stacks
 
    --Print result
    local message = MessageBuilder.new()

@@ -36,6 +36,18 @@ local function make_permanent(pindex)
    if player then player.cursor_stack_temporary = false end
 end
 
+---Build an UpgradeMapperSource/Destination for a module rule side. `name`
+---may be ItemChooser.NO_MODULE_RESULT (the "No module" choice) rather than a
+---real item name - that maps to a mapper with no `name` field at all, which
+---is vanilla's way of representing an empty module slot (see
+---scripts/upgrade-planner.lua's get_mapper_name for how this is read back).
+---@param name string
+---@return UpgradeMapperSource|UpgradeMapperDestination
+local function module_mapper(name)
+   if name == ItemChooser.NO_MODULE_RESULT then return { type = "item" } end
+   return { type = "item", name = name }
+end
+
 ---Render a single slot row
 ---@param builder fa.ui.menu.MenuBuilder
 ---@param planner LuaItemStack
@@ -122,11 +134,12 @@ local function render_slot(builder, planner, slot_index)
                source_name = source_name,
             })
          elseif step == "module_target" then
-            -- Got target module, create the rule
+            -- Got target module, create the rule. Either side may be the
+            -- "No module" sentinel instead of a real item name.
             local source_name = child_ctx.source_name
             local target_name = result
-            planner.set_mapper(idx, "from", { type = "item", name = source_name })
-            planner.set_mapper(idx, "to", { type = "item", name = target_name })
+            planner.set_mapper(idx, "from", module_mapper(source_name))
+            planner.set_mapper(idx, "to", module_mapper(target_name))
             make_permanent(ctx.pindex)
             ctx.message:fragment({ "fa.upgrade-rule-added" })
          end

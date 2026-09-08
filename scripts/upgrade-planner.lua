@@ -9,11 +9,17 @@ local MessageBuilder = Speech.MessageBuilder
 
 local mod = {}
 
----Get the localized name for a mapper (source or destination)
+---Get the localized name for a mapper (source or destination).
+---A mapper can exist (be non-nil) with no name at all - that's not a missing
+---rule, it's vanilla's "empty module slot" placeholder, used to map an empty
+---module slot to a module (mapper.name == nil as "from"), or to map a module
+---to nothing, removing it (mapper.name == nil as "to"). Speak that case as
+---"No module" rather than treating it as if there were no mapper here.
 ---@param mapper UpgradeMapperSource|UpgradeMapperDestination|nil
 ---@return LocalisedString|nil
 local function get_mapper_name(mapper)
-   if not mapper or not mapper.name then return nil end
+   if not mapper then return nil end
+   if not mapper.name then return { "fa.upgrade-mapper-no-module" } end
 
    local proto
    if mapper.type == "entity" then
@@ -27,7 +33,11 @@ local function get_mapper_name(mapper)
    return Localising.get_localised_name_with_fallback(proto)
 end
 
----Check if a mapper rule at the given index is defined
+---Check if a mapper rule at the given index is defined.
+---A rule is defined as soon as a "from" side exists at all - including the
+---vanilla "empty module slot" placeholder (mapper.name == nil), which is a
+---real, deliberately-set rule (e.g. "empty slot to Speed module 3"), not a
+---missing one.
 ---@param planner LuaItemStack
 ---@param index integer 1-indexed
 ---@return boolean
@@ -36,7 +46,7 @@ function mod.is_rule_defined(planner, index)
    local mapper_count = planner.mapper_count or 0
    if index > mapper_count then return false end
    local from = planner.get_mapper(index, "from")
-   return from and from.name ~= nil
+   return from ~= nil
 end
 
 ---Read a single planner rule into MessageBuilder
@@ -51,14 +61,16 @@ function mod.read_planner_rule(mb, planner, index)
    if index > mapper_count then return false end
 
    local from = planner.get_mapper(index, "from")
+   if not from then return false end
    local to = planner.get_mapper(index, "to")
 
    local from_name = get_mapper_name(from)
-   if not from_name then return false end
 
    local to_name = get_mapper_name(to)
    if not to_name then
-      -- Incomplete rule (only source defined)
+      -- No destination chosen at all yet - genuinely incomplete, unlike
+      -- from_name/to_name being the "No module" placeholder above, which is
+      -- a complete, deliberately-set rule.
       mb:fragment(from_name)
       mb:fragment({ "fa.upgrade-to-nothing" })
       return true

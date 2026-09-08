@@ -79,6 +79,13 @@ local function render_infinity_chest_config(ctx)
                ctx.message:fragment(filter.name)
             end
 
+            -- Add quality (InfinityInventoryFilter.quality has no "any" option -
+            -- it's always a specific quality, defaulting to "normal")
+            if script.feature_flags.quality then
+               local q_proto = prototypes.quality[filter.quality or "normal"]
+               if q_proto then ctx.message:fragment(q_proto.localised_name) end
+            end
+
             -- Add mode
             ctx.message:fragment(get_mode_label(filter.mode or "exactly"))
 
@@ -97,11 +104,12 @@ local function render_infinity_chest_config(ctx)
                local filters = entity.infinity_container_filters
                local current = filters[i] or {}
 
-               -- Update item but preserve mode and count
+               -- Update item but preserve mode, count and quality
                entity.set_infinity_container_filter(i, {
                   name = result.name,
                   mode = current.mode or "exactly",
                   count = current.count or 0,
+                  quality = current.quality or "normal",
                })
 
                local item_proto = prototypes.item[result.name]
@@ -123,6 +131,58 @@ local function render_infinity_chest_config(ctx)
 
             UiSounds.play_menu_move(ctx.pindex)
             ctx.controller.message:fragment({ "fa.deleted" })
+         end,
+         -- J (shift+J to reverse): cycle this filter's quality, same key as the
+         -- schedule editor's wait-condition-type toggle and the logistics
+         -- section editor's request-quality toggle. Cycle order is
+         -- normal -> uncommon -> rare -> epic -> legendary (by
+         -- LuaQualityPrototype.level). No "any" option here - unlike
+         -- SignalFilter, InfinityInventoryFilter.quality always names one
+         -- specific quality, defaulting to "normal" when unset.
+         on_toggle_supertype = function(ctx)
+            if not script.feature_flags.quality then
+               ctx.controller.message:fragment({ "fa.logistics-quality-feature-disabled" })
+               return
+            end
+
+            local filters = entity.infinity_container_filters
+            local current = filters[i]
+            if not current then return end
+
+            local qualities = {}
+            for _, q in pairs(prototypes.quality) do
+               if not q.hidden then table.insert(qualities, q) end
+            end
+            table.sort(qualities, function(a, b) return a.level < b.level end)
+            if #qualities == 0 then return end
+
+            local reverse = ctx.modifiers and ctx.modifiers.shift
+            local current_name = current.quality or "normal"
+            local index
+            for idx, q in ipairs(qualities) do
+               if q.name == current_name then
+                  index = idx
+                  break
+               end
+            end
+            if not index then index = 1 end
+
+            if reverse then
+               index = index - 1
+               if index < 1 then index = #qualities end
+            else
+               index = index + 1
+               if index > #qualities then index = 1 end
+            end
+
+            entity.set_infinity_container_filter(i, {
+               name = current.name,
+               mode = current.mode or "exactly",
+               count = current.count or 0,
+               quality = qualities[index].name,
+            })
+
+            ctx.controller.message:fragment(qualities[index].localised_name)
          end,
       })
 
@@ -156,6 +216,7 @@ local function render_infinity_chest_config(ctx)
                name = current.name,
                mode = new_mode,
                count = current.count or 0,
+               quality = current.quality or "normal",
             })
 
             ctx.controller.message:fragment(get_mode_label(new_mode))
@@ -207,6 +268,7 @@ local function render_infinity_chest_config(ctx)
                   name = current.name,
                   mode = current.mode or "exactly",
                   count = math.floor(num),
+                  quality = current.quality or "normal",
                })
 
                ctx.controller.message:fragment(tostring(math.floor(num)))

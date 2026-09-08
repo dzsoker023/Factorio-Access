@@ -92,14 +92,17 @@ function mod.recipe_cannot_craft_reason(pindex, recipe_in)
    -- Check if recipe requires fluids (cannot be hand-crafted normally)
    if mod.recipe_requires_fluids(recipe) then return { "fa.crafting-requires-fluids" } end
 
-   -- Check for missing item ingredients
+   -- Check for missing item ingredients. get_main_inventory() returns nil
+   -- rather than an empty inventory when there's no accessible character
+   -- (e.g. remote view) - guard against that instead of indexing straight
+   -- into it.
    local inv = p.get_main_inventory()
    local message = MessageBuilder.new()
    local found_missing = false
 
    for _, ing in ipairs(recipe.ingredients) do
       if ing.type == "item" then
-         local on_hand = inv.get_item_count(ing.name)
+         local on_hand = inv and inv.get_item_count(ing.name) or 0
          local needed = ing.amount - on_hand
          if needed > 0 then
             if not found_missing then

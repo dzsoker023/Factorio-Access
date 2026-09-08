@@ -85,7 +85,11 @@ function mod.read_quick_bar_slot(index, pindex)
    msg:fragment(name)
    -- Only plain items have an inventory count to report.
    if item_name then
-      local count = p.get_main_inventory().get_item_count(item_name)
+      -- get_main_inventory() returns nil rather than an empty inventory when
+      -- there's no accessible character (e.g. remote view) - guard against
+      -- that instead of indexing straight into it.
+      local main_inv = p.get_main_inventory()
+      local count = main_inv and main_inv.get_item_count(item_name) or 0
       if stack and stack.valid_for_read then count = count + stack.count end
       msg:fragment({ "fa.quickbar-count", count })
    end

@@ -418,6 +418,32 @@ local function ent_info_container(ctx)
    end
 end
 
+---Announce a display panel's currently showing icon, and its message text
+---too if "always show" is on (matching what's actually visible in-game:
+---with "always show" off, only the icon is visible without hovering).
+---LuaEntity.display_panel_icon/text reflect whatever is currently resolved
+---and showing - whether set directly or picked from the control behavior's
+---records - so there's no need to re-evaluate records here.
+---@param ctx fa.Info.EntInfoContext
+local function ent_info_display_panel(ctx)
+   local ent = ctx.ent
+   if ent.type ~= "display-panel" then return end
+
+   local icon = ent.display_panel_icon
+   if icon and icon.name then
+      local signal_type = icon.type or "item"
+      ctx.message:fragment({ "fa.signal-type-name", signal_type, icon.name })
+   end
+
+   if ent.display_panel_always_show then
+      local text = ent.display_panel_text
+      if text and text ~= "" then
+         -- Rich text processing happens globally in Speech.speak.
+         ctx.message:fragment(text)
+      end
+   end
+end
+
 ---@param ctx fa.Info.EntInfoContext
 local function ent_info_fluid_contents(ctx)
    -- Crafting machines are special, and this is folded into their readiness
@@ -1385,6 +1411,7 @@ function mod.ent_info(pindex, ent, is_scanner)
    run_handler(ent_info_character)
    run_handler(ent_info_character_corpse)
    run_handler(ent_info_container)
+   run_handler(ent_info_display_panel)
    run_handler(ent_info_fluid_contents)
    run_handler(ent_info_logistic_network)
    run_handler(ent_info_infinity_chest)

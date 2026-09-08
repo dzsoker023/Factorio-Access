@@ -160,7 +160,17 @@ local function cmd_fagive(cmd)
       return
    end
 
-   local inserted = player.get_main_inventory().insert(pname)
+   -- get_main_inventory() returns nil rather than an empty inventory when
+   -- there's no accessible character (e.g. remote view) - reuse the same
+   -- "No character available" message the crafting menu already uses for
+   -- this, instead of indexing straight into it.
+   local main_inv = player.get_main_inventory()
+   if not main_inv then
+      Speech.speak(pindex, { "fa.crafting-no-character" })
+      return
+   end
+
+   local inserted = main_inv.insert(pname)
    Speech.speak(pindex, { "fa.cmd-gave-items", inserted, prototype.localised_name })
 end
 

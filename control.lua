@@ -211,7 +211,11 @@ local function read_hand(pindex)
             table.insert(out, "")
          end
          table.insert(out, cursor_stack.count)
-         local extra = game.get_player(pindex).get_main_inventory().get_item_count(cursor_stack.name)
+         --In remote view (or any state without an accessible character), the
+         --player has no main inventory to check - get_main_inventory() returns
+         --nil there instead of an empty inventory, so guard against that.
+         local main_inventory = game.get_player(pindex).get_main_inventory()
+         local extra = main_inventory and main_inventory.get_item_count(cursor_stack.name) or 0
          if extra > 0 then
             table.insert(out, cursor_stack.count + extra)
          else
@@ -1274,13 +1278,13 @@ local function cursor_skip_iteration(pindex, direction, iteration_limit)
 
    --For pipes to ground, apply a special case where you jump to the underground neighbour
    if start ~= nil and start.valid and start.type == "pipe-to-ground" then
-      local connections = start.get_fluid_box_pipe_connections(1)
+      local connections = start.fluidbox.get_pipe_connections(1)
       for i, con in ipairs(connections) do
          if con.target ~= nil then
-            local dist = math.ceil(util.distance(start.position, con.target.get_fluid_box_pipe_connections(1)[1].position))
+            local dist = math.ceil(util.distance(start.position, con.target.get_pipe_connections(1)[1].position))
             local dir_neighbor = FaUtils.get_direction_biased(con.target_position, start.position)
             if con.connection_type == "underground" and dir_neighbor == direction then
-               vp:set_cursor_pos(con.target.get_fluid_box_pipe_connections(1)[1].position)
+               vp:set_cursor_pos(con.target.get_pipe_connections(1)[1].position)
                EntitySelection.reset_entity_index(pindex)
                current = EntitySelection.get_first_ent_at_tile(pindex)
                return dist
@@ -1289,6 +1293,10 @@ local function cursor_skip_iteration(pindex, direction, iteration_limit)
       end
       --For underground belts, apply a special case where you jump to the underground neighbour
    elseif start ~= nil and start.valid and start.type == "underground-belt" then
+      -- LuaEntity has no plain "neighbours" field for underground belts (that
+      -- caused a crash: "LuaEntity doesn't contain key neighbours") - the
+      -- correct field is "underground_belt_neighbour" (singular), which can
+      -- be nil if this underground belt isn't currently paired with another.
       local neighbour = start.underground_belt_neighbour
       if neighbour then
          local other_end = neighbour
@@ -3099,7 +3107,6 @@ EventManager.on_event(
 
       if ent.type == "power-switch" then
          local cb = ent.get_control_behavior()
-         ---@cast cb LuaGenericOnOffControlBehavior
          if cb and (cb.circuit_enable_disable or cb.connect_to_logistic_network) then
             Speech.speak(pindex, { "fa.power-switch-circuit-controlled" })
          else
@@ -3380,18 +3387,11 @@ local function kb_read_item_pickup_state(event)
          Speech.speak(pindex, result)
          return
       end
-      -- Line indices are exactly the integers defines.transport_line is defined as;
-      -- carry the type without changing the value.
-      ---@param index integer
-      ---@return defines.transport_line
-      local function tl(index)
-         return index --[[@as defines.transport_line]]
-      end
       local left = TH.nqc_to_sorted_descending(
-         TH.rollup2(ent.get_transport_line(tl(1)).get_contents(), F.name().get, F.quality().get, F.count().get)
+         TH.rollup2(ent.get_transport_line(1).get_contents(), F.name().get, F.quality().get, F.count().get)
       )
       local right = TH.nqc_to_sorted_descending(
-         TH.rollup2(ent.get_transport_line(tl(2)).get_contents(), F.name().get, F.quality().get, F.count().get)
+         TH.rollup2(ent.get_transport_line(2).get_contents(), F.name().get, F.quality().get, F.count().get)
       )
       local all = {}
       TH.concat_arrays(left, right)

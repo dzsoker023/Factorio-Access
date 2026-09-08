@@ -44,17 +44,33 @@ local function force_has_platforms(force)
    return next(force.platforms) ~= nil
 end
 
----Whether the silo's rocket cargo currently weighs more than the rocket can lift.
----The rocket_silo_rocket inventory is weight-restricted (not slot-restricted) once
----the silo can launch to space platforms - LuaInventory.max_weight is only present
----on this kind of weight-limited inventory, so its absence means there's no weight
----cap to check (e.g. a non-platform-launching rocket silo).
+---Whether either of the silo's rocket-cargo inventories currently weighs more
+---than the rocket can lift. There are two: rocket_silo_rocket (rocket parts /
+---starter pack, built up while the rocket is under construction) and
+---rocket_silo_attached_cargo_unit (the separate cargo pod attached once the
+---rocket is ready - see defines.inventory.rocket_silo_attached_cargo_unit).
+---Both are weight-restricted, not slot-restricted, once the silo can launch to
+---space platforms - LuaInventory.max_weight is only present on this kind of
+---weight-limited inventory, so its absence means there's no weight cap to
+---check (e.g. a non-platform-launching rocket silo).
+---Kept as defense-in-depth even though the main way to overload the rocket
+---(manually inserting via the generic "Rocket Cargo" inventory tab for the
+---attached cargo unit) has been closed off in entity-ui.lua - see
+---BLOCKED_GENERIC_INVENTORY_NAMES there.
 ---@param silo LuaEntity
 ---@return boolean
 local function rocket_is_overloaded(silo)
-   local inventory = silo.get_inventory(defines.inventory.rocket_silo_rocket)
-   if not inventory or not inventory.max_weight then return false end
-   return inventory.weight > inventory.max_weight
+   local inv_types = { defines.inventory.rocket_silo_rocket, defines.inventory.rocket_silo_attached_cargo_unit }
+   for _, inv_type in ipairs(inv_types) do
+      -- inv_type can be nil if this define doesn't exist on the running game
+      -- version (rocket_silo_attached_cargo_unit is newer than some 2.x
+      -- releases) - get_inventory(nil) would error, so skip it.
+      if inv_type then
+         local inventory = silo.get_inventory(inv_type)
+         if inventory and inventory.max_weight and inventory.weight > inventory.max_weight then return true end
+      end
+   end
+   return false
 end
 
 local mod = {}
@@ -120,6 +136,19 @@ local function render_rocket_silo_config(ctx)
          ctx.message:fragment({ "fa.rocket-silo-launch-player" })
       end,
       on_click = function(ctx)
+         -- Launching yourself requires actually being there - remote view (or any
+         -- other non-physical controller) lets you interact with this entity's UI
+         -- from anywhere, but there's no character present at the silo to put in
+         -- the rocket. controller_type == character means the player is normally,
+         -- physically embodied (see the ghost-placement remote/character gating
+         -- for the same distinction elsewhere in the mod).
+         local player = game.get_player(ctx.pindex)
+         if not player or player.controller_type ~= defines.controllers.character then
+            UiSounds.play_ui_edge(ctx.pindex)
+            ctx.controller.message:fragment({ "fa.rocket-silo-must-be-present-to-launch-self" })
+            return
+         end
+
          if force_has_platforms(entity.force) then
             ctx.controller:open_child_ui(Router.UI_NAMES.PLATFORM_SELECTOR, { ent = entity }, { node = "launch_player" })
          else
@@ -130,6 +159,14 @@ local function render_rocket_silo_config(ctx)
       on_child_result = function(ctx, result)
          local player = game.get_player(ctx.pindex)
          if not player or result == nil then return end
+
+         -- Re-check: the player could have switched to remote view (or otherwise
+         -- left their body) while the platform selector was open.
+         if player.controller_type ~= defines.controllers.character then
+            UiSounds.play_ui_edge(ctx.pindex)
+            ctx.controller.message:fragment({ "fa.rocket-silo-must-be-present-to-launch-self" })
+            return
+         end
 
          if rocket_is_overloaded(entity) then
             UiSounds.play_ui_edge(ctx.pindex)

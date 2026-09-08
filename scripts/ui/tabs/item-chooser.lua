@@ -12,6 +12,15 @@ mod.FILTER_TYPES = {
    PLACEABLE = "placeable",
 }
 
+---Sentinel result returned when "No module" is picked instead of a real
+---module item. Not a valid item name, so it can never collide with one.
+---Used by the upgrade planner menu's module rule flow to represent an empty
+---module slot as a mapper source/destination - see UpgradeMapperSource's
+---`name` field being optional in the API docs, and
+---scripts/upgrade-planner.lua's get_mapper_name, which already speaks that
+---case back as "No module" when reading an existing rule.
+mod.NO_MODULE_RESULT = "__fa_no_module__"
+
 -- Filter functions by type
 local FILTERS = {
    [mod.FILTER_TYPES.MODULE] = function(proto)
@@ -37,6 +46,26 @@ local function build_item_tree(ctx)
    local params = ctx.global_parameters or {}
    local filter_type = params.filter_type
    local extra_filter = filter_type and FILTERS[filter_type]
+
+   -- For the module chooser specifically, also offer "No module" as its own
+   -- choice, alongside the real module items - vanilla's upgrade planner can
+   -- map an empty module slot to a module, or a module to an empty slot
+   -- (removing it), and without this there was no way to pick that. Make it
+   -- the first thing the player lands on (rather than just a root-level
+   -- sibling buried alongside category groups like "Production") so it's
+   -- actually discoverable without first going down into a category and
+   -- back up.
+   if filter_type == mod.FILTER_TYPES.MODULE then
+      builder:add_node("no_module", TreeChooser.ROOT, {
+         label = function(node_ctx)
+            node_ctx.message:fragment({ "fa.upgrade-mapper-no-module" })
+         end,
+         on_click = function(click_ctx)
+            click_ctx.controller:close_with_result(mod.NO_MODULE_RESULT)
+         end,
+      })
+      builder:set_start_key("no_module")
+   end
 
    -- Use signal helper to add items (with unlocked filter and optional extra filter)
    -- Pass converter to return just the name string, not SignalID

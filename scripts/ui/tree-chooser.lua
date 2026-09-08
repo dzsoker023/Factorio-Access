@@ -20,7 +20,21 @@ local TreeChooserBuilder_meta = { __index = TreeChooserBuilder }
 function TreeChooserBuilder.new()
    return setmetatable({
       nodes = {},
+      preferred_start_key = nil,
    }, TreeChooserBuilder_meta)
+end
+
+---Force the tree to open on a specific root-level node instead of whichever
+---root node happens to be found first (root node iteration order is
+---otherwise unspecified). Useful for a "None"-style option that should be
+---the very first thing heard/landed on, rather than requiring the player to
+---first go down into an arbitrary category and back up to discover it as a
+---sibling.
+---@param key string
+---@return fa.ui.tree.TreeChooserBuilder
+function TreeChooserBuilder:set_start_key(key)
+   self.preferred_start_key = key
+   return self
 end
 
 ---@param key string
@@ -83,6 +97,9 @@ function TreeChooserBuilder:build()
    if #root_children == 0 then return nil end
 
    render.start_key = root_children[1]
+   if self.preferred_start_key and self.nodes[self.preferred_start_key] then
+      render.start_key = self.preferred_start_key
+   end
 
    for key, node in pairs(self.nodes) do
       local transitions = {}
