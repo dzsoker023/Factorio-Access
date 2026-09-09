@@ -43,7 +43,19 @@ local ENTITY_NAMES_WITH_UI = {
    ["rocket-silo-rocket"] = true,
 }
 
--- Entity types that have UIs
+-- Entity types that have UIs.
+-- has_ui() below falls back to `entity.operable and entity.prototype.is_building`
+-- for anything not listed here, but is_building only covers the classic
+-- static "building" prototype types (assembling machines, walls, etc).
+-- Vehicles (car, spider-vehicle, spider-leg, cargo-wagon, artillery-wagon,
+-- locomotive) fail that fallback because they aren't buildings, so they need
+-- an explicit entry. space-platform-hub and display-panel fail it too even
+-- though they read as ordinary placed structures - confirmed in-game that
+-- display-panel's window does not open without an explicit entry here, so
+-- it is not considered a "building" internally either. constant-combinator
+-- is listed explicitly as well rather than relying on the fallback, since
+-- its UI is a special case in open_entity_ui() below and should not depend
+-- on inferred prototype flags.
 local ENTITY_TYPES_WITH_UI = {
    ["constant-combinator"] = true,
    ["car"] = true,
