@@ -50,6 +50,13 @@ local function render_section(ctx, section_index)
    -- Determine signal mode based on entity type
    local is_combinator = entity.type == "constant-combinator"
    local is_roboport = entity.type == "roboport"
+   -- [LOGISTICS-PLATFORM-REQUEST-FIELDS] The two per-slot fields below
+   -- (target planet / custom minimum payload) only mean anything for a
+   -- space platform hub's own resupply requests - a normal requester
+   -- chest or character has no "which planet do I import this from"
+   -- concept. Gated strictly on entity.type per explicit request, so
+   -- these never show up anywhere else.
+   local is_platform_hub = entity.type == "space-platform-hub"
    local signal_mode
    if is_combinator then
       signal_mode = "all"
@@ -323,7 +330,149 @@ local function render_section(ctx, section_index)
             end,
          })
 
-         -- Item 4: Delete button
+         -- [LOGISTICS-PLATFORM-REQUEST-FIELDS] Items 4-5 (space platform
+         -- hub requests only): target planet (`LogisticFilter.import_from`)
+         -- and custom minimum payload (`LogisticFilter.
+         -- minimum_delivery_count`). Confirmed via the API docs
+         -- (LogisticFilter.md) that these are per-SLOT fields alongside
+         -- value/min/max - previously handled nowhere in this mod (a
+         -- full mod-wide grep for both field names returned zero hits).
+         -- Per the vanilla mechanics the user quoted: "target planet"
+         -- decides which planet a request is sent to (defaults to the
+         -- requested item's main recipe's planet, usually Nauvis), and
+         -- can only be set from the platform's own UI - which is exactly
+         -- this tab, gated to `is_platform_hub`. "Custom minimum payload"
+         -- lets a rocket launch to the platform before it's fully loaded
+         -- with the requested item; unset (nil) means the vanilla
+         -- default (full rocket capacity required).
+         if is_platform_hub then
+            -- Item 4: Target planet
+            menu:add_item(item_key .. "_target_planet", {
+               label = function(ctx)
+                  local sid = slot.value
+                  ---@cast sid SignalID
+                  local location_name = slot.import_from
+                  if location_name then
+                     local location_proto = prototypes.space_location[location_name]
+                     local localised_location = location_proto and location_proto.localised_name or location_name
+                     ctx.message:fragment({
+                        "fa.logistics-target-planet-for",
+                        localised_location,
+                        CircuitNetwork.localise_signal(sid),
+                     })
+                  else
+                     ctx.message:fragment({
+                        "fa.logistics-target-planet-default-for",
+                        CircuitNetwork.localise_signal(sid),
+                     })
+                  end
+               end,
+               on_click = function(ctx)
+                  ctx.controller:open_child_ui(
+                     Router.UI_NAMES.PLANET_SELECTOR,
+                     {},
+                     { node = item_key .. "_target_planet" }
+                  )
+               end,
+               on_child_result = function(ctx, result)
+                  if result then
+                     local sections = entity.get_logistic_sections()
+                     if not sections then return end
+                     local section = sections.get_section(section_index)
+                     if not section then return end
+
+                     local slot = section.get_slot(i)
+                     slot.import_from = result
+                     section.set_slot(i, slot)
+
+                     local location_proto = prototypes.space_location[result]
+                     ctx.controller.message:fragment(location_proto and location_proto.localised_name or result)
+                  end
+               end,
+               on_clear = function(ctx)
+                  local sections = entity.get_logistic_sections()
+                  if not sections then return end
+                  local section = sections.get_section(section_index)
+                  if not section then return end
+
+                  local slot = section.get_slot(i)
+                  slot.import_from = nil
+                  section.set_slot(i, slot)
+
+                  ctx.controller.message:fragment({ "fa.logistics-target-planet-default" })
+               end,
+            })
+
+            -- Item 5: Custom minimum payload
+            menu:add_item(item_key .. "_min_payload", {
+               label = function(ctx)
+                  local sid = slot.value
+                  ---@cast sid SignalID
+                  if slot.minimum_delivery_count then
+                     ctx.message:fragment({
+                        "fa.logistics-min-payload-for",
+                        tostring(slot.minimum_delivery_count),
+                        CircuitNetwork.localise_signal(sid),
+                     })
+                  else
+                     ctx.message:fragment({
+                        "fa.logistics-min-payload-default-for",
+                        CircuitNetwork.localise_signal(sid),
+                     })
+                  end
+               end,
+               on_click = function(ctx)
+                  ctx.controller:open_textbox(
+                     "",
+                     { node = item_key .. "_min_payload", slot_index = i },
+                     { "fa.logistics-enter-min-payload" }
+                  )
+               end,
+               on_child_result = function(ctx, result)
+                  if result == "" then
+                     UiSounds.play_ui_edge(ctx.pindex)
+                     ctx.controller.message:fragment({ "fa.logistics-use-backspace-to-clear" })
+                  else
+                     local num = tonumber(result)
+                     if not num then
+                        UiSounds.play_ui_edge(ctx.pindex)
+                        ctx.controller.message:fragment({ "fa.logistics-invalid-number" })
+                     elseif num < 0 then
+                        UiSounds.play_ui_edge(ctx.pindex)
+                        ctx.controller.message:fragment({ "fa.logistics-value-cannot-be-negative" })
+                     elseif num > Consts.INT32_MAX then
+                        UiSounds.play_ui_edge(ctx.pindex)
+                        ctx.controller.message:fragment({ "fa.logistics-value-out-of-range" })
+                     else
+                        local sections = entity.get_logistic_sections()
+                        if not sections then return end
+                        local section = sections.get_section(section_index)
+                        if not section then return end
+
+                        local slot = section.get_slot(i)
+                        slot.minimum_delivery_count = math.floor(num)
+                        section.set_slot(i, slot)
+
+                        ctx.controller.message:fragment(tostring(math.floor(num)))
+                     end
+                  end
+               end,
+               on_clear = function(ctx)
+                  local sections = entity.get_logistic_sections()
+                  if not sections then return end
+                  local section = sections.get_section(section_index)
+                  if not section then return end
+
+                  local slot = section.get_slot(i)
+                  slot.minimum_delivery_count = nil
+                  section.set_slot(i, slot)
+
+                  ctx.controller.message:fragment({ "fa.logistics-min-payload-default" })
+               end,
+            })
+         end
+
+         -- Item 6: Delete button
          menu:add_item(item_key .. "_delete", {
             label = function(ctx)
                local sid = slot.value

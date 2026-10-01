@@ -1740,6 +1740,10 @@ The radius of this entity prototype. The radius is defined as half the distance 
 
 **Read type:** `double`
 
+### show_fluid_visualization_when_in_cursor
+
+**Read type:** `boolean`
+
 ### cliff_explosive_prototype
 
 The item prototype name used to destroy this cliff.
@@ -2519,6 +2523,12 @@ An alternative prototype that will be used to display info about this prototype 
 **Optional:** Yes
 
 **Subclasses:** CraftingMachine, MiningDrill, Inserter
+
+### allows_flipping
+
+When this entity is part of blueprint, will it allow flipping of the blueprint?
+
+**Read type:** `boolean`
 
 ### territory_radius
 

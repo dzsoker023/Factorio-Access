@@ -17,7 +17,6 @@ local FaUtils = require("scripts.fa-utils")
 local PlayerWeapon = require("scripts.combat.player-weapon")
 local Speech = require("scripts.speech")
 local StorageManager = require("scripts.storage-manager")
-local Zoom = require("scripts.zoom")
 
 local mod = {}
 
@@ -185,22 +184,44 @@ function mod.get_sorted_targets(pindex, options)
    local effective_min = hard_min
    if state.safe_mode and soft_min then effective_min = math.max(hard_min, soft_min + SOFT_MIN_EPSILON) end
 
-   -- Get zoom area for finding spawners/turrets
-   local area = Zoom.get_search_area(pindex)
-
    -- Find all enemy units in the area
    local enemies = surface.find_enemy_units(player_pos, max_range, player.force)
 
-   -- Also find spawners and worms
+   -- Also find spawners and worms. These must be bound to the weapon's actual max range,
+   -- not the screen zoom level - previously this used Zoom.get_search_area, so zooming in
+   -- shrank the search box below the weapon's real range and spawners/worms outside the
+   -- visible screen (but well within shooting range) were invisible to aim assist.
+   local search_area = {
+      { player_pos.x - max_range, player_pos.y - max_range },
+      { player_pos.x + max_range, player_pos.y + max_range },
+   }
+
    local spawners = surface.find_entities_filtered({
-      area = { { area.left, area.top }, { area.right, area.bottom } },
+      area = search_area,
       type = "unit-spawner",
       force = "enemy",
    })
 
    local turrets = surface.find_entities_filtered({
-      area = { { area.left, area.top }, { area.right, area.bottom } },
+      area = search_area,
       type = "turret",
+      force = "enemy",
+   })
+
+   -- Space Age enemies outside the plain "unit" family. find_enemy_units (above) only
+   -- ever returns entities with type "unit" (this is the game engine's own behavior, not
+   -- something FA controls), so these need their own search here, same as spawners/
+   -- turrets:
+   --  - Vulcanus demolishers: "segmented-unit" (the head/controller entity that
+   --    represents the whole creature - NOT "segment", the many body-part entities;
+   --    segment-by-segment targeting is a possible future refinement, not this pass).
+   --  - Gleba pentapod strafers/stompers: "spider-unit" (they reuse spider-vehicle's leg
+   --    engine, per FFF-424, and are their own prototype type distinct from plain "unit").
+   --    Wrigglers use plain "unit" sprites (per FFF-424) so find_enemy_units already
+   --    covers them without any change here.
+   local space_age_enemies = surface.find_entities_filtered({
+      area = search_area,
+      type = { "segmented-unit", "spider-unit" },
       force = "enemy",
    })
 
@@ -213,6 +234,9 @@ function mod.get_sorted_targets(pindex, options)
       all_enemies[#all_enemies + 1] = e
    end
    for _, e in ipairs(turrets) do
+      all_enemies[#all_enemies + 1] = e
+   end
+   for _, e in ipairs(space_age_enemies) do
       all_enemies[#all_enemies + 1] = e
    end
 

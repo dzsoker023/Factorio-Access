@@ -632,16 +632,85 @@ function mod.sort_ents_by_distance_from_pos(pos, ents)
    return ents
 end
 
---Checks a position to see if it has a water tile
+-- [CURSOR-SKIP-GENERIC] Checks a position to see if it has a tile that is
+-- impassable to a walking character the same way water is, i.e. whose
+-- collision mask has the "water_tile" layer set. This is a generic,
+-- planet-agnostic check based on the same live prototype flag that
+-- LightningZones.is_land uses (inverted) for its land/water test - see that
+-- function's comments for why a runtime-readable flag was chosen over a
+-- hardcoded tile name list.
+--
+-- IMPORTANT: despite the name, this flag is not literally "this is water".
+-- Factorio also sets water_tile=true on every other kind of tile a walking
+-- character cannot stand on: Vulcanus lava, the Fulgora oil oceans, the
+-- Gleba wetlands and deep lake, the Aquilo ammoniacal ocean and brash ice,
+-- the special boundary tiles empty-space and out-of-map, and (from the
+-- Factorissimo mod, which this mod does not otherwise depend on but whose
+-- tiles are picked up automatically by this generic check) factory-wall and
+-- factory-entrance tiles. That is exactly the set of tiles this function's
+-- one caller - cursor_skip_iteration in control.lua - should treat as a
+-- single "boring" region to tunnel across in one skip (mirroring how it
+-- already tunnels across a lake in one press) or to stop at the edge of,
+-- rather than maintaining a hardcoded per-planet tile name list (the old
+-- implementation, Consts.WATER_TILE_NAMES) that silently covered only
+-- Nauvis and had to be hand-updated for every new planet or mod. Confirmed
+-- via a full dump of every tile prototype's collision_mask that this flag
+-- covers the complete, correct set: 42 tiles across Nauvis/Vulcanus/
+-- Fulgora/Gleba/Aquilo/special-tiles/factorissimo-tiles, with no
+-- unexpected inclusions.
+--
+-- Do NOT use this function for player-facing "you are standing in water"
+-- messages - mod.identify_water_shores below intentionally keeps using the
+-- literal Consts.WATER_TILE_NAMES list for that, since calling lava or a
+-- factory wall "water" out loud would be misleading. This function is only
+-- ever used to decide where cursor-skip should treat a tile boundary as
+-- worth stopping at or tunneling across.
 function mod.tile_is_water(surface, pos)
-   local water_tiles = surface.find_tiles_filtered({
-      position = mod.center_of_tile(pos),
-      radius = 0.1,
-      name = Consts.WATER_TILE_NAMES,
-   })
-   if not water_tiles then return false end
-   assert(#water_tiles <= 1)
-   return #water_tiles == 1
+   local tile = surface.get_tile(pos.x, pos.y)
+   if not tile or not tile.valid then return false end
+   local mask = tile.prototype.collision_mask
+   local layers = mask and mask.layers
+   return (layers and layers.water_tile) == true
+end
+
+-- [CURSOR-SKIP-GENERIC] Gleba's crop soil tiles are ordinary walkable land,
+-- not water_tile-flagged, so they are invisible to tile_is_water above: with
+-- no entity standing on a bare soil tile (e.g. a patch laid down but not yet
+-- grown), cursor-skip's entity-based comparison sees "no entity" on every
+-- tile of the patch and glides straight across it without ever indicating it
+-- is there. This set gives cursor_skip_iteration a second, non-water tile
+-- category to tunnel across / stop at the edge of, the same way it already
+-- does for water. Includes all three soil states found in the game data for
+-- both crops - "artificial" (laid down with the spray tool) and "natural"
+-- (occurring under mature wild plants) were explicitly requested; "overgrowth"
+-- was not mentioned but is the same kind of tile (a minable Gleba crop-soil
+-- tile, not water_tile-flagged) so it is included here too for consistency -
+-- flag for review if that inclusion is unwanted.
+mod.CURSOR_SKIP_SOIL_TILE_NAMES_SET = {
+   ["artificial-yumako-soil"] = true,
+   ["natural-yumako-soil"] = true,
+   ["overgrowth-yumako-soil"] = true,
+   ["artificial-jellynut-soil"] = true,
+   ["natural-jellynut-soil"] = true,
+   ["overgrowth-jellynut-soil"] = true,
+}
+
+-- [CURSOR-SKIP-GENERIC] Returns a category key describing which "boring,
+-- worth-tunneling-across" terrain type the tile at pos belongs to for
+-- cursor-skip purposes, or nil if the tile is ordinary ground with no special
+-- category. "water" covers every water_tile-flagged tile (see tile_is_water
+-- above for the full generic set this resolves to: water, lava, oil oceans,
+-- Gleba wetlands/deep lake, ammoniacal ocean, brash ice, and the
+-- empty-space/out-of-map/factory-wall boundary tiles). "soil" covers Gleba's
+-- crop soil tiles above. Two adjacent tiles in the same category are treated
+-- by cursor_skip_iteration as one continuous "boring" region to tunnel
+-- across in a single skip; a change of category (including from one to nil,
+-- or nil to one) is always a boundary worth stopping at.
+function mod.get_cursor_skip_terrain_category(surface, pos)
+   if mod.tile_is_water(surface, pos) then return "water" end
+   local tile = surface.get_tile(pos.x, pos.y)
+   if tile and tile.valid and mod.CURSOR_SKIP_SOIL_TILE_NAMES_SET[tile.name] then return "soil" end
+   return nil
 end
 
 --If the cursor is over a water tile, this function is called to check if it is open water or a shore.

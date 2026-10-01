@@ -170,6 +170,35 @@ local function render_unified_overview(ctx)
          )
       end
 
+      -- [LOGISTICS-EXACT-TOGGLE-FIX] Exact mode (any requester point): "In
+      -- exact mode robots never over-deliver requests" (LuaLogisticPoint
+      -- docs). This IS a real, player-facing vanilla checkbox in the
+      -- logistics request GUI - but `LuaLogisticPoint.exact` is READ-ONLY
+      -- through the scripting API (confirmed by a live crash report:
+      -- "LuaLogisticPoint::exact is read only", thrown from the `set`
+      -- below when this was first shipped as a writable checkbox). Re-
+      -- reading the API doc precisely: `exact`'s entry lists only a "Read
+      -- type", no "Write type" at all - unlike `trash_not_requested`
+      -- right below it in the same doc, which lists both. This was
+      -- misread the first time. Since the mod has no way to change this
+      -- value even though the real in-game GUI can, this is downgraded
+      -- from a checkbox to a plain read-only label (same "checked"/
+      -- "unchecked" + text layout a checkbox would show, just with no
+      -- on_click, so there is nothing left to crash).
+      if has_requester and #requester_points > 0 then
+         local point = requester_points[1]
+         menu:add_item("exact", {
+            label = function(item_ctx)
+               if point.exact then
+                  item_ctx.message:fragment({ "fa.checked" })
+               else
+                  item_ctx.message:fragment({ "fa.unchecked" })
+               end
+               item_ctx.message:fragment({ "fa.logistics-exact" })
+            end,
+         })
+      end
+
       menu:end_row()
    end
 

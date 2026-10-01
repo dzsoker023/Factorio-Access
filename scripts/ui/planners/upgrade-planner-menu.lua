@@ -83,6 +83,9 @@ local function render_slot(builder, planner, slot_index)
          -- Start module rule flow (step 1: select source)
          ctx.controller:open_child_ui(UiRouter.UI_NAMES.ITEM_CHOOSER, {
             filter_type = ItemChooser.FILTER_TYPES.MODULE,
+            -- [GHOST-ITEM-REQUESTS]: the MODULE filter is shared with ghost module requests now,
+            -- where "No module" isn't a sensible choice - this flag opts back into it here.
+            offer_no_module = true,
          }, {
             node = row_key .. "_main",
             slot_index = slot_index,
@@ -127,6 +130,7 @@ local function render_slot(builder, planner, slot_index)
             local source_name = result
             ctx.controller:open_child_ui(UiRouter.UI_NAMES.ITEM_CHOOSER, {
                filter_type = ItemChooser.FILTER_TYPES.MODULE,
+               offer_no_module = true,
             }, {
                node = row_key .. "_main",
                slot_index = idx,

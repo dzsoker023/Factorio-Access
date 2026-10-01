@@ -113,6 +113,17 @@ mod.VEHICLE_TYPES = {
    ["artillery-wagon"] = true,
 }
 
+-- [TRAIN-COUPLE-RESTORE] Rolling stock types only - narrower than VEHICLE_TYPES
+-- above (which also includes car/spider-vehicle, neither of which runs on
+-- rails or supports LuaEntity.connect_rolling_stock/disconnect_rolling_stock).
+---@type table<string, true>
+mod.ROLLING_STOCK_TYPES = {
+   ["locomotive"] = true,
+   ["cargo-wagon"] = true,
+   ["fluid-wagon"] = true,
+   ["artillery-wagon"] = true,
+}
+
 -- Entity types that players can walk over without collision
 mod.ENT_TYPES_YOU_CAN_WALK_OVER = {
    "resource",

@@ -27,6 +27,19 @@ function mod.get_electricity_satisfaction(electric_pole)
 end
 
 --For an electricity producer, returns an info string on the current and maximum production.
+--`power` (from electric_network_statistics, a genuine network-wide/id-based engine API) is
+--already correct regardless of which surface `ent` sits on - in a live network with no major
+--buffering this number IS effectively also the current consumption, since whatever's produced
+--is immediately drawn.
+--`capacity` (the theoretical max production) has to be computed manually by finding the actual
+--producer entities and summing their prototype's max output - and that search used to only
+--look on `ent.surface`. That's correct for an ordinary single-surface base, but it silently
+--finds nothing (capacity stuck at 0) whenever the real producers live on a *different* surface
+--than the pole being checked while still sharing its electric_network_id - which is exactly
+--what happens for a pole inside a Factorissimo factory (its own private interior surface) fed
+--by ordinary generators out on the main surface, or more generally for any cross-surface
+--electric network (space platforms, etc). Fixed by searching every surface for candidates
+--instead of just `ent.surface`.
 ---@param ent LuaEntity
 function mod.get_electricity_flow_info(ent)
    local result = { "" }
@@ -42,15 +55,18 @@ function mod.get_electricity_flow_info(ent)
             })
          )
       local cap_add = 0
-      for _, power_ent in pairs(ent.surface.find_entities_filtered({ name = i, force = ent.force })) do
-         if power_ent.electric_network_id == ent.electric_network_id then
-            cap_add = cap_add + prototypes.entity[i].get_max_energy_production(power_ent.quality)
+      for _, surface in pairs(game.surfaces) do
+         for _, power_ent in pairs(surface.find_entities_filtered({ name = i, force = ent.force })) do
+            if power_ent.electric_network_id == ent.electric_network_id then
+               local ent_cap = prototypes.entity[i].get_max_energy_production(power_ent.quality)
+               if prototypes.entity[i].type == "solar-panel" then
+                  ent_cap = ent_cap * surface.solar_power_multiplier * (1 - surface.darkness)
+               end
+               cap_add = cap_add + ent_cap
+            end
          end
       end
 
-      if prototypes.entity[i].type == "solar-panel" then
-         cap_add = cap_add * ent.surface.solar_power_multiplier * (1 - ent.surface.darkness)
-      end
       capacity = capacity + cap_add
    end
    power = power * 60

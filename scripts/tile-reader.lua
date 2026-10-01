@@ -5,6 +5,7 @@ local EntitySelection = require("scripts.entity-selection")
 local FaInfo = require("scripts.fa-info")
 local FaUtils = require("scripts.fa-utils")
 local Graphics = require("scripts.graphics")
+local LightningZones = require("scripts.lightning-zones")
 local Localising = require("scripts.localising")
 local Mouse = require("scripts.mouse")
 local PrimaryFinder = require("scripts.rails.primary-finder")
@@ -140,6 +141,23 @@ function mod.read_tile_inner(pindex, message)
       message:fragment(FaInfo.ent_info(pindex, ent))
       Graphics.draw_cursor_highlight(pindex, ent, nil)
       if not skip_selection then game.get_player(pindex).selected = ent end
+   end
+
+   -- Fulgora lightning-attractor protection status, from the grid cached at
+   -- the last End refresh (see lightning-zones.lua and the changelog
+   -- section "Fulgora lightning-attractor coverage grid"). Deliberately
+   -- placed HERE - unconditionally, after the ent-vs-no-ent branches above -
+   -- rather than inside FaInfo.ent_info. The whole point of the shore-gap
+   -- and hole warnings is to catch coverage gaps on land nobody has built
+   -- on yet, and the "no ent" branch above never calls ent_info at all, so
+   -- a check living only inside ent_info would stay silent on exactly the
+   -- tiles this feature cares most about. Silent (see
+   -- LightningZones.is_covered) when the spot is covered, or when this
+   -- surface has no cached grid at all.
+   do
+      local cursor_pos = Viewpoint.get_viewpoint(pindex):get_cursor_pos()
+      local covered = LightningZones.is_covered(game.get_player(pindex).surface, cursor_pos)
+      if covered == false then message:fragment({ "fa.ent-info-lightning-unprotected" }) end
    end
 
    --Add info on whether the tile is uncharted or blurred or distant

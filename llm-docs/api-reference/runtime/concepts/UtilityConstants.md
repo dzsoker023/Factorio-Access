@@ -56,6 +56,14 @@ Note that this is actually implemented as a [LuaCustomTable](runtime:LuaCustomTa
 
 **Required:** Yes
 
+### asteroid_min_damage_modifier
+
+Asteroid damage will be multiplied by this value when space platform speed is zero and will linearly increase until asteroid_spawning_with_random_orientation_max_speed is reached.
+
+**Type:** `float`
+
+**Required:** Yes
+
 ### asteroid_position_offset_to_speed_coefficient
 
 **Type:** `double`
@@ -69,6 +77,8 @@ Note that this is actually implemented as a [LuaCustomTable](runtime:LuaCustomTa
 **Required:** Yes
 
 ### asteroid_spawning_with_random_orientation_max_speed
+
+In km per tick.
 
 **Type:** `double`
 

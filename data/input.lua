@@ -776,6 +776,22 @@ data:extend({
       consuming = "none",
    },
 
+   -- [TRAIN-COUPLE-RESTORE] restores keybinds lost in the 0.16.34 equipment
+   -- overhaul (see CHANGES.md and control.lua's kb_couple_train_wagon comment)
+   {
+      type = "custom-input",
+      name = "fa-s-g",
+      key_sequence = "SHIFT + G",
+      consuming = "none",
+   },
+
+   {
+      type = "custom-input",
+      name = "fa-c-g",
+      key_sequence = "CONTROL + G",
+      consuming = "none",
+   },
+
    {
       type = "custom-input",
       name = "fa-r",

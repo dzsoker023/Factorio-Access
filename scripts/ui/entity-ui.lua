@@ -22,6 +22,7 @@ local display_panel_config_tab = require("scripts.ui.tabs.display-panel-config")
 local equipment_grid_tab = require("scripts.ui.tabs.equipment-grid")
 local equipment_overview_tab = require("scripts.ui.tabs.equipment-overview")
 local fluids_tab = require("scripts.ui.tabs.fluids")
+local ghost_item_requests_tab = require("scripts.ui.tabs.ghost-item-requests")
 local infinity_chest_config_tab = require("scripts.ui.tabs.infinity-chest-config")
 local infinity_pipe_config_tab = require("scripts.ui.tabs.infinity-pipe-config")
 local inserter_config_tab = require("scripts.ui.tabs.inserter-config")
@@ -340,6 +341,26 @@ end
 local function build_entity_sections(pindex, entity)
    if not entity.valid then return nil end
 
+   -- [GHOST-ITEM-REQUESTS] Ghosts short-circuit to their own, much smaller section list here,
+   -- before any of the normal-entity machinery below runs. That machinery (sort_inventories's
+   -- entity.get_max_inventory_index/get_inventory calls, build_configuration_tabs's per-prototype-
+   -- type checks, etc.) is written for real, built entities; a ghost has no real inventories or
+   -- control behavior; testing entity.prototype.type against it is always false for a ghost (that
+   -- reads "entity-ghost", never the underlying type - entity.ghost_prototype.type has the real
+   -- one), so none of that ever finds anything worth showing. This keeps ghosts out of that path
+   -- entirely instead of relying on every one of those functions happening to no-op safely.
+   if entity.type == "entity-ghost" then
+      if not ghost_item_requests_tab.is_available(entity) then return nil end
+      return {
+         {
+            name = "ghost-item-requests",
+            title = { "fa.section-ghost-requests" },
+            tabs = { ghost_item_requests_tab.ghost_item_requests_tab },
+         },
+         get_player_inventory_section(),
+      }
+   end
+
    local sections = {}
 
    -- Get sorted inventories (gun/ammo inventories are filtered out)
@@ -457,6 +478,11 @@ mod.entity_ui = TabList.declare_tablist({
 ---@return boolean true if the entity can open an entity UI
 function mod.has_ui(entity)
    if not entity or not entity.valid then return false end
+
+   -- [GHOST-ITEM-REQUESTS] Ghosts fall through every check below (ENTITY_TYPES_WITH_UI doesn't
+   -- list "entity-ghost", and a ghost's own `operable` is not true), so without this they never
+   -- got a UI at all - checked explicitly here instead.
+   if entity.type == "entity-ghost" then return ghost_item_requests_tab.is_available(entity) end
 
    -- Check by entity name
    if ENTITY_NAMES_WITH_UI[entity.name] then return true end

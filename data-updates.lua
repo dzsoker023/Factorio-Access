@@ -47,6 +47,29 @@ data:extend({
    },
 })
 
+--[[
+NOTE on vanilla's "previous-surface"/"next-surface" controls (Up/Down in remote view,
+which conflicts with vehicle steering during remote driving - see changelog):
+
+These are NOT data.raw["custom-input"] prototypes - confirmed by a live diagnostic dump
+that also checked known comparison controls (toggle-menu/Escape, toggle-driving, build,
+mine, confirm-gui): NONE of them exist in data.raw either. So this isn't specific to the
+surface controls - essentially every built-in vanilla control (the whole LinkedGameControl
+list) lives outside data.raw entirely, and data-stage Lua genuinely cannot rebind any of
+them. linked_game_control only lets a mod's OWN new custom-input additionally trigger a
+built-in action - it can't touch the built-in's own default key.
+
+The real, working lever turned out to be a different file entirely: Factorio's own
+config.ini (Roaming/Factorio/config/config.ini), which has a [controls] section storing
+"control-name=KEY" lines for whichever controls have ever been customized (e.g. this
+installation already had toggle-menu=SHIFT + ESCAPE there from some earlier change - not
+this mod's doing). next-surface/previous-surface weren't listed there yet (never
+customized), but simply adding them works the same as changing them in Settings >
+Controls. This has been done directly on the user's config.ini as a one-off (NOT
+something this mod's data stage can do at data-stage time, so it's not automated here -
+see the changelog for exactly what was added and why).
+]]
+
 --Modify base prototypes to remove their default descriptions
 --(science packs became plain items in 2.1, so they live in data.raw.item now)
 for name, pack in pairs(data.raw.item) do

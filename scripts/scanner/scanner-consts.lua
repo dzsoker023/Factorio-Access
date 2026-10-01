@@ -84,4 +84,15 @@ mod.ICEBERG_TILE_DISTANCE = 10
 mod.ICEBERG_PROTOS =
    { "brash-ice", "ice-rough", "ice-smooth", "snow-crests", "snow-flat", "snow-lumpy", "snow-patchy", "ice-platform" }
 
+-- Gleba crop soil tiles, split by crop so the scanner can announce yumako and
+-- jellynut soil patches as separate entries (explicitly requested). Each list
+-- covers all three soil states found in the game data for that crop:
+-- "artificial" (laid down with the spray tool), "natural" (occurring under
+-- mature wild plants), and "overgrowth" (not explicitly requested but the
+-- same kind of tile, included here too for consistency - see
+-- FaUtils.CURSOR_SKIP_SOIL_TILE_NAMES_SET for the same inclusion made for
+-- cursor-skip, with the same caveat).
+mod.YUMAKO_SOIL_PROTOS = { "artificial-yumako-soil", "natural-yumako-soil", "overgrowth-yumako-soil" }
+mod.JELLYNUT_SOIL_PROTOS = { "artificial-jellynut-soil", "natural-jellynut-soil", "overgrowth-jellynut-soil" }
+
 return mod

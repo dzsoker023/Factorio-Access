@@ -651,13 +651,44 @@ local descriptors = {
       },
    },
 
+   -- [SINGLE-FLUID-BOX-CRASH-FIX] LuaSingleFluidBoxControlBehavior (pipe,
+   -- pipe-to-ground, storage-tank) has NO `read_contents` field at all - the
+   -- previous descriptor here crashed live the moment this tab's search-hint
+   -- code touched it (`LuaSingleFluidBoxControlBehavior doesn't contain key
+   -- read_contents`). Its real, complete field set per the API doc is
+   -- `circuit_exclusive_mode_of_operation` (an enum - CHOICE below),
+   -- `read_temperature`, and `temperature_signal`.
    [defines.control_behavior.type.single_fluid_box] = {
       base = nil,
       fields = {
          {
+            type = mod.FIELD_TYPE.CHOICE,
+            name = "circuit_exclusive_mode_of_operation",
+            label = { "fa.cb-field-single-fluid-box-exclusive-mode" },
+            choices = {
+               {
+                  value = defines.control_behavior.single_fluid_box.exclusive_mode.none,
+                  label = { "fa.cb-choice-single-fluid-box-exclusive-mode-none" },
+               },
+               {
+                  value = defines.control_behavior.single_fluid_box.exclusive_mode.send_contents,
+                  label = { "fa.cb-choice-single-fluid-box-exclusive-mode-send-contents" },
+               },
+               {
+                  value = defines.control_behavior.single_fluid_box.exclusive_mode.send_segment_contents,
+                  label = { "fa.cb-choice-single-fluid-box-exclusive-mode-send-segment-contents" },
+               },
+            },
+         },
+         {
             type = mod.FIELD_TYPE.BOOLEAN,
-            name = "read_contents",
-            label = { "fa.cb-field-read-contents" },
+            name = "read_temperature",
+            label = { "fa.cb-field-read-temperature" },
+         },
+         {
+            type = mod.FIELD_TYPE.SIGNAL,
+            name = "temperature_signal",
+            label = { "fa.cb-field-temperature-signal" },
          },
       },
    },

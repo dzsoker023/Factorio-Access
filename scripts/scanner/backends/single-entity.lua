@@ -94,6 +94,64 @@ mod.Character = decl_bound_category("fa.scanner.backends.Character", SC.CATEGORI
 -- Unit are enemies in vanilla.
 mod.Unit = decl_bound_category("fa.scanner.backends.Unit", SC.CATEGORIES.ENEMIES)
 
+-- Space Age (Vulcanus) demolishers. Unlike a plain "unit", one demolisher is made of a
+-- "segmented-unit" head entity plus many "segment" body-part entities (see LuaSegmentedUnit
+-- in the Factorio API), all sharing one health pool. We group every segment belonging to
+-- the SAME demolisher into one subcategory (keyed by the owning LuaSegmentedUnit's
+-- unit_number), exactly like SEB.TrainsNamed above groups every carriage of the same train
+-- by train id. This means one demolisher shows up as one subcategory with multiple entries
+-- (head + body segments) that the player can step through with shift+pgup/pgdown
+-- (move_within_subcategory), the same key that already cycles between a train's
+-- locomotives/wagons - the scanner's generic "N of M" announcement (scanner-full-presentation)
+-- handles the segment count/position readout for free, with no custom code needed here.
+mod.Demolisher = decl("fa.scanner.backends.Demolisher", {
+   category_callback = functionize(SC.CATEGORIES.ENEMIES),
+
+   ---@param ent LuaEntity
+   subcategory_callback = function(ent)
+      local unit = ent.segmented_unit
+      local uid = (unit and unit.valid and unit.unit_number) or ent.unit_number or 0
+      return cat2("demolisher", tostring(uid))
+   end,
+
+   ---@param player LuaPlayer
+   ---@param ent LuaEntity
+   readout_callback = function(player, ent)
+      -- The head is a "segmented-unit" typed entity; every body part is "segment" typed.
+      -- This matters to the player because the demolisher's head and body have different
+      -- damage resistances (head: 50% physical; body: 5-50% physical, 99% explosion vs 60%
+      -- on the head) - worth calling out which part they're currently looking at.
+      local part_label = ent.type == "segmented-unit" and { "fa.scanner-demolisher-head" }
+         or { "fa.scanner-demolisher-body" }
+      local info_string = Info.ent_info(player.index, ent, true)
+      return { "fa.scanner-demolisher-announce", part_label, info_string }
+   end,
+})
+
+-- Safety net for any entity on the "enemy" force whose prototype "type" is not in
+-- BACKEND_LUT. Without this, such an entity is just silently dropped by the scanner with
+-- no indication to anyone that something is missing - this is exactly how Vulcanus
+-- demolishers and Gleba pentapods went unnoticed. Rather than guess at every possible
+-- Space Age (or future DLC/mod) enemy type in advance, this surfaces whatever shows up
+-- under Enemies with its RAW prototype type and name spoken aloud, so a gap like this is
+-- self-diagnosing from here on: report what it says, and we add a proper dedicated
+-- backend for that specific type.
+mod.UnknownEnemy = decl("fa.scanner.backends.UnknownEnemy", {
+   category_callback = functionize(SC.CATEGORIES.ENEMIES),
+
+   ---@param ent LuaEntity
+   subcategory_callback = function(ent)
+      return cat2("unregistered", ent.type)
+   end,
+
+   ---@param player LuaPlayer
+   ---@param ent LuaEntity
+   readout_callback = function(player, ent)
+      local info_string = Info.ent_info(player.index, ent, true)
+      return { "fa.scanner-unknown-enemy-announce", info_string, ent.type, ent.name }
+   end,
+})
+
 -- Spawners need to be grouped by pollution. Buckets copied from old scanner.
 local SPAWNER_POLLUTION_BUCKETS = {
    { 0, { "fa.scanner-spawner-polluted-none" } },

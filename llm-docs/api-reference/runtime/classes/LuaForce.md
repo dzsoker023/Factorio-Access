@@ -1049,6 +1049,20 @@ Creates a new space platform on this force.
 
 - `LuaSpacePlatform` *(optional)*
 
+### get_space_platforms
+
+Gets the built space platforms at the given space location for this force.
+
+Note, this does not include platforms that have not yet been built.
+
+**Parameters:**
+
+- `location` `SpaceLocationID`
+
+**Returns:**
+
+- Array[`LuaSpacePlatform`]
+
 ### get_evolution_factor
 
 Fetches the evolution factor of this force on the given surface.

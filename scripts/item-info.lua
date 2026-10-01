@@ -11,6 +11,7 @@ local Localising = require("scripts.localising")
 local FaUtils = require("scripts.fa-utils")
 local Speech = require("scripts.speech")
 local UpgradePlanner = require("scripts.upgrade-planner")
+local RichText = require("scripts.rich-text")
 local MessageBuilder = Speech.MessageBuilder
 
 local mod = {}
@@ -741,6 +742,105 @@ local function get_decon_planner_verbose_info(message, stack)
    end
 end
 
+--------------------------------------------------------------------------------
+-- Factorissimo packed factory display info (optional compatibility)
+--
+-- A non-empty Factorissimo factory, once picked up or cut, becomes a special
+-- "<name>-instantiated" item. Factorissimo itself already embeds what was
+-- configured on the factory's interior display overlay into that item's own
+-- custom_description, as rich-text signal icon tags (e.g.
+-- "[item=iron-plate]\n[fluid=water]") - purely for sighted players hovering
+-- the item's tooltip, so otherwise unreadable here. This parses those tags
+-- back into real signal names and reads them aloud, reusing the same signal
+-- localisation as the live building's own display readout (see
+-- ent_info_factorissimo_factory_display in fa-info.lua). Guarded throughout
+-- since Factorissimo is optional and this only ever matches its own items.
+--------------------------------------------------------------------------------
+
+---Flatten an arbitrary LocalisedString down to a single plain Lua string,
+---by recursively concatenating every string leaf. Doesn't attempt to
+---resolve real locale keys (that needs an async player translation
+---request) - it only cares about the "" (concat) shape, which is what
+---Factorissimo's custom_description is actually built from. This is
+---deliberately shape-agnostic (handles a bare string, {"", raw}, or extra
+---levels of nesting the same way) instead of assuming one specific wrap
+---depth, since guessing the wrong depth was the actual bug here: reading
+---stack.custom_description back turned out to still be a *table* at the
+---point the previous version stringified it with tostring(), so the
+---player heard the literal word "table" (Lua's default tostring on a
+---table, e.g. "table: 0x...") instead of the real content.
+---@param ls LocalisedString
+---@param depth integer?
+---@return string
+local function flatten_localised_string(ls, depth)
+   depth = depth or 0
+   if type(ls) == "string" then return ls end
+   if type(ls) == "number" or type(ls) == "boolean" then return tostring(ls) end
+   if type(ls) ~= "table" or depth > 8 then return "" end
+
+   local parts = {}
+   for i = 2, #ls do
+      parts[#parts + 1] = flatten_localised_string(ls[i], depth + 1)
+   end
+   return table.concat(parts)
+end
+
+---Add Factorissimo packed-factory display info to message, if applicable.
+---
+---Reuses the mod's own general-purpose rich-text verbalizer (scripts/rich-
+---text.lua, already used for tooltips etc - handles [item=..], [entity=..],
+---[fluid=..], [virtual-signal=..], [recipe=..], [space-location=..], and
+---ignores [font=..]/[color=..] formatting tags) instead of a separate
+---hand-rolled parser, since Factorissimo's factory-display description is
+---built from exactly those same rich-text tags.
+---@param message fa.MessageBuilder
+---@param stack LuaItemStack
+local function factorissimo_packed_display_info(message, stack)
+   if not remote.interfaces["factorissimo"] then return end
+   if not stack.name:find("%-instantiated$") then return end
+
+   local description = flatten_localised_string(stack.custom_description):match("^%s*(.-)%s*$")
+   if description == "" then return end
+
+   message:list_item({ "fa.factorissimo-factory-display-label" })
+   message:fragment(RichText.verbalize_rich_text(description))
+end
+
+--------------------------------------------------------------------------------
+-- Spoilage info (Gleba and other spoiling items)
+--
+-- Spoilage is tracked per STACK as a whole, not per individual item inside
+-- it - merging items into a stack averages their freshness together (per the
+-- official wiki: 10 items at 50% + 1 item at 100% merge into 11 items at
+-- 54.5%), and the whole stack spoils at the same time. That means
+-- LuaItemStack.spoil_tick is already the single, authoritative "when does
+-- this exact stack spoil" answer (0 = this item doesn't spoil at all;
+-- already accounts for quality's spoil-time modifier, no extra math here) -
+-- no need to look at spoil_percent or recompute anything.
+--
+-- Reuses FaUtils.format_time (also used for e.g. fuel burn time) so this
+-- reads in the same "X.X hours/minutes/seconds" convention as every other
+-- duration the mod already announces, instead of inventing a new format.
+--------------------------------------------------------------------------------
+
+---Add "spoils in X" info to message, if this stack can spoil.
+---Exported (not local) so callers outside this file - e.g. fa-info.lua's
+---item-on-ground readout - can reuse it too, per the maintainer's request
+---that item-in-hand/inventory and the K/ground readout share the exact same
+---spoilage system rather than two hand-rolled copies.
+---@param message fa.MessageBuilder
+---@param stack LuaItemStack
+function mod.get_spoil_info(message, stack)
+   if not stack or not stack.valid_for_read then return end
+
+   local spoil_tick = stack.spoil_tick
+   if not spoil_tick or spoil_tick <= 0 then return end
+
+   local remaining = spoil_tick - game.tick
+   if remaining < 0 then remaining = 0 end
+   message:list_item({ "fa.item-info-spoils-in", FaUtils.format_time(remaining) })
+end
+
 ---Handlers for special item verbose info, keyed by detection function
 ---Each handler takes (message, stack) and returns true if it handled the item
 ---@type (fun(message: fa.MessageBuilder, stack: LuaItemStack): boolean)[]
@@ -777,6 +877,11 @@ function mod.get_item_stack_info(message, stack, options)
    end
 
    mod.get_item_info_from_prototype(message, stack.prototype, stack.quality, options)
+
+   if options.verbosity == mod.VERBOSITY.VERBOSE then
+      factorissimo_packed_display_info(message, stack)
+      mod.get_spoil_info(message, stack)
+   end
 end
 
 ---@alias fa.ItemInfo.Product ItemProduct | FluidProduct

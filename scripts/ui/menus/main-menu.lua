@@ -16,6 +16,7 @@ local crafting_queue = require("scripts.ui.menus.crafting-queue")
 local research = require("scripts.ui.menus.research")
 local research_queue = require("scripts.ui.menus.research-queue")
 local ghost_placement = require("scripts.ui.tabs.ghost-placement")
+local blueprint_library = require("scripts.ui.tabs.blueprint-library")
 local InventoryGrid = require("scripts.ui.inventory-grid")
 
 local mod = {}
@@ -89,6 +90,18 @@ mod.main_menu = TabList.declare_tablist({
             },
          })
       end
+
+      -- Blueprint library section - always visible, not tied to physically holding
+      -- anything or to a character existing (browsing/renaming game.blueprints and
+      -- player.blueprints works the same in remote view as it does up close).
+      table.insert(sections, {
+         name = "blueprint_library",
+         title = { "fa.section-blueprint-library" },
+         tabs = {
+            blueprint_library.game_blueprints_tab,
+            blueprint_library.my_blueprints_tab,
+         },
+      })
 
       -- Add research section
       table.insert(sections, {

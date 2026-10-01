@@ -70,6 +70,18 @@ end
 -- Handles known tags and leaves unknown ones as-is
 ---@param text string
 ---@return LocalisedString
+---Text made up entirely of whitespace (including empty text) is a no-op
+---fragment - MessageBuilder already inserts spacing between fragments
+---automatically, so handing it a whitespace-only chunk is always redundant,
+---and handing it exactly " " is a hard error (Speech:fragment asserts on
+---that specific case). Tag content between/after brackets can legitimately
+---be just whitespace (e.g. a caller's LocalisedString padded with a
+---trailing " " element, which happens with some custom_description values),
+---so every text chunk added here is routed through this check first.
+---@param s string
+---@return boolean
+local function is_blank(s) return not s:find("%S") end
+
 function mod.verbalize_rich_text(text)
    -- Early return: if no brackets, no rich text to process
    if not text:find("[", 1, true) then return text end
@@ -81,13 +93,19 @@ function mod.verbalize_rich_text(text)
       -- Find next opening bracket
       local bracket_start = text:find("[", pos, true)
       if not bracket_start then
-         -- No more tags, add remaining text
-         if pos <= #text then mb:fragment(text:sub(pos)) end
+         -- No more tags, add remaining text (if it's not just whitespace)
+         if pos <= #text then
+            local trailing = text:sub(pos)
+            if not is_blank(trailing) then mb:fragment(trailing) end
+         end
          break
       end
 
-      -- Add text before the bracket
-      if bracket_start > pos then mb:fragment(text:sub(pos, bracket_start - 1)) end
+      -- Add text before the bracket (if it's not just whitespace)
+      if bracket_start > pos then
+         local chunk = text:sub(pos, bracket_start - 1)
+         if not is_blank(chunk) then mb:fragment(chunk) end
+      end
 
       -- Find closing bracket
       local bracket_end = text:find("]", bracket_start + 1, true)

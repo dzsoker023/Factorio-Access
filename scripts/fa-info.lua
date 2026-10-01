@@ -229,22 +229,76 @@ local function ent_info_accumulator(ctx)
    end
 end
 
+-- [SOLAR-STATUS-FIX] github issue #310: this used to read
+-- `ent.surface.daytime * 24` and compare it against a fixed 6/11/13/18
+-- "hour of day" breakpoint set, with a comment saying those numbers were
+-- "observed" - i.e. reverse-engineered from watching Nauvis. `daytime` is a
+-- surface-specific [0,1) clock (LuaSurface.daytime docs: "Current time of
+-- day"), and every surface defines its OWN shape for that clock via the
+-- dawn/morning/evening/dusk fields (also LuaSurface, each "The daytime when
+-- X starts") - so Nauvis's numbers do not carry over to Vulcanus, Fulgora,
+-- Gleba, a space platform, or any other surface with a different day-cycle
+-- length or shape (this is also exactly why the capacity math in
+-- electrical.lua's get_electricity_flow_info reads surface.solar_power_
+-- multiplier/darkness per-surface rather than assuming Nauvis's values).
+--
+-- Fix: read this surface's own dawn/morning/evening/dusk thresholds instead
+-- of hardcoding any. Per the API docs these mark the four segments of one
+-- full daytime cycle:
+--   [dawn, morning)    -> getting brighter (sunrise)   -> "increasing"
+--   [morning, evening) -> full daylight                -> "full production"
+--   [evening, dusk)    -> getting darker (sunset)       -> "evening"
+--   [dusk, dawn), wrapping past 1 back to 0             -> "night"
+-- which are exactly the four categories this function already reported -
+-- only the thresholds used to pick between them were wrong off-Nauvis.
+--
+-- Also newly guards surfaces where solar power is disabled entirely
+-- (solar_power_multiplier <= 0, e.g. deep space/other unusual surfaces some
+-- mods or future planets may add) - the old code would have silently landed
+-- in one of the four cycle categories there even though no amount of
+-- daytime makes the panel produce anything.
 ---@param ctx fa.Info.EntInfoContext
 local function ent_info_solar(ctx)
    local ent = ctx.ent
+   if ent.type ~= "solar-panel" then return end
 
-   if ent.type == "solar-panel" then
-      local s_time = ent.surface.daytime * 24 --We observed 18 = peak solar start, 6 = peak solar end, 11 = night start, 13 = night end
-      local solar_status = ""
-      if s_time > 13 and s_time <= 18 then
-         ctx.message:fragment({ "fa.ent-info-solar-increasing" })
-      elseif s_time > 18 or s_time < 6 then
-         ctx.message:fragment({ "fa.ent-info-solar-full-production" })
-      elseif s_time > 6 and s_time <= 11 then
-         ctx.message:fragment({ "fa.ent-info-solar-evening" })
-      elseif s_time > 11 and s_time <= 13 then
-         ctx.message:fragment({ "fa.ent-info-solar-night" })
-      end
+   local surface = ent.surface
+   if surface.solar_power_multiplier <= 0 then
+      ctx.message:fragment({ "fa.ent-info-solar-no-power" })
+      return
+   end
+
+   -- [SOLAR-STATUS-FIX] Kiegészítés: `LuaSurface.always_day` ("When set to
+   -- true, the sun will always shine") surfaces - space platforms are the
+   -- main case, and any future always_day surface would be the same - have
+   -- no real day/night cycle at all: darkness is forced to 0, so a solar
+   -- panel there produces at full strength ALWAYS, regardless of the raw
+   -- `daytime` clock. That clock still ticks and dawn/morning/evening/dusk
+   -- are still ordinary, independent surface parameters (not tied to
+   -- always_day) - so without this check, `daytime` could land outside
+   -- [morning, evening) and get reported as "night", even on a surface
+   -- that is never actually dark. Reported live: a space platform panel
+   -- said "no production, night time" while genuinely producing at full
+   -- power in constant daylight. Checked before the daytime-window logic
+   -- below, which stays correct and unchanged for surfaces with a real
+   -- day/night cycle.
+   if surface.always_day then
+      ctx.message:fragment({ "fa.ent-info-solar-full-production" })
+      return
+   end
+
+   local t = surface.daytime
+   local dawn, morning, evening, dusk = surface.dawn, surface.morning, surface.evening, surface.dusk
+
+   if t >= dawn and t < morning then
+      ctx.message:fragment({ "fa.ent-info-solar-increasing" })
+   elseif t >= morning and t < evening then
+      ctx.message:fragment({ "fa.ent-info-solar-full-production" })
+   elseif t >= evening and t < dusk then
+      ctx.message:fragment({ "fa.ent-info-solar-evening" })
+   else
+      -- t >= dusk, or t < dawn having wrapped past midnight - both are night.
+      ctx.message:fragment({ "fa.ent-info-solar-night" })
    end
 end
 
@@ -287,6 +341,35 @@ local function ent_info_constant_combinator(ctx)
    if ent.type == "constant-combinator" then
       ctx.message:fragment(Circuits.constant_combinator_signals_info(ent, ctx.pindex))
    end
+end
+
+--- Optional Factorissimo compatibility.
+---
+--- Factorissimo factory buildings are declared as `storage-tank` entities
+--- (a trick to get a fluidbox plus walkable-into behaviour), and the
+--- "what's this factory currently making" overlay icons that float on the
+--- building in alt-mode are actually driven by a hidden constant-combinator
+--- inside the factory, not by this outer building itself - so none of that
+--- configured info is otherwise readable from the outside at all. Read it
+--- through Factorissimo's own "factorissimo" remote interface (an optional
+--- mod, so every step here is guarded and this silently does nothing if
+--- Factorissimo isn't installed, isn't a factory building, or has no
+--- display upgrade researched/built yet).
+---@param ctx fa.Info.EntInfoContext
+local function ent_info_factorissimo_factory_display(ctx)
+   local ent = ctx.ent
+   if ent.type ~= "storage-tank" then return end
+   if not remote.interfaces["factorissimo"] then return end
+   if not remote.interfaces["factorissimo"]["get_factory_by_entity"] then return end
+
+   local ok, factory = pcall(remote.call, "factorissimo", "get_factory_by_entity", ent)
+   if not ok or not factory then return end
+
+   local controller = factory.inside_overlay_controller
+   if not controller or not controller.valid then return end
+
+   ctx.message:fragment({ "fa.factorissimo-factory-display-label" })
+   ctx.message:fragment(Circuits.constant_combinator_signals_info(controller, ctx.pindex))
 end
 
 ---@param ctx fa.Info.EntInfoContext
@@ -681,12 +764,16 @@ local function ent_info_nuclear_neighbor_bonus(ctx)
    end
 end
 
--- Name of item for items on the ground.
+-- Name of item for items on the ground. Also announces a spoil countdown
+-- when applicable (e.g. rotting Gleba produce lying around), via the same
+-- ItemInfo.get_spoil_info used for item-in-hand/inventory readouts - one
+-- shared system rather than a second hand-rolled copy.
 ---@param ctx fa.Info.EntInfoContext
 local function ent_info_item_on_ground(ctx)
    local ent = ctx.ent
    if ent.name == "item-on-ground" then
       ctx.message:fragment(Localising.get_localised_name_with_fallback(ent.stack.prototype))
+      ItemInfo.get_spoil_info(ctx.message, ent.stack)
    end
 end
 
@@ -1544,6 +1631,7 @@ function mod.ent_info(pindex, ent, is_scanner)
    run_handler(ent_info_heat_neighbors)
 
    run_handler(ent_info_constant_combinator)
+   run_handler(ent_info_factorissimo_factory_display)
    run_handler(ent_info_combinator_connections)
    run_handler(ent_info_circuit_network)
 

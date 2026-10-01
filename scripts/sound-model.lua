@@ -45,12 +45,27 @@ function mod.get_reference_point_setting(pindex)
 end
 
 ---Get the current reference position for spatial audio calculations.
----Returns the cursor position or character position depending on the current setting.
+---Returns the cursor position or character position depending on the current setting -
+---except while driving a vehicle, where the vehicle's position always takes priority over
+---both (see below).
 ---@param pindex integer
 ---@return fa.Point
 function mod.get_reference_position(pindex)
    local state = sound_model_storage[pindex]
    local player = game.get_player(pindex)
+
+   -- Driving (physically embodied OR true remote driving - vehicles-overview.lua) always wins
+   -- over the cursor/character setting: reported live, driving a vehicle out of reach with the
+   -- reference point stuck on CHARACTER mode left every radar/spatial sonifier anchored to the
+   -- physical body, which for remote driving stays put while the vehicle races off - "drove out
+   -- of the audible zone". CURSOR mode has the same problem one step removed: nothing keeps the
+   -- cursor following the vehicle tick-by-tick (only a one-off sync when driving starts, or a
+   -- manual J press - see control.lua/kb_jump_to_player). While driving, "here" unambiguously
+   -- means "where the vehicle is" either way, so this checks first and short-circuits both modes.
+   if player and player.driving and player.vehicle and player.vehicle.valid then
+      local pos = player.vehicle.position
+      return { x = pos.x, y = pos.y }
+   end
 
    if state.reference_point == mod.ReferencePoint.CHARACTER then
       if player and player.character and player.character.valid then

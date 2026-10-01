@@ -1,7 +1,8 @@
 --[[
 Warnings menu using category-rows.
 
-Displays production warnings (no fuel, no recipe, no power, not connected) where:
+Displays production warnings (no fuel, no recipe, no power, not connected,
+Fulgora lightning-protection gaps) where:
 - Categories are warning types (sorted by proximity to cursor at open time)
 - Items are individual entities with that warning
 - Click moves cursor to the entity
@@ -122,9 +123,32 @@ local function render_warnings(ctx)
          local entity_key = tostring(entity.unit_number or entity.position.x .. "," .. entity.position.y)
 
          builder:add_item(warning_type, entity_key, {
+            -- Lightning coverage gaps (see scripts/warnings.lua and
+            -- lightning-zones.lua) aren't real entities - there's nothing
+            -- placed there, just a spot in the world - so they arrive here
+            -- as synthetic (plain-Lua-table) records with a ready-made
+            -- label instead of a prototype name to look up.
+            --
+            -- IMPORTANT: cannot check `entity.is_synthetic` directly here.
+            -- LuaEntity (and every other Factorio API object) errors on
+            -- ANY unknown/undeclared key access - "LuaEntity doesn't
+            -- contain key is_synthetic" - it does not return nil like a
+            -- plain table would. So indexing an arbitrary made-up field
+            -- crashes for every REAL entity (no-fuel, no-power, etc.),
+            -- which is exactly what happened the first time this shipped.
+            -- `object_name` is itself a real, documented, always-present
+            -- LuaEntity attribute (safe to read on any real entity), and is
+            -- simply nil on our plain synthetic table (also safe, since
+            -- plain tables return nil for unknown keys) - so checking IT
+            -- distinguishes the two cases without ever risking an unknown-
+            -- key read on the real object.
             label = function(item_ctx)
-               local name = Localising.get_localised_name_with_fallback(entity)
-               item_ctx.message:fragment(name)
+               if entity.object_name ~= "LuaEntity" then
+                  item_ctx.message:fragment(entity.label)
+               else
+                  local name = Localising.get_localised_name_with_fallback(entity)
+                  item_ctx.message:fragment(name)
+               end
                item_ctx.message:fragment(FaUtils.format_position(entity.position.x, entity.position.y))
             end,
             on_click = function(item_ctx)

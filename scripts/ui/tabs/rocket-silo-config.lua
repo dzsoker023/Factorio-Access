@@ -12,6 +12,7 @@ local FormBuilder = require("scripts.ui.form-builder")
 local UiKeyGraph = require("scripts.ui.key-graph")
 local Router = require("scripts.ui.router")
 local UiSounds = require("scripts.ui.sounds")
+local PlatformSelector = require("scripts.ui.selectors.platform-selector")
 
 ---Apply the starter pack currently loaded in the silo's rocket to create a
 ---new space platform.
@@ -34,14 +35,6 @@ local function new_platform_from_silo(name, silo)
       planet = silo.surface.planet.name,
       starter_pack = pack,
    })
-end
-
----Whether the force has any built platforms (force.platforms is a dictionary,
----not an array, so this can't just check #platforms)
----@param force LuaForce
----@return boolean
-local function force_has_platforms(force)
-   return next(force.platforms) ~= nil
 end
 
 ---Whether either of the silo's rocket-cargo inventories currently weighs more
@@ -73,6 +66,71 @@ local function rocket_is_overloaded(silo)
    return false
 end
 
+-- [LAUNCH-PLAYER-INVENTORY-CHECK] Whether a character is carrying anything
+-- vanilla's own "Travel to platform" launch does not allow along. Per the
+-- official wiki (wiki.factorio.com/Rocket_silo, "Travel to platform"):
+-- "the rocket will launch to any orbiting platform with the player as its
+-- sole payload. The player can only bring any equipped armor, their
+-- installed modules, and any weapons, but no ammo for those weapons." So
+-- the main inventory ("pockets") and any loaded ammo must be empty before
+-- launching; equipped armor (with its own equipment grid/modules) and
+-- weapons (character_guns) are always allowed and are NOT checked here.
+--
+-- `LuaEntity.launch_rocket` - the underlying script API this mod calls to
+-- launch a player - does not enforce this restriction itself; per its own
+-- API doc it only takes an optional `character` parameter and returns
+-- whether the launch happened, nothing about what that character is
+-- carrying. This is a vanilla GUI-side precondition, not something the
+-- game engine blocks on its own when called from a script - so without
+-- this check, a player could click "launch self" here with a full main
+-- inventory and reach a state the real "Travel to platform" button would
+-- never have allowed in the first place. Reported live: launching self
+-- worked even with items on hand, which the user correctly identified as
+-- this mod skipping a check vanilla's own UI performs.
+--
+-- Exception: blueprints, blueprint books, deconstruction planners, and
+-- upgrade planners are allowed to stay in the main inventory without
+-- blocking the launch. These tools are really references into the
+-- player's personal Blueprint Library - accessible from anywhere, not
+-- tied to physically holding a copy - rather than ordinary cargo, and
+-- the scripting API gives us no way to check whether a given blueprint-
+-- type item's contents are already safely stored there. Being strict
+-- about them here would just be needless friction with no real
+-- consistency benefit, so they're exempt.
+local LAUNCH_ALLOWED_MAIN_INVENTORY_ITEM_TYPES = {
+   ["blueprint"] = true,
+   ["blueprint-book"] = true,
+   ["deconstruction-item"] = true,
+   ["upgrade-item"] = true,
+}
+
+---Whether the main inventory contains anything other than the exempt
+---blueprint-library tool types above.
+---@param main_inv LuaInventory
+---@return boolean
+local function main_inventory_has_blocking_items(main_inv)
+   -- get_contents() returns an array of {name, count, quality} entries
+   -- (see new_platform_from_silo above for the same iteration pattern).
+   for _, entry in pairs(main_inv.get_contents()) do
+      local proto = prototypes.item[entry.name]
+      local item_type = proto and proto.type
+      if not (item_type and LAUNCH_ALLOWED_MAIN_INVENTORY_ITEM_TYPES[item_type]) then return true end
+   end
+   return false
+end
+
+---@param character LuaEntity
+---@return boolean
+local function character_has_unlaunchable_items(character)
+   local main_inv = character.get_inventory(defines.inventory.character_main)
+   if main_inv and not main_inv.is_empty() and main_inventory_has_blocking_items(main_inv) then return true end
+
+   local ammo_inv = character.get_inventory(defines.inventory.character_ammo)
+   if ammo_inv and not ammo_inv.is_empty() then return true end
+
+   return false
+end
+
 local mod = {}
 
 ---Render the rocket silo configuration form
@@ -98,7 +156,7 @@ local function render_rocket_silo_config(ctx)
          ctx.message:fragment({ "fa.rocket-silo-launch-item" })
       end,
       on_click = function(ctx)
-         if force_has_platforms(entity.force) then
+         if PlatformSelector.has_available_platform(entity.force, entity.surface) then
             ctx.controller:open_child_ui(Router.UI_NAMES.PLATFORM_SELECTOR, { ent = entity }, { node = "launch_item" })
          else
             UiSounds.play_ui_edge(ctx.pindex)
@@ -149,7 +207,16 @@ local function render_rocket_silo_config(ctx)
             return
          end
 
-         if force_has_platforms(entity.force) then
+         -- [LAUNCH-PLAYER-INVENTORY-CHECK] See the helper's comment above -
+         -- vanilla only lets a launching player bring equipped armor,
+         -- modules, and weapons; no main-inventory items or ammo.
+         if player.character and character_has_unlaunchable_items(player.character) then
+            UiSounds.play_ui_edge(ctx.pindex)
+            ctx.controller.message:fragment({ "fa.rocket-silo-must-empty-inventory-to-launch-self" })
+            return
+         end
+
+         if PlatformSelector.has_available_platform(entity.force, entity.surface) then
             ctx.controller:open_child_ui(Router.UI_NAMES.PLATFORM_SELECTOR, { ent = entity }, { node = "launch_player" })
          else
             UiSounds.play_ui_edge(ctx.pindex)
@@ -165,6 +232,15 @@ local function render_rocket_silo_config(ctx)
          if player.controller_type ~= defines.controllers.character then
             UiSounds.play_ui_edge(ctx.pindex)
             ctx.controller.message:fragment({ "fa.rocket-silo-must-be-present-to-launch-self" })
+            return
+         end
+
+         -- [LAUNCH-PLAYER-INVENTORY-CHECK] Re-check too: the player could have
+         -- picked something up (or been given items) while the platform
+         -- selector was open.
+         if player.character and character_has_unlaunchable_items(player.character) then
+            UiSounds.play_ui_edge(ctx.pindex)
+            ctx.controller.message:fragment({ "fa.rocket-silo-must-empty-inventory-to-launch-self" })
             return
          end
 

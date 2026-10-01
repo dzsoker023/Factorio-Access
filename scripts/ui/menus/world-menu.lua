@@ -7,6 +7,8 @@ local TabList = require("scripts.ui.tab-list")
 local UiRouter = require("scripts.ui.router")
 
 local trains_overview = require("scripts.ui.tabs.trains-overview")
+local platforms_overview = require("scripts.ui.tabs.platforms-overview")
+local vehicles_overview = require("scripts.ui.tabs.vehicles-overview")
 local alerts_tabs = require("scripts.ui.tabs.alerts")
 
 local mod = {}
@@ -26,6 +28,21 @@ mod.world_menu = TabList.declare_tablist({
             title = { "fa.section-trains" },
             tabs = {
                trains_overview.all_trains_tab,
+            },
+         },
+         {
+            name = "platforms",
+            title = { "fa.section-platforms" },
+            tabs = {
+               platforms_overview.all_platforms_tab,
+            },
+         },
+         {
+            name = "vehicles",
+            title = { "fa.section-vehicles" },
+            tabs = {
+               vehicles_overview.surface_vehicles_tab,
+               vehicles_overview.all_vehicles_tab,
             },
          },
       }

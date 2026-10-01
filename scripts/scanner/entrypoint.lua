@@ -16,6 +16,7 @@ IMPORTANT: see devdocs/scanner.md for the whole picture.
 ]]
 local EntitySelection = require("scripts.entity-selection")
 local FaUtils = require("scripts.fa-utils")
+local LightningZones = require("scripts.lightning-zones")
 local Memosort = require("scripts.memosort")
 local ScannerConsts = require("scripts.scanner.scanner-consts")
 local SurfaceScanner = require("scripts.scanner.surface-scanner")
@@ -121,6 +122,13 @@ local function do_refresh_after_sfx(pindex, direction_filter)
 
    local player_obj = assert(game.get_player(pindex))
    ---@cast player_obj LuaPlayer
+
+   -- Rebuild the Fulgora lightning-protection coverage grid here too. This
+   -- is a full-surface, End-triggered rebuild just like the scan below (see
+   -- lightning-zones.lua and the changelog for why it's tied to this same
+   -- key rather than computed live), and is a cheap no-op on any surface
+   -- with no lightning-attractor entities.
+   LightningZones.build_grid(player_obj.surface)
 
    local px, py = player_obj.position.x, player_obj.position.y
 

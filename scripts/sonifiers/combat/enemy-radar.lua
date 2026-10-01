@@ -64,16 +64,23 @@ local radar_storage = StorageManager.declare_storage_module("enemy_radar", make_
    ephemeral_state_version = 1,
 })
 
----Randomly sample a fraction of enemies
+---Deterministically sample a fraction of enemies, based on unit_number rather than a fresh
+---random roll each call. A given entity's unit_number never changes, so the same physical
+---enemies are kept in (or out of) the sample on every tick. Re-rolling randomly every tick
+---(the previous behavior) meant a spatial cluster's "leader" (its lowest sampled
+---unit_number, used to build a stable sound ID) could change tick to tick even when nothing
+---on the map had actually changed, which sounded like enemies flickering in and out of
+---existence ("ghost" pings).
 ---@param enemies LuaEntity[]
 ---@param fraction number Fraction to keep (0-1)
 ---@return LuaEntity[]
 local function sample_enemies(enemies, fraction)
    if #enemies == 0 or fraction >= 1 then return enemies end
 
+   local keep_every = math.max(1, math.floor(1 / fraction + 0.5))
    local sampled = {}
    for _, enemy in ipairs(enemies) do
-      if math.random() < fraction then sampled[#sampled + 1] = enemy end
+      if enemy.unit_number % keep_every == 0 then sampled[#sampled + 1] = enemy end
    end
    return sampled
 end
@@ -177,6 +184,20 @@ function mod.on_tick_per_player(pindex)
       force = "enemy",
    })
 
+   -- Also find Space Age enemies outside the plain "unit" family. find_enemy_units above
+   -- only returns type "unit" entities (a game engine restriction), so these need their
+   -- own search here, same as turrets:
+   --  - Vulcanus demolishers: "segmented-unit" (head/controller entity only, one per
+   --    demolisher, so it pings as one enemy rather than as all its body segments).
+   --  - Gleba pentapod strafers/stompers: "spider-unit" (reuse spider-vehicle's leg
+   --    engine, per FFF-424, and are their own prototype type). Wrigglers use plain
+   --    "unit" sprites so find_enemy_units already covers them.
+   local space_age_enemies = surface.find_entities_filtered({
+      area = { { left, top }, { right, bottom } },
+      type = { "segmented-unit", "spider-unit" },
+      force = "enemy",
+   })
+
    -- Filter units to only those within visible bounds
    local visible_enemies = {}
    for _, enemy in ipairs(enemies) do
@@ -191,6 +212,11 @@ function mod.on_tick_per_player(pindex)
    -- Add turrets (already filtered by area)
    for _, turret in ipairs(turrets) do
       if turret.valid then visible_enemies[#visible_enemies + 1] = turret end
+   end
+
+   -- Add Space Age enemies (already filtered by area)
+   for _, sa_enemy in ipairs(space_age_enemies) do
+      if sa_enemy.valid then visible_enemies[#visible_enemies + 1] = sa_enemy end
    end
 
    -- Sample a random subset of enemies for this tick

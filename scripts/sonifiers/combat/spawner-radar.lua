@@ -22,6 +22,13 @@ local TICK_INTERVAL = 30
 -- We ping spawners where (unit_number % visible_count) falls within our "slot"
 local TARGET_PINGS_PER_TICK = 1
 
+-- Fixed number of cycle slots used to spread spawner pings over time. This must NOT be
+-- derived from the live spawner count: doing so meant every spawner's ping "slot" shifted
+-- whenever any spawner appeared, left view, or died (e.g. several at once from a nuke),
+-- desyncing the cycle and making pings sound random/erratic even for spawners that hadn't
+-- changed at all.
+local CYCLE_LENGTH = 8
+
 ---@class fa.SpawnerRadar.State
 ---@field cycle_index integer Current index in the cycle
 ---@field active_sounds table<string, true> Sound IDs currently playing
@@ -92,15 +99,15 @@ function mod.on_tick_per_player(pindex)
       return
    end
 
-   -- Advance cycle index, wrapping based on spawner count
-   -- This ensures we cycle through all spawners regardless of count
-   state.cycle_index = (state.cycle_index + 1) % spawner_count
+   -- Advance cycle index using a fixed cycle length (not the live spawner count, which
+   -- would desync every spawner's slot whenever the count changed)
+   state.cycle_index = (state.cycle_index + 1) % CYCLE_LENGTH
 
    -- Filter to spawners that match current cycle index
-   -- Pick spawners where (unit_number % spawner_count) == cycle_index
+   -- Pick spawners where (unit_number % CYCLE_LENGTH) == cycle_index
    local current_sounds = {}
    for _, spawner in ipairs(spawners) do
-      if spawner.unit_number % spawner_count == state.cycle_index then
+      if spawner.unit_number % CYCLE_LENGTH == state.cycle_index then
          local sound_id = "spawner-" .. spawner.unit_number
          current_sounds[sound_id] = spawner
       end

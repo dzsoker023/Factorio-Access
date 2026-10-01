@@ -33,6 +33,7 @@ local CursorChanges = require("scripts.cursor-changes")
 local Driving = require("scripts.driving")
 local HandMonitor = require("scripts.hand-monitor")
 local Electrical = require("scripts.electrical")
+local EntityAccess = require("scripts.entity-access")
 local EntitySelection = require("scripts.entity-selection")
 local Equipment = require("scripts.equipment")
 local EventManager = require("scripts.event-manager")
@@ -46,6 +47,7 @@ local InventoryTransfers = require("scripts.inventory-transfers")
 local InventoryUtils = require("scripts.inventory-utils")
 local ItemInfo = require("scripts.item-info")
 local KruiseKontrol = require("scripts.kruise-kontrol-wrapper")
+local LightningZones = require("scripts.lightning-zones")
 local Localising = require("scripts.localising")
 local NoHover = require("scripts.no-hover")
 local Speech = require("scripts.speech")
@@ -59,6 +61,7 @@ local Research = require("scripts.research")
 require("scripts.rich-text") -- registers rich text processor with speech.lua
 local Rulers = require("scripts.rulers")
 local ScannerEntrypoint = require("scripts.scanner.entrypoint")
+local Territory = require("scripts.scanner.backends.territory")
 local Spidertron = require("scripts.spidertron")
 local SpidertronRemote = require("scripts.spidertron-remote")
 local TH = require("scripts.table-helpers")
@@ -457,13 +460,27 @@ EventManager.on_event(
       BumpDetection.reset_bump_stats(pindex)
       MovementHistory.reset_and_increment_generation(pindex)
       game.get_player(pindex).clear_cursor()
-      local vehicle = game.get_player(pindex).vehicle
+      local p = game.get_player(pindex)
+      local vehicle = p.vehicle
       -- Note: `driving` can be true with a nil `vehicle` (e.g. `LuaPlayer.land_on_planet()` toggles the driving
       -- state without attaching a real vehicle), so both must be checked before announcing an entered vehicle.
-      if game.get_player(pindex).driving and vehicle then
+      if p.driving and vehicle then
          storage.players[pindex].last_vehicle = vehicle
+         -- LuaPlayer.centered_on ("the entity being centered on in remote view", read-write) is what
+         -- actually keeps the remote CAMERA following the vehicle continuously while driving - a plain
+         -- one-off set_controller{position=...} at drive-start (vehicles-overview.lua) only snaps to
+         -- where the vehicle WAS at that instant, then never moves again as it drives off. Reported
+         -- live as "drove out of the audible/visible zone" - the user's own read was that whatever the
+         -- remote view is centered/anchored on governs what's audible, independent of the physical
+         -- body, which matches this property's documented purpose far better than the sound-model.lua
+         -- reference-point fix alone did. Only meaningful in remote view - irrelevant (and presumably a
+         -- no-op or error) while physically embodied.
+         if p.controller_type == defines.controllers.remote then p.centered_on = vehicle end
          Speech.speak(pindex, { "fa.vehicle-entered", Localising.get_localised_name_with_fallback(vehicle) })
       elseif storage.players[pindex].last_vehicle ~= nil and storage.players[pindex].last_vehicle.valid then
+         if p.controller_type == defines.controllers.remote and p.centered_on == storage.players[pindex].last_vehicle then
+            p.centered_on = nil
+         end
          Speech.speak(
             pindex,
             { "fa.vehicle-exited", Localising.get_localised_name_with_fallback(storage.players[pindex].last_vehicle) }
@@ -1134,8 +1151,19 @@ local function move_large_cursor_by(pindex, direction, tiles, prefix_text)
    Graphics.draw_large_cursor(scan_left_top, scan_right_bottom, pindex)
    Speech.speak(pindex, scan_summary)
 
+   -- In remote view, this UI feedback click is deliberately played WITHOUT a
+   -- position (see sounds.play_building_placement: omitting position routes
+   -- through play_sound_internal, i.e. an ordinary, always-audible
+   -- LuaPlayer::play_sound call). A positioned sound is only played if its
+   -- location is charted for the player (LuaPlayer::play_sound docs) - fine
+   -- when position = p.position, since a player's own square is essentially
+   -- always charted, but the remote-view cursor can and does roam into
+   -- not-yet-charted territory (freshly generated platform tiles, newly
+   -- entered planet regions, etc.), where a positioned click would silently
+   -- fail to play. This UI cue isn't meant to be spatial audio anyway, so
+   -- dropping position here makes it reliable instead of "random".
    if storage.players[pindex].remote_view then
-      sounds.play_building_placement(p.index, cursor_pos)
+      sounds.play_building_placement(p.index)
    else
       p.play_sound({
          path = "Close-Inventory-Sound",
@@ -1181,7 +1209,7 @@ local function cursor_mode_move(direction, pindex, single_only)
       end
 
       if storage.players[pindex].remote_view then
-         sounds.play_building_placement(p.index, cursor_pos)
+         sounds.play_building_placement(p.index)
       else
          p.play_sound({
             path = "Close-Inventory-Sound",
@@ -1251,7 +1279,12 @@ local function cursor_skip_iteration(pindex, direction, iteration_limit)
    local start = nil
    local vp = Viewpoint.get_viewpoint(pindex)
    local cursor_pos = vp:get_cursor_pos()
-   local start_tile_is_water = FaUtils.tile_is_water(p.surface, cursor_pos)
+   -- [CURSOR-SKIP-GENERIC] Was "start_tile_is_water" / FaUtils.tile_is_water
+   -- alone; generalized to a terrain *category* (nil, "water", or "soil") so
+   -- this same tunnel-across-a-region mechanism also covers Gleba's crop
+   -- soil tiles, not just water. See FaUtils.get_cursor_skip_terrain_category
+   -- for the full rationale and the list of tile kinds each category covers.
+   local start_terrain_category = FaUtils.get_cursor_skip_terrain_category(p.surface, cursor_pos)
    local start_tile_is_ruler_aligned = Rulers.is_any_ruler_aligned(pindex, cursor_pos)
    local current = nil
    local limit = iteration_limit or 100
@@ -1274,20 +1307,135 @@ local function cursor_skip_iteration(pindex, direction, iteration_limit)
       return nil
    end
 
+   -- [CURSOR-SKIP-GHOST-FIX] For a ghost entity, `.name`/`.type` are ALWAYS
+   -- the literal placeholder prototype ("entity-ghost"), never the identity
+   -- of whatever it is a ghost of - that real identity lives in
+   -- `.ghost_name`/`.ghost_type` instead (see LuaEntity docs, Subclasses:
+   -- Ghost). The name-equality check below used to compare raw `.name`
+   -- directly, so it treated EVERY ghost as interchangeable with every
+   -- other ghost regardless of what each one was actually a ghost of - a
+   -- row of a furnace-ghost then an assembler-ghost (both facing the same
+   -- direction) would silently skip through as if they were "the same
+   -- entity, keep going", instead of stopping cursor-skip at the boundary
+   -- between them. This helper returns a stable identity key for the
+   -- purposes of that comparison: the real (ghosted) prototype name for a
+   -- ghost, tagged with a "ghost:" prefix so a ghost is still never
+   -- considered equal to a REAL, already-built entity of the same
+   -- prototype (that distinction already worked correctly before this fix
+   -- and must keep working after it).
+   --
+   -- A TILE ghost (a planned foundation/landfill/concrete tile, `.type ==
+   -- "tile-ghost"`) has the exact same placeholder problem as an entity
+   -- ghost - `.name` is always the literal `"tile-ghost"`, and the real
+   -- planned tile name is in `.ghost_name` too (confirmed against this
+   -- mod's own existing ghost-handling code, which already treats
+   -- `"entity-ghost"` and `"tile-ghost"` as the same family in
+   -- `scripts/entity-selection.lua` and `scripts/cursor-changes.lua`).
+   -- This was missed in the first pass of this fix - a run of, say,
+   -- `space-platform-foundation` tile-ghosts next to `landfill`
+   -- tile-ghosts would have kept the same bug the entity-ghost case had.
+   local function entity_skip_identity(ent)
+      if ent.type == "entity-ghost" or ent.type == "tile-ghost" then return "ghost:" .. ent.ghost_name end
+      return ent.name
+   end
+
    start = compute_current()
 
    --For pipes to ground, apply a special case where you jump to the underground neighbour
    if start ~= nil and start.valid and start.type == "pipe-to-ground" then
-      local connections = start.fluidbox.get_pipe_connections(1)
-      for i, con in ipairs(connections) do
-         if con.target ~= nil then
-            local dist = math.ceil(util.distance(start.position, con.target.get_pipe_connections(1)[1].position))
-            local dir_neighbor = FaUtils.get_direction_biased(con.target_position, start.position)
-            if con.connection_type == "underground" and dir_neighbor == direction then
-               vp:set_cursor_pos(con.target.get_pipe_connections(1)[1].position)
-               EntitySelection.reset_entity_index(pindex)
-               current = EntitySelection.get_first_ent_at_tile(pindex)
-               return dist
+      -- `entity.fluidbox.get_pipe_connections(n)` (the old code here) is a
+      -- STALE API pattern - in 2.1 it can throw "LuaEntity doesn't contain
+      -- key fluidbox" even for a perfectly normal, properly placed vanilla
+      -- pipe-to-ground, not just some rare/modded edge case. The correct,
+      -- current (2.1) API is the top-level entity method
+      -- `get_fluid_box_pipe_connections(index)`, confirmed against the live
+      -- lua-api.factorio.com docs (the local llm-docs mirror still only
+      -- documents the old style): it returns the exact same per-connection
+      -- data (connection_type / target / target_position) and is
+      -- documented as always safely returning nil rather than throwing for
+      -- entities that don't support it - no pcall should even be needed,
+      -- but it's kept as cheap extra insurance.
+      --
+      -- [PIPE-SKIP-FIX] The first attempt at this fix (in the block just
+      -- below this comment, now replaced) used `con.target_position` - a
+      -- PipeConnection field documented as "the absolute position of the
+      -- connection's intended target" - to both measure the jump distance
+      -- and to move the cursor to. In testing this did not land the cursor
+      -- on the paired underground entity, so the skip appeared to do
+      -- nothing. Checked this mod's own git history for a previously
+      -- working implementation: commit 2aeb947d ("Fix skipping pipe to
+      -- ground", by the mod's original author) is an ancestor of this
+      -- branch's history and fixed this exact mechanism once already, but
+      -- an unrelated later branch merge silently reverted control.lua's
+      -- pipe-to-ground block back to the pre-2.1 API (the same merge that
+      -- caused the "doesn't contain key fluidbox" crash this block already
+      -- fixed) - so that working fix was lost along with the API names,
+      -- and my crash-only fix reinvented a different, non-working
+      -- replacement for the reverted line instead of restoring it.
+      --
+      -- The verified-working pattern: don't use `con.target_position` at
+      -- all. Query the TARGET entity's own fluidbox connections and use
+      -- ITS first connection's position instead. Per commit 6500afbe's own
+      -- migration notes, `PipeConnection.target` changed type in 2.1 from a
+      -- LuaFluidBox to the connected LuaEntity directly, so the pre-2.1
+      -- `con.target.get_pipe_connections(1)[1].position` (a method on the
+      -- old LuaFluidBox-typed target) becomes
+      -- `con.target.get_fluid_box_pipe_connections(1)[1].position` (the
+      -- same renamed entity method as `start`'s own connections list just
+      -- above, just called on the far end too) - restoring exactly what
+      -- commit 2aeb947d already proved works.
+      local jumped = false
+      local ok, connections = pcall(function()
+         return start.get_fluid_box_pipe_connections(1)
+      end)
+      if ok and connections then
+         for i, con in ipairs(connections) do
+            if con.target ~= nil and con.connection_type == "underground" then
+               local ok2, target_connection_pos = pcall(function()
+                  return con.target.get_fluid_box_pipe_connections(1)[1].position
+               end)
+               if ok2 and target_connection_pos then
+                  local dist = math.ceil(util.distance(start.position, target_connection_pos))
+                  local dir_neighbor = FaUtils.get_direction_biased(target_connection_pos, start.position)
+                  if dir_neighbor == direction then
+                     vp:set_cursor_pos(target_connection_pos)
+                     EntitySelection.reset_entity_index(pindex)
+                     current = EntitySelection.get_first_ent_at_tile(pindex)
+                     jumped = true
+                     return dist
+                  end
+               end
+            end
+         end
+      end
+
+      -- Last-resort fallback if even the correct API above somehow doesn't
+      -- give us anything (e.g. a genuinely unusual modded pipe-to-ground):
+      -- `LuaEntity.neighbours` is documented as always safe for
+      -- pipe-connectable entities (Dictionary/Array[Array]/single LuaEntity,
+      -- never throws), but only gives raw connected entities, not
+      -- connection-type metadata. Approximate "the underground link"
+      -- as any neighbour more than 1 tile away in the facing direction -
+      -- a normal surface pipe connection is always exactly 1 tile away,
+      -- so anything farther must be the automatic underground pairing.
+      if not jumped then
+         local ok2, raw_neighbours = pcall(function()
+            return start.neighbours
+         end)
+         if ok2 and type(raw_neighbours) == "table" then
+            local candidates = raw_neighbours[1]
+            if type(candidates) ~= "table" then candidates = raw_neighbours end
+            for _, neighbour in pairs(candidates) do
+               if type(neighbour) == "table" and neighbour.valid then
+                  local dist = math.ceil(util.distance(start.position, neighbour.position))
+                  local dir_neighbor = FaUtils.get_direction_biased(neighbour.position, start.position)
+                  if dist > 1 and dir_neighbor == direction then
+                     vp:set_cursor_pos(neighbour.position)
+                     EntitySelection.reset_entity_index(pindex)
+                     current = EntitySelection.get_first_ent_at_tile(pindex)
+                     return dist
+                  end
+               end
             end
          end
       end
@@ -1309,18 +1457,20 @@ local function cursor_skip_iteration(pindex, direction, iteration_limit)
             return dist
          end
       end
-      --For water start, find the first non-water tile
-   elseif start_tile_is_water then
-      local selected_tile_is_water = nil
+      --For a start tile in a special terrain category (water-like or Gleba
+      --soil), find the first tile that has left that category
+   elseif start_terrain_category ~= nil then
+      local selected_terrain_category = nil
       --Iterate first_tile
       cursor_pos = FaUtils.offset_position_legacy(cursor_pos, direction, 1)
       vp:set_cursor_pos(cursor_pos)
-      selected_tile_is_water = FaUtils.tile_is_water(p.surface, cursor_pos)
+      selected_terrain_category = FaUtils.get_cursor_skip_terrain_category(p.surface, cursor_pos)
 
       --Run checks and skip when needed
       while moved < limit do
-         if selected_tile_is_water == false then
-            --Water tile -> non-water tile found
+         if selected_terrain_category ~= start_terrain_category then
+            --Left the starting terrain category (e.g. water tile -> non-water
+            --tile, or Gleba soil -> non-soil tile)
             return moved
          else
             --For audio rulers, stop if crossing into or out of alignment with any rulers
@@ -1334,7 +1484,7 @@ local function cursor_skip_iteration(pindex, direction, iteration_limit)
             --Iterate again
             cursor_pos = FaUtils.offset_position_legacy(cursor_pos, direction, 1)
             vp:set_cursor_pos(cursor_pos)
-            selected_tile_is_water = FaUtils.tile_is_water(p.surface, cursor_pos)
+            selected_terrain_category = FaUtils.get_cursor_skip_terrain_category(p.surface, cursor_pos)
             moved = moved + 1
          end
       end
@@ -1360,10 +1510,13 @@ local function cursor_skip_iteration(pindex, direction, iteration_limit)
       --Check the current entity or tile against the starting one
       if current == nil then
          if start == nil then
-            --Both are nil: check if water, else skip
-            local selected_tile_is_water = FaUtils.tile_is_water(p.surface, cursor_pos)
-            if selected_tile_is_water then
-               --Non-water tile -> water tile found
+            --Both are nil: check if the tile entered a special terrain
+            --category (water-like or Gleba soil), else skip. [CURSOR-SKIP-GENERIC]
+            --Was a water-only check; generalized the same way as the branch
+            --above so walking onto soil from plain ground also stops here.
+            local selected_terrain_category = FaUtils.get_cursor_skip_terrain_category(p.surface, cursor_pos)
+            if selected_terrain_category ~= nil then
+               --Plain ground -> special terrain category found
                return moved
             else
                --skip
@@ -1382,8 +1535,11 @@ local function cursor_skip_iteration(pindex, direction, iteration_limit)
                --They are the same ent: skip
             else
                --They are different ents OR they are resource ents (which can have the same unit number despite being different ents)
-               if start.name ~= current.name then
-                  --They have different names: return
+               if entity_skip_identity(start) ~= entity_skip_identity(current) then
+                  --They have different (effective) identities: return.
+                  --[CURSOR-SKIP-GHOST-FIX] Uses entity_skip_identity, not
+                  --raw .name, so two ghosts of different real prototypes
+                  --are correctly treated as different here.
                   --p.print("RET 1, start: " .. start.name .. ", current: " .. current.name .. ", comment:" .. comment)--
                   return moved
                else
@@ -1489,7 +1645,7 @@ local function cursor_skip(pindex, direction, iteration_limit, use_preview_size)
    if use_preview_size then
       --Rolling always plays the regular moving sound
       if storage.players[pindex].remote_view then
-         sounds.play_building_placement(p.index, cursor_pos)
+         sounds.play_building_placement(p.index)
       else
          p.play_sound({
             path = "Close-Inventory-Sound",
@@ -1501,7 +1657,7 @@ local function cursor_skip(pindex, direction, iteration_limit, use_preview_size)
       --No change found within the limit
       result = result .. limit .. " tiles without a change, "
       if storage.players[pindex].remote_view then
-         sounds.play_sound_at_position({ path = "inventory-wrap-around", volume_modifier = 1 }, cursor_pos)
+         sounds.play_sound(p.index, { path = "inventory-wrap-around", volume_modifier = 1 })
       else
          p.play_sound({
             path = "inventory-wrap-around",
@@ -1512,7 +1668,7 @@ local function cursor_skip(pindex, direction, iteration_limit, use_preview_size)
    elseif moved_count == 1 then
       result = ""
       if storage.players[pindex].remote_view then
-         sounds.play_building_placement(p.index, cursor_pos)
+         sounds.play_building_placement(p.index)
       else
          p.play_sound({
             path = "Close-Inventory-Sound",
@@ -1524,7 +1680,7 @@ local function cursor_skip(pindex, direction, iteration_limit, use_preview_size)
       --Change found, with more than 1 tile moved
       result = result .. moved_count .. " tiles, "
       if storage.players[pindex].remote_view then
-         sounds.play_sound_at_position({ path = "inventory-wrap-around", volume_modifier = 1 }, cursor_pos)
+         sounds.play_sound(p.index, { path = "inventory-wrap-around", volume_modifier = 1 })
       else
          p.play_sound({
             path = "inventory-wrap-around",
@@ -1795,6 +1951,45 @@ local function read_coords(pindex, start_phrase)
    local position = vp:get_cursor_pos()
    local marked_pos = { x = position.x, y = position.y }
 
+   -- Territory status (Vulcanus demolishers): a live point-query, not tied to whether the
+   -- scanner has discovered this spot yet. Silent everywhere the position isn't part of
+   -- any territory at all (i.e. everywhere off Vulcanus, and open ground on Vulcanus with
+   -- no generated territory) - but explicit ("Free "/"Guarded ") whenever it IS part of
+   -- one, in either state, since this is exactly the "can I safely build/mine here"
+   -- signal the maintainer asked for, not something that should ever go unsaid.
+   -- Plain hardcoded strings, not locale keys: start_phrase is built via raw Lua string
+   -- concatenation throughout this function (see the existing "Cursor returned " caller
+   -- below), which only works with plain strings, not LocalisedString tables - matching
+   -- the function's existing, pre-established convention rather than introducing a second
+   -- one.
+   local territory_status = Territory.get_status_at(game.get_player(pindex).surface, marked_pos)
+   if territory_status == "active" then
+      start_phrase = start_phrase .. "Guarded "
+   elseif territory_status == "abandoned" then
+      start_phrase = start_phrase .. "Free "
+   end
+
+   -- Fulgora lightning-attractor protection status: the same shape of check
+   -- as the territory status just above (a live point-query against
+   -- whatever's cached, silent unless there's something to say) but for "is
+   -- this exact spot within an attractor's protection circle", from the
+   -- grid built at the last End refresh (see lightning-zones.lua and the
+   -- changelog section "Fulgora lightning-attractor coverage grid").
+   --
+   -- This is THE actual "K" key (data/input.lua: fa-k -> key_sequence "K"),
+   -- which is this function, read_coords - not TileReader.read_tile_inner,
+   -- which an earlier fix mistakenly targeted (that function is reached by
+   -- cursor movement and other callers, but not by pressing K itself). Kept
+   -- the TileReader hook too since it's still correct for those other
+   -- callers, but the fix that actually matters for "press K" is this one.
+   --
+   -- Deliberately position-only, independent of cursor_stack: dzsoker's
+   -- primary use case is checking a spot's coverage WHILE HOLDING a
+   -- lightning-rod/collector stack to decide where to place it, so this
+   -- must keep working exactly the same whether the player's hand is empty
+   -- or holding something.
+   local lightning_covered = LightningZones.is_covered(game.get_player(pindex).surface, marked_pos)
+
    if game.get_player(pindex).driving and game.get_player(pindex).vehicle ~= nil then
       --Give vehicle coords and orientation and speed --laterdo find exact speed coefficient
       local vehicle = game.get_player(pindex).vehicle
@@ -1840,6 +2035,8 @@ local function read_coords(pindex, start_phrase)
          tostring(math.floor(vehicle.position.x)),
          tostring(math.floor(vehicle.position.y)),
       })
+
+      if lightning_covered == false then message:fragment({ "fa.ent-info-lightning-unprotected" }) end
 
       Speech.speak(pindex, message:build())
    else
@@ -1906,6 +2103,9 @@ local function read_coords(pindex, start_phrase)
             message:fragment({ "fa.paving-preview-centered", tostring(size), tostring(size) })
          end
       end
+
+      if lightning_covered == false then message:fragment({ "fa.ent-info-lightning-unprotected" }) end
+
       Speech.speak(pindex, message:build())
    end
 end
@@ -2030,18 +2230,53 @@ EventManager.on_event(
    end
 )
 
---Teleports the cursor to the player character
+--Teleports the cursor to the player's anchor point - normally their PHYSICAL position, where
+--their character (or other physical controller, e.g. god/editor) actually is, not just
+--LuaControl::position, which in remote view reflects wherever the remote camera happens to be
+--centered instead (and does not track further cursor movement there, since nothing in this mod
+--moves the vanilla remote-view camera to follow our own cursor). Using physical_position/
+--physical_surface here means J consistently means "show me where I really am", including
+--correctly switching the remote view over to the right surface first if it's currently showing
+--a different one.
+--
+--EXCEPTION - while driving a vehicle (p.vehicle set, whether physically embodied or true
+--remote driving - see vehicles-overview.lua), jumping to the physical body is the wrong target:
+--in the remote-driving case the physical body is stationary somewhere far away, so "show me
+--where I really am" there means the vehicle, not the parked character - and it doubles as a
+--way to re-center the cursor on the vehicle's CURRENT (moving) position, since nothing else
+--keeps the cursor following it as it drives. Reported as confusing/annoying live; this is the
+--fix.
 ---@param event EventData.CustomInputEvent
 local function kb_jump_to_player(event)
    local pindex = event.player_index
-   local first_player = game.get_player(pindex)
+   local p = game.get_player(pindex)
    local vp = Viewpoint.get_viewpoint(pindex)
+
+   local target_pos, target_surface, coords_label
+   if p.vehicle then
+      target_pos = p.vehicle.position
+      target_surface = p.vehicle.surface
+      coords_label = "Cursor moved to vehicle "
+   else
+      target_pos = p.physical_position
+      target_surface = p.physical_surface
+      coords_label = "Cursor returned "
+   end
+
+   if p.controller_type == defines.controllers.remote and p.surface_index ~= target_surface.index then
+      p.set_controller({
+         type = defines.controllers.remote,
+         surface = target_surface,
+         position = target_pos,
+      })
+   end
+
    local cursor_pos = vp:get_cursor_pos()
    local cursor_size = vp:get_cursor_size()
-   cursor_pos.x = math.floor(first_player.position.x)
-   cursor_pos.y = math.floor(first_player.position.y)
+   cursor_pos.x = math.floor(target_pos.x)
+   cursor_pos.y = math.floor(target_pos.y)
    vp:set_cursor_pos(cursor_pos)
-   read_coords(pindex, "Cursor returned ")
+   read_coords(pindex, coords_label)
    if cursor_size < 2 then
       Graphics.draw_cursor_highlight(pindex, nil, nil)
    else
@@ -2361,11 +2596,59 @@ EventManager.on_event(
    end
 )
 
+--[[
+Toggle remote view. This used to be a no-op stub ("remote view is currently not working in
+Factorio 2.0") - re-enabled now that we're on 2.1.19, per confirmed, current API research
+(LuaPlayer::set_controller, ::exit_remote_view, ::physical_position, ::physical_surface - all
+verified against the live 2.1.19 API docs, which match both the locally generated llm-docs
+mirror and the actually-installed game version).
+
+Bound to ALT + I (matches the key this stub already reserved) rather than vanilla's own
+default M/Tab "toggle world map" key: plain M is already heavily used elsewhere in this mod
+(fa-m: a generic UI action-1 binding plus a virtual-train-driving action), and Tab/Shift+Tab
+are core tab-list navigation in nearly every FA menu - remapping either would collide with
+existing, frequently-used functionality.
+
+Entering centers the remote view on the player's own physical position/surface (not, say, an
+arbitrary map center), and moves our own FA cursor there too, so the screen-reader cursor and
+the remote view agree on where "here" is from the first moment. storage.players[pindex].remote_view
+is kept in sync here - it already existed and already drove sound-playback style (world-position
+vs player-relative) at several call sites, but was previously dead code since nothing ever set
+it to true.
+]]
 EventManager.on_event(
    "fa-a-i",
    ---@param event EventData.CustomInputEvent
    function(event, pindex)
-      -- For remote view toggle, but remote view is currently not working in Factorio 2.0.
+      if skip_in_combat_mode(pindex) then return end
+      local p = game.get_player(pindex)
+      local vp = Viewpoint.get_viewpoint(pindex)
+
+      if p.controller_type == defines.controllers.remote then
+         local left = p.exit_remote_view()
+         if not left then
+            Speech.speak(pindex, { "fa.remote-view-exit-failed" })
+            return
+         end
+         storage.players[pindex].remote_view = false
+         local pos = p.physical_position
+         vp:set_cursor_pos({ x = math.floor(pos.x), y = math.floor(pos.y) })
+         Graphics.draw_cursor_highlight(pindex, nil, nil)
+         Graphics.sync_build_cursor_graphics(pindex)
+         Speech.speak(pindex, { "fa.remote-view-exited" })
+      else
+         local pos = p.physical_position
+         p.set_controller({
+            type = defines.controllers.remote,
+            surface = p.physical_surface,
+            position = pos,
+         })
+         storage.players[pindex].remote_view = true
+         vp:set_cursor_pos({ x = math.floor(pos.x), y = math.floor(pos.y) })
+         Graphics.draw_cursor_highlight(pindex, nil, nil)
+         Graphics.sync_build_cursor_graphics(pindex)
+         Speech.speak(pindex, { "fa.remote-view-entered" })
+      end
    end
 )
 
@@ -3473,6 +3756,85 @@ EventManager.on_event(
    ---@param event EventData.CustomInputEvent
    function(event, pindex)
       kb_read_health_and_armor_stats(event)
+   end
+)
+
+--[[
+[TRAIN-COUPLE-RESTORE] SHIFT+G (disconnect) and CONTROL+G (connect) used to
+exist for coupling rolling stock together, per CHANGES.md: "Changed keybinds
+for health checking and train wagon connecting... Press SHIFT + G to
+disconnect selected train wagons... Press CONTROL + G to connect selected
+train wagons." They were lost (silently, for CONTROL+G; the 0.16.34 entry
+"Remove shift+g. This is now in the equipment overview." only explains
+SHIFT+G) when the equipment overhaul reclaimed the G-key family, and never
+relocated. Restoring them here on the currently-selected entity
+(`player.selected`, same concept `kb_mine_access_sounds`/`kb_read_health_and_
+armor_stats`-style single-key handlers already read from), using
+LuaEntity.connect_rolling_stock/disconnect_rolling_stock(direction). Per
+user decision, both defines.rail_direction values (front and back) are
+always attempted, since the player has no way to see which end is which -
+the result message says which side(s), if any, actually changed.
+]]
+
+---@param event EventData.CustomInputEvent
+---@param connecting boolean true = try to connect, false = try to disconnect
+local function kb_couple_train_wagon(event, connecting)
+   local pindex = event.player_index
+   local player = game.get_player(pindex)
+   local entity = player.selected
+
+   if not entity or not entity.valid or not Consts.ROLLING_STOCK_TYPES[entity.type] then
+      sounds.play_ui_edge(pindex)
+      Speech.speak(pindex, { "fa.train-couple-no-selection" })
+      return
+   end
+
+   local check = EntityAccess.can_write_to_entity(pindex, entity)
+   if not check.allowed then
+      sounds.play_ui_edge(pindex)
+      Speech.speak(pindex, check.reason)
+      return
+   end
+
+   local front_ok, back_ok
+   if connecting then
+      front_ok = entity.connect_rolling_stock(defines.rail_direction.front)
+      back_ok = entity.connect_rolling_stock(defines.rail_direction.back)
+   else
+      front_ok = entity.disconnect_rolling_stock(defines.rail_direction.front)
+      back_ok = entity.disconnect_rolling_stock(defines.rail_direction.back)
+   end
+
+   local mb = MessageBuilder.new()
+   if front_ok and back_ok then
+      mb:fragment({ connecting and "fa.train-coupled-both-sides" or "fa.train-uncoupled-both-sides" })
+   elseif front_ok or back_ok then
+      mb:fragment({ connecting and "fa.train-coupled-one-side" or "fa.train-uncoupled-one-side" })
+   else
+      mb:fragment({ connecting and "fa.train-couple-nothing-to-connect" or "fa.train-couple-nothing-to-disconnect" })
+   end
+   Speech.speak(pindex, mb:build())
+
+   if front_ok or back_ok then
+      sounds.play_menu_click(pindex)
+   else
+      sounds.play_ui_edge(pindex)
+   end
+end
+
+EventManager.on_event(
+   "fa-s-g",
+   ---@param event EventData.CustomInputEvent
+   function(event, pindex)
+      kb_couple_train_wagon(event, false)
+   end
+)
+
+EventManager.on_event(
+   "fa-c-g",
+   ---@param event EventData.CustomInputEvent
+   function(event, pindex)
+      kb_couple_train_wagon(event, true)
    end
 )
 

@@ -41,6 +41,17 @@ function mod.declare_options_selector(declaration)
       local result = declaration.get_options(ctx.pindex, ctx.global_parameters or {})
       local options = result.options
 
+      -- MenuBuilder:build() asserts a menu has at least one row ("Menus must have at least
+      -- one item") - a genuinely empty options list (e.g. get_options' own filtering leaves
+      -- nothing valid, even if a caller's own pre-check was less strict and let the UI open
+      -- anyway) would otherwise be a non-recoverable crash rather than a graceful close.
+      -- Returning nil here closes the selector cleanly instead (see Graph:_rerender in
+      -- key-graph.lua, which treats a nil render as "close via controller"). This is a
+      -- last-resort safety net, not a replacement for a caller checking availability up
+      -- front and speaking a specific reason - see e.g. rocket-silo-config.lua, which
+      -- pre-checks via PlatformSelector.has_available_platform before ever opening this UI.
+      if #options == 0 then return nil end
+
       local menu = Menu.MenuBuilder.new()
 
       -- Add each option
