@@ -11,6 +11,7 @@ local Directions = require("syntrax.directions")
 local Errors = require("syntrax.errors")
 local Traverser = require("railutils.traverser")
 local RailInfo = require("railutils.rail-info")
+local SupportPlanner = require("railutils.support-planner")
 
 local mod = {}
 
@@ -48,6 +49,13 @@ mod.BYTECODE_KIND = {
    CHAIN = "chain",
    SIGCHAIN = "sigchain",
    CHAINSIG = "chainsig",
+   -- Elevated rails
+   UP = "up",
+   DOWN = "down",
+   ELEV = "elev",
+   SUP = "sup",
+   NOSUP = "nosup",
+   AUTOSUP = "autosup",
 }
 
 ---@enum syntrax.vm.MathOp
@@ -63,6 +71,8 @@ mod.RAIL_KIND = {
    LEFT = "left",
    RIGHT = "right",
    STRAIGHT = "straight",
+   -- A ramp to the other layer
+   CHANGE_LAYER = "change_layer",
 }
 
 ---@class syntrax.vm.Operand
@@ -78,8 +88,16 @@ mod.RAIL_KIND = {
 ---@class syntrax.vm.RailPlacement
 ---@field type "rail" Discriminator for placement type
 ---@field position fa.Point Position where the rail should be placed
----@field rail_type string "straight-rail", "curved-rail-a", "curved-rail-b", or "half-diagonal-rail"
+---@field rail_type string "straight-rail", "curved-rail-a", "curved-rail-b", "half-diagonal-rail" or "rail-ramp"
 ---@field placement_direction number 0-15 direction for placement
+---@field layer railutils.RailLayer Layer of the rail. For a ramp, the layer it leads to.
+---@field span syntrax.Span? Source span for error reporting
+
+---@class syntrax.vm.SupportPlacement
+---@field type "support" Discriminator for placement type
+---@field position fa.Point Rail end the support stands at
+---@field direction number 0-15, even: supports face along the track
+---@field explicit boolean True if the program asked for it with sup, false if the support planner added it
 ---@field span syntrax.Span? Source span for error reporting
 
 ---@class syntrax.vm.SignalPlacement
@@ -87,13 +105,28 @@ mod.RAIL_KIND = {
 ---@field position fa.Point Position where the signal should be placed
 ---@field signal_type "rail-signal"|"rail-chain-signal" Type of signal to place
 ---@field direction number 0-15 direction for placement
+---@field layer railutils.RailLayer Layer of the rail the signal guards
 ---@field span syntrax.Span? Source span for error reporting
 
----@alias syntrax.vm.Placement syntrax.vm.RailPlacement|syntrax.vm.SignalPlacement
+---@alias syntrax.vm.Placement syntrax.vm.RailPlacement|syntrax.vm.SignalPlacement|syntrax.vm.SupportPlacement
 ---@alias syntrax.vm.PlacementGroup syntrax.vm.Placement[][] Array of alternatives, each alternative is an array of placements
 
 ---@class syntrax.vm.RailStackEntry
 ---@field traverser railutils.Traverser Cloned traverser state
+---@field piece integer? The piece the traverser was on
+
+---@class syntrax.vm.SupportOpts
+---@field support_range number Range of a rail support, from its prototype
+---@field ramp_range number Range of a ramp, from its prototype
+---@field start_reach number? Reach left at the starting end, if it is elevated. Defaults to 0.
+
+---@class syntrax.vm.RunOpts
+---@field initial_layer railutils.RailLayer? Layer of the starting rail, ground if omitted
+---@field support syntrax.vm.SupportOpts? Plan supports under elevated rails. Without it only sup places supports.
+
+---@class syntrax.vm.Piece: railutils.SupportPlanner.Piece
+---@field group integer Index of the piece's group in placements
+---@field span syntrax.Span?
 
 ---@class syntrax.vm.State
 ---@field registers table<number, syntrax.vm.Operand> Array of registers
@@ -105,16 +138,30 @@ mod.RAIL_KIND = {
 ---@field rail_stack syntrax.vm.RailStackEntry[] Stack of saved traverser states
 ---@field initial_traverser railutils.Traverser? Initial traverser for reset
 ---@field mark_traverser railutils.Traverser? Current mark position (reset jumps here)
+---@field pieces syntrax.vm.Piece[] Every rail placed, in order, with how they connect (for the support planner)
+---@field current_piece integer? The piece the traverser is on, nil while on the starting rail
+---@field mark_piece integer? The piece the mark is on
+---@field support_keys table<string, boolean> Positions that already have a support
+---@field start_support boolean sup was used on the starting rail
+---@field autosup boolean Whether the support planner may put supports under rails placed now (autosup on/off)
 local VM = {}
 local VM_meta = { __index = VM }
 
----Create a key for deduplication (position + direction + rail type)
+---Create a key for deduplication (position + direction + rail type + layer). A ground and an elevated rail can share
+---position and direction (track under a bridge), so the layer is part of the key.
 ---@param pos fa.Point
 ---@param direction number|defines.direction
 ---@param rail_type string
+---@param layer string
 ---@return string
-local function dedup_key(pos, direction, rail_type)
-   return string.format("%d,%d,%d,%s", pos.x, pos.y, direction, rail_type)
+local function dedup_key(pos, direction, rail_type, layer)
+   return string.format("%d,%d,%d,%s,%s", pos.x, pos.y, direction, rail_type, layer)
+end
+
+---@param pos fa.Point
+---@return string
+local function support_key(pos)
+   return string.format("%s,%s", pos.x, pos.y)
 end
 
 ---@return syntrax.vm.State
@@ -129,6 +176,12 @@ function mod.new()
       rail_stack = {},
       initial_traverser = nil,
       mark_traverser = nil,
+      pieces = {},
+      current_piece = nil,
+      mark_piece = nil,
+      support_keys = {},
+      start_support = false,
+      autosup = true,
    }, VM_meta)
 end
 
@@ -182,14 +235,19 @@ function VM:resolve_operand(operand)
 end
 
 ---Place a rail and update traverser state
----@param kind syntrax.vm.RailKind "left", "right", or "straight"
+---@param kind syntrax.vm.RailKind "left", "right", "straight" or "change_layer"
 ---@param span syntrax.Span? Source span for error reporting
 function VM:place_rail(kind, span)
+   local parent = self.current_piece
+   local parent_end = self.traverser:get_direction()
+
    -- Move the traverser based on rail kind
    if kind == mod.RAIL_KIND.LEFT then
       self.traverser:move_left()
    elseif kind == mod.RAIL_KIND.RIGHT then
       self.traverser:move_right()
+   elseif kind == mod.RAIL_KIND.CHANGE_LAYER then
+      self.traverser:move_change_layer()
    else -- STRAIGHT
       self.traverser:move_forward()
    end
@@ -198,12 +256,16 @@ function VM:place_rail(kind, span)
    local pos = self.traverser:get_position()
    local rail_type = self.traverser:get_rail_kind()
    local placement_dir = self.traverser:get_placement_direction()
+   local layer = self.traverser:get_layer()
 
-   -- Create dedup key including position, direction, and rail type
-   local key = dedup_key(pos, placement_dir, rail_type)
+   -- Create dedup key including position, direction, rail type and layer. Both ends of a ramp are one piece.
+   local key_layer = rail_type == RailInfo.RailType.RAMP and "ramp" or layer
+   local key = dedup_key(pos, placement_dir, rail_type, key_layer)
 
    -- Check for deduplication - if we've already placed this exact rail, skip
-   if self.position_to_index[key] then
+   local existing = self.position_to_index[key]
+   if existing then
+      self.current_piece = existing
       return -- Already have this exact rail
    end
 
@@ -212,12 +274,108 @@ function VM:place_rail(kind, span)
       position = pos,
       rail_type = rail_type, -- Already a string like "straight-rail"
       placement_direction = placement_dir,
+      layer = layer,
       span = span,
    }
 
    -- Wrap in new format: one group with one alternative containing one entity
    table.insert(self.placements, { { rail } })
-   self.position_to_index[key] = #self.placements
+   table.insert(self.pieces, {
+      rail_type = rail_type,
+      placement_direction = placement_dir,
+      position = pos,
+      end_direction = self.traverser:get_direction(),
+      layer = layer,
+      parent = parent,
+      parent_end = parent and parent_end or nil,
+      group = #self.placements,
+      span = span,
+      forbid_support = not self.autosup or nil,
+   })
+   self.current_piece = #self.pieces
+   self.position_to_index[key] = #self.pieces
+end
+
+---@param span syntrax.Span?
+---@param message string
+---@return syntrax.Error
+local function runtime_error(span, message)
+   return Errors.error_builder(Errors.ERROR_CODE.RUNTIME_ERROR, message, span):build()
+end
+
+---Place a ramp to the other layer
+---@param target railutils.RailLayer? Layer the program expects to reach, nil for either (elev)
+---@param span syntrax.Span?
+---@return syntrax.Error?
+function VM:change_layer(target, span)
+   local layer = self.traverser:get_layer()
+   if target and layer == target then
+      return runtime_error(span, string.format("Already on the %s layer", layer))
+   end
+   if not self.traverser:can_change_layer() then
+      return runtime_error(
+         span,
+         string.format(
+            "A ramp can only start from a north, east, south or west end, this end faces %s",
+            Directions.to_name(self.traverser:get_direction())
+         )
+      )
+   end
+   self:place_rail(mod.RAIL_KIND.CHANGE_LAYER, span)
+   return nil
+end
+
+---Place a support at the current end
+---@param span syntrax.Span?
+---@return syntrax.Error?
+function VM:place_support(span)
+   if self.traverser:get_layer() ~= RailInfo.RailLayer.ELEVATED then
+      return runtime_error(span, "Supports hold elevated rails, this end is on the ground")
+   end
+   local dir = self.traverser:get_direction()
+   if dir % 2 ~= 0 then
+      return runtime_error(
+         span,
+         string.format("A support cannot stand at an end facing %s, only at 8-way ends", Directions.to_name(dir))
+      )
+   end
+
+   local pos = self.traverser:get_end_position()
+   local key = support_key(pos)
+   if self.current_piece then
+      self.pieces[self.current_piece].explicit_support = true
+   else
+      self.start_support = true
+   end
+   if self.support_keys[key] then return nil end
+   self.support_keys[key] = true
+
+   table.insert(self.placements, {
+      { { type = "support", position = pos, direction = dir, explicit = true, span = span } },
+   })
+   return nil
+end
+
+---Keep the support planner away from the current end
+---@param span syntrax.Span?
+---@return syntrax.Error?
+function VM:forbid_support(span)
+   if self.traverser:get_layer() ~= RailInfo.RailLayer.ELEVATED then
+      return runtime_error(span, "nosup only means something on elevated rails, this end is on the ground")
+   end
+   -- On the starting rail there is nothing for the planner to place anyway
+   if self.current_piece then self.pieces[self.current_piece].forbid_support = true end
+   return nil
+end
+
+---Signals cannot go on ramps
+---@param span syntrax.Span?
+---@return syntrax.Error?
+function VM:check_signal_allowed(span)
+   if self.traverser:get_rail_kind() == RailInfo.RailType.RAMP then
+      return runtime_error(span, "Signals cannot be placed on a ramp, add a rail after it first")
+   end
+   return nil
 end
 
 ---Place a single signal with alternatives for regular/alt positions
@@ -236,6 +394,7 @@ function VM:place_signal(side, signal_type, span)
          position = pos,
          signal_type = signal_type,
          direction = dir,
+         layer = self.traverser:get_layer(),
          span = span,
       },
    })
@@ -249,6 +408,7 @@ function VM:place_signal(side, signal_type, span)
             position = alt_pos,
             signal_type = signal_type,
             direction = dir, -- Same direction as regular
+            layer = self.traverser:get_layer(),
             span = span,
          },
       })
@@ -277,6 +437,8 @@ function VM:place_signal_pair(left_type, right_type, span)
    local right_positions = { { pos = right_pos } }
    if right_alt then table.insert(right_positions, { pos = right_alt }) end
 
+   local layer = self.traverser:get_layer()
+
    -- Generate cartesian product of alternatives
    local alternatives = {}
    for _, lp in ipairs(left_positions) do
@@ -287,6 +449,7 @@ function VM:place_signal_pair(left_type, right_type, span)
                position = lp.pos,
                signal_type = left_type,
                direction = left_dir,
+               layer = layer,
                span = span,
             },
             {
@@ -294,6 +457,7 @@ function VM:place_signal_pair(left_type, right_type, span)
                position = rp.pos,
                signal_type = right_type,
                direction = right_dir,
+               layer = layer,
                span = span,
             },
          })
@@ -359,6 +523,7 @@ function VM:execute_rpush(instr)
    -- Push a clone of the current traverser to the stack
    local entry = {
       traverser = self.traverser:clone(),
+      piece = self.current_piece,
    }
    table.insert(self.rail_stack, entry)
    return nil, nil
@@ -376,6 +541,7 @@ function VM:execute_rpop(instr)
    -- Pop and restore the traverser
    local entry = table.remove(self.rail_stack)
    self.traverser = entry.traverser
+   self.current_piece = entry.piece
    return nil, nil
 end
 
@@ -383,7 +549,10 @@ end
 ---@return nil, syntrax.Error?
 function VM:execute_reset(instr)
    -- Go to the mark (like rpop without the pop)
-   if self.mark_traverser then self.traverser = self.mark_traverser:clone() end
+   if self.mark_traverser then
+      self.traverser = self.mark_traverser:clone()
+      self.current_piece = self.mark_piece
+   end
    return nil, nil
 end
 
@@ -391,7 +560,10 @@ end
 ---@return nil, syntrax.Error?
 function VM:execute_mark(instr)
    -- Set current position as the mark
-   if self.traverser then self.mark_traverser = self.traverser:clone() end
+   if self.traverser then
+      self.mark_traverser = self.traverser:clone()
+      self.mark_piece = self.current_piece
+   end
    return nil, nil
 end
 
@@ -447,28 +619,67 @@ function VM:execute_instruction()
       if err then return false, err end
       self.pc = self.pc + 1
    elseif instr.kind == mod.BYTECODE_KIND.SIGLEFT then
+      local err = self:check_signal_allowed(instr.span)
+      if err then return false, err end
       self:place_signal(Traverser.SignalSide.LEFT, "rail-signal", instr.span)
       self.pc = self.pc + 1
    elseif instr.kind == mod.BYTECODE_KIND.SIGRIGHT then
+      local err = self:check_signal_allowed(instr.span)
+      if err then return false, err end
       self:place_signal(Traverser.SignalSide.RIGHT, "rail-signal", instr.span)
       self.pc = self.pc + 1
    elseif instr.kind == mod.BYTECODE_KIND.CHAINLEFT then
+      local err = self:check_signal_allowed(instr.span)
+      if err then return false, err end
       self:place_signal(Traverser.SignalSide.LEFT, "rail-chain-signal", instr.span)
       self.pc = self.pc + 1
    elseif instr.kind == mod.BYTECODE_KIND.CHAINRIGHT then
+      local err = self:check_signal_allowed(instr.span)
+      if err then return false, err end
       self:place_signal(Traverser.SignalSide.RIGHT, "rail-chain-signal", instr.span)
       self.pc = self.pc + 1
    elseif instr.kind == mod.BYTECODE_KIND.SIG then
+      local err = self:check_signal_allowed(instr.span)
+      if err then return false, err end
       self:place_signal_pair("rail-signal", "rail-signal", instr.span)
       self.pc = self.pc + 1
    elseif instr.kind == mod.BYTECODE_KIND.CHAIN then
+      local err = self:check_signal_allowed(instr.span)
+      if err then return false, err end
       self:place_signal_pair("rail-chain-signal", "rail-chain-signal", instr.span)
       self.pc = self.pc + 1
    elseif instr.kind == mod.BYTECODE_KIND.SIGCHAIN then
+      local err = self:check_signal_allowed(instr.span)
+      if err then return false, err end
       self:place_signal_pair("rail-signal", "rail-chain-signal", instr.span)
       self.pc = self.pc + 1
    elseif instr.kind == mod.BYTECODE_KIND.CHAINSIG then
+      local err = self:check_signal_allowed(instr.span)
+      if err then return false, err end
       self:place_signal_pair("rail-chain-signal", "rail-signal", instr.span)
+      self.pc = self.pc + 1
+   elseif instr.kind == mod.BYTECODE_KIND.UP then
+      local err = self:change_layer(RailInfo.RailLayer.ELEVATED, instr.span)
+      if err then return false, err end
+      self.pc = self.pc + 1
+   elseif instr.kind == mod.BYTECODE_KIND.DOWN then
+      local err = self:change_layer(RailInfo.RailLayer.GROUND, instr.span)
+      if err then return false, err end
+      self.pc = self.pc + 1
+   elseif instr.kind == mod.BYTECODE_KIND.ELEV then
+      local err = self:change_layer(nil, instr.span)
+      if err then return false, err end
+      self.pc = self.pc + 1
+   elseif instr.kind == mod.BYTECODE_KIND.SUP then
+      local err = self:place_support(instr.span)
+      if err then return false, err end
+      self.pc = self.pc + 1
+   elseif instr.kind == mod.BYTECODE_KIND.NOSUP then
+      local err = self:forbid_support(instr.span)
+      if err then return false, err end
+      self.pc = self.pc + 1
+   elseif instr.kind == mod.BYTECODE_KIND.AUTOSUP then
+      self.autosup = self:resolve_operand(instr.arguments[1]).argument ~= 0
       self.pc = self.pc + 1
    else
       error("Unknown bytecode kind: " .. tostring(instr.kind))
@@ -477,12 +688,70 @@ function VM:execute_instruction()
    return true
 end
 
+---Plan supports under the elevated rails and insert them right after the group of the piece they stand at
+---@param opts syntrax.vm.SupportOpts
+---@return syntrax.Error?
+function VM:add_planned_supports(opts)
+   local start_reach = opts.start_reach or 0
+   if self.start_support then start_reach = opts.support_range end
+   local supports, problems = SupportPlanner.plan(self.pieces, {
+      support_range = opts.support_range,
+      ramp_range = opts.ramp_range,
+      start_reach = start_reach,
+   })
+
+   if problems[1] then
+      local piece = self.pieces[problems[1].piece]
+      if problems[1].reason == "forbidden" then
+         return runtime_error(
+            piece.span,
+            "Nothing holds this rail: the supports it needs are ruled out by nosup or autosup off"
+         )
+      end
+      return runtime_error(piece.span, "No place for a support within reach of this rail")
+   end
+
+   local after_group = {}
+   for _, support in ipairs(supports) do
+      local key = support_key(support.position)
+      if not self.support_keys[key] then
+         self.support_keys[key] = true
+         local group = self.pieces[support.piece].group
+         after_group[group] = after_group[group] or {}
+         table.insert(after_group[group], {
+            {
+               {
+                  type = "support",
+                  position = support.position,
+                  direction = support.direction,
+                  explicit = false,
+                  span = self.pieces[support.piece].span,
+               },
+            },
+         })
+      end
+   end
+
+   local merged = {}
+   for i, group in ipairs(self.placements) do
+      table.insert(merged, group)
+      for _, extra in ipairs(after_group[i] or {}) do
+         table.insert(merged, extra)
+      end
+   end
+   self.placements = merged
+   return nil
+end
+
 ---Run the VM with the given starting position
 ---@param initial_position fa.Point? Starting position (default: {x=0, y=0})
 ---@param initial_direction number? Starting direction 0-15 (default: north/0)
 ---@param initial_rail_type railutils.RailType? Starting rail type (default: STRAIGHT)
+---@param initial_placement_direction number? Placement direction of the starting rail
+---@param opts syntrax.vm.RunOpts?
 ---@return syntrax.vm.PlacementGroup[]?, syntrax.Error?
-function VM:run(initial_position, initial_direction, initial_rail_type, initial_placement_direction)
+function VM:run(initial_position, initial_direction, initial_rail_type, initial_placement_direction, opts)
+   opts = opts or {}
    -- Default to origin facing north on a straight rail
    local pos = initial_position or { x = 0, y = 0 }
    local dir = initial_direction or defines.direction.north
@@ -503,7 +772,7 @@ function VM:run(initial_position, initial_direction, initial_rail_type, initial_
    end
 
    -- Create the initial traverser at the starting position/direction/rail_type
-   self.traverser = Traverser.new(rail_type, pos, placement_dir, dir)
+   self.traverser = Traverser.new(rail_type, pos, placement_dir, dir, opts.initial_layer)
    self.initial_traverser = self.traverser:clone()
    self.mark_traverser = self.traverser:clone()
 
@@ -512,6 +781,11 @@ function VM:run(initial_position, initial_direction, initial_rail_type, initial_
       local continue, err = self:execute_instruction()
       if err then return nil, err end
       if not continue then break end
+   end
+
+   if opts.support then
+      local err = self:add_planned_supports(opts.support)
+      if err then return nil, err end
    end
 
    return self.placements, nil

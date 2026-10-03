@@ -14,6 +14,13 @@ local mod = {}
 ---@field curved_rail_a_name string Entity name for curved-rail-a
 ---@field curved_rail_b_name string Entity name for curved-rail-b
 ---@field half_diagonal_rail_name string Entity name for half-diagonal rails
+---@field elevated_straight_rail_name string? Elevated twins of the four rails above. The elevated fields, ramp_name and
+---support_name are either all set or all nil (planner without elevated rails).
+---@field elevated_curved_rail_a_name string?
+---@field elevated_curved_rail_b_name string?
+---@field elevated_half_diagonal_rail_name string?
+---@field ramp_name string? Entity name for the rail ramp
+---@field support_name string? Entity name for the rail support
 
 ---Options for wrapping a surface
 ---@class railutils.SurfaceWrapperOpts
@@ -40,19 +47,48 @@ function mod.wrap_surface(surface, opts)
    }, GameSurface_meta)
 end
 
----Map entity name to RailType
+---Planner fields, with the rail type and layer each one names
+local NAME_FIELDS = {
+   { field = "straight_rail_name", rail_type = RailInfo.RailType.STRAIGHT, layer = RailInfo.RailLayer.GROUND },
+   { field = "curved_rail_a_name", rail_type = RailInfo.RailType.CURVE_A, layer = RailInfo.RailLayer.GROUND },
+   { field = "curved_rail_b_name", rail_type = RailInfo.RailType.CURVE_B, layer = RailInfo.RailLayer.GROUND },
+   {
+      field = "half_diagonal_rail_name",
+      rail_type = RailInfo.RailType.HALF_DIAGONAL,
+      layer = RailInfo.RailLayer.GROUND,
+   },
+   {
+      field = "elevated_straight_rail_name",
+      rail_type = RailInfo.RailType.STRAIGHT,
+      layer = RailInfo.RailLayer.ELEVATED,
+   },
+   {
+      field = "elevated_curved_rail_a_name",
+      rail_type = RailInfo.RailType.CURVE_A,
+      layer = RailInfo.RailLayer.ELEVATED,
+   },
+   {
+      field = "elevated_curved_rail_b_name",
+      rail_type = RailInfo.RailType.CURVE_B,
+      layer = RailInfo.RailLayer.ELEVATED,
+   },
+   {
+      field = "elevated_half_diagonal_rail_name",
+      rail_type = RailInfo.RailType.HALF_DIAGONAL,
+      layer = RailInfo.RailLayer.ELEVATED,
+   },
+   -- Ramps have a layer per end, so none here
+   { field = "ramp_name", rail_type = RailInfo.RailType.RAMP, layer = nil },
+}
+
+---Map entity name to RailType and layer
 ---@param entity_name string
 ---@param planner railutils.RailPlannerDescription
 ---@return railutils.RailType|nil
+---@return railutils.RailLayer|nil
 local function entity_name_to_rail_type(entity_name, planner)
-   if entity_name == planner.straight_rail_name then
-      return RailInfo.RailType.STRAIGHT
-   elseif entity_name == planner.curved_rail_a_name then
-      return RailInfo.RailType.CURVE_A
-   elseif entity_name == planner.curved_rail_b_name then
-      return RailInfo.RailType.CURVE_B
-   elseif entity_name == planner.half_diagonal_rail_name then
-      return RailInfo.RailType.HALF_DIAGONAL
+   for _, entry in ipairs(NAME_FIELDS) do
+      if entity_name == planner[entry.field] then return entry.rail_type, entry.layer end
    end
    return nil
 end
@@ -70,30 +106,30 @@ function GameSurface:get_rails_at_point(point)
       { x = floor_x + 0.999, y = floor_y + 0.999 },
    }
 
-   -- Query for all rail types
-   local rail_names = {
-      self._planner.straight_rail_name,
-      self._planner.curved_rail_a_name,
-      self._planner.curved_rail_b_name,
-      self._planner.half_diagonal_rail_name,
-   }
+   -- Query for all rail types the planner names, on both layers
+   local rail_names = {}
+   for _, entry in ipairs(NAME_FIELDS) do
+      local name = self._planner[entry.field]
+      if name then table.insert(rail_names, name) end
+   end
 
    local rails = {}
 
-   for _, rail_name in ipairs(rail_names) do
-      local filter = { area = search_area }
-      if self._ghosts_only then
-         filter.ghost_name = rail_name
-      else
-         filter.name = rail_name
-      end
+   -- One query for every name: the describer calls this many times per tile read
+   local filter = { area = search_area }
+   if self._ghosts_only then
+      filter.ghost_name = rail_names
+   else
+      filter.name = rail_names
+   end
 
+   do
       local entities = self._surface.find_entities_filtered(filter)
 
       for _, entity in ipairs(entities) do
          -- For ghosts, use ghost_name; for real entities, use name
          local entity_name = self._ghosts_only and entity.ghost_name or entity.name
-         local rail_type = entity_name_to_rail_type(entity_name, self._planner)
+         local rail_type, layer = entity_name_to_rail_type(entity_name, self._planner)
          if rail_type then
             table.insert(rails, {
                prototype_position = {
@@ -103,6 +139,7 @@ function GameSurface:get_rails_at_point(point)
                rail_type = rail_type,
                direction = entity.direction,
                unit_number = entity.unit_number,
+               layer = layer,
             })
          end
       end

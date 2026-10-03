@@ -13,6 +13,7 @@ local tests = {
    { "syntax", require("syntrax.tests.syntax") },
    { "rail-stack", require("syntrax.tests.rail-stack") },
    { "chord", require("syntrax.tests.chord") },
+   { "elevated", require("syntrax.tests.elevated") },
 }
 
 local runner = lu.LuaUnit.new()

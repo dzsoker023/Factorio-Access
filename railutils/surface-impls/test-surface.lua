@@ -129,6 +129,26 @@ function TestSurface:add_rail(rail_type, position, direction)
    return rail
 end
 
+---Add a rail exactly where it is given, without grid adjustment, on a layer. For positions that already come from a
+---traverser (which are grid-adjusted), and for ramps and elevated rails.
+---@param rail_type railutils.RailType
+---@param position fa.Point Grid-adjusted position
+---@param direction defines.direction Placement direction
+---@param layer railutils.RailLayer? Ground if omitted; ignored for ramps
+---@return railutils.RailInfo
+function TestSurface:add_rail_at(rail_type, position, direction, layer)
+   local rail = {
+      prototype_position = { x = position.x, y = position.y },
+      rail_type = rail_type,
+      direction = direction,
+      unit_number = self._next_unit_number,
+      layer = rail_type ~= RailInfo.RailType.RAMP and (layer or RailInfo.RailLayer.GROUND) or nil,
+   }
+   self._next_unit_number = self._next_unit_number + 1
+   table.insert(self._rails, rail)
+   return rail
+end
+
 ---Get rails at a specific tile position
 ---@param point fa.Point Tile coordinates (1x1 grid)
 ---@return railutils.RailInfo[]

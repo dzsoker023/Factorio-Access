@@ -48,10 +48,10 @@ function mod.read_tile_rails(pindex, message)
 
    -- Query functions for deduplication
    local function query_real_rails(area)
-      return player.surface.find_entities_filtered({ area = area, type = Consts.RAIL_TYPES })
+      return player.surface.find_entities_filtered({ area = area, type = Consts.ALL_RAIL_TYPES })
    end
    local function query_ghost_rails(area)
-      return player.surface.find_entities_filtered({ area = area, ghost_type = Consts.RAIL_TYPES })
+      return player.surface.find_entities_filtered({ area = area, ghost_type = Consts.ALL_RAIL_TYPES })
    end
 
    -- Find real and ghost rails
@@ -69,10 +69,11 @@ function mod.read_tile_rails(pindex, message)
 
       for _, rail_entity in ipairs(rail_entities) do
          if rail_entity and rail_entity.valid then
-            local rail_type = RailQueries.prototype_type_to_rail_type(rail_entity.name)
-            if rail_type then
+            if RailQueries.is_known_rail_prototype_type(rail_entity.name) then
+               local rail_type, layer = RailQueries.prototype_type_to_rail_type_and_layer(rail_entity.name)
                local pos = { x = rail_entity.position.x, y = rail_entity.position.y }
-               local description = RailDescriber.describe_rail(wrapped_surface, rail_type, rail_entity.direction, pos)
+               local description =
+                  RailDescriber.describe_rail(wrapped_surface, rail_type, rail_entity.direction, pos, layer)
                local announcement = RailAnnouncer.announce_rail(
                   description,
                   { prefix_rail = is_first, rail_entity = rail_entity, cursor_pos = cursor_pos }
@@ -91,10 +92,11 @@ function mod.read_tile_rails(pindex, message)
 
       for _, ghost_entity in ipairs(ghost_entities) do
          if ghost_entity and ghost_entity.valid then
-            local rail_type = RailQueries.prototype_type_to_rail_type(ghost_entity.ghost_name)
-            if rail_type then
+            if RailQueries.is_known_rail_prototype_type(ghost_entity.ghost_name) then
+               local rail_type, layer = RailQueries.prototype_type_to_rail_type_and_layer(ghost_entity.ghost_name)
                local pos = { x = ghost_entity.position.x, y = ghost_entity.position.y }
-               local description = RailDescriber.describe_rail(ghost_surface, rail_type, ghost_entity.direction, pos)
+               local description =
+                  RailDescriber.describe_rail(ghost_surface, rail_type, ghost_entity.direction, pos, layer)
                local announcement =
                   RailAnnouncer.announce_rail(description, { prefix_rail = is_first, is_ghost = true })
                message:list_item_forced_comma(announcement)
@@ -121,8 +123,11 @@ function mod.read_tile_inner(pindex, message)
    local skip_selection = Combat.is_combat_mode(pindex) or KruiseKontrol.is_active(pindex)
 
    -- Special handling for rails: announce all rails at this position
-   local is_rail = ent and ent.valid and Consts.RAIL_TYPES_SET[ent.type]
-   local is_ghost_rail = ent and ent.valid and ent.type == "entity-ghost" and Consts.RAIL_TYPES_SET[ent.ghost_type]
+   local is_rail = ent and ent.valid and Consts.ALL_RAIL_TYPES_SET[ent.type]
+   local is_ghost_rail = ent
+      and ent.valid
+      and ent.type == "entity-ghost"
+      and Consts.ALL_RAIL_TYPES_SET[ent.ghost_type]
    if is_rail or is_ghost_rail then
       mod.read_tile_rails(pindex, message)
       Graphics.draw_cursor_highlight(pindex, ent, nil)

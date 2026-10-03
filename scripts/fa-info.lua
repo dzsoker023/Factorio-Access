@@ -81,15 +81,8 @@ local function ent_info_facing(ctx)
    -- Set in the case where we detect symmetry.
    local secondary_effective_direction
 
-   -- Skip facing for rails - they have their own description system
-   if
-      ent.type == "straight-rail"
-      or ent.type == "half-diagonal-rail"
-      or ent.type == "curved-rail-a"
-      or ent.type == "curved-rail-b"
-   then
-      return
-   end
+   -- Skip facing for rails (both layers and ramps) - they have their own description system
+   if Consts.ALL_RAIL_TYPES_SET[ent.type] then return end
 
    if
       (ent.prototype.is_building and ent.supports_direction)
@@ -1378,10 +1371,7 @@ end
 ---@param type_str string
 ---@return boolean
 local function is_rail_type(type_str)
-   return type_str == "straight-rail"
-      or type_str == "half-diagonal-rail"
-      or type_str == "curved-rail-a"
-      or type_str == "curved-rail-b"
+   return Consts.ALL_RAIL_TYPES_SET[type_str] == true
 end
 
 ---Rail description using railutils
@@ -1392,6 +1382,7 @@ local function ent_info_rail(ctx)
    local entity_name = is_ghost and ctx.ent.ghost_name or ctx.ent.name
 
    if not is_rail_type(entity_type) then return end
+   if not RailQueries.is_known_rail_prototype_type(entity_name) then return end
 
    -- Wrap the surface (hardcoded to vanilla for now)
    -- Use ghost surface for ghost rails, real surface for real rails
@@ -1403,10 +1394,11 @@ local function ent_info_rail(ctx)
    end
 
    -- Convert entity to railutils types
-   local rail_type = RailQueries.prototype_type_to_rail_type(entity_name)
+   local rail_type, layer = RailQueries.prototype_type_to_rail_type_and_layer(entity_name)
 
    -- Describe and announce the rail
-   local description = RailDescriber.describe_rail(wrapped_surface, rail_type, ctx.ent.direction, ctx.ent.position)
+   local description =
+      RailDescriber.describe_rail(wrapped_surface, rail_type, ctx.ent.direction, ctx.ent.position, layer)
    local announcement = RailAnnouncer.announce_rail(description, { is_ghost = is_ghost })
 
    ctx.message:fragment(announcement)

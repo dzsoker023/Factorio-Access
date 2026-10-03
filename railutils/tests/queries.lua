@@ -140,4 +140,64 @@ function mod.TestGetAdjustedPosition_GridAlignment()
    lu.assertEquals(pos.y, 1, "Half-diagonal should adjust y by 1")
 end
 
+function mod.TestQueries_LayeredPrototypeTypes()
+   local T, L = RailInfo.RailType, RailInfo.RailLayer
+   lu.assertEquals(Queries.rail_type_to_layered_prototype_type(T.STRAIGHT, L.GROUND), "straight-rail")
+   lu.assertEquals(Queries.rail_type_to_layered_prototype_type(T.STRAIGHT, L.ELEVATED), "elevated-straight-rail")
+   lu.assertEquals(Queries.rail_type_to_layered_prototype_type(T.CURVE_B, L.ELEVATED), "elevated-curved-rail-b")
+   lu.assertEquals(Queries.rail_type_to_layered_prototype_type(T.RAMP, L.ELEVATED), "rail-ramp")
+   lu.assertEquals(Queries.rail_type_to_layered_prototype_type(T.RAMP, L.GROUND), "rail-ramp")
+end
+
+function mod.TestQueries_PrototypeToRailTypeAndLayer()
+   local T, L = RailInfo.RailType, RailInfo.RailLayer
+   local rail_type, layer = Queries.prototype_type_to_rail_type_and_layer("elevated-half-diagonal-rail")
+   lu.assertEquals(rail_type, T.HALF_DIAGONAL)
+   lu.assertEquals(layer, L.ELEVATED)
+   rail_type, layer = Queries.prototype_type_to_rail_type_and_layer("curved-rail-a")
+   lu.assertEquals(rail_type, T.CURVE_A)
+   lu.assertEquals(layer, L.GROUND)
+   rail_type, layer = Queries.prototype_type_to_rail_type_and_layer("rail-ramp")
+   lu.assertEquals(rail_type, T.RAMP)
+   lu.assertNil(layer)
+   lu.assertError(function()
+      Queries.prototype_type_to_rail_type_and_layer("rail-support")
+   end)
+end
+
+function mod.TestQueries_IsKnownRailPrototypeType()
+   lu.assertTrue(Queries.is_known_rail_prototype_type("straight-rail"))
+   lu.assertTrue(Queries.is_known_rail_prototype_type("elevated-curved-rail-a"))
+   lu.assertTrue(Queries.is_known_rail_prototype_type("rail-ramp"))
+   lu.assertFalse(Queries.is_known_rail_prototype_type("rail-support"))
+   lu.assertFalse(Queries.is_known_rail_prototype_type("legacy-straight-rail"))
+end
+
+function mod.TestQueries_RampExtensionOnlyOnCardinalEnds()
+   local T, L = RailInfo.RailType, RailInfo.RailLayer
+   local dirs = defines.direction
+   local up = Queries.get_ramp_extension_from_end({ x = 1, y = 1 }, T.STRAIGHT, dirs.north, dirs.north, L.GROUND)
+   lu.assertNotNil(up)
+   lu.assertEquals(up.next_rail_prototype, "rail-ramp")
+   lu.assertEquals(up.next_rail_direction, dirs.north)
+   lu.assertEquals(up.next_rail_goal_layer, L.ELEVATED)
+   local down = Queries.get_ramp_extension_from_end({ x = 1, y = 1 }, T.STRAIGHT, dirs.north, dirs.north, L.ELEVATED)
+   lu.assertEquals(down.next_rail_direction, dirs.south)
+   lu.assertEquals(down.next_rail_goal_layer, L.GROUND)
+   lu.assertEquals(down.next_rail_position, up.next_rail_position)
+   lu.assertNil(
+      Queries.get_ramp_extension_from_end({ x = 0, y = 0 }, T.STRAIGHT, dirs.northeast, dirs.northeast, L.GROUND)
+   )
+end
+
+function mod.TestQueries_RampEndsHaveLayers()
+   local T, L = RailInfo.RailType, RailInfo.RailLayer
+   local dirs = defines.direction
+   lu.assertEquals(Queries.get_ramp_end_layer(T.RAMP, dirs.east, dirs.east), L.ELEVATED)
+   lu.assertEquals(Queries.get_ramp_end_layer(T.RAMP, dirs.east, dirs.west), L.GROUND)
+   lu.assertNil(Queries.get_ramp_end_layer(T.STRAIGHT, dirs.north, dirs.north))
+   local ends = Queries.get_end_directions(T.RAMP, dirs.north)
+   lu.assertEquals(#ends, 2)
+end
+
 return mod

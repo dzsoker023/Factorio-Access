@@ -22,23 +22,30 @@ local mod = {}
 ---@field end_direction defines.direction|nil Direction of disconnected end if any
 ---@field lonely boolean True if no extensions exist
 ---@field junctions railutils.JunctionDescription[] Array of junctions (0-2), sorted by direction
+---@field layer railutils.RailLayer? Layer of the rail, nil for a ramp (its kind says where it climbs)
 
 ---Check if a specific rail exists at a position on the surface
 ---@param surface railutils.RailsSurface
 ---@param position fa.Point
 ---@param expected_rail_type railutils.RailType
 ---@param expected_direction defines.direction
+---@param expected_layer railutils.RailLayer? Ground if omitted. Not checked for ramps.
 ---@return boolean
-local function has_rail_at(surface, position, expected_rail_type, expected_direction)
+local function has_rail_at(surface, position, expected_rail_type, expected_direction, expected_layer)
    local rails = surface:get_rails_at_point(position)
+   local want_layer = expected_layer or RailInfo.RailLayer.GROUND
 
    for _, rail in ipairs(rails) do
       -- Check type, direction, AND that the rail is actually at this position
       -- (get_rails_at_point returns rails whose bounding box overlaps the tile,
-      -- so we need to verify the rail's actual position matches)
+      -- so we need to verify the rail's actual position matches). A ground rail under a bridge is not connected to
+      -- the elevated rail above it, so the layer has to match too.
+      local layer_ok = expected_rail_type == RailInfo.RailType.RAMP
+         or (rail.layer or RailInfo.RailLayer.GROUND) == want_layer
       if
          rail.rail_type == expected_rail_type
          and rail.direction == expected_direction
+         and layer_ok
          and math.floor(rail.prototype_position.x) == math.floor(position.x)
          and math.floor(rail.prototype_position.y) == math.floor(position.y)
       then
@@ -100,11 +107,12 @@ if not TURN_TABLE then error("TURN_TABLE is nil - turn-table.lua import failed!"
 ---@param end_dir defines.direction Which end to start from
 ---@param turn_dir number 1 for right, -1 for left
 ---@param count number Number of turns to verify
+---@param layer railutils.RailLayer
 ---@return boolean
-local function verify_turn_exists(surface, rail_type, placement_direction, position, end_dir, turn_dir, count)
+local function verify_turn_exists(surface, rail_type, placement_direction, position, end_dir, turn_dir, count, layer)
    if count == 0 then return true end
 
-   local trav = Traverser.new(rail_type, position, placement_direction, end_dir)
+   local trav = Traverser.new(rail_type, position, placement_direction, end_dir, layer)
 
    for i = 1, count do
       if turn_dir > 0 then
@@ -113,9 +121,14 @@ local function verify_turn_exists(surface, rail_type, placement_direction, posit
          trav:move_left()
       end
 
-      if not has_rail_at(surface, trav:get_position(), trav:get_rail_kind(), trav:get_placement_direction()) then
-         return false
-      end
+      local found = has_rail_at(
+         surface,
+         trav:get_position(),
+         trav:get_rail_kind(),
+         trav:get_placement_direction(),
+         trav:get_layer()
+      )
+      if not found then return false end
    end
 
    return true
@@ -126,8 +139,9 @@ end
 ---@param rail_type railutils.RailType
 ---@param placement_direction defines.direction
 ---@param position fa.Point
+---@param layer railutils.RailLayer
 ---@return railutils.RailKind|nil Turn description or nil if not a turn
-local function detect_turn(surface, rail_type, placement_direction, position)
+local function detect_turn(surface, rail_type, placement_direction, position, layer)
    if rail_type ~= RailInfo.RailType.CURVE_A and rail_type ~= RailInfo.RailType.CURVE_B then return nil end
 
    local turn_info = TURN_TABLE[rail_type] and TURN_TABLE[rail_type][placement_direction]
@@ -143,7 +157,8 @@ local function detect_turn(surface, rail_type, placement_direction, position)
             position,
             turn_info.verify_forward.end_dir,
             turn_info.verify_forward.turn_dir,
-            turn_info.verify_forward.count
+            turn_info.verify_forward.count,
+            layer
          )
       then
          return nil
@@ -159,7 +174,8 @@ local function detect_turn(surface, rail_type, placement_direction, position)
             position,
             turn_info.verify_back.end_dir,
             turn_info.verify_back.turn_dir,
-            turn_info.verify_back.count
+            turn_info.verify_back.count,
+            layer
          )
       then
          return nil
@@ -232,27 +248,46 @@ local function get_curve_fallback(rail_type, placement_direction)
    error("Unknown rail type or placement direction for curve fallback")
 end
 
+---Kind of a ramp: the direction its elevated end faces
+---@param placement_direction defines.direction
+---@return railutils.RailKind
+local function classify_ramp(placement_direction)
+   for _, end_dir in ipairs(Queries.get_end_directions(RailInfo.RailType.RAMP, placement_direction)) do
+      local layer = Queries.get_ramp_end_layer(RailInfo.RailType.RAMP, placement_direction, end_dir)
+      if layer == RailInfo.RailLayer.ELEVATED then
+         return "ramp-rising-" .. Queries.get_cardinal_name(end_dir) --[[@as railutils.RailKind]]
+      end
+   end
+   error("Ramp without an elevated end")
+end
+
 ---Describe a rail on a surface
 ---@param surface railutils.RailsSurface Surface to query for connected rails
 ---@param rail_type railutils.RailType Type of rail to describe
 ---@param placement_direction defines.direction Direction the rail is placed
 ---@param position fa.Point Position of the rail (grid-adjusted)
+---@param layer railutils.RailLayer? Layer of the rail, ground if omitted (ignored for ramps)
 ---@return railutils.RailDescription
-function mod.describe_rail(surface, rail_type, placement_direction, position)
+function mod.describe_rail(surface, rail_type, placement_direction, position, layer)
+   local is_ramp = rail_type == RailInfo.RailType.RAMP
+   layer = layer or RailInfo.RailLayer.GROUND
    local description = {
       kind = "",
       end_direction = nil,
       lonely = false,
       junctions = {},
+      layer = not is_ramp and layer or nil,
    }
 
    -- Try simple classification first
    local simple_kind = classify_simple_rail(rail_type, placement_direction)
-   if simple_kind then
+   if is_ramp then
+      description.kind = classify_ramp(placement_direction)
+   elseif simple_kind then
       description.kind = simple_kind
    else
       -- For curves, try turn detection first
-      local turn_kind = detect_turn(surface, rail_type, placement_direction, position)
+      local turn_kind = detect_turn(surface, rail_type, placement_direction, position, layer)
       if turn_kind then
          description.kind = turn_kind
       else
@@ -269,16 +304,25 @@ function mod.describe_rail(surface, rail_type, placement_direction, position)
    local total_connected = 0
 
    for _, end_dir in ipairs(ends) do
+      -- A ramp's ends are on different layers; other rails have one layer
+      local end_layer = is_ramp and Queries.get_ramp_end_layer(rail_type, placement_direction, end_dir) or layer
       local extensions = Queries.get_extensions_from_end(position, rail_type, placement_direction, end_dir)
       connected_extensions[end_dir] = {}
 
       for _, ext in ipairs(extensions) do
          -- Check if expected rail exists at this extension point
          local expected_rail_type = Queries.prototype_type_to_rail_type(ext.next_rail_prototype)
-         if has_rail_at(surface, ext.next_rail_position, expected_rail_type, ext.next_rail_direction) then
+         if has_rail_at(surface, ext.next_rail_position, expected_rail_type, ext.next_rail_direction, end_layer) then
             table.insert(connected_extensions[end_dir], ext)
             total_connected = total_connected + 1
          end
+      end
+
+      -- The ramp that can continue a cardinal end to the other layer
+      local ramp = Queries.get_ramp_extension_from_end(position, rail_type, placement_direction, end_dir, end_layer)
+      if ramp and has_rail_at(surface, ramp.next_rail_position, RailInfo.RailType.RAMP, ramp.next_rail_direction) then
+         table.insert(connected_extensions[end_dir], ramp)
+         total_connected = total_connected + 1
       end
    end
 

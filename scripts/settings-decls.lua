@@ -18,6 +18,7 @@ mod.SETTING_NAMES = {
    SONIFICATION_CRAFTING = "fa-crafting-sonification",
    SONIFICATION_COMBAT_ENEMIES = "fa-combat-enemy-sonification",
    SONIFICATION_COMBAT_SPAWNERS = "fa-combat-spawner-sonification",
+   ELEVATED_AUTO_SUPPORT = "fa-elevated-auto-support",
 }
 
 ---@type fa.SettingDecl[]
@@ -49,6 +50,13 @@ mod.declarations = {
       setting_type = "runtime-global",
       default_value = true,
       order = "d",
+   },
+   {
+      name = mod.SETTING_NAMES.ELEVATED_AUTO_SUPPORT,
+      type = "bool-setting",
+      setting_type = "runtime-global",
+      default_value = false,
+      order = "e",
    },
 }
 

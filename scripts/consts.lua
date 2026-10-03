@@ -102,6 +102,26 @@ mod.RAIL_TYPES = {
 ---@type table<string, true>
 mod.RAIL_TYPES_SET = TableHelpers.array_to_set({}, mod.RAIL_TYPES)
 
+---Elevated rail types and the ramp between the layers. Kept apart from RAIL_TYPES, whose users (the tile reader, the
+---rail describer) do not know about layers yet.
+---@type string[]
+mod.ELEVATED_RAIL_TYPES = {
+   "elevated-straight-rail",
+   "elevated-curved-rail-a",
+   "elevated-curved-rail-b",
+   "elevated-half-diagonal-rail",
+   "rail-ramp",
+}
+
+---Every rail type the virtual train can drive on: ground, elevated and ramps
+---@type string[]
+mod.ALL_RAIL_TYPES = {}
+TableHelpers.concat_arrays(mod.ALL_RAIL_TYPES, mod.RAIL_TYPES)
+TableHelpers.concat_arrays(mod.ALL_RAIL_TYPES, mod.ELEVATED_RAIL_TYPES)
+
+---@type table<string, true>
+mod.ALL_RAIL_TYPES_SET = TableHelpers.array_to_set({}, mod.ALL_RAIL_TYPES)
+
 -- Vehicle entity types (can have drivers/passengers)
 ---@type table<string, true>
 mod.VEHICLE_TYPES = {

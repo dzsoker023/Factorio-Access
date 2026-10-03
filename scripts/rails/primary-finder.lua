@@ -37,15 +37,23 @@ end
 ---@param placement_direction defines.direction Direction the rail is placed
 ---@param position fa.Point Position of the rail
 ---@param query_fn fun(area: BoundingBox.0): LuaEntity[] Function to query rails at an area
-local function push_connected_unit_numbers(connected_set, rail_ent, rail_type, placement_direction, position, query_fn)
+---@param layer railutils.RailLayer? Layer of the rail (nil for ramps)
+local function push_connected_unit_numbers(
+   connected_set,
+   rail_ent,
+   rail_type,
+   placement_direction,
+   position,
+   query_fn,
+   layer
+)
    -- Get both end directions for this rail (always 2)
    local end_directions = RailQueries.get_end_directions(rail_type, placement_direction)
 
-   -- For each end, check all 3 neighbors (forward, left, right) = 6 total extensions
+   -- For each end, check all neighbors (forward, left, right, and the ramp on cardinal ends)
    for _, end_direction in ipairs(end_directions) do
-      local base_trav = Traverser.new(rail_type, position, placement_direction, end_direction)
+      local base_trav = Traverser.new(rail_type, position, placement_direction, end_direction, layer)
 
-      -- Forward, left, right (all 3 always exist)
       local moves = {
          function(t)
             t:move_forward()
@@ -56,16 +64,20 @@ local function push_connected_unit_numbers(connected_set, rail_ent, rail_type, p
          function(t)
             t:move_right()
          end,
+         function(t)
+            if not t:can_change_layer() then return false end
+            t:move_change_layer()
+         end,
       }
 
       for _, move_fn in ipairs(moves) do
          local trav = base_trav:clone()
-         move_fn(trav)
+         if move_fn(trav) == false then goto next_move end
 
          -- Get expected rail from traverser
          local expected_pos = trav:get_position()
          local expected_direction = trav:get_placement_direction()
-         local expected_type = RailQueries.rail_type_to_prototype_type(trav:get_rail_kind())
+         local expected_type = RailQueries.rail_type_to_layered_prototype_type(trav:get_rail_kind(), trav:get_layer())
 
          -- Floor the expected position (rails are grid-aligned)
          local expected_floor_x = math.floor(expected_pos.x)
@@ -92,6 +104,7 @@ local function push_connected_unit_numbers(connected_set, rail_ent, rail_type, p
                if pos_match and type_match and direction_match then connected_set[connected_rail.unit_number] = true end
             end
          end
+         ::next_move::
       end
    end
 end
@@ -100,6 +113,8 @@ end
 ---@param rail_type string Rail type name
 ---@return number Priority (lower = higher priority)
 local function get_rail_priority(rail_type)
+   -- Elevated pieces sort like their ground twins
+   rail_type = string.gsub(rail_type, "^elevated%-", "")
    if rail_type == "straight-rail" then
       return 1
    elseif rail_type == "half-diagonal-rail" then
@@ -159,14 +174,15 @@ function mod.deduplicate_secondary_rails(rail_list, query_fn)
          table.insert(result, rail_ent)
 
          -- Mark all rails connected to this one
-         local rail_type = RailQueries.prototype_type_to_rail_type(get_effective_name(rail_ent))
+         local rail_type, layer = RailQueries.prototype_type_to_rail_type_and_layer(get_effective_name(rail_ent))
          push_connected_unit_numbers(
             connected_to_primary,
             rail_ent,
             rail_type,
             rail_ent.direction,
             { x = rail_ent.position.x, y = rail_ent.position.y },
-            query_fn
+            query_fn,
+            layer
          )
       end
    end
@@ -194,14 +210,15 @@ function mod.deduplicate_secondary_rails(rail_list, query_fn)
             table.insert(result, rail_ent)
 
             -- Mark all rails connected to this one
-            local rail_type = RailQueries.prototype_type_to_rail_type(get_effective_name(rail_ent))
+            local rail_type, layer = RailQueries.prototype_type_to_rail_type_and_layer(get_effective_name(rail_ent))
             push_connected_unit_numbers(
                connected_to_primary,
                rail_ent,
                rail_type,
                rail_ent.direction,
                { x = rail_ent.position.x, y = rail_ent.position.y },
-               query_fn
+               query_fn,
+               layer
             )
          end
       end

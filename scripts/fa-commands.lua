@@ -8,6 +8,7 @@ the mod to be silent.
 ]]
 local CombatData = require("scripts.combat.combat-data")
 local CombinatorBoundingBoxes = require("scripts.combinator-bounding-boxes")
+local ElevatedProbe = require("scripts.rails.elevated-probe")
 local FaUtils = require("scripts.fa-utils")
 local Fluids = require("scripts.fluids")
 local Localising = require("scripts.localising")
@@ -109,29 +110,47 @@ end
 --[[
 /railtable
 
-Generates a comprehensive table of all rail piece extensions and signal locations.
-Places each of the 4 rail types at origin in all 8 valid directions, extracts:
-- Both ends and their map directions
+Regenerates the rail geometry table from the engine. Works on a scratch surface,
+never on the player's surface. Places each ground rail piece in all 8 valid
+directions (and its elevated twin, to verify the geometry is shared), plus the
+rail ramp in the 4 cardinal directions, and extracts:
+- Both ends with their map directions (and layer, for ramps)
 - Signal locations (in, out, alt_in, alt_out)
-- All extensions (left, straight, right) with goal positions
+- Same-layer extensions (left, straight, right) and ramp extensions
 
-Outputs to script-output/rail-table.lua
+Outputs script-output/rail-data.lua, ready to replace railutils/rail-data.lua, and
+script-output/rail-data-report.txt listing anything unexpected.
 ]]
 ---@param cmd CustomCommandData
 local function cmd_railtable(cmd)
    local pindex = cmd.player_index
-   local player = game.get_player(pindex)
-   if not player then return end
 
-   -- Extract rail data
-   local rail_data = RailTableExtractor.extract_rail_table(player.surface, player.force)
+   local rail_data, report = RailTableExtractor.extract_rail_table()
+   helpers.write_file("rail-data.lua", RailTableExtractor.serialize(rail_data), false)
+   local report_text = #report == 0 and "no problems" or table.concat(report, "\n")
+   helpers.write_file("rail-data-report.txt", report_text, false)
 
-   -- Write to file
-   local output = serpent.block(rail_data, { comment = false })
-   helpers.write_file("rail-table.lua", output, false)
-
-   Speech.speak(pindex, "rail table written to script-output/rail-table.lua")
+   Speech.speak(pindex, string.format("rail data written to script-output/rail-data.lua, %d problems", #report))
    print("rail table generation complete")
+end
+
+--[[
+/elevprobe [round]
+
+Developer tool for the elevated rails work. Runs the engine experiments listed in
+ELEVATED_RAILS_TERV_REVIEW.md on a throwaway surface and a throwaway force (the
+player's world, force and research are not touched), then writes the results to
+script-output/elevated-probe.txt. With a round number (1 to 4) only that
+round of experiments runs.
+]]
+---@param cmd CustomCommandData
+local function cmd_elevprobe(cmd)
+   local pindex = cmd.player_index
+   local round = cmd.parameter
+   if round == "" then round = nil end
+   local errors, filename = ElevatedProbe.run(pindex, round)
+   Speech.speak(pindex, string.format("elevated probe written to script-output/%s, %d errors", filename, errors))
+   print("elevated probe complete")
 end
 
 --[[
@@ -210,6 +229,10 @@ mod.COMMANDS = {
    railtable = {
       help = "Generate rail extension data table",
       handler = cmd_railtable,
+   },
+   elevprobe = {
+      help = "Run the elevated rails engine experiments into script-output/elevated-probe.txt",
+      handler = cmd_elevprobe,
    },
    ["fa-tutorial-transcript"] = {
       help = "Generate tutorial transcript to script-output/tutorial-transcript.md",

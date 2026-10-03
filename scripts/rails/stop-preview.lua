@@ -32,7 +32,7 @@ end
 ---@return boolean
 local function is_straight_rail(rail)
    local name = get_effective_name(rail)
-   local rail_type = RailQueries.prototype_type_to_rail_type(name)
+   local rail_type = RailQueries.prototype_type_to_rail_type_and_layer(name)
    return rail_type == RailInfo.RailType.STRAIGHT
 end
 
@@ -41,7 +41,7 @@ end
 ---@return "vertical"|"horizontal"|nil
 local function get_rail_orientation(rail)
    local name = get_effective_name(rail)
-   local rail_type = RailQueries.prototype_type_to_rail_type(name)
+   local rail_type = RailQueries.prototype_type_to_rail_type_and_layer(name)
    if rail_type ~= RailInfo.RailType.STRAIGHT then return nil end
 
    local ends = RailQueries.get_end_directions(rail_type, rail.direction)

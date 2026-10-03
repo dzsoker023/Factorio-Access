@@ -191,6 +191,32 @@ function parse_statement(state)
    elseif tok.type == Lexer.TOKEN_TYPE.CHAINSIG then
       state:advance()
       return Ast.chainsig(tok.span), nil
+   -- Elevated rails. No repetition: two ramps in a row cannot connect.
+   elseif tok.type == Lexer.TOKEN_TYPE.UP then
+      state:advance()
+      return Ast.up(tok.span), nil
+   elseif tok.type == Lexer.TOKEN_TYPE.DOWN then
+      state:advance()
+      return Ast.down(tok.span), nil
+   elseif tok.type == Lexer.TOKEN_TYPE.ELEV then
+      state:advance()
+      return Ast.elev(tok.span), nil
+   elseif tok.type == Lexer.TOKEN_TYPE.SUP then
+      state:advance()
+      return Ast.sup(tok.span), nil
+   elseif tok.type == Lexer.TOKEN_TYPE.NOSUP then
+      state:advance()
+      return Ast.nosup(tok.span), nil
+   elseif tok.type == Lexer.TOKEN_TYPE.AUTOSUP then
+      state:advance()
+      local arg = state:current_token()
+      if not arg or arg.type ~= Lexer.TOKEN_TYPE.IDENTIFIER or (arg.value ~= "on" and arg.value ~= "off") then
+         return nil,
+            Errors.error_builder(Errors.ERROR_CODE.UNEXPECTED_TOKEN, "Expected on or off after autosup", tok.span)
+               :build()
+      end
+      state:advance()
+      return Ast.autosup(arg.value == "on", tok.span:merge(arg.span)), nil
    elseif tok.type == Lexer.TOKEN_TYPE.TREE then
       -- Only square brackets are allowed for sequences
       if tok.bracket_type ~= "[" then

@@ -80,9 +80,9 @@ Other more advanced constructs however can be useful.
 Syntrax is primarily a language for typing, not reading.  It would be annoying if you had to type spaces all the time.
 For that reason, Syntrax supports chords.  A chord is a sequence of words without spaces.
 
-Only some words can be in a chord.  These are the basic l, s, r, their 45 and 90 degree variants, f, x, and ;.  f cannot
-be spelled flip and ; cannot be spelled reset (see below for reset). In particular mark cannot be in a chord, nor may
-bracketed subprograms.
+Only some words can be in a chord.  These are the basic l, s, r, their 45 and 90 degree variants, f, m, u, d, x, and ;.
+In a chord f cannot be spelled flip, m cannot be spelled mark, u and d cannot be spelled up and down, and ; cannot be
+spelled reset (see below for reset). Bracketed subprograms cannot be in a chord.
 
 Note that heavy use of chords renders your program nearly unreadable.  The reason these exist is because one of the two
 most common uses of Syntrax is typing little fragments into the game.  Use chords with caution.
@@ -158,3 +158,49 @@ To know which one you want think of it like this:
 
 Syntrax does not care if your program ends with a matched number of rpush or rpop.  It also does not care if they are
 matched inside brackets.  `[ rpush ] x 5 rpop` is a valid program for instance (all be it one that places nothing).
+
+## Elevated rails
+
+With Space Age (or the elevated rails mod) Syntrax can build bridges. You need the elevated rails research and a rail
+planner that can build elevated rails, which the normal rail item can.
+
+- up, or u: place a ramp from the current end up to the elevated layer. Everything after it is elevated.
+- down, or d: place a ramp from the current end down to the ground.
+- elev: a ramp to the other layer, whichever that is. up and down are easier to read later, so prefer them.
+- sup: place a rail support at the current end. Only on elevated rails, and only at ends facing one of the 8 main
+  directions (not the half-diagonal ends in the middle of a curve).
+
+Ramps can only start from an end facing north, east, south or west, and you cannot put two ramps in a row. A ramp is as
+long as 8 straight rails. Signals cannot go on a ramp itself; put a rail after it first. Signals placed on the elevated
+layer are placed on the bridge, not on the ground below.
+
+You normally do not need sup. Syntrax works out where supports go and adds them for you, using as few as it can: the top
+of a ramp holds 4 straight rails, and a support holds 5 straight rails on each side, so a bridge can have up to 9 rails
+after a ramp before the first support and up to 10 rails between supports. When the bridge ends in a ramp (or in a
+support you placed), the supports Syntrax adds are spread evenly between the two ends, so `up s x 10 down` gets one
+support in the middle with 5 rails on each side. When the bridge just stops, the last support goes as far ahead as it
+can, so it is useful when you carry on building later. A support you place with sup is used, and Syntrax only adds more
+where it is still needed. If Syntrax cannot find a place for a support, it reports the rail that cannot be held and
+builds nothing.
+
+Two more words give you control over the planner:
+
+- nosup: no support at the current end. Syntrax puts the support it would have placed here somewhere else, for
+  example because something else will be built on that spot later.
+- autosup off, autosup on: from here on, Syntrax adds no supports of its own (or does again). It still checks that every
+  elevated rail is held, by a ramp or by a support you placed with sup, and reports the first rail that is not held
+  instead of building anything.
+
+For example, `up autosup off s x 6 sup s x 6 down` builds a bridge with exactly the one support you wrote.
+
+Mark, reset, rpush and rpop remember the layer too, so `up s x 6 mark l45 s x 4 reset r45 s x 4` forks on the bridge,
+and a reset back to a mark on the ground puts you back on the ground.
+
+Examples:
+
+- `up s x 10 down`: a bridge with 10 rails between the ramps. Syntrax adds one support.
+- `usx20d`: the same as `up s x 20 down`, typed as a chord.
+- `up s x 4 sup s x 5 sup s x 4 down`: supports exactly where you want them.
+
+A ground rail and an elevated rail can be at the same place, one under the other, so Syntrax builds both if a program
+goes over the same spot on both layers.

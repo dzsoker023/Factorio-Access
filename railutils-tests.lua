@@ -7,6 +7,8 @@ local tests = {
    { "rail-describer", require("railutils.tests.rail-describer") },
    { "grid-alignment", require("railutils.tests.grid-alignment") },
    { "turn-detection", require("railutils.tests.turn-detection") },
+   { "support-planner", require("railutils.tests.support-planner") },
+   { "elevated-describer", require("railutils.tests.elevated-describer") },
 }
 
 local runner = lu.LuaUnit.new()

@@ -20,9 +20,11 @@ mod.VERSION = "0.1.0-dev"
 ---@param initial_position fa.Point? Starting position, defaults to {x=0, y=0}
 ---@param initial_direction (number|defines.direction)? Starting direction (0-15), defaults to north (0)
 ---@param initial_rail_type railutils.RailType? Starting rail type, defaults to STRAIGHT
----@return syntrax.vm.RailPlacement[]? rails Array of rail placements, or nil on error
+---@param initial_placement_direction number? Placement direction of the starting rail
+---@param opts syntrax.vm.RunOpts? Starting layer, and support planning for elevated rails
+---@return syntrax.vm.PlacementGroup[]? placements Placement groups, or nil on error
 ---@return syntrax.Error? error Error object if compilation or execution failed
-function mod.execute(source, initial_position, initial_direction, initial_rail_type, initial_placement_direction)
+function mod.execute(source, initial_position, initial_direction, initial_rail_type, initial_placement_direction, opts)
    -- Parse
    local ast, parse_err = Parser.parse(source)
    if parse_err then return nil, parse_err end
@@ -37,7 +39,7 @@ function mod.execute(source, initial_position, initial_direction, initial_rail_t
    local vm = Vm.new()
    vm.bytecode = bytecode
    local rails, runtime_err =
-      vm:run(initial_position, initial_direction, initial_rail_type, initial_placement_direction)
+      vm:run(initial_position, initial_direction, initial_rail_type, initial_placement_direction, opts)
 
    if runtime_err then return nil, runtime_err end
 
@@ -49,6 +51,7 @@ end
 ---@field position fa.Point Position where the rail should be placed
 ---@field rail_type string "straight-rail", "curved-rail-a", "curved-rail-b", or "half-diagonal-rail"
 ---@field placement_direction number 0-15 direction for placement
+---@field layer railutils.RailLayer Layer of the rail (for a ramp, the layer it leads to)
 ---@field span syntrax.Span? Source span for error reporting
 
 -- Document the error structure for API consumers

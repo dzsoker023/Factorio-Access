@@ -3216,6 +3216,658 @@ egyik irányban sem — jelezze hogy nincs mit kapcsolni.
 
 ---
 
+## 37. `[ELEVATED-PROBE]` Elevated rails — fejlesztői kísérlet-parancs (`/elevprobe`), az implementáció 0. lépése
+
+**37.1 Előzmény**
+
+Az elevated rails bekötéséhez készült terv (`ELEVATED_RAILS_TERV.md`) és
+annak reviewja (`ELEVATED_RAILS_TERV_REVIEW.md`, 4.2 pont) szerint a
+kódolás előtt néhány motor-viselkedést élő játékban kell kimérni, mert
+dokumentációból nem dönthetők el (pl. mennyi elevált sínt tart egy rámpa és
+egy támasz, hová ugrik a támasz, mit rögzít a blueprint a jelző rétegéről,
+függ-e a `get_rail_extensions` a kutatástól). A user kérése: "Kezd el
+megvalósítani."
+
+**37.2 Mi készült**
+
+- **`scripts/rails/elevated-probe.lua`** (új fájl): egy önálló kísérlet-modul.
+  Egy eldobható felületen (`fa-elevated-probe-<tick>`, betonnal fedett,
+  egy vízsávval) és egy eldobható force-on dolgozik, tehát a játékos
+  világához, force-ához és kutatásaihoz nem nyúl. A végén a felületet
+  törli, a force-ot a `neutral`-ba olvasztja. Kísérletek, mindegyik külön
+  `pcall` alatt: prototípus-adatok és kutatási zászlók; minden sín-darab
+  (4 földi, 4 elevált, rámpa) mindkét vége és összes kiterjesztése
+  réteggel (E8/E11/E2a, a duplikált cél-irányokat megjelölve); kutatási
+  zászló hatása a kiterjesztésekre (E10); támasz nélküli elevált sín és
+  ghost lerakhatósága (E2b); egy rámpa, majd egy támasz hány egyenes
+  elevált sínt tart, és hová kerül a támasz (E4/E5); egymás feletti földi
+  és elevált sín jelzői, `rail_layer`, és a blueprint mezői (E3); víz feletti
+  lerakhatóság (E9). Az eredmény `script-output/elevated-probe.txt`.
+- **`scripts/fa-commands.lua`**: új `/elevprobe` parancs (`ElevatedProbe`
+  require + `cmd_elevprobe` + bejegyzés a `mod.COMMANDS` táblába), a
+  meglévő `/railtable` mintájára; a végén beszédben bemondja a fájlnevet
+  és a hibák számát.
+
+Mod-viselkedés nem változott; ez kizárólag fejlesztői eszköz.
+
+**37.3 Ellenőrzés**
+
+`luac -p` mindkét fájlon hibátlan; a sorok 120 karakter alatt vannak
+(stylua-kompatibilis tördelés). Az in-game futtatást a usernek kell
+elvégeznie: a konzolban `/elevprobe`, utána a `script-output/elevated-probe.txt`
+fájlt Claude olvassa ki.
+
+**37.4 Mellékes megfigyelés (nincs javítva, a terv v2-be kerül)**
+
+A meglévő `/railtable` a játékos **saját** felületén, a (0,0) körül
+dolgozik, és a `table-extractor.lua` ott 10 mezős körben törli az azonos
+típusú síneket — éles mentésben futtatva a játékos sínjeit bonthatja el.
+A tervezett kinyerő-javításnál ezt is az eldobható-felület mintára kell
+átállítani.
+
+---
+
+## 38. `[ELEVATED-A-EXTRACTOR]` + `[ELEVATED-G-UNMAP]` Elevated rails A fázis: biztonságos, rétegtudatos sín-tábla kinyerő; G felszabadítása; a kísérlet-parancs második köre
+
+**38.1 Előzmény és a user döntései**
+
+A `/elevprobe` első futása (0 hiba) kimérte a hiányzó motor-adatokat. A
+döntő eredmények: (1) minden kardinális sínvégről a motor 4 kiterjesztést
+ad, a 4. egy rámpa, ugyanazzal a cél-iránnyal, mint az egyenes — a régi
+kinyerő (`extensions[goal_direction]`) ezt felülírta volna, földi végnél a
+rámpa az utolsó, tehát a földi egyenest **lecserélte volna rámpára**; (2) az
+elevált darabok geometriája (pozíció, végek, jelzőhelyek, kiterjesztések)
+bitre azonos a földiekével; (3) a kutatási zászló nem befolyásolja a
+kiterjesztéseket; (4) támasz nélküli elevált sín ghostként lerakható, de
+nem revive-olható; (5) egy rámpa 4, egy támasz 5 egyenes elevált sínt tart
+egy irányban (ez a wiki "5 egyenes" állításával egyezik).
+
+A user döntései (a reviewban feltett kérdésekre): fork, de upstream
+minőségben, később témánkénti MR-ekben; a vanilla G-s rétegváltó levétele
+config change settel: igen; Syntrax `up`/`down` + `elev` alias: igen;
+virtuális vonat Shift+Comma / Ctrl+Shift+Comma / Ctrl+Comma: igen; kézi
+építésnél a mod szóljon és várjon (az automatikus mód beállításként): igen.
+
+**38.2 Mi készült**
+
+- **`scripts/rails/scratch-surface.lua`** (új fájl): az eldobható felület és
+  force létrehozása, takarítása és törlése, közösen a kinyerőnek és a
+  probe-nak.
+- **`scripts/rails/table-extractor.lua`** (átírva): mostantól a scratch
+  felületen dolgozik, nem a játékos felületén (a régi a (0,0) körül 10 mezős
+  körben törölte a játékos sínjeit). A séma visszafelé kompatibilis: a
+  földi `extensions[goal_direction]` tartalma változatlan, a rámpa
+  kiterjesztések külön mezőkbe kerülnek (`ramp_up` földi végről, `ramp_down`
+  elevált végről, `goal_layer`-rel), és új `["rail-ramp"]` bejegyzés jön a 4
+  kardinális irányra, végenként `layer` mezővel. Minden elevált darabot
+  kimér, és összeveti a földi párjával; eltérés esetén a riportba ír. Ha
+  egy kulcsra két kiterjesztés jönne, szintén riportba ír (ez volt a régi
+  csendes felülírás). Új `mod.serialize`: közvetlenül a
+  `railutils/rail-data.lua` formátumát írja (`defines.direction.*`
+  kulcsokkal) — a régi táblán futtatott oda-vissza teszt bájtra azonos
+  fájlt adott, tehát az új kimenet és a mostani tábla közti diff pontosan a
+  hozzáadott rámpa-adat lesz.
+- **`scripts/fa-commands.lua`**: a `/railtable` a fentit hívja, kimenete
+  `script-output/rail-data.lua` (beilleszthető) és
+  `script-output/rail-data-report.txt`.
+- **`config_changes/AF_unmap_toggle_rail_layer.ini`** (új fájl):
+  `toggle-rail-layer=` — a launcher a következő indításkor felajánlja; ugyanaz
+  a minta, mint az `AD_unmap_driving_alternative.ini` ("so g can read armor
+  stats").
+- **`scripts/rails/elevated-probe.lua`**: átállítva a közös scratch
+  felületre, és új kísérletek: egyetlen támasz hány magányos elevált darabot
+  tart, irány és darabtípus szerint (egyenes, átlós, kanyar, fél-átlós),
+  ghost támasszal és rácson kívüli támasszal is; jelző elevált-only sín
+  mellett, a blueprint mezői, és ennek a blueprintnek a lerakása egymás
+  feletti földi+elevált pályán; egy teljes elevált szakasz (rámpa, 8 sín,
+  támasz) egyetlen blueprintként, hová kerül a támasz-ghost, és melyik
+  revive-sorrend működik.
+
+A `railutils/rail-data.lua` még **nem** változott: az új táblát a user
+`/railtable` futtatása után, a diff ellenőrzésével cseréljük.
+
+**38.3 Ellenőrzés**
+
+`luac -p` minden érintett Lua fájlon hibátlan, a sorok 120 karakter alatt.
+A szerializáló oda-vissza tesztje (a mostani `rail-data.lua` beolvasva,
+névre alakítva, visszaírva) bájtra azonos fájlt adott. In-game: a user
+újratölti a mentést, és lefuttatja a `/elevprobe` és a `/railtable`
+parancsot.
+
+---
+
+## 39. `[ELEVATED-A-RAILDATA]` + `[ELEVATED-C-TRAVERSER]` Új sín-tábla élesítve; a railutils ismeri a réteget és a rámpát; harmadik kísérlet-kör
+
+**39.1 A `/railtable` eredménye (a user futtatta, "no problems")**
+
+Az új `script-output/rail-data.lua` és a régi `railutils/rail-data.lua`
+szemantikai összevetése (Lua-ban mindkettőt betöltve): pontosan 16
+`ramp_up` és 16 `ramp_down` mező jött hozzá (minden kardinális sínvégnél
+mindkettő: az egyenes sínek 8 kardinális vége és az a-kanyarok 8 kardinális
+vége), és az új `["rail-ramp"]` bejegyzés (4 irány, végenként `layer`
+mezővel). Ezen felül csak 24 `bounding_box.orientation` érték változott a
+9. tizedesjegy körül (a 2.1.20-as motor kerekítése) — ezt a mezőt a
+railutils sehol nem olvassa. Minden más bájtra azonos. A kinyerő az elevált
+darabokat egyenként összevetette a földi párjukkal: eltérés nincs.
+
+**39.2 Mi változott**
+
+- **`railutils/rail-data.lua`**: lecserélve az új kimenetre (a fenti
+  különbségekkel).
+- **`railutils/rail-info.lua`**: `RailType.RAMP = "rail-ramp"` és új
+  `RailLayer` enum (`GROUND = "ground"`, `ELEVATED = "elevated"`, sima
+  string, így a Factorio nélküli tesztek is futnak, polyfill nélkül).
+- **`railutils/queries.lua`**: a rámpa bekerült a típus-táblába; új
+  `rail_type_to_layered_prototype_type` (típus + réteg → építendő
+  prototípus), `prototype_type_to_rail_type_and_layer` (bármely sín →
+  típus + réteg; rámpánál a réteg nil), `is_known_rail_prototype_type` (nem
+  dob hibát, a belépési pontoknak), `get_ramp_end_layer` és
+  `get_ramp_extension_from_end` (a kardinális végek rámpája, fel vagy le).
+  A régi, hibát dobó `prototype_type_to_rail_type` változatlan (a projekt
+  "let it crash" elve szerint a mag továbbra is hibát dob).
+- **`railutils/traverser.lua`**: új `_layer` állapot (alapértelmezés
+  földi, így minden meglévő hívó változatlanul működik); `new()` opcionális
+  réteg-paramétert kap, rámpánál a vég rétegét a táblából veszi;
+  `_apply_extension` a rámpa célrétegére vált; új `can_change_layer()`,
+  `move_change_layer()` és `get_layer()`; `flip_ends()` rámpán réteget is
+  vált; `clone()` a réteget is másolja.
+- **`railutils/tests/traverser.lua`**, **`railutils/tests/queries.lua`**: 13
+  új teszt (fel- és lerámpázás pozíciókkal, átlós végről nincs rámpa,
+  elevált kanyar megtartja a réteget, flip rámpán, klón, típus/réteg
+  leképezések, rámpa-végek rétege).
+- **`scripts/rails/elevated-probe.lua`**: harmadik kísérlet-kör (E12: mennyivel
+  a megtartott lánc előtt állhat egy önálló támasz, hogy a lánc odáig és
+  azon túl nőjön — a user észrevétele alapján, hogy a támasz a következő
+  vagy az azutáni sín alá kerülhet; E13: egy teljes elevált szakasz
+  blueprintje pálya-sorrendben revive-olva, támasz előre vagy igény
+  szerint; E14: elevált jelző támasszal és anélkül, `create_entity`-vel és
+  `rail_layer = "elevated"` mezős blueprinttel). A `/elevprobe 3` csak ezt
+  a kört futtatja.
+- **`scripts/fa-commands.lua`**: a `/elevprobe` kör-paramétert fogad.
+
+**39.3 A második kör (E4b, E3b, E5b) tanulságai — a terv v2-be**
+
+- Egy magányos elevált darab (szomszéd nélkül) egyetlen támasz mellett sem
+  rakható le, semmilyen távolságból; a lánc mentén viszont igen. A
+  támaszosság tehát nem "távolság a támasztól", hanem a meglévő, megtartott
+  pályához való csatlakozás. A támasz valószínűleg csak sínvégen ("spot")
+  számít; a rácson kívüli vagy a sín tengelyétől 1 mezőre álló támasz
+  semmit nem tartott.
+- Egy teljes szakasz blueprintje ghostként hiánytalanul lerakódik (a
+  támasz-ghost nem ugrik el), de a revive csak pálya-sorrendben, a
+  horgonytól kifelé működhet: tetszőleges sorrendben a sínek elbuknak.
+- `create_entity`-vel elevált sín mellé rakott jelző a földi réteghez
+  kapcsolódott; egy `rail_layer = "elevated"` mezős blueprint viszont olyan
+  helyre is lerakott ghostot, ahová a mező nélküli nem — a mező tehát
+  létezik. (A ghost `rail_layer`-ét nem lehet olvasni, ezért a harmadik kör
+  revive után olvassa.)
+
+**39.4 Ellenőrzés**
+
+`luac -p` minden érintett fájlon hibátlan, sorok 120 karakter alatt.
+Offline tesztek (`railutils-tests.lua`): 41/41 sikeres (28 régi + 13 új), a
+régi és az új táblával is. `syntrax-tests.lua`: 91/93 — a két hiba
+(`span.TestResolveSimpleL2/L3`) a régi táblával is ugyanígy jelentkezik,
+nem sínekhez kötött (valószínűleg Lua 5.3 vs 5.2 eltérés a felhős
+tesztkörnyezetben), a mostani változásoktól független.
+
+---
+
+## 40. `[ELEVATED-PROBE]` A harmadik kísérlet-kör eredménye + negyedik kör
+
+**40.1 A harmadik kör (a user futtatta, 0 hiba) tanulságai**
+
+- **E12 — önálló támasz a lánc előtt:** ha a támasz a következő sín
+  végére kerül (1 sínnyi előny), a lánc 6 sínnel nő tovább (a következő +
+  5 a támaszon túl). Ha 2 vagy több sínnyi előnyben áll, előre haladva a
+  következő sín sem rakható le. A támasz tehát csak a már megépített
+  pályán keresztül hat: egy sín akkor rakható le, ha a meglévő pályán át
+  eléri egy támasz vagy rámpa hatótávját. A tengelytől 1 mezőre vagy a
+  sín közepére tett támasz semmit nem ér.
+- **E13 — egy blueprintes szakasz, pálya-sorrendű revive:** a rámpa 4
+  sínt tart, a 9. sín végén álló támasz a 9–14. sínt; az 5–8. sín egy
+  előre haladó menetben elbukik (még nem csatlakozik a támaszhoz).
+- **E14 — elevált jelző:** `create_entity`-vel mindig a földi réteghez
+  kapcsolódik. A `rail_layer = "elevated"` mezős blueprint mindhárom
+  esetben (támasszal, támasz nélkül, egymás feletti pályán) elevált jelzőt
+  adott revive után. A motor tehát nem követel támaszt a jelző alá, ha
+  blueprintből épül; a user emlékezete szerinti "támaszra kell rakni"
+  szabály valószínűleg a vanilla kézi lerakás UI-jából jön — ez a
+  bevezetés UX-ében még tisztázandó.
+
+**40.2 Negyedik kör (`/elevprobe 4`)**
+
+A fentiekből levont modell: egy sín akkor támasztott, ha a meglévő pálya
+mentén mért távolsága a legközelebbi támasztól (11 mező) vagy rámpa-tetőtől
+(9 mező) a hatótávon belül van. Ebből az következik, hogy egy támasz a
+lánc végén túl legfeljebb 5 sínnyire állhat, ha a köztes síneket a
+támasztól visszafelé építjük, és két támasz között legfeljebb 10 egyenes
+fér el. A negyedik kör ezt méri: E15 — a támasz k sínnyire (1–7), a sínek a
+támasztól visszafelé, majd előre; E16 — a támasz iránya (kelet, északkelet,
+dél) számít-e; E17 — két támaszos, 20 sínes szakasz blueprintje ismételt
+revive-menetekkel (amíg egy menet már nem hoz újat); E18 — hány kanyart
+tart egy rámpa, majd egy támasz.
+
+- **`scripts/rails/elevated-probe.lua`**: a negyedik kör függvényei.
+- **`scripts/fa-commands.lua`**: a súgó-szöveg "1 to 4".
+
+**40.3 Ellenőrzés**
+
+`luac -p` hibátlan, sorok 120 karakter alatt.
+
+## 41. `[ELEVATED-D-PLANNER]` + `[ELEVATED-E-SYNTRAX]` A negyedik kör eredménye; támasz-tervező; Syntrax `up`/`down`/`elev`/`sup`; a runner elevált építése
+
+**41.1 A negyedik kör (a user futtatta, 0 hiba) tanulságai**
+
+- **E15:** a támasztól visszafelé építve k ≤ 5 sínig minden lerakható,
+  k = 6-nál az 1. sín, k = 7-nél az 1–2. sín elbukik. Így blueprintes
+  (Syntrax) építésnél a rámpa után legfeljebb 9 sín, két támasz között
+  legfeljebb 10 egyenes lehet.
+- **E16:** a támasz irányának a pályát kell követnie (északi pályán az
+  észak és a dél is jó, a kelet és az északkelet semmit nem tart).
+- **E17:** a két támaszos, 23 darabos szakasz ismételt revive-menetekkel
+  teljesen felépül (6 menet: 13, 3, 2, 2, 2, 1).
+- **E18:** a rámpa 1 curved-a, a támasz 2 curved-b darabot tart — egyezik a
+  végpontok közti húr-hosszal számolt modellel.
+- A user megjegyzése (lépésenkénti építésnél a támasz a következő sín alá
+  kell) az E12 szerint igaz: ott supportonként 6 sín jön ki. Ez a VTD (G
+  fázis) szabálya lesz; Syntraxnál a visszafelé épülés miatt ritkább
+  támasz is elég.
+
+**41.2 Új fájl: `railutils/support-planner.lua`** (Factorio-független)
+
+- Bemenet: a lerakott darabok listája (típus, irány, pozíció, a túlsó vég
+  iránya és rétege, a szülő darab és annak melyik végéből folytatódik,
+  kért-e a program támaszt ide). Kimenet: támaszok (melyik darab túlsó
+  végére, pozíció, irány) és problémák.
+- Darabhossz: a két vég közti távolság, íveknél ×1,0065 (inkább több
+  támasz, mint megtámasztatlan sín).
+- Mohó algoritmus: ha egy elevált darabot a mögötte maradt hatótáv nem
+  fed, előrenéz az el nem ágazó pályán: ha egy lefelé rámpa vagy a
+  program által kért támasz elöl még elér, nem kell semmi; különben a
+  legtávolabbi, még elérő, 8-irányú végre tesz támaszt (a támasz 8
+  irányú, félátlós végre nem állhat). Elágazásnál és visszafordított
+  (flip) végnél nem néz tovább / 0 hatótávval számol — óvatos irány.
+- Rámpa-tető hatótáv 9, támasz 11 (a runner a prototípusokból olvassa:
+  `LuaEntityPrototype.support_range`).
+- Tesztek: `railutils/tests/support-planner.lua` (14 eset, pl. rámpa + 8
+  egyenes + rámpa → 0 támasz; rámpa + 20 + rámpa → 2 támasz a 9. és 19.
+  egyenes végén; 40 egyenesnél 10-enként; kanyarok; elágazás; induló
+  hatótáv), bekötve a `railutils-tests.lua`-ba. 55/55 zöld.
+
+**41.3 Syntrax: új szavak** (`syntrax/lexer.lua`, `parser.lua`, `ast.lua`,
+`compiler.lua`, `vm.lua`, `syntrax.lua`)
+
+- `up` / `u` (chord), `down` / `d` (chord), `elev` (a másik rétegre),
+  `sup` (támasz az aktuális végen). Ismétlés (`x N`) közvetlenül utánuk
+  nincs, mert két rámpa nem fűzhető egymás után; zárójellel lehet.
+- VM: a darabok listáját (`pieces`) a szülő-kapcsolattal együtt vezeti a
+  tervezőnek; a `rpush`/`rpop`, `mark`/`reset` a darabot is menti. A
+  dedup-kulcs a réteget is tartalmazza (híd alatti földi pálya nem esik
+  ki). A sín-elhelyezés kapott `layer` mezőt, a jelzők is.
+- Futásidejű hibák: `up` elevált rétegen / `down` földön, rámpa nem
+  kardinális végről, `sup` földön vagy félátlós végen, jelző rámpán.
+- Új `SupportPlacement` (`type = "support"`, `explicit`); a tervezett
+  támaszok a darabjuk csoportja után kerülnek be.
+- `Syntrax.execute(..., opts)` és `VM:run(..., opts)`: `initial_layer`,
+  `support = { support_range, ramp_range, start_reach }`. Opts nélkül
+  semmi nem változik.
+- `railutils/traverser.lua`: új `get_end_position()`.
+- Tesztek: `syntrax/tests/elevated.lua` (22 eset), bekötve a
+  `syntrax-tests.lua`-ba. 113/115 zöld; a 2 hiba a régi
+  `span.TestResolveSimpleL2/L3` (Lua 5.3 vs 5.2, nem tőlem).
+
+**41.4 Játék-oldal**
+
+- `scripts/rails/surface-helper.lua`: a planner-leírás felveszi az
+  elevált neveket, a `ramp_name`-et és a `support_name`-et
+  (`LuaItemPrototype.support`); mind vagy egyik sem. Új
+  `has_elevated(description)`.
+- `railutils/surface-impls/game-surface.lua`: csak az annotáció bővült.
+- `scripts/blueprint-synthesizer.lua`: új opcionális `extra_fields`
+  paraméter (a jelző `rail_layer = "elevated"` mezőjéhez, E14 alapján).
+- `scripts/rails/build-helpers.lua`: `find_expected_entity` jelzőnél a
+  réteget is nézi (`LuaEntity.rail_layer`; ghostnál nem olvasható, ott
+  nincs ellenőrzés); `place_ghost`/`place_ghosts` átadja a réteget; új
+  `revive_ghosts_until_stable` (menetek, amíg van előrelépés).
+- `scripts/rails/syntrax-runner.lua`: réteg szerinti név-leképezés,
+  támasz-elhelyezés, a tartományok a prototípusokból; ha a program
+  elevált darabot épít, de a planner nem tud ilyet vagy nincs kutatás
+  (`LuaForce.rail_planner_allow_elevated_rails`), hibaüzenet. Normál
+  módban a revive menetekben fut; ha valami mégsem épül fel, a
+  felépültek maradnak (azok meg vannak támasztva), csak azokért von le
+  tárgyat, a saját fel nem épült ghostjait törli, és ezt bemondja.
+  Opcionális új `layer` opció (a VTD még nem adja át, G fázis).
+- `docs/features/syntrax.md`: új "Elevated rails" fejezet; a chord-lista
+  javítva (az `m` eddig is chordolható volt, a doksi rosszul írta).
+
+**41.5 Nyitott / következő**
+
+- Nincs még: `nosup`, `autosup off` (a tervben szereplő power-user
+  kapcsolók), VTD réteg-kezelés és billentyűk, elevált sínre lock-on
+  (a jelenlegi lock-on elevált sínen még hibát adna), leírók/announcer.
+- Elevált kezdő sínnél a világ-oldali hatótávot még nem számoljuk (0-val
+  indul, ezért az első szakaszra óvatosan támaszt tesz).
+- In-game ellenőrizendő: a támasz blueprintből a rail-vég pozíciójára
+  kerül-e (2×2 rács-illesztés); átlós pályán a támasz iránya.
+
+**41.6 Ellenőrzés**
+
+`luac -p` hibátlan minden érintett fájlra, az új sorok 120 karakter
+alatt, railutils 55/55, syntrax 113/115 (a 2 régi span-hiba).
+
+**41.7 Javítás az első in-game teszt után: a támasz egy mezővel elcsúszott**
+
+- **Tünet (user):** `u sx10 d` és `usx20d` — a támaszok egy mezővel
+  jobbra (keletre) kerültek a sínvégtől, ezért semmit nem tartottak; a
+  rámpák hatótávján kívüli sínek kimaradtak. A tervező helyei jók voltak
+  (a 9. és 19. egyenes vége), csak a lerakás csúszott.
+- **Ok:** a magányos támaszt tartalmazó szintetizált blueprintet a játék
+  a támasz 2×2-es rácsára illeszti, így a páratlan x-ű sínvég helyett
+  páros x-re került. Az E15 mérésben `create_entity` a pontos sínvégre
+  tette (pl. (1, -18)).
+- **Javítás:** `scripts/rails/build-helpers.lua`: új `place_ghost_exact`
+  (blueprint nélkül, `can_place_entity` `manual_ghost` ellenőrzéssel,
+  majd `create_entity` `entity-ghost`-tal; ha mégis elcsúszna, egyszer
+  `snap_to_grid = false`-szal újrapróbál, különben hibát ad), új
+  `find_exact_ghost` / `find_exact_entity` (pontos pozíció — egy mezővel
+  arrébb álló támasz nem számít meglévőnek). A `place_ghosts` az `exact`
+  jelzős elhelyezéseket így rakja le.
+- `scripts/rails/syntrax-runner.lua`: a támasz-elhelyezés `exact = true`,
+  a meglévő entitás/ghost keresése támasznál pontos pozícióval.
+
+**41.8 A támaszok egyenletes elosztása (user kérdése nyomán)**
+
+- **Kérdés (user):** miért kerül a támasz közvetlenül a lefelé rámpa elé,
+  miért nem középre? A mohó "legtávolabbi még jó pont" szabály helyes
+  volt (a lefelé rámpa hátrafelé ugyanúgy 9 mezőt / 4 sínt tart, mint a
+  felfelé előre), de a támaszokat a futam végére tolta.
+- **Új szabály (`railutils/support-planner.lua`):** ha a futamot elöl
+  horgony zárja (lefelé rámpa vagy a program által kért `sup`), a mohó
+  módszer csak a darabszámot adja, a támaszok pedig egyenletesen kerülnek
+  a két horgony közé (a legközelebbi 8-irányú sínvégre), majd egy
+  ellenőrző lépés megnézi, hogy így is minden sín meg van-e tartva; ha
+  nem, marad a mohó elrendezés. Nyitott végű futamnál (a pálya később
+  folytatódhat) marad a "legtávolabbra" szabály, hogy az utolsó támasz a
+  folytatást is tartsa. Új `back[]` nyilvántartás: a darab mögötti
+  horgony távolsága, az egyenletes elosztás kezdőpontjához.
+- Eredmény: `up s x 10 down` → 1 támasz az 5. egyenes végén (5–5 sín);
+  `up s x 20 down` → a 7. és 13. egyenes végén (7–6–7).
+- **Tesztek:** a régi elvárások frissítve; új: szimmetrikus 10-es híd;
+  300 véletlen híd (egyenesek + 45°-os fordulók) a motor-szabállyal
+  független ellenőrzővel; 1–60 egyenesnél a támaszszám a minimális
+  (`ceil((n − 8) / 10)`); hosszú félátlós szakasz → "no-spot" probléma
+  (félátlós pályán csak 16-irányú végek vannak, oda támasz nem állhat).
+  railutils 59/59, syntrax 113/115 (a 2 régi span-hiba).
+- `docs/features/syntrax.md`: az elosztási szabály leírva.
+
+## 42. `[ELEVATED-G-VTD]` Elevated rails a virtuális vonatban (VTD): rámpa, támaszok, rázárás elevált sínre
+
+**42.0 Előzmény:** a user in-game ellenőrizte a 41. pontot: a Syntrax-híd
+kanyarodik, elágazik, a vonat áthalad rajta, a támaszok egyenletesek.
+
+**42.1 Billentyűk** (a user korábbi döntése szerint; `control.lua`: új WORLD
+handlerek a `fa-s-comma`, `fa-c-comma`, `fa-cs-comma` inputokra, eddig
+csak UI-ban voltak használva)
+
+- **Shift+vessző:** rámpa az aktuális végről (földön fel, hídon le). Csak
+  kardinális végről; különben bemondja, merre néz a vég.
+- **Ctrl+vessző:** a javasolt támasz lerakása, és utána a sín, amelyiknek
+  kellett (egy lépésben).
+- **Ctrl+Shift+vessző:** támasz az aktuális végen (kézi).
+
+**42.2 Támasz-kezelés lépésenkénti építésnél**
+(`scripts/rails/virtual-train-driving.lua`)
+
+- Minden lépés (`vtd.Move`) új mezőket kap: `layer` (a vég rétege) és
+  `reach` (elevált végen mennyit tart még a mögötte lévő támasz/rámpa).
+- Normál módban a motor dönt: a sín ghostja lerakódik, és ha a revive
+  nem sikerül (semmi nem tartja), a mod nem mondja, hogy "cannot build",
+  hanem támaszt javasol. Force/superforce módban (ghostok, nincs revive)
+  a nyilvántartott `reach` alapján dönt.
+- A javasolt hely a user megfigyelése szerint (E12): az új sín túlsó
+  vége (onnan még 5 sínt tart); ha az félátlós (16-irányú) vég, akkor az
+  aktuális vég; ha az is, akkor bemondja, hogy itt nem állhat támasz.
+- Kérdező mód (alapértelmezés): bemondja, hogy támasz kell, és a
+  Ctrl+vesszőre vár; a javaslat csak a következő billentyűig él (a K
+  állapot-lekérdezés nem törli). Új beállítás: **"Automatic rail
+  supports"** (`fa-elevated-auto-support`, `scripts/settings-decls.lua`,
+  `locale/en/settings.cfg`) — bekapcsolva azonnal lerakja.
+- A támasz a sín mozdulatának `entities` listájába az ELEJÉRE kerül, így a
+  Backspace előbb a sínt, utána a támaszt bontja.
+- Ha a cél-helyen már van megépült elevált sín, a vonat ráhajt, és a
+  `reach`-et a világból számolja.
+- A támasz pontos pozícióra kerül (`BuildHelpers.place_ghost_exact`, 41.7),
+  normál módban azonnal revive + tárgylevonás; ellenkező irányban álló
+  meglévő támaszt is elfogad (8-cal eltolt irány ugyanaz a tengely).
+
+**42.3 Új fájl: `scripts/rails/elevated-reach.lua`**
+
+- `reach_at_end(rail, end_direction, ranges)`: a megépült pályán
+  `LuaRailEnd.make_copy` + `move_forward` lépésekkel visszafelé járva
+  (bal/egyenes/jobb, max. a nagyobb hatótávig) megkeresi a támaszokat
+  (pontosan a sínvégen, a pálya irányában) és a rámpa-tetőket, és a
+  legjobb (hatótáv − távolság) értéket adja. Ghostokat nem jár be (azok
+  semmit nem tartanak). Rázáráskor, flip-nél és meglévő sínre lépéskor fut.
+
+**42.4 Rázárás elevált sínre + a régi "átesés" hiba javítása**
+
+- `scripts/consts.lua`: új `ELEVATED_RAIL_TYPES` (4 elevált + rámpa),
+  `ALL_RAIL_TYPES`, `ALL_RAIL_TYPES_SET`. A régi `RAIL_TYPES` marad (a
+  tile-olvasó és a leíró még nem ismeri a réteget — F fázis).
+- `scripts/entity-selection.lua`: új `find_first_ent_at_tile(pindex,
+  predicate)` — az első illeszkedő entitás a tile-on, a ciklus-index
+  érintése nélkül.
+- `control.lua` (normál/force/superforce rázárás): eddig csak a tile ELSŐ
+  entitását nézte, és ha az támasz vagy elevált sín volt, a kattintás
+  építési kísérletre esett át (review H4). Most a tile első sínjét veszi
+  (normálnál csak megépültet, force módoknál ghostot is).
+- VTD: `is_rail_entity` / új `is_real_rail` exportálva; a végválasztás
+  (`count_connections`/`check_connection`) réteg- és rámpa-tudatos; elevált
+  sínre csak elevált planner-rel lehet rázárni; a bemondás "elevated" /
+  "on a ramp" kiegészítést kap (rázáráskor és K-ra).
+
+**42.5 Egyéb**
+
+- Jelzők: rámpán nem rakható (bemondja); elevált végen a blueprintbe
+  `rail_layer = "elevated"` kerül, a meglévő-keresés a réteget is nézi.
+- A mozdulat-billentyűk harmadik visszatérési értéke egy előtag a
+  tile-olvasás elé ("ramp up", "support placed"); a `control.lua`
+  vessző/m/pont handlerei ezt átadják a `TileReader.read_tile`-nak.
+- Syntrax a VTD-ből: a kezdő réteg és a `reach` is átmegy
+  (`scripts/rails/syntrax-runner.lua`: új `start_reach` opció), így egy
+  hídon folytatott program nem tesz fölösleges támaszt az elejére.
+- Elevált építés előtt ellenőrzi a plannert és a kutatást (bemondja, ha
+  hiányzik). A rázáráskor elmentett planner-leírás régi mentésben nem
+  tartalmazza az elevált neveket: újra rá kell zárni.
+- Törölve a VTD saját, már nem használt `find_expected_entity` másolata
+  (helyette `BuildHelpers.find_expected_entity`, réteggel).
+- `locale/en/virtual-train-driving.cfg`: 17 új kulcs.
+- `docs/features/rails.md`: új "Elevated Rails" fejezet és billentyűk; a
+  Ctrl/Shift ellentmondás javítva a kód szerint (Ctrl = lánc-jelző,
+  Shift = normál jelző), a 3-utas elágazás példájában is.
+
+**42.6 Nyitott**
+
+- Tile-olvasás, leírás, announcer rétegtudatossága (F fázis) — elevált
+  sínen a kurzor most az általános entitás-leírást mondja.
+- Híd alatti földi sín és a fölötte lévő elevált sín közül a rázárás az
+  elsőt veszi (a régebbi entitás); választás köztük még nincs.
+
+**42.7 Ellenőrzés**
+
+`luac -p` hibátlan, sorok 120 karakter alatt. Offline tesztek változatlanul
+zöldek (a VTD és a világ-bejárás csak játékban tesztelhető).
+
+## 43. `[ELEVATED-F-READING]` Elevált sínek felolvasása a földiekkel azonos módon (kurzor, VTD lépések, K)
+
+**43.1 A user jelzése és a diagnózis**
+
+- **Tünet (user):** hídon a VTD-vel balra fordulva (4× M) a bemondás
+  "northeast"-et és hasonlókat mondott, nem nyugatot, pedig a vonat
+  áthaladt a kanyaron.
+- **Ok:** a pálya jó volt (offline ellenőrizve: rámpa után 4× balra a
+  traverser nyugatra néz, a darabok curved-a / curved-b / curved-b /
+  curved-a). A hiba a felolvasásban volt: az elevált sín nem ment át a
+  sín-leírón, hanem az általános entitás-felolvasás mondta a
+  **lerakási irányát** ("facing ..."), ami íveknél nem a menetirány.
+  (A VTD saját iránya a K-val lekérdezhető volt.)
+
+**43.2 railutils (Factorio-független, tesztelt)**
+
+- `railutils/rail-info.lua`: új `RailKind`-ok a rámpára
+  (`ramp-rising-north/east/south/west` — merre emelkedik); a
+  `railutils.RailInfo` kapott `layer` mezőt (nil = föld / rámpa).
+- `railutils/rail-describer.lua`: `describe_rail(..., layer)` — a
+  szomszéd-keresés a réteget is egyezteti (a híd alatti földi sín nem
+  "kapcsolódik" a fölötte lévőhöz), a kardinális végeken a rámpa is
+  kapcsolatnak számít, a 90°-os kanyar-felismerés elevált rétegen is
+  működik, a rámpa saját leírást kap; a leírás új `layer` mezőt kap.
+- `railutils/surface-impls/test-surface.lua`: új `add_rail_at(type,
+  pos, dir, layer)` (rácsigazítás nélkül, rétegre, rámpára is).
+- Új tesztek: `railutils/tests/elevated-describer.lua` (5 eset: rámpa
+  leírása, rámpa–elevált kapcsolat, földi sín vége a rámpánál, híd alatti
+  földi sín nem kapcsolódik, elevált kanyar ugyanúgy nevezve, mint a
+  földi), bekötve a `railutils-tests.lua`-ba. railutils 64/64.
+
+**43.3 Játék-oldal**
+
+- `railutils/surface-impls/game-surface.lua`: a lekérdezés minden, a
+  leírásban szereplő nevet (földi, elevált, rámpa) figyel, és a réteget
+  is visszaadja.
+- `scripts/rails/surface-helper.lua`: a vanilla wrapperek az elevált
+  neveket és a rámpát is tartalmazzák, ha a prototípusok léteznek
+  (Space Age / elevated rails mod nélkül változatlan).
+- `scripts/tile-reader.lua`, `scripts/fa-info.lua`: elevált sín és rámpa
+  is a sín-leíróhoz megy (`Consts.ALL_RAIL_TYPES*`), ismeretlen
+  (pl. modolt) sín-név csendben kimarad.
+- `scripts/rails/announcer.lua` + `locale/en/rail-announcer.cfg`:
+  "elevated" előtag; a rámpa "ramp rising to the north" stb.
+- `scripts/rails/primary-finder.lua`: réteg- és rámpatudatos szomszéd
+  keresés; az elevált darabok rendezése a földi ikerpárjuké.
+- `scripts/rails/signal-station-classifier.lua`: a jelzők rétegre
+  szűrve (`LuaEntity.rail_layer`) — a hídon álló jelzőt nem mondja be a
+  földi sínnél, és fordítva; rámpánál végenként a vég rétege számít.
+- `scripts/rails/stop-preview.lua`: elevált sín nem ad hibát.
+
+**43.4 Ellenőrzés**
+
+`luac -p` hibátlan; az új sorok 120 alatt (a meglévő hosszú sorok nem
+tőlem). railutils 64/64, syntrax 113/115 (a 2 régi span-hiba).
+
+## 44. `[ELEVATED-G-LOCKON]` Rázárás a kiválasztott sínre; a támasz a sínek mögé sorol
+
+**44.1 A user jelzései (43. pont tesztje után)**
+
+- A felolvasás működik. Viszont ahol híd megy át földi pálya fölött, a
+  rázárás mindig az elevált sínre ment, akkor is, ha a user Shift+F-fel
+  a lenti sínre lépett.
+- A kurzorral egy hídon végigmenve minden sínvégnél a támaszt mondta be
+  a sín helyett.
+
+**44.2 Javítás (`scripts/entity-selection.lua`)**
+
+- `find_first_ent_at_tile`: ha a játékos kiválasztott entitása
+  (`player.selected`, amit a Shift+F-es léptetés és a tile-olvasás állít)
+  a kurzor tile-ján van és illeszkedik, azt adja; különben az első
+  illeszkedőt a tile-sorrendben. A rázárás (normál/force/superforce, 42.4)
+  ezen keresztül megy, így a Shift+F-fel kiválasztott földi sínre zár.
+- `rail-support` rendezési prioritása −1 → −1,5: a sínek (−1) után, a
+  másodlagos entitások (−2) előtt. Hídon a kurzor a sínt olvassa
+  (`read_tile_rails`, minden sín a tile-on); a támasz Shift+F-fel érhető el.
+
+**44.3 Dokumentáció:** `docs/features/rails.md` "Elevated Rails" — a
+Shift+F-es kiválasztás és a támasz sorrendje leírva.
+
+**44.4 Ellenőrzés:** `luac -p` hibátlan, sorok 120 alatt.
+
+## 45. `[ELEVATED-E-SYNTRAX]` + `[ELEVATED-H-DOCS]` Syntrax `nosup` / `autosup on|off`; Space Age szövegek; devdocs; MR előtti teendő
+
+**45.1 A user döntései (AskUserQuestion)**
+
+- Tutorial/README: **Space Age-re átírni** (nem csak az elevated rails
+  kivétele a tiltólistából).
+- `/elevprobe`: **marad, de bekerül a changelogba, hogy MR-kor
+  eltávolítandó** (lásd 45.5).
+- Következő: Syntrax `nosup` / `autosup off`, devdocs javítás; MR-ezés még
+  nem.
+
+**45.2 Syntrax: `nosup`, `autosup on`, `autosup off`**
+(`syntrax/lexer.lua`, `parser.lua`, `ast.lua`, `compiler.lua`, `vm.lua`,
+`railutils/support-planner.lua`)
+
+- `nosup`: a tervező nem tehet támaszt az aktuális végre (máshova teszi).
+  Földi végen futásidejű hiba.
+- `autosup off` / `autosup on`: innentől a tervező nem tesz (ill. újra
+  tesz) saját támaszt; a lefedettséget továbbra is ellenőrzi, és ha egy
+  sínt semmi nem tart, nem épít semmit, hanem hibát mond ("Nothing holds
+  this rail: the supports it needs are ruled out by nosup or autosup
+  off"). `on`/`off` nélkül parser-hiba.
+- Tervező: új `forbid_support` darab-mező; a probléma oka új értéket
+  kaphat: `"forbidden"` (lett volna hely, de a program kizárta) a
+  `"no-spot"` mellett.
+- Tesztek: 2 új tervező-teszt, 6 új Syntrax-teszt. railutils 66/66,
+  syntrax 119/121 (a 2 régi span-hiba).
+- `docs/features/syntrax.md`: leírva, példával.
+
+**45.3 Space Age szövegek** (a mappán közvetlenül szerkesztve)
+
+- `locale/en/tutorial/ch1.txt` (msg9–11) és `docs/tutorial-transcript.md`:
+  a "kapcsold ki a quality-t, elevated rails-t, Space Age-et" helyett:
+  a mod ezen verziója támogatja a Space Age-et (elevált sínekkel és
+  quality-vel); a tutorial Nauvison marad, néhány részlet eltérhet; első
+  gyárnál érdemes a tutorial végéig maradni.
+- `locale/en/message-lists.cfg`, `scripts/message-list-index.lua`:
+  `build_message_lists.py`-val újragenerálva (csak a 3 ch1 sor és a hash
+  változott).
+- `README.md`: a "nem támogatjuk a Space Age-et" bekezdés és a 4
+  telepítési lépés átírva (bekapcsolva hagyható).
+
+**45.4 `devdocs/rail-geometry.md`**
+
+- A "Universal Extension Rule" kiegészítve: kardinális végen 4.
+  kiterjesztés a rámpa.
+- Új fejezet: "Elevated Rails and Ramps" — rétegek, rámpa-adatok a
+  táblában, a tartás szabálya (hatótávok, a támasz helye és iránya,
+  darabhossz, ghost + ismételt revive, előre vs. visszafelé építés),
+  a blueprint-csúszás, az elevált jelzők, és hol használja a kód.
+
+**45.5 MR előtti teendő (nem most)**
+
+- **`/elevprobe` eltávolítandó az MR-ből:** `scripts/rails/elevated-probe.lua`
+  törlése, a `require` és a `elevprobe` parancs kivétele a
+  `scripts/fa-commands.lua`-ból. A `scripts/rails/scratch-surface.lua`-t a
+  `/railtable` is használja, az marad.
+- A 37–45. pontok MR-kötegekre bontása a user kérésére később.
+
+## 46. `[ELEVATED-F-READING]` A tervdokumentum maradék pontjai: támasz-említés, állomás-réteg, egy-lekérdezéses sín-keresés, lint
+
+A user kérdésére (végigértünk-e a terven) a terv 8. fejezete és a review
+K-pontjai alapján átnézve négy kisebb tétel maradt nyitva; ezek most:
+
+- **Terv 8.2/2 — támasz-említés:** `scripts/rails/announcer.lua` új
+  `has_support`: megépült elevált sín felolvasásakor, ha bármelyik végén
+  pontosan ott, a pálya irányában támasz áll, a leírás végén "on a
+  support" (`locale/en/rail-announcer.cfg`: `rail-on-support`).
+- **Review K7 — állomás híd alatt:** `scripts/rails/signal-station-classifier.lua`:
+  a vonatmegállónak nincs elevált változata, ezért az "at station" csak
+  földi sínre jöhet (a hídra, ami egy állomás fölött megy, nem).
+- **Review K8 — teljesítmény:** `railutils/surface-impls/game-surface.lua`
+  `get_rails_at_point`: a 9 név egyetlen `find_entities_filtered` hívással
+  (név-tömb, `ghost_name`-nél is), névenkénti külön hívás helyett.
+- **Review K11 — lint:** `python3 lint_localisation.py lint`: 0 hiányzó
+  kulcs (3015 definiált, 3001 használt).
+- **Terv 8.3 — dokumentáció:** `docs/features/rails.md` "Overview of Track
+  Reporting": hogyan szól az elevált sín, a rámpa, a két réteg egy
+  tile-on, és a jelzők rétege.
+
+Szándékosan nem (opcionális, a user még nem kérte): kész elevált minták a
+rail-builder menüben; elevált sín víz fölött (E9) külön mérése.
+
+`luac -p` hibátlan, sorok 120 alatt.
+
+---
+
 ## Függelék: fájl → tag gyors index
 
 | Fájl | Tag(ek) |
@@ -3252,7 +3904,34 @@ egyik irányban sem — jelezze hogy nincs mit kapcsolni.
 | `scripts/cursor-changes.lua` | `[SA-BEVEZETES]` |
 | `scripts/electrical.lua` | `[FACTORISSIMO]` |
 | `scripts/entity-selection.lua` | `[FACTORISSIMO]`, `[NEM-KOD]` (visszavonva, nulla nettó diff) |
-| `scripts/fa-commands.lua` | `[SA-REMOTE-NIL]` |
+| `scripts/fa-commands.lua` | `[SA-REMOTE-NIL]` + `[ELEVATED-PROBE]` (37. pont — új `/elevprobe` parancs) + `[ELEVATED-A-EXTRACTOR]` (38. pont — `/railtable` új kimenete) |
+| `scripts/rails/elevated-probe.lua` | `[ELEVATED-PROBE]` (37. pont — új fájl, fejlesztői kísérlet-modul) + `[ELEVATED-A-EXTRACTOR]` (38. pont — scratch felületre átállítva, második kísérlet-kör) |
+| `scripts/rails/scratch-surface.lua` | `[ELEVATED-A-EXTRACTOR]` (38. pont — új fájl) |
+| `scripts/rails/table-extractor.lua` | `[ELEVATED-A-EXTRACTOR]` (38. pont — scratch felület, rámpa-mezők, elevált egyezés-ellenőrzés, szerializáló) |
+| `config_changes/AF_unmap_toggle_rail_layer.ini` | `[ELEVATED-G-UNMAP]` (38. pont — új fájl) |
+| `railutils/rail-data.lua` | `[ELEVATED-A-RAILDATA]` (39. pont — új tábla: rámpa-mezők és `rail-ramp` bejegyzés) |
+| `railutils/rail-info.lua` | `[ELEVATED-C-TRAVERSER]` (39. pont — `RailType.RAMP`, `RailLayer`) |
+| `railutils/queries.lua` | `[ELEVATED-C-TRAVERSER]` (39. pont — réteges leképezések, rámpa-lekérdezések) |
+| `railutils/traverser.lua` | `[ELEVATED-C-TRAVERSER]` (39. pont — réteg-állapot, rámpa-mozgás) + `[ELEVATED-E-SYNTRAX]` (41. pont — `get_end_position`) |
+| `railutils/tests/traverser.lua`, `railutils/tests/queries.lua` | `[ELEVATED-C-TRAVERSER]` (39. pont — 13 új teszt) |
+| `railutils/support-planner.lua`, `railutils/tests/support-planner.lua` | `[ELEVATED-D-PLANNER]` (41. pont — új fájlok) |
+| `syntrax/lexer.lua`, `parser.lua`, `ast.lua`, `compiler.lua`, `vm.lua`, `syntrax.lua` | `[ELEVATED-E-SYNTRAX]` (41. pont — `up`/`down`/`elev`/`sup`, réteg, támasz-tervezés) |
+| `syntrax/tests/elevated.lua`, `syntrax-tests.lua`, `railutils-tests.lua` | `[ELEVATED-E-SYNTRAX]` (41. pont — új tesztek bekötve) |
+| `scripts/rails/syntrax-runner.lua`, `scripts/rails/build-helpers.lua`, `scripts/blueprint-synthesizer.lua` | `[ELEVATED-E-SYNTRAX]` (41. pont — elevált építés, menetes revive, jelző-réteg) |
+| `scripts/rails/surface-helper.lua`, `railutils/surface-impls/game-surface.lua` | `[ELEVATED-E-SYNTRAX]` (41. pont — elevált planner-leírás) |
+| `docs/features/syntrax.md` | `[ELEVATED-E-SYNTRAX]` (41. pont — "Elevated rails" fejezet) |
+| `scripts/rails/virtual-train-driving.lua` | `[ELEVATED-G-VTD]` (42. pont — rámpa, támaszok, elevált rázárás) |
+| `scripts/rails/elevated-reach.lua` | `[ELEVATED-G-VTD]` (42. pont — új fájl, világ-oldali hatótáv) |
+| `control.lua`, `scripts/consts.lua`, `scripts/entity-selection.lua` | `[ELEVATED-G-VTD]` (42. pont — rázárás javítás, új billentyű-handlerek) + `[ELEVATED-G-LOCKON]` (44. pont — kiválasztott sínre zárás, támasz-prioritás) |
+| `scripts/settings-decls.lua`, `locale/en/settings.cfg`, `locale/en/virtual-train-driving.cfg` | `[ELEVATED-G-VTD]` (42. pont — automatikus támasz beállítás, új szövegek) |
+| `docs/features/rails.md` | `[ELEVATED-G-VTD]` (42. pont — "Elevated Rails" fejezet, Ctrl/Shift javítás) |
+| `locale/en/tutorial/ch1.txt`, `docs/tutorial-transcript.md`, `locale/en/message-lists.cfg`, `scripts/message-list-index.lua`, `README.md` | `[ELEVATED-H-DOCS]` (45. pont — Space Age szövegek) |
+| `devdocs/rail-geometry.md` | `[ELEVATED-H-DOCS]` (45. pont — "Elevated Rails and Ramps" fejezet) |
+| `scripts/rails/elevated-probe.lua` | `[ELEVATED-PROBE]` (37–40. pont; 45.5: MR-kor eltávolítandó) |
+| `railutils/rail-describer.lua`, `railutils/surface-impls/test-surface.lua`, `railutils/tests/elevated-describer.lua` | `[ELEVATED-F-READING]` (43. pont — réteg- és rámpatudatos leírás) |
+| `railutils/surface-impls/game-surface.lua`, `scripts/rails/surface-helper.lua` | `[ELEVATED-F-READING]` (43. pont — mindkét réteg lekérdezése) |
+| `scripts/tile-reader.lua`, `scripts/fa-info.lua`, `scripts/rails/announcer.lua`, `locale/en/rail-announcer.cfg` | `[ELEVATED-F-READING]` (43. pont — elevált sín és rámpa felolvasása) |
+| `scripts/rails/primary-finder.lua`, `scripts/rails/signal-station-classifier.lua`, `scripts/rails/stop-preview.lua` | `[ELEVATED-F-READING]` (43. pont — réteg-szűrés) |
 | `scripts/fa-info.lua` | `[FACTORISSIMO]` + `[MISC]` (19. pont — `ent_info_item_on_ground` most a K-nál is bemondja a romlásig hátralévő időt) + `[LIGHTNING]` (20. pont — `ent_info_lightning_coverage` handler hozzáadva, majd 20.14-ben eltávolítva/áthelyezve `tile-reader.lua`-ba) + `[SOLAR-STATUS-FIX]` (25. pont — `ent_info_solar` felszín-saját dawn/morning/evening/dusk mezőket használ Nauvis-hardcode helyett; 30.1 pont — kiegészítve `surface.always_day` korai ellenőrzéssel, space platformokra) |
 | `scripts/tile-reader.lua` | `[LIGHTNING]` (20.14 pont — `read_tile_inner` most feltétel nélkül, entitástól függetlenül ellenőrzi a villám-fedettséget) |
 | `scripts/item-info.lua` | `[FACTORISSIMO]` + `[MISC]` (19. pont — új exportált `get_spoil_info`, bekötve `get_item_stack_info` VERBOSE ágába) |

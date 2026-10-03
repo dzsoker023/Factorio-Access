@@ -47,6 +47,15 @@ mod.NODE_TYPE = {
    CHAIN = "chain",
    SIGCHAIN = "sigchain",
    CHAINSIG = "chainsig",
+
+   -- Elevated rails: a ramp to the other layer, and a support at the current end
+   UP = "up",
+   DOWN = "down",
+   ELEV = "elev",
+   SUP = "sup",
+   -- No support at the current end; automatic supports on or off from here
+   NOSUP = "nosup",
+   AUTOSUP = "autosup",
 }
 
 ---@class syntrax.ast.Node Base class for all AST nodes
@@ -294,6 +303,67 @@ end
 function mod.chainsig(span)
    return {
       type = mod.NODE_TYPE.CHAINSIG,
+      span = span,
+   }
+end
+
+-- Elevated rail node factories
+
+---@param span syntrax.Span
+---@return syntrax.ast.Node
+function mod.up(span)
+   return {
+      type = mod.NODE_TYPE.UP,
+      span = span,
+   }
+end
+
+---@param span syntrax.Span
+---@return syntrax.ast.Node
+function mod.down(span)
+   return {
+      type = mod.NODE_TYPE.DOWN,
+      span = span,
+   }
+end
+
+---@param span syntrax.Span
+---@return syntrax.ast.Node
+function mod.elev(span)
+   return {
+      type = mod.NODE_TYPE.ELEV,
+      span = span,
+   }
+end
+
+---@param span syntrax.Span
+---@return syntrax.ast.Node
+function mod.sup(span)
+   return {
+      type = mod.NODE_TYPE.SUP,
+      span = span,
+   }
+end
+
+---@param span syntrax.Span
+---@return syntrax.ast.Node
+function mod.nosup(span)
+   return {
+      type = mod.NODE_TYPE.NOSUP,
+      span = span,
+   }
+end
+
+---@class syntrax.ast.Autosup: syntrax.ast.Node
+---@field enabled boolean
+
+---@param enabled boolean
+---@param span syntrax.Span
+---@return syntrax.ast.Autosup
+function mod.autosup(enabled, span)
+   return {
+      type = mod.NODE_TYPE.AUTOSUP,
+      enabled = enabled,
       span = span,
    }
 end

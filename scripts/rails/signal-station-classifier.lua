@@ -32,43 +32,52 @@ local function get_effective_name(ent)
    return ent.name
 end
 
----Check what type of signal exists at a position
+local SIGNAL_TYPES = { ["rail-signal"] = "signal", ["rail-chain-signal"] = "chain" }
+
+---Check what type of signal exists at a position, on a layer. A signal on a bridge can stand exactly above a signal on
+---the ground track below; each belongs to its own layer.
 ---@param surface LuaSurface
 ---@param position MapPosition
+---@param layer railutils.RailLayer
 ---@return fa.rails.SignalType? nil if no signal, "signal" or "chain" otherwise
-local function get_signal_type_at(surface, position)
-   local signal = surface.find_entity("rail-signal", position)
-   if signal then return "signal" end
-
-   local chain = surface.find_entity("rail-chain-signal", position)
-   if chain then return "chain" end
-
+local function get_signal_type_at(surface, position, layer)
+   local want = defines.rail_layer[layer]
+   local found = surface.find_entities_filtered({
+      area = { { position.x - 0.1, position.y - 0.1 }, { position.x + 0.1, position.y + 0.1 } },
+      type = { "rail-signal", "rail-chain-signal" },
+   })
+   for _, signal in ipairs(found) do
+      if signal.rail_layer == want then return SIGNAL_TYPES[signal.type] end
+   end
    return nil
 end
 
 ---Check for signals at a rail end using the Factorio API
 ---@param rail LuaEntity Rail entity
 ---@param rail_direction defines.rail_direction Which end to check
+---@param rail_type railutils.RailType
+---@param layer railutils.RailLayer? Layer of the rail, nil for a ramp (its ends differ)
 ---@return defines.direction? end_direction Direction of the rail end
 ---@return fa.rails.SignalType? left Signal type on left (in_signal)
 ---@return fa.rails.SignalType? right Signal type on right (out_signal)
-local function get_signals_at_end(rail, rail_direction)
+local function get_signals_at_end(rail, rail_direction, rail_type, layer)
    local rail_end = rail.get_rail_end(rail_direction)
    local surface = rail.surface
 
    local end_direction = rail_end.location.direction
+   local end_layer = layer or RailQueries.get_ramp_end_layer(rail_type, rail.direction, end_direction)
 
    -- in_signal_location = left relative to movement
    -- out_signal_location = right relative to movement
-   local left = get_signal_type_at(surface, rail_end.in_signal_location.position)
-   local right = get_signal_type_at(surface, rail_end.out_signal_location.position)
+   local left = get_signal_type_at(surface, rail_end.in_signal_location.position, end_layer)
+   local right = get_signal_type_at(surface, rail_end.out_signal_location.position, end_layer)
 
    -- Also check alternative signal locations
    if not left and rail_end.alternative_in_signal_location then
-      left = get_signal_type_at(surface, rail_end.alternative_in_signal_location.position)
+      left = get_signal_type_at(surface, rail_end.alternative_in_signal_location.position, end_layer)
    end
    if not right and rail_end.alternative_out_signal_location then
-      right = get_signal_type_at(surface, rail_end.alternative_out_signal_location.position)
+      right = get_signal_type_at(surface, rail_end.alternative_out_signal_location.position, end_layer)
    end
 
    return end_direction, left, right
@@ -137,14 +146,15 @@ end
 ---@return fa.rails.SignalStationInfo? nil if no signals or stations found
 function mod.get_signal_station_info(rail)
    local effective_name = get_effective_name(rail)
-   local rail_type = RailQueries.prototype_type_to_rail_type(effective_name)
+   local rail_type, layer = RailQueries.prototype_type_to_rail_type_and_layer(effective_name)
    local placement_direction = rail.direction
 
-   -- Check for station first (only vertical/horizontal straight rails)
-   local has_station = has_adjacent_station(rail, rail_type, placement_direction)
+   -- Check for station first (only vertical/horizontal straight ground rails: train stops have no elevated version, so
+   -- a bridge passing over a station is not at it)
+   local has_station = layer == RailInfo.RailLayer.GROUND and has_adjacent_station(rail, rail_type, placement_direction)
 
    -- Check front end for signals
-   local front_dir, front_left, front_right = get_signals_at_end(rail, defines.rail_direction.front)
+   local front_dir, front_left, front_right = get_signals_at_end(rail, defines.rail_direction.front, rail_type, layer)
    if front_left or front_right then
       return {
          direction = front_dir,
@@ -155,7 +165,7 @@ function mod.get_signal_station_info(rail)
    end
 
    -- Check back end for signals
-   local back_dir, back_left, back_right = get_signals_at_end(rail, defines.rail_direction.back)
+   local back_dir, back_left, back_right = get_signals_at_end(rail, defines.rail_direction.back, rail_type, layer)
    if back_left or back_right then
       return {
          direction = back_dir,

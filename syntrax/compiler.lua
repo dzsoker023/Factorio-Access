@@ -87,6 +87,20 @@ function Compiler:compile_node(node)
       self:emit(Vm.bytecode(Vm.BYTECODE_KIND.SIGCHAIN), node.span)
    elseif node.type == Ast.NODE_TYPE.CHAINSIG then
       self:emit(Vm.bytecode(Vm.BYTECODE_KIND.CHAINSIG), node.span)
+   elseif node.type == Ast.NODE_TYPE.UP then
+      self:emit(Vm.bytecode(Vm.BYTECODE_KIND.UP), node.span)
+   elseif node.type == Ast.NODE_TYPE.DOWN then
+      self:emit(Vm.bytecode(Vm.BYTECODE_KIND.DOWN), node.span)
+   elseif node.type == Ast.NODE_TYPE.ELEV then
+      self:emit(Vm.bytecode(Vm.BYTECODE_KIND.ELEV), node.span)
+   elseif node.type == Ast.NODE_TYPE.SUP then
+      self:emit(Vm.bytecode(Vm.BYTECODE_KIND.SUP), node.span)
+   elseif node.type == Ast.NODE_TYPE.NOSUP then
+      self:emit(Vm.bytecode(Vm.BYTECODE_KIND.NOSUP), node.span)
+   elseif node.type == Ast.NODE_TYPE.AUTOSUP then
+      ---@cast node syntrax.ast.Autosup
+      local value = Vm.value(Vm.VALUE_TYPE.NUMBER, node.enabled and 1 or 0)
+      self:emit(Vm.bytecode(Vm.BYTECODE_KIND.AUTOSUP, value), node.span)
    elseif node.type == Ast.NODE_TYPE.L45 then
       -- l45 = 2 left turns
       self:emit_sequence({

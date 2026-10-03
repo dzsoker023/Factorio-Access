@@ -8,7 +8,7 @@ return {
                x = -0.171875,
                y = -2.86328125,
             },
-            orientation = 0.21858447790145874,
+            orientation = 0.21858447347767651,
             right_bottom = {
                x = 1.2265625,
                y = 2.16796875,
@@ -196,6 +196,34 @@ return {
                x = -2,
                y = 0,
             },
+            ramp_down = {
+               direction = defines.direction.east,
+               goal_direction = defines.direction.west,
+               goal_layer = "ground",
+               goal_position = {
+                  x = -18,
+                  y = 0,
+               },
+               position = {
+                  x = -10,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
+            },
+            ramp_up = {
+               direction = defines.direction.west,
+               goal_direction = defines.direction.west,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = -18,
+                  y = 0,
+               },
+               position = {
+                  x = -10,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
+            },
             signal_locations = {
                in_signal = {
                   direction = defines.direction.west,
@@ -220,7 +248,7 @@ return {
                x = -1.046875,
                y = -3.04296875,
             },
-            orientation = 0.96858447790145874,
+            orientation = 0.96858447347767651,
             right_bottom = {
                x = 0.3515625,
                y = 1.98828125,
@@ -408,6 +436,34 @@ return {
                x = 0,
                y = 2,
             },
+            ramp_down = {
+               direction = defines.direction.north,
+               goal_direction = defines.direction.south,
+               goal_layer = "ground",
+               goal_position = {
+                  x = 0,
+                  y = 18,
+               },
+               position = {
+                  x = 0,
+                  y = 10,
+               },
+               prototype = "rail-ramp",
+            },
+            ramp_up = {
+               direction = defines.direction.south,
+               goal_direction = defines.direction.south,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = 0,
+                  y = 18,
+               },
+               position = {
+                  x = 0,
+                  y = 10,
+               },
+               prototype = "rail-ramp",
+            },
             signal_locations = {
                in_signal = {
                   direction = defines.direction.south,
@@ -432,7 +488,7 @@ return {
                x = -0.3515625,
                y = -3.04296875,
             },
-            orientation = 0.031415525823831558,
+            orientation = 0.031415526522323489,
             right_bottom = {
                x = 1.046875,
                y = 1.98828125,
@@ -620,6 +676,34 @@ return {
                x = 0,
                y = 2,
             },
+            ramp_down = {
+               direction = defines.direction.north,
+               goal_direction = defines.direction.south,
+               goal_layer = "ground",
+               goal_position = {
+                  x = 0,
+                  y = 18,
+               },
+               position = {
+                  x = 0,
+                  y = 10,
+               },
+               prototype = "rail-ramp",
+            },
+            ramp_up = {
+               direction = defines.direction.south,
+               goal_direction = defines.direction.south,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = 0,
+                  y = 18,
+               },
+               position = {
+                  x = 0,
+                  y = 10,
+               },
+               prototype = "rail-ramp",
+            },
             signal_locations = {
                in_signal = {
                   direction = defines.direction.south,
@@ -644,7 +728,7 @@ return {
                x = -1.2265625,
                y = -2.86328125,
             },
-            orientation = 0.78141552209854126,
+            orientation = 0.78141552652232349,
             right_bottom = {
                x = 0.171875,
                y = 2.16796875,
@@ -695,6 +779,34 @@ return {
             position = {
                x = 2,
                y = 0,
+            },
+            ramp_down = {
+               direction = defines.direction.west,
+               goal_direction = defines.direction.east,
+               goal_layer = "ground",
+               goal_position = {
+                  x = 18,
+                  y = 0,
+               },
+               position = {
+                  x = 10,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
+            },
+            ramp_up = {
+               direction = defines.direction.east,
+               goal_direction = defines.direction.east,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = 18,
+                  y = 0,
+               },
+               position = {
+                  x = 10,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
             },
             signal_locations = {
                in_signal = {
@@ -856,7 +968,7 @@ return {
                x = -0.3515625,
                y = -1.98828125,
             },
-            orientation = 0.46858447790145874,
+            orientation = 0.46858447347767651,
             right_bottom = {
                x = 1.046875,
                y = 3.04296875,
@@ -911,6 +1023,34 @@ return {
             position = {
                x = 0,
                y = -2,
+            },
+            ramp_down = {
+               direction = defines.direction.south,
+               goal_direction = defines.direction.north,
+               goal_layer = "ground",
+               goal_position = {
+                  x = 0,
+                  y = -18,
+               },
+               position = {
+                  x = 0,
+                  y = -10,
+               },
+               prototype = "rail-ramp",
+            },
+            ramp_up = {
+               direction = defines.direction.north,
+               goal_direction = defines.direction.north,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = 0,
+                  y = -18,
+               },
+               position = {
+                  x = 0,
+                  y = -10,
+               },
+               prototype = "rail-ramp",
             },
             signal_locations = {
                in_signal = {
@@ -1068,7 +1208,7 @@ return {
                x = -0.171875,
                y = -2.16796875,
             },
-            orientation = 0.28141552209854126,
+            orientation = 0.28141552652232349,
             right_bottom = {
                x = 1.2265625,
                y = 2.86328125,
@@ -1256,6 +1396,34 @@ return {
                x = -2,
                y = 0,
             },
+            ramp_down = {
+               direction = defines.direction.east,
+               goal_direction = defines.direction.west,
+               goal_layer = "ground",
+               goal_position = {
+                  x = -18,
+                  y = 0,
+               },
+               position = {
+                  x = -10,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
+            },
+            ramp_up = {
+               direction = defines.direction.west,
+               goal_direction = defines.direction.west,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = -18,
+                  y = 0,
+               },
+               position = {
+                  x = -10,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
+            },
             signal_locations = {
                in_signal = {
                   direction = defines.direction.west,
@@ -1280,7 +1448,7 @@ return {
                x = -1.046875,
                y = -1.98828125,
             },
-            orientation = 0.53141552209854126,
+            orientation = 0.53141552652232349,
             right_bottom = {
                x = 0.3515625,
                y = 3.04296875,
@@ -1335,6 +1503,34 @@ return {
             position = {
                x = 0,
                y = -2,
+            },
+            ramp_down = {
+               direction = defines.direction.south,
+               goal_direction = defines.direction.north,
+               goal_layer = "ground",
+               goal_position = {
+                  x = 0,
+                  y = -18,
+               },
+               position = {
+                  x = 0,
+                  y = -10,
+               },
+               prototype = "rail-ramp",
+            },
+            ramp_up = {
+               direction = defines.direction.north,
+               goal_direction = defines.direction.north,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = 0,
+                  y = -18,
+               },
+               position = {
+                  x = 0,
+                  y = -10,
+               },
+               prototype = "rail-ramp",
             },
             signal_locations = {
                in_signal = {
@@ -1492,7 +1688,7 @@ return {
                x = -1.2265625,
                y = -2.16796875,
             },
-            orientation = 0.71858447790145874,
+            orientation = 0.71858447347767651,
             right_bottom = {
                x = 0.171875,
                y = 2.86328125,
@@ -1543,6 +1739,34 @@ return {
             position = {
                x = 2,
                y = 0,
+            },
+            ramp_down = {
+               direction = defines.direction.west,
+               goal_direction = defines.direction.east,
+               goal_layer = "ground",
+               goal_position = {
+                  x = 18,
+                  y = 0,
+               },
+               position = {
+                  x = 10,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
+            },
+            ramp_up = {
+               direction = defines.direction.east,
+               goal_direction = defines.direction.east,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = 18,
+                  y = 0,
+               },
+               position = {
+                  x = 10,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
             },
             signal_locations = {
                in_signal = {
@@ -1706,7 +1930,7 @@ return {
                x = -0.6328125,
                y = -2.8828125,
             },
-            orientation = 0.14812374114990234,
+            orientation = 0.14812373975291848,
             right_bottom = {
                x = 0.765625,
                y = 1.9921875,
@@ -1922,7 +2146,7 @@ return {
                x = -1.14453125,
                y = -2.50390625,
             },
-            orientation = 0.89812374114990234,
+            orientation = 0.89812373975291848,
             right_bottom = {
                x = 0.25390625,
                y = 2.37109375,
@@ -2138,7 +2362,7 @@ return {
                x = -0.25390625,
                y = -2.50390625,
             },
-            orientation = 0.10187625885009766,
+            orientation = 0.10187626024708152,
             right_bottom = {
                x = 1.14453125,
                y = 2.37109375,
@@ -2354,7 +2578,7 @@ return {
                x = -0.765625,
                y = -2.8828125,
             },
-            orientation = 0.85187625885009766,
+            orientation = 0.85187626024708152,
             right_bottom = {
                x = 0.6328125,
                y = 1.9921875,
@@ -2570,7 +2794,7 @@ return {
                x = -0.25390625,
                y = -2.37109375,
             },
-            orientation = 0.39812374114990234,
+            orientation = 0.39812373975291848,
             right_bottom = {
                x = 1.14453125,
                y = 2.50390625,
@@ -2786,7 +3010,7 @@ return {
                x = -0.6328125,
                y = -1.9921875,
             },
-            orientation = 0.35187625885009766,
+            orientation = 0.35187626024708152,
             right_bottom = {
                x = 0.765625,
                y = 2.8828125,
@@ -3002,7 +3226,7 @@ return {
                x = -1.14453125,
                y = -2.37109375,
             },
-            orientation = 0.60187625885009766,
+            orientation = 0.60187626024708152,
             right_bottom = {
                x = 0.25390625,
                y = 2.50390625,
@@ -3218,7 +3442,7 @@ return {
                x = -0.765625,
                y = -1.9921875,
             },
-            orientation = 0.64812374114990234,
+            orientation = 0.64812373975291848,
             right_bottom = {
                x = 0.6328125,
                y = 2.8828125,
@@ -3436,7 +3660,7 @@ return {
                x = -0.75,
                y = -1.8984375,
             },
-            orientation = 0.17620819807052612,
+            orientation = 0.17620819131843746,
             right_bottom = {
                x = 0.75,
                y = 1.8984375,
@@ -3651,7 +3875,7 @@ return {
                x = -0.75,
                y = -1.8984375,
             },
-            orientation = 0.92620819807052612,
+            orientation = 0.92620819131843746,
             right_bottom = {
                x = 0.75,
                y = 1.8984375,
@@ -3866,7 +4090,7 @@ return {
                x = -0.75,
                y = -1.8984375,
             },
-            orientation = 0.073791809380054474,
+            orientation = 0.073791808681562543,
             right_bottom = {
                x = 0.75,
                y = 1.8984375,
@@ -4081,7 +4305,7 @@ return {
                x = -0.75,
                y = -1.8984375,
             },
-            orientation = 0.32379180192947388,
+            orientation = 0.32379180868156254,
             right_bottom = {
                x = 0.75,
                y = 1.8984375,
@@ -4296,7 +4520,7 @@ return {
                x = -0.75,
                y = -1.8984375,
             },
-            orientation = 0.92620819807052612,
+            orientation = 0.92620819131843746,
             right_bottom = {
                x = 0.75,
                y = 1.8984375,
@@ -4511,7 +4735,7 @@ return {
                x = -0.75,
                y = -1.8984375,
             },
-            orientation = 0.32379180192947388,
+            orientation = 0.32379180868156254,
             right_bottom = {
                x = 0.75,
                y = 1.8984375,
@@ -4726,7 +4950,7 @@ return {
                x = -0.75,
                y = -1.8984375,
             },
-            orientation = 0.073791809380054474,
+            orientation = 0.073791808681562543,
             right_bottom = {
                x = 0.75,
                y = 1.8984375,
@@ -4941,7 +5165,7 @@ return {
                x = -0.75,
                y = -1.8984375,
             },
-            orientation = 0.17620819807052612,
+            orientation = 0.17620819131843746,
             right_bottom = {
                x = 0.75,
                y = 1.8984375,
@@ -5151,6 +5375,1728 @@ return {
          },
       },
    },
+   ["rail-ramp"] = {
+      [defines.direction.east] = {
+         bounding_box = {
+            left_top = {
+               x = -7.59765625,
+               y = -1.59765625,
+            },
+            right_bottom = {
+               x = 7.59765625,
+               y = 1.59765625,
+            },
+         },
+         [defines.direction.east] = {
+            extensions = {
+               [defines.direction.east] = {
+                  direction = defines.direction.east,
+                  goal_direction = defines.direction.east,
+                  goal_position = {
+                     x = 10,
+                     y = 0,
+                  },
+                  position = {
+                     x = 9,
+                     y = 0,
+                  },
+                  prototype = "straight-rail",
+               },
+               [defines.direction.eastnortheast] = {
+                  direction = defines.direction.east,
+                  goal_direction = defines.direction.eastnortheast,
+                  goal_position = {
+                     x = 13,
+                     y = -1,
+                  },
+                  position = {
+                     x = 10,
+                     y = 0,
+                  },
+                  prototype = "curved-rail-a",
+               },
+               [defines.direction.eastsoutheast] = {
+                  direction = defines.direction.southeast,
+                  goal_direction = defines.direction.eastsoutheast,
+                  goal_position = {
+                     x = 13,
+                     y = 1,
+                  },
+                  position = {
+                     x = 10,
+                     y = 0,
+                  },
+                  prototype = "curved-rail-a",
+               },
+            },
+            layer = "elevated",
+            position = {
+               x = 8,
+               y = 0,
+            },
+            ramp_down = {
+               direction = defines.direction.west,
+               goal_direction = defines.direction.east,
+               goal_layer = "ground",
+               goal_position = {
+                  x = 24,
+                  y = 0,
+               },
+               position = {
+                  x = 16,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
+            },
+            signal_locations = {
+               in_signal = {
+                  direction = defines.direction.east,
+                  position = {
+                     x = 7.5,
+                     y = -1.5,
+                  },
+               },
+               out_signal = {
+                  direction = defines.direction.west,
+                  position = {
+                     x = 7.5,
+                     y = 1.5,
+                  },
+               },
+            },
+         },
+         grid_offset = {
+            x = 0,
+            y = 1,
+         },
+         occupied_tiles = {
+            {
+               x = -8,
+               y = -2,
+            },
+            {
+               x = -8,
+               y = -1,
+            },
+            {
+               x = -8,
+               y = 0,
+            },
+            {
+               x = -8,
+               y = 1,
+            },
+            {
+               x = -7,
+               y = -2,
+            },
+            {
+               x = -7,
+               y = -1,
+            },
+            {
+               x = -7,
+               y = 0,
+            },
+            {
+               x = -7,
+               y = 1,
+            },
+            {
+               x = -6,
+               y = -2,
+            },
+            {
+               x = -6,
+               y = -1,
+            },
+            {
+               x = -6,
+               y = 0,
+            },
+            {
+               x = -6,
+               y = 1,
+            },
+            {
+               x = -5,
+               y = -2,
+            },
+            {
+               x = -5,
+               y = -1,
+            },
+            {
+               x = -5,
+               y = 0,
+            },
+            {
+               x = -5,
+               y = 1,
+            },
+            {
+               x = -4,
+               y = -2,
+            },
+            {
+               x = -4,
+               y = -1,
+            },
+            {
+               x = -4,
+               y = 0,
+            },
+            {
+               x = -4,
+               y = 1,
+            },
+            {
+               x = -3,
+               y = -2,
+            },
+            {
+               x = -3,
+               y = -1,
+            },
+            {
+               x = -3,
+               y = 0,
+            },
+            {
+               x = -3,
+               y = 1,
+            },
+            {
+               x = -2,
+               y = -2,
+            },
+            {
+               x = -2,
+               y = -1,
+            },
+            {
+               x = -2,
+               y = 0,
+            },
+            {
+               x = -2,
+               y = 1,
+            },
+            {
+               x = -1,
+               y = -2,
+            },
+            {
+               x = -1,
+               y = -1,
+            },
+            {
+               x = -1,
+               y = 0,
+            },
+            {
+               x = -1,
+               y = 1,
+            },
+            {
+               x = 0,
+               y = -2,
+            },
+            {
+               x = 0,
+               y = -1,
+            },
+            {
+               x = 0,
+               y = 0,
+            },
+            {
+               x = 0,
+               y = 1,
+            },
+            {
+               x = 1,
+               y = -2,
+            },
+            {
+               x = 1,
+               y = -1,
+            },
+            {
+               x = 1,
+               y = 0,
+            },
+            {
+               x = 1,
+               y = 1,
+            },
+            {
+               x = 2,
+               y = -2,
+            },
+            {
+               x = 2,
+               y = -1,
+            },
+            {
+               x = 2,
+               y = 0,
+            },
+            {
+               x = 2,
+               y = 1,
+            },
+            {
+               x = 3,
+               y = -2,
+            },
+            {
+               x = 3,
+               y = -1,
+            },
+            {
+               x = 3,
+               y = 0,
+            },
+            {
+               x = 3,
+               y = 1,
+            },
+            {
+               x = 4,
+               y = -2,
+            },
+            {
+               x = 4,
+               y = -1,
+            },
+            {
+               x = 4,
+               y = 0,
+            },
+            {
+               x = 4,
+               y = 1,
+            },
+            {
+               x = 5,
+               y = -2,
+            },
+            {
+               x = 5,
+               y = -1,
+            },
+            {
+               x = 5,
+               y = 0,
+            },
+            {
+               x = 5,
+               y = 1,
+            },
+            {
+               x = 6,
+               y = -2,
+            },
+            {
+               x = 6,
+               y = -1,
+            },
+            {
+               x = 6,
+               y = 0,
+            },
+            {
+               x = 6,
+               y = 1,
+            },
+            {
+               x = 7,
+               y = -2,
+            },
+            {
+               x = 7,
+               y = -1,
+            },
+            {
+               x = 7,
+               y = 0,
+            },
+            {
+               x = 7,
+               y = 1,
+            },
+         },
+         [defines.direction.west] = {
+            extensions = {
+               [defines.direction.west] = {
+                  direction = defines.direction.east,
+                  goal_direction = defines.direction.west,
+                  goal_position = {
+                     x = -10,
+                     y = 0,
+                  },
+                  position = {
+                     x = -9,
+                     y = 0,
+                  },
+                  prototype = "straight-rail",
+               },
+               [defines.direction.westnorthwest] = {
+                  direction = defines.direction.northwest,
+                  goal_direction = defines.direction.westnorthwest,
+                  goal_position = {
+                     x = -13,
+                     y = -1,
+                  },
+                  position = {
+                     x = -10,
+                     y = 0,
+                  },
+                  prototype = "curved-rail-a",
+               },
+               [defines.direction.westsouthwest] = {
+                  direction = defines.direction.west,
+                  goal_direction = defines.direction.westsouthwest,
+                  goal_position = {
+                     x = -13,
+                     y = 1,
+                  },
+                  position = {
+                     x = -10,
+                     y = 0,
+                  },
+                  prototype = "curved-rail-a",
+               },
+            },
+            layer = "ground",
+            position = {
+               x = -8,
+               y = 0,
+            },
+            ramp_up = {
+               direction = defines.direction.west,
+               goal_direction = defines.direction.west,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = -24,
+                  y = 0,
+               },
+               position = {
+                  x = -16,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
+            },
+            signal_locations = {
+               in_signal = {
+                  direction = defines.direction.west,
+                  position = {
+                     x = -7.5,
+                     y = 1.5,
+                  },
+               },
+               out_signal = {
+                  direction = defines.direction.east,
+                  position = {
+                     x = -7.5,
+                     y = -1.5,
+                  },
+               },
+            },
+         },
+      },
+      [defines.direction.north] = {
+         bounding_box = {
+            left_top = {
+               x = -1.59765625,
+               y = -7.59765625,
+            },
+            right_bottom = {
+               x = 1.59765625,
+               y = 7.59765625,
+            },
+         },
+         grid_offset = {
+            x = 1,
+            y = 0,
+         },
+         [defines.direction.north] = {
+            extensions = {
+               [defines.direction.north] = {
+                  direction = defines.direction.north,
+                  goal_direction = defines.direction.north,
+                  goal_position = {
+                     x = 0,
+                     y = -10,
+                  },
+                  position = {
+                     x = 0,
+                     y = -9,
+                  },
+                  prototype = "straight-rail",
+               },
+               [defines.direction.northnortheast] = {
+                  direction = defines.direction.northeast,
+                  goal_direction = defines.direction.northnortheast,
+                  goal_position = {
+                     x = 1,
+                     y = -13,
+                  },
+                  position = {
+                     x = 0,
+                     y = -10,
+                  },
+                  prototype = "curved-rail-a",
+               },
+               [defines.direction.northnorthwest] = {
+                  direction = defines.direction.north,
+                  goal_direction = defines.direction.northnorthwest,
+                  goal_position = {
+                     x = -1,
+                     y = -13,
+                  },
+                  position = {
+                     x = 0,
+                     y = -10,
+                  },
+                  prototype = "curved-rail-a",
+               },
+            },
+            layer = "elevated",
+            position = {
+               x = 0,
+               y = -8,
+            },
+            ramp_down = {
+               direction = defines.direction.south,
+               goal_direction = defines.direction.north,
+               goal_layer = "ground",
+               goal_position = {
+                  x = 0,
+                  y = -24,
+               },
+               position = {
+                  x = 0,
+                  y = -16,
+               },
+               prototype = "rail-ramp",
+            },
+            signal_locations = {
+               in_signal = {
+                  direction = defines.direction.north,
+                  position = {
+                     x = -1.5,
+                     y = -7.5,
+                  },
+               },
+               out_signal = {
+                  direction = defines.direction.south,
+                  position = {
+                     x = 1.5,
+                     y = -7.5,
+                  },
+               },
+            },
+         },
+         occupied_tiles = {
+            {
+               x = -2,
+               y = -8,
+            },
+            {
+               x = -2,
+               y = -7,
+            },
+            {
+               x = -2,
+               y = -6,
+            },
+            {
+               x = -2,
+               y = -5,
+            },
+            {
+               x = -2,
+               y = -4,
+            },
+            {
+               x = -2,
+               y = -3,
+            },
+            {
+               x = -2,
+               y = -2,
+            },
+            {
+               x = -2,
+               y = -1,
+            },
+            {
+               x = -2,
+               y = 0,
+            },
+            {
+               x = -2,
+               y = 1,
+            },
+            {
+               x = -2,
+               y = 2,
+            },
+            {
+               x = -2,
+               y = 3,
+            },
+            {
+               x = -2,
+               y = 4,
+            },
+            {
+               x = -2,
+               y = 5,
+            },
+            {
+               x = -2,
+               y = 6,
+            },
+            {
+               x = -2,
+               y = 7,
+            },
+            {
+               x = -1,
+               y = -8,
+            },
+            {
+               x = -1,
+               y = -7,
+            },
+            {
+               x = -1,
+               y = -6,
+            },
+            {
+               x = -1,
+               y = -5,
+            },
+            {
+               x = -1,
+               y = -4,
+            },
+            {
+               x = -1,
+               y = -3,
+            },
+            {
+               x = -1,
+               y = -2,
+            },
+            {
+               x = -1,
+               y = -1,
+            },
+            {
+               x = -1,
+               y = 0,
+            },
+            {
+               x = -1,
+               y = 1,
+            },
+            {
+               x = -1,
+               y = 2,
+            },
+            {
+               x = -1,
+               y = 3,
+            },
+            {
+               x = -1,
+               y = 4,
+            },
+            {
+               x = -1,
+               y = 5,
+            },
+            {
+               x = -1,
+               y = 6,
+            },
+            {
+               x = -1,
+               y = 7,
+            },
+            {
+               x = 0,
+               y = -8,
+            },
+            {
+               x = 0,
+               y = -7,
+            },
+            {
+               x = 0,
+               y = -6,
+            },
+            {
+               x = 0,
+               y = -5,
+            },
+            {
+               x = 0,
+               y = -4,
+            },
+            {
+               x = 0,
+               y = -3,
+            },
+            {
+               x = 0,
+               y = -2,
+            },
+            {
+               x = 0,
+               y = -1,
+            },
+            {
+               x = 0,
+               y = 0,
+            },
+            {
+               x = 0,
+               y = 1,
+            },
+            {
+               x = 0,
+               y = 2,
+            },
+            {
+               x = 0,
+               y = 3,
+            },
+            {
+               x = 0,
+               y = 4,
+            },
+            {
+               x = 0,
+               y = 5,
+            },
+            {
+               x = 0,
+               y = 6,
+            },
+            {
+               x = 0,
+               y = 7,
+            },
+            {
+               x = 1,
+               y = -8,
+            },
+            {
+               x = 1,
+               y = -7,
+            },
+            {
+               x = 1,
+               y = -6,
+            },
+            {
+               x = 1,
+               y = -5,
+            },
+            {
+               x = 1,
+               y = -4,
+            },
+            {
+               x = 1,
+               y = -3,
+            },
+            {
+               x = 1,
+               y = -2,
+            },
+            {
+               x = 1,
+               y = -1,
+            },
+            {
+               x = 1,
+               y = 0,
+            },
+            {
+               x = 1,
+               y = 1,
+            },
+            {
+               x = 1,
+               y = 2,
+            },
+            {
+               x = 1,
+               y = 3,
+            },
+            {
+               x = 1,
+               y = 4,
+            },
+            {
+               x = 1,
+               y = 5,
+            },
+            {
+               x = 1,
+               y = 6,
+            },
+            {
+               x = 1,
+               y = 7,
+            },
+         },
+         [defines.direction.south] = {
+            extensions = {
+               [defines.direction.south] = {
+                  direction = defines.direction.north,
+                  goal_direction = defines.direction.south,
+                  goal_position = {
+                     x = 0,
+                     y = 10,
+                  },
+                  position = {
+                     x = 0,
+                     y = 9,
+                  },
+                  prototype = "straight-rail",
+               },
+               [defines.direction.southsoutheast] = {
+                  direction = defines.direction.south,
+                  goal_direction = defines.direction.southsoutheast,
+                  goal_position = {
+                     x = 1,
+                     y = 13,
+                  },
+                  position = {
+                     x = 0,
+                     y = 10,
+                  },
+                  prototype = "curved-rail-a",
+               },
+               [defines.direction.southsouthwest] = {
+                  direction = defines.direction.southwest,
+                  goal_direction = defines.direction.southsouthwest,
+                  goal_position = {
+                     x = -1,
+                     y = 13,
+                  },
+                  position = {
+                     x = 0,
+                     y = 10,
+                  },
+                  prototype = "curved-rail-a",
+               },
+            },
+            layer = "ground",
+            position = {
+               x = 0,
+               y = 8,
+            },
+            ramp_up = {
+               direction = defines.direction.south,
+               goal_direction = defines.direction.south,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = 0,
+                  y = 24,
+               },
+               position = {
+                  x = 0,
+                  y = 16,
+               },
+               prototype = "rail-ramp",
+            },
+            signal_locations = {
+               in_signal = {
+                  direction = defines.direction.south,
+                  position = {
+                     x = 1.5,
+                     y = 7.5,
+                  },
+               },
+               out_signal = {
+                  direction = defines.direction.north,
+                  position = {
+                     x = -1.5,
+                     y = 7.5,
+                  },
+               },
+            },
+         },
+      },
+      [defines.direction.south] = {
+         bounding_box = {
+            left_top = {
+               x = -1.59765625,
+               y = -7.59765625,
+            },
+            right_bottom = {
+               x = 1.59765625,
+               y = 7.59765625,
+            },
+         },
+         grid_offset = {
+            x = 1,
+            y = 0,
+         },
+         [defines.direction.north] = {
+            extensions = {
+               [defines.direction.north] = {
+                  direction = defines.direction.north,
+                  goal_direction = defines.direction.north,
+                  goal_position = {
+                     x = 0,
+                     y = -10,
+                  },
+                  position = {
+                     x = 0,
+                     y = -9,
+                  },
+                  prototype = "straight-rail",
+               },
+               [defines.direction.northnortheast] = {
+                  direction = defines.direction.northeast,
+                  goal_direction = defines.direction.northnortheast,
+                  goal_position = {
+                     x = 1,
+                     y = -13,
+                  },
+                  position = {
+                     x = 0,
+                     y = -10,
+                  },
+                  prototype = "curved-rail-a",
+               },
+               [defines.direction.northnorthwest] = {
+                  direction = defines.direction.north,
+                  goal_direction = defines.direction.northnorthwest,
+                  goal_position = {
+                     x = -1,
+                     y = -13,
+                  },
+                  position = {
+                     x = 0,
+                     y = -10,
+                  },
+                  prototype = "curved-rail-a",
+               },
+            },
+            layer = "ground",
+            position = {
+               x = 0,
+               y = -8,
+            },
+            ramp_up = {
+               direction = defines.direction.north,
+               goal_direction = defines.direction.north,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = 0,
+                  y = -24,
+               },
+               position = {
+                  x = 0,
+                  y = -16,
+               },
+               prototype = "rail-ramp",
+            },
+            signal_locations = {
+               in_signal = {
+                  direction = defines.direction.north,
+                  position = {
+                     x = -1.5,
+                     y = -7.5,
+                  },
+               },
+               out_signal = {
+                  direction = defines.direction.south,
+                  position = {
+                     x = 1.5,
+                     y = -7.5,
+                  },
+               },
+            },
+         },
+         occupied_tiles = {
+            {
+               x = -2,
+               y = -8,
+            },
+            {
+               x = -2,
+               y = -7,
+            },
+            {
+               x = -2,
+               y = -6,
+            },
+            {
+               x = -2,
+               y = -5,
+            },
+            {
+               x = -2,
+               y = -4,
+            },
+            {
+               x = -2,
+               y = -3,
+            },
+            {
+               x = -2,
+               y = -2,
+            },
+            {
+               x = -2,
+               y = -1,
+            },
+            {
+               x = -2,
+               y = 0,
+            },
+            {
+               x = -2,
+               y = 1,
+            },
+            {
+               x = -2,
+               y = 2,
+            },
+            {
+               x = -2,
+               y = 3,
+            },
+            {
+               x = -2,
+               y = 4,
+            },
+            {
+               x = -2,
+               y = 5,
+            },
+            {
+               x = -2,
+               y = 6,
+            },
+            {
+               x = -2,
+               y = 7,
+            },
+            {
+               x = -1,
+               y = -8,
+            },
+            {
+               x = -1,
+               y = -7,
+            },
+            {
+               x = -1,
+               y = -6,
+            },
+            {
+               x = -1,
+               y = -5,
+            },
+            {
+               x = -1,
+               y = -4,
+            },
+            {
+               x = -1,
+               y = -3,
+            },
+            {
+               x = -1,
+               y = -2,
+            },
+            {
+               x = -1,
+               y = -1,
+            },
+            {
+               x = -1,
+               y = 0,
+            },
+            {
+               x = -1,
+               y = 1,
+            },
+            {
+               x = -1,
+               y = 2,
+            },
+            {
+               x = -1,
+               y = 3,
+            },
+            {
+               x = -1,
+               y = 4,
+            },
+            {
+               x = -1,
+               y = 5,
+            },
+            {
+               x = -1,
+               y = 6,
+            },
+            {
+               x = -1,
+               y = 7,
+            },
+            {
+               x = 0,
+               y = -8,
+            },
+            {
+               x = 0,
+               y = -7,
+            },
+            {
+               x = 0,
+               y = -6,
+            },
+            {
+               x = 0,
+               y = -5,
+            },
+            {
+               x = 0,
+               y = -4,
+            },
+            {
+               x = 0,
+               y = -3,
+            },
+            {
+               x = 0,
+               y = -2,
+            },
+            {
+               x = 0,
+               y = -1,
+            },
+            {
+               x = 0,
+               y = 0,
+            },
+            {
+               x = 0,
+               y = 1,
+            },
+            {
+               x = 0,
+               y = 2,
+            },
+            {
+               x = 0,
+               y = 3,
+            },
+            {
+               x = 0,
+               y = 4,
+            },
+            {
+               x = 0,
+               y = 5,
+            },
+            {
+               x = 0,
+               y = 6,
+            },
+            {
+               x = 0,
+               y = 7,
+            },
+            {
+               x = 1,
+               y = -8,
+            },
+            {
+               x = 1,
+               y = -7,
+            },
+            {
+               x = 1,
+               y = -6,
+            },
+            {
+               x = 1,
+               y = -5,
+            },
+            {
+               x = 1,
+               y = -4,
+            },
+            {
+               x = 1,
+               y = -3,
+            },
+            {
+               x = 1,
+               y = -2,
+            },
+            {
+               x = 1,
+               y = -1,
+            },
+            {
+               x = 1,
+               y = 0,
+            },
+            {
+               x = 1,
+               y = 1,
+            },
+            {
+               x = 1,
+               y = 2,
+            },
+            {
+               x = 1,
+               y = 3,
+            },
+            {
+               x = 1,
+               y = 4,
+            },
+            {
+               x = 1,
+               y = 5,
+            },
+            {
+               x = 1,
+               y = 6,
+            },
+            {
+               x = 1,
+               y = 7,
+            },
+         },
+         [defines.direction.south] = {
+            extensions = {
+               [defines.direction.south] = {
+                  direction = defines.direction.north,
+                  goal_direction = defines.direction.south,
+                  goal_position = {
+                     x = 0,
+                     y = 10,
+                  },
+                  position = {
+                     x = 0,
+                     y = 9,
+                  },
+                  prototype = "straight-rail",
+               },
+               [defines.direction.southsoutheast] = {
+                  direction = defines.direction.south,
+                  goal_direction = defines.direction.southsoutheast,
+                  goal_position = {
+                     x = 1,
+                     y = 13,
+                  },
+                  position = {
+                     x = 0,
+                     y = 10,
+                  },
+                  prototype = "curved-rail-a",
+               },
+               [defines.direction.southsouthwest] = {
+                  direction = defines.direction.southwest,
+                  goal_direction = defines.direction.southsouthwest,
+                  goal_position = {
+                     x = -1,
+                     y = 13,
+                  },
+                  position = {
+                     x = 0,
+                     y = 10,
+                  },
+                  prototype = "curved-rail-a",
+               },
+            },
+            layer = "elevated",
+            position = {
+               x = 0,
+               y = 8,
+            },
+            ramp_down = {
+               direction = defines.direction.north,
+               goal_direction = defines.direction.south,
+               goal_layer = "ground",
+               goal_position = {
+                  x = 0,
+                  y = 24,
+               },
+               position = {
+                  x = 0,
+                  y = 16,
+               },
+               prototype = "rail-ramp",
+            },
+            signal_locations = {
+               in_signal = {
+                  direction = defines.direction.south,
+                  position = {
+                     x = 1.5,
+                     y = 7.5,
+                  },
+               },
+               out_signal = {
+                  direction = defines.direction.north,
+                  position = {
+                     x = -1.5,
+                     y = 7.5,
+                  },
+               },
+            },
+         },
+      },
+      [defines.direction.west] = {
+         bounding_box = {
+            left_top = {
+               x = -7.59765625,
+               y = -1.59765625,
+            },
+            right_bottom = {
+               x = 7.59765625,
+               y = 1.59765625,
+            },
+         },
+         [defines.direction.east] = {
+            extensions = {
+               [defines.direction.east] = {
+                  direction = defines.direction.east,
+                  goal_direction = defines.direction.east,
+                  goal_position = {
+                     x = 10,
+                     y = 0,
+                  },
+                  position = {
+                     x = 9,
+                     y = 0,
+                  },
+                  prototype = "straight-rail",
+               },
+               [defines.direction.eastnortheast] = {
+                  direction = defines.direction.east,
+                  goal_direction = defines.direction.eastnortheast,
+                  goal_position = {
+                     x = 13,
+                     y = -1,
+                  },
+                  position = {
+                     x = 10,
+                     y = 0,
+                  },
+                  prototype = "curved-rail-a",
+               },
+               [defines.direction.eastsoutheast] = {
+                  direction = defines.direction.southeast,
+                  goal_direction = defines.direction.eastsoutheast,
+                  goal_position = {
+                     x = 13,
+                     y = 1,
+                  },
+                  position = {
+                     x = 10,
+                     y = 0,
+                  },
+                  prototype = "curved-rail-a",
+               },
+            },
+            layer = "ground",
+            position = {
+               x = 8,
+               y = 0,
+            },
+            ramp_up = {
+               direction = defines.direction.east,
+               goal_direction = defines.direction.east,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = 24,
+                  y = 0,
+               },
+               position = {
+                  x = 16,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
+            },
+            signal_locations = {
+               in_signal = {
+                  direction = defines.direction.east,
+                  position = {
+                     x = 7.5,
+                     y = -1.5,
+                  },
+               },
+               out_signal = {
+                  direction = defines.direction.west,
+                  position = {
+                     x = 7.5,
+                     y = 1.5,
+                  },
+               },
+            },
+         },
+         grid_offset = {
+            x = 0,
+            y = 1,
+         },
+         occupied_tiles = {
+            {
+               x = -8,
+               y = -2,
+            },
+            {
+               x = -8,
+               y = -1,
+            },
+            {
+               x = -8,
+               y = 0,
+            },
+            {
+               x = -8,
+               y = 1,
+            },
+            {
+               x = -7,
+               y = -2,
+            },
+            {
+               x = -7,
+               y = -1,
+            },
+            {
+               x = -7,
+               y = 0,
+            },
+            {
+               x = -7,
+               y = 1,
+            },
+            {
+               x = -6,
+               y = -2,
+            },
+            {
+               x = -6,
+               y = -1,
+            },
+            {
+               x = -6,
+               y = 0,
+            },
+            {
+               x = -6,
+               y = 1,
+            },
+            {
+               x = -5,
+               y = -2,
+            },
+            {
+               x = -5,
+               y = -1,
+            },
+            {
+               x = -5,
+               y = 0,
+            },
+            {
+               x = -5,
+               y = 1,
+            },
+            {
+               x = -4,
+               y = -2,
+            },
+            {
+               x = -4,
+               y = -1,
+            },
+            {
+               x = -4,
+               y = 0,
+            },
+            {
+               x = -4,
+               y = 1,
+            },
+            {
+               x = -3,
+               y = -2,
+            },
+            {
+               x = -3,
+               y = -1,
+            },
+            {
+               x = -3,
+               y = 0,
+            },
+            {
+               x = -3,
+               y = 1,
+            },
+            {
+               x = -2,
+               y = -2,
+            },
+            {
+               x = -2,
+               y = -1,
+            },
+            {
+               x = -2,
+               y = 0,
+            },
+            {
+               x = -2,
+               y = 1,
+            },
+            {
+               x = -1,
+               y = -2,
+            },
+            {
+               x = -1,
+               y = -1,
+            },
+            {
+               x = -1,
+               y = 0,
+            },
+            {
+               x = -1,
+               y = 1,
+            },
+            {
+               x = 0,
+               y = -2,
+            },
+            {
+               x = 0,
+               y = -1,
+            },
+            {
+               x = 0,
+               y = 0,
+            },
+            {
+               x = 0,
+               y = 1,
+            },
+            {
+               x = 1,
+               y = -2,
+            },
+            {
+               x = 1,
+               y = -1,
+            },
+            {
+               x = 1,
+               y = 0,
+            },
+            {
+               x = 1,
+               y = 1,
+            },
+            {
+               x = 2,
+               y = -2,
+            },
+            {
+               x = 2,
+               y = -1,
+            },
+            {
+               x = 2,
+               y = 0,
+            },
+            {
+               x = 2,
+               y = 1,
+            },
+            {
+               x = 3,
+               y = -2,
+            },
+            {
+               x = 3,
+               y = -1,
+            },
+            {
+               x = 3,
+               y = 0,
+            },
+            {
+               x = 3,
+               y = 1,
+            },
+            {
+               x = 4,
+               y = -2,
+            },
+            {
+               x = 4,
+               y = -1,
+            },
+            {
+               x = 4,
+               y = 0,
+            },
+            {
+               x = 4,
+               y = 1,
+            },
+            {
+               x = 5,
+               y = -2,
+            },
+            {
+               x = 5,
+               y = -1,
+            },
+            {
+               x = 5,
+               y = 0,
+            },
+            {
+               x = 5,
+               y = 1,
+            },
+            {
+               x = 6,
+               y = -2,
+            },
+            {
+               x = 6,
+               y = -1,
+            },
+            {
+               x = 6,
+               y = 0,
+            },
+            {
+               x = 6,
+               y = 1,
+            },
+            {
+               x = 7,
+               y = -2,
+            },
+            {
+               x = 7,
+               y = -1,
+            },
+            {
+               x = 7,
+               y = 0,
+            },
+            {
+               x = 7,
+               y = 1,
+            },
+         },
+         [defines.direction.west] = {
+            extensions = {
+               [defines.direction.west] = {
+                  direction = defines.direction.east,
+                  goal_direction = defines.direction.west,
+                  goal_position = {
+                     x = -10,
+                     y = 0,
+                  },
+                  position = {
+                     x = -9,
+                     y = 0,
+                  },
+                  prototype = "straight-rail",
+               },
+               [defines.direction.westnorthwest] = {
+                  direction = defines.direction.northwest,
+                  goal_direction = defines.direction.westnorthwest,
+                  goal_position = {
+                     x = -13,
+                     y = -1,
+                  },
+                  position = {
+                     x = -10,
+                     y = 0,
+                  },
+                  prototype = "curved-rail-a",
+               },
+               [defines.direction.westsouthwest] = {
+                  direction = defines.direction.west,
+                  goal_direction = defines.direction.westsouthwest,
+                  goal_position = {
+                     x = -13,
+                     y = 1,
+                  },
+                  position = {
+                     x = -10,
+                     y = 0,
+                  },
+                  prototype = "curved-rail-a",
+               },
+            },
+            layer = "elevated",
+            position = {
+               x = -8,
+               y = 0,
+            },
+            ramp_down = {
+               direction = defines.direction.east,
+               goal_direction = defines.direction.west,
+               goal_layer = "ground",
+               goal_position = {
+                  x = -24,
+                  y = 0,
+               },
+               position = {
+                  x = -16,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
+            },
+            signal_locations = {
+               in_signal = {
+                  direction = defines.direction.west,
+                  position = {
+                     x = -7.5,
+                     y = 1.5,
+                  },
+               },
+               out_signal = {
+                  direction = defines.direction.east,
+                  position = {
+                     x = -7.5,
+                     y = -1.5,
+                  },
+               },
+            },
+         },
+      },
+   },
    ["straight-rail"] = {
       [defines.direction.east] = {
          bounding_box = {
@@ -5209,6 +7155,34 @@ return {
             position = {
                x = 1,
                y = 0,
+            },
+            ramp_down = {
+               direction = defines.direction.west,
+               goal_direction = defines.direction.east,
+               goal_layer = "ground",
+               goal_position = {
+                  x = 17,
+                  y = 0,
+               },
+               position = {
+                  x = 9,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
+            },
+            ramp_up = {
+               direction = defines.direction.east,
+               goal_direction = defines.direction.east,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = 17,
+                  y = 0,
+               },
+               position = {
+                  x = 9,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
             },
             signal_locations = {
                in_signal = {
@@ -5295,6 +7269,34 @@ return {
                x = -1,
                y = 0,
             },
+            ramp_down = {
+               direction = defines.direction.east,
+               goal_direction = defines.direction.west,
+               goal_layer = "ground",
+               goal_position = {
+                  x = -17,
+                  y = 0,
+               },
+               position = {
+                  x = -9,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
+            },
+            ramp_up = {
+               direction = defines.direction.west,
+               goal_direction = defines.direction.west,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = -17,
+                  y = 0,
+               },
+               position = {
+                  x = -9,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
+            },
             signal_locations = {
                in_signal = {
                   direction = defines.direction.west,
@@ -5373,6 +7375,34 @@ return {
             position = {
                x = 0,
                y = -1,
+            },
+            ramp_down = {
+               direction = defines.direction.south,
+               goal_direction = defines.direction.north,
+               goal_layer = "ground",
+               goal_position = {
+                  x = 0,
+                  y = -17,
+               },
+               position = {
+                  x = 0,
+                  y = -9,
+               },
+               prototype = "rail-ramp",
+            },
+            ramp_up = {
+               direction = defines.direction.north,
+               goal_direction = defines.direction.north,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = 0,
+                  y = -17,
+               },
+               position = {
+                  x = 0,
+                  y = -9,
+               },
+               prototype = "rail-ramp",
             },
             signal_locations = {
                in_signal = {
@@ -5454,6 +7484,34 @@ return {
             position = {
                x = 0,
                y = 1,
+            },
+            ramp_down = {
+               direction = defines.direction.north,
+               goal_direction = defines.direction.south,
+               goal_layer = "ground",
+               goal_position = {
+                  x = 0,
+                  y = 17,
+               },
+               position = {
+                  x = 0,
+                  y = 9,
+               },
+               prototype = "rail-ramp",
+            },
+            ramp_up = {
+               direction = defines.direction.south,
+               goal_direction = defines.direction.south,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = 0,
+                  y = 17,
+               },
+               position = {
+                  x = 0,
+                  y = 9,
+               },
+               prototype = "rail-ramp",
             },
             signal_locations = {
                in_signal = {
@@ -5888,6 +7946,34 @@ return {
                x = 0,
                y = -1,
             },
+            ramp_down = {
+               direction = defines.direction.south,
+               goal_direction = defines.direction.north,
+               goal_layer = "ground",
+               goal_position = {
+                  x = 0,
+                  y = -17,
+               },
+               position = {
+                  x = 0,
+                  y = -9,
+               },
+               prototype = "rail-ramp",
+            },
+            ramp_up = {
+               direction = defines.direction.north,
+               goal_direction = defines.direction.north,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = 0,
+                  y = -17,
+               },
+               position = {
+                  x = 0,
+                  y = -9,
+               },
+               prototype = "rail-ramp",
+            },
             signal_locations = {
                in_signal = {
                   direction = defines.direction.north,
@@ -5968,6 +8054,34 @@ return {
             position = {
                x = 0,
                y = 1,
+            },
+            ramp_down = {
+               direction = defines.direction.north,
+               goal_direction = defines.direction.south,
+               goal_layer = "ground",
+               goal_position = {
+                  x = 0,
+                  y = 17,
+               },
+               position = {
+                  x = 0,
+                  y = 9,
+               },
+               prototype = "rail-ramp",
+            },
+            ramp_up = {
+               direction = defines.direction.south,
+               goal_direction = defines.direction.south,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = 0,
+                  y = 17,
+               },
+               position = {
+                  x = 0,
+                  y = 9,
+               },
+               prototype = "rail-ramp",
             },
             signal_locations = {
                in_signal = {
@@ -6399,6 +8513,34 @@ return {
                x = 1,
                y = 0,
             },
+            ramp_down = {
+               direction = defines.direction.west,
+               goal_direction = defines.direction.east,
+               goal_layer = "ground",
+               goal_position = {
+                  x = 17,
+                  y = 0,
+               },
+               position = {
+                  x = 9,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
+            },
+            ramp_up = {
+               direction = defines.direction.east,
+               goal_direction = defines.direction.east,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = 17,
+                  y = 0,
+               },
+               position = {
+                  x = 9,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
+            },
             signal_locations = {
                in_signal = {
                   direction = defines.direction.east,
@@ -6483,6 +8625,34 @@ return {
             position = {
                x = -1,
                y = 0,
+            },
+            ramp_down = {
+               direction = defines.direction.east,
+               goal_direction = defines.direction.west,
+               goal_layer = "ground",
+               goal_position = {
+                  x = -17,
+                  y = 0,
+               },
+               position = {
+                  x = -9,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
+            },
+            ramp_up = {
+               direction = defines.direction.west,
+               goal_direction = defines.direction.west,
+               goal_layer = "elevated",
+               goal_position = {
+                  x = -17,
+                  y = 0,
+               },
+               position = {
+                  x = -9,
+                  y = 0,
+               },
+               prototype = "rail-ramp",
             },
             signal_locations = {
                in_signal = {

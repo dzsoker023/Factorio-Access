@@ -16,9 +16,15 @@ Move the virtual train right: dot
 
 Flip the virtual train to the other end of this rail: alt + comma
 
-Place a signal to the left or right: control + m or dot
+Place a chain signal to the left or right: control + m or dot
 
-Place a chain signal to the left or right: shift + m or dot
+Place a signal to the left or right: shift + m or dot
+
+Ramp up to the elevated layer, or down to the ground: shift + comma
+
+Place the support the virtual train asked for, and build the rail that needed it: control + comma
+
+Place a support at the end you are on: control + shift + comma
 
 Toggle speculation: slash
 
@@ -128,6 +134,11 @@ As you build more of a larger shape, the mod will recognize more of that larger 
 example, until the 4th place of a 90 degree turn is placed, it will describe the three smaller curves separately.  You
 can use this to help guide you as to whether or not you have built what you wanted.
 
+Elevated rails are described the same way, with "elevated" in front, and "on a support" when a support stands at one
+of the ends of that rail. A ramp is described by the direction it climbs, for example "ramp rising to the north". Where
+a bridge crosses ground track, the tile has a rail on each layer and both are read, the ground and the elevated one
+each on their own; they are never treated as connected to each other. Signals are read with the layer they stand on.
+
 For 90 degree turns off the cardinals we use the interesting fact that all turns have a "height" and assign the 4
 segments a bottom/lower half/upper half/top designation, going from southmost to northmost on the map.
 
@@ -167,9 +178,10 @@ All rail building must happen from a rail end, so you are instead grabbing the o
 example, a north to north northwest curve's ends are south and north northwest.
 
 It is necessary to place signals and it is necessary sometimes to place signals at the exact position relative to a
-rail's end so that you have an extra tile of space.  Adding ctrl to m or dot places a signal on that side of the track.
-Using shift instead places a chain signal.  Explaining the rules of Factorio signals are beyond this document, but if
-you are following them, ctrl/shift + dot is always "going this way" and ctrl/shift + m is "going against the flow".
+rail's end so that you have an extra tile of space. Adding ctrl to m or dot places a chain signal on that side of the
+track. Using shift instead places a regular signal. Explaining the rules of Factorio signals are beyond this document,
+but if you are following them, ctrl/shift + dot is always "going this way" and ctrl/shift + m is "going against the
+flow".
 
 The virtual train moves over but does not replace perfectly matching tracks.  For example, if you build the exact same
 structure from the exact same starting point twice, the second time succeeds but doesn't place anything.  This solves a
@@ -203,7 +215,7 @@ A concrete example may help. Here is how you build a 3-way fork:
 - Press shift + b again
 - Press comma 4 times to build the straight section
 - Press b, to get back and clear the bookmark
-- Add some signals: press shift dot (chain in) and control m (regular out)
+- Add some signals: press control dot (chain in) and shift m (regular out)
 
 Bookmarks may seem awkward, but the use is for more complex layouts.  For example, this representation lets you build
 forks on the ends of other forks, or even type 4-way intersections (hint: each fork is part of another fork, and you can
@@ -218,6 +230,36 @@ placing them, and allows you to place normal rails anywhere.  This is for both i
 playability.  The actual rules for a sighted player are complicated. In practice, this isn't as bad as it sounds.  When
 you start building networks of hundreds of rails, the inability to have enough in your inventory will force the use of
 blueprints or ghosts.
+
+### Elevated Rails
+
+With Space Age (or the elevated rails mod) and the elevated rails research, the virtual train can build bridges. The
+normal rail planner builds them.
+
+Shift + comma places a ramp from the end you are on. On the ground it goes up, on a bridge it comes down. A ramp is as
+long as 8 straight rails and can only start from an end facing north, east, south or west. After a ramp up, comma, m and
+dot build elevated rails, and signals go on the bridge rather than on the ground below. Signals cannot go on a ramp
+itself.
+
+Elevated rails need holding up. The top of a ramp holds 4 straight rails. A rail support standing at a rail end holds 5
+straight rails on each side of it; it must face along the track, and it cannot stand at the half-diagonal ends in the
+middle of a curve. When you build a rail that nothing holds, the virtual train says a support is needed and builds
+nothing. Press control + comma to place that support and build the rail in one go. The support goes at the far end of
+the new rail, which is the best spot when building one rail at a time: it holds that rail and 5 more. If you would
+rather not be asked, turn on "Automatic rail supports" in the mod settings, and the support is placed straight away.
+
+Control + shift + comma places a support at the end you are on, if you want one somewhere in particular. Backspace
+removes a support together with the rail it was placed for.
+
+When you lock onto an existing bridge, the virtual train works out how far the supports already standing there reach.
+Where a bridge crosses ground track, a tile has both rails. The lock-on takes the rail you have selected, so press
+shift + f until you hear the one you want, then click. Supports are listed after the rails on their tile, so moving
+the cursor along a bridge reads the track; shift + f reaches the support.
+
+In force and superforce mode nothing is built straight away, so the virtual train keeps count of the reach itself and
+asks for supports the same way.
+
+Syntrax can build whole bridges too, and plans the supports for you. See the Syntrax documentation.
 
 ### Building Larger Layouts
 

@@ -75,7 +75,21 @@ local RAIL_TYPE_TO_PROTOTYPE = {
    [RailInfo.RailType.CURVE_A] = "curved-rail-a",
    [RailInfo.RailType.CURVE_B] = "curved-rail-b",
    [RailInfo.RailType.HALF_DIAGONAL] = "half-diagonal-rail",
+   [RailInfo.RailType.RAMP] = "rail-ramp",
 }
+
+-- Elevated prototype types. Their geometry lives in RailData under the ground type.
+local ELEVATED_PROTOTYPE_OF = {
+   [RailInfo.RailType.STRAIGHT] = "elevated-straight-rail",
+   [RailInfo.RailType.CURVE_A] = "elevated-curved-rail-a",
+   [RailInfo.RailType.CURVE_B] = "elevated-curved-rail-b",
+   [RailInfo.RailType.HALF_DIAGONAL] = "elevated-half-diagonal-rail",
+}
+
+local ELEVATED_PROTOTYPE_TO_RAIL_TYPE = {}
+for rail_type, prototype in pairs(ELEVATED_PROTOTYPE_OF) do
+   ELEVATED_PROTOTYPE_TO_RAIL_TYPE[prototype] = rail_type
+end
 
 local PROTOTYPE_TO_RAIL_TYPE = {}
 for rail_type, prototype in pairs(RAIL_TYPE_TO_PROTOTYPE) do
@@ -98,6 +112,50 @@ function mod.prototype_type_to_rail_type(prototype)
    local result = PROTOTYPE_TO_RAIL_TYPE[prototype]
    if not result then error("Unknown prototype: " .. tostring(prototype)) end
    return result
+end
+
+---Map a RailType and layer to the prototype type to build. Ramps ignore the layer.
+---@param rail_type railutils.RailType
+---@param layer railutils.RailLayer
+---@return string
+function mod.rail_type_to_layered_prototype_type(rail_type, layer)
+   if layer == RailInfo.RailLayer.ELEVATED and rail_type ~= RailInfo.RailType.RAMP then
+      local result = ELEVATED_PROTOTYPE_OF[rail_type]
+      if not result then error("Unknown rail type: " .. tostring(rail_type)) end
+      return result
+   end
+   return mod.rail_type_to_prototype_type(rail_type)
+end
+
+---Map any rail prototype type (ground, elevated or ramp) to its RailType and layer. The layer is nil for ramps,
+---because the two ends of a ramp are on different layers.
+---@param prototype string
+---@return railutils.RailType, railutils.RailLayer?
+function mod.prototype_type_to_rail_type_and_layer(prototype)
+   local elevated = ELEVATED_PROTOTYPE_TO_RAIL_TYPE[prototype]
+   if elevated then return elevated, RailInfo.RailLayer.ELEVATED end
+   local rail_type = mod.prototype_type_to_rail_type(prototype)
+   if rail_type == RailInfo.RailType.RAMP then return rail_type, nil end
+   return rail_type, RailInfo.RailLayer.GROUND
+end
+
+---Whether a prototype type is any rail piece railutils understands. For entry points that see arbitrary entities.
+---@param prototype string
+---@return boolean
+function mod.is_known_rail_prototype_type(prototype)
+   return PROTOTYPE_TO_RAIL_TYPE[prototype] ~= nil or ELEVATED_PROTOTYPE_TO_RAIL_TYPE[prototype] ~= nil
+end
+
+---Layer of a ramp end. Returns nil for every other rail type, whose ends take the layer of the piece.
+---@param rail_type railutils.RailType
+---@param placement_direction defines.direction
+---@param end_direction defines.direction
+---@return railutils.RailLayer?
+function mod.get_ramp_end_layer(rail_type, placement_direction, end_direction)
+   if rail_type ~= RailInfo.RailType.RAMP then return nil end
+   local end_data = RailData[RAIL_TYPE_TO_PROTOTYPE[rail_type]][placement_direction][end_direction]
+   if not end_data then error("Invalid end_direction for ramp: " .. tostring(end_direction)) end
+   return end_data.layer
 end
 
 ---Get the grid-adjusted position where a rail will actually be placed
@@ -163,6 +221,7 @@ end
 ---@field next_rail_direction defines.direction Direction to place next rail
 ---@field next_rail_goal_position fa.Point Absolute position of far end of next rail
 ---@field next_rail_goal_direction defines.direction Direction of far end of next rail
+---@field next_rail_goal_layer railutils.RailLayer? Layer of the far end, set only for ramp extensions
 
 ---Get extension points from a specific end of a specific rail configuration
 ---
@@ -221,6 +280,37 @@ function mod.get_extensions_from_end(position, rail_type, placement_direction, e
    end
 
    return extensions
+end
+
+---Get the ramp that can extend a specific end, if any. Only cardinal ends have one: a ramp up from a ground end, a
+---ramp down from an elevated end.
+---
+---@param position fa.Point Rail's grid-adjusted position
+---@param rail_type railutils.RailType Type of rail
+---@param placement_direction defines.direction Direction the rail is placed
+---@param end_direction defines.direction Which end to extend
+---@param layer railutils.RailLayer Layer of that end
+---@return railutils.ExtensionPoint?
+function mod.get_ramp_extension_from_end(position, rail_type, placement_direction, end_direction, layer)
+   local prototype_type = mod.rail_type_to_prototype_type(rail_type)
+   local end_data = RailData[prototype_type][placement_direction][end_direction]
+   if not end_data then error("Invalid end_direction: " .. tostring(end_direction)) end
+
+   local ramp = layer == RailInfo.RailLayer.ELEVATED and end_data.ramp_down or end_data.ramp_up
+   if not ramp then return nil end
+
+   return {
+      rail_unit_number = nil,
+      end_position = { x = position.x + end_data.position.x, y = position.y + end_data.position.y },
+      end_direction = end_direction,
+      goal_direction = ramp.goal_direction,
+      next_rail_prototype = ramp.prototype,
+      next_rail_position = { x = position.x + ramp.position.x, y = position.y + ramp.position.y },
+      next_rail_direction = ramp.direction,
+      next_rail_goal_position = { x = position.x + ramp.goal_position.x, y = position.y + ramp.goal_position.y },
+      next_rail_goal_direction = ramp.goal_direction,
+      next_rail_goal_layer = ramp.goal_layer,
+   }
 end
 
 return mod

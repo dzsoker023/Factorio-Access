@@ -25,6 +25,7 @@ mod.SignalSide = {
 ---@field _placement_direction defines.direction Direction the rail was placed
 ---@field _position fa.Point Current position (grid-adjusted)
 ---@field _end_direction defines.direction Which end we're currently at
+---@field _layer railutils.RailLayer Layer of the current end
 local Traverser = {}
 local Traverser_meta = { __index = Traverser }
 
@@ -51,6 +52,8 @@ function Traverser:_apply_extension(ext)
    self._placement_direction = ext.next_rail_direction
    self._position = ext.next_rail_position
    self._end_direction = ext.next_rail_goal_direction
+   -- Same-layer extensions keep the layer; ramps say where they end
+   self._layer = ext.next_rail_goal_layer or self._layer
 end
 
 ---Get signal data for a specific side (internal helper)
@@ -83,8 +86,9 @@ end
 ---@param position fa.Point Initial position (should already be grid-adjusted if binding to a real rail)
 ---@param placement_direction defines.direction Direction the rail was placed
 ---@param end_direction defines.direction Which end to bind to
+---@param layer railutils.RailLayer? Layer of the rail, ground if omitted. Ignored for ramps (their ends know it).
 ---@return railutils.Traverser
-function mod.new(rail_type, position, placement_direction, end_direction)
+function mod.new(rail_type, position, placement_direction, end_direction, layer)
    -- Validate that the arguments match exact values in the rail data table
    local prototype = Queries.rail_type_to_prototype_type(rail_type)
    local rail_entry = RailData[prototype]
@@ -116,11 +120,16 @@ function mod.new(rail_type, position, placement_direction, end_direction)
       )
    end
 
+   if rail_type == RailInfo.RailType.RAMP then
+      layer = direction_entry[end_direction].layer
+   end
+
    return setmetatable({
       _rail_type = rail_type,
       _placement_direction = placement_direction,
       _position = position,
       _end_direction = end_direction,
+      _layer = layer or RailInfo.RailLayer.GROUND,
    }, Traverser_meta)
 end
 
@@ -171,6 +180,30 @@ function Traverser:move_right()
    self:_apply_extension(self:_get_extension(1))
 end
 
+---Whether a ramp can continue from the current end (only cardinal ends have one)
+---@return boolean
+function Traverser:can_change_layer()
+   local end_data = self:_get_end_data()
+   if self._layer == RailInfo.RailLayer.ELEVATED then return end_data.ramp_down ~= nil end
+   return end_data.ramp_up ~= nil
+end
+
+---Continue with a ramp: up from a ground end, down from an elevated end. Errors on ends without a ramp; check
+---can_change_layer first where the user can ask for it.
+function Traverser:move_change_layer()
+   local ext = Queries.get_ramp_extension_from_end(
+      self._position,
+      self._rail_type,
+      self._placement_direction,
+      self._end_direction,
+      self._layer
+   )
+   if not ext then
+      error(string.format("No ramp from end_direction=%d on layer %s", self._end_direction, self._layer))
+   end
+   self:_apply_extension(ext)
+end
+
 ---Flip to the opposite end of the current rail
 function Traverser:flip_ends()
    local end_dirs = Queries.get_end_directions(self._rail_type, self._placement_direction)
@@ -187,6 +220,10 @@ function Traverser:flip_ends()
    if not other_end then error("Could not find opposite end of rail") end
 
    self._end_direction = other_end
+   -- The two ends of a ramp are on different layers
+   if self._rail_type == RailInfo.RailType.RAMP then
+      self._layer = Queries.get_ramp_end_layer(self._rail_type, self._placement_direction, other_end)
+   end
 end
 
 ---Get current end direction
@@ -201,6 +238,12 @@ function Traverser:get_rail_kind()
    return self._rail_type
 end
 
+---Get the layer of the current end
+---@return railutils.RailLayer
+function Traverser:get_layer()
+   return self._layer
+end
+
 ---Get current placement direction
 ---@return defines.direction
 function Traverser:get_placement_direction()
@@ -213,6 +256,13 @@ function Traverser:get_position()
    return { x = self._position.x, y = self._position.y }
 end
 
+---Get the position of the current end (where the next rail connects, and where a support would stand)
+---@return fa.Point
+function Traverser:get_end_position()
+   local end_data = self:_get_end_data()
+   return { x = self._position.x + end_data.position.x, y = self._position.y + end_data.position.y }
+end
+
 ---Clone this traverser to create an independent copy
 ---@return railutils.Traverser
 function Traverser:clone()
@@ -221,6 +271,7 @@ function Traverser:clone()
       _placement_direction = self._placement_direction,
       _position = { x = self._position.x, y = self._position.y },
       _end_direction = self._end_direction,
+      _layer = self._layer,
    }, Traverser_meta)
 end
 

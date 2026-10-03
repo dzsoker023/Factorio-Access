@@ -180,4 +180,114 @@ function mod.TestTraverser_GetAltSignalPos()
    end
 end
 
+function mod.TestTraverser_DefaultLayerIsGround()
+   local trav =
+      Traverser.new(RailInfo.RailType.STRAIGHT, { x = 1, y = 1 }, defines.direction.north, defines.direction.north)
+   lu.assertEquals(trav:get_layer(), RailInfo.RailLayer.GROUND)
+end
+
+function mod.TestTraverser_RampUpAndDown()
+   local dirs = defines.direction
+   local trav = Traverser.new(RailInfo.RailType.STRAIGHT, { x = 1, y = 1 }, dirs.north, dirs.north)
+   lu.assertTrue(trav:can_change_layer())
+
+   -- Up: a ramp continues from the north end, its top end faces north and is elevated
+   trav:move_change_layer()
+   lu.assertEquals(trav:get_rail_kind(), RailInfo.RailType.RAMP)
+   lu.assertEquals(trav:get_layer(), RailInfo.RailLayer.ELEVATED)
+   lu.assertEquals(trav:get_direction(), dirs.north)
+   lu.assertEquals(trav:get_placement_direction(), dirs.north)
+   lu.assertEquals(trav:get_position(), { x = 1, y = -8 })
+
+   -- Straight on top of the ramp stays elevated
+   trav:move_forward()
+   lu.assertEquals(trav:get_rail_kind(), RailInfo.RailType.STRAIGHT)
+   lu.assertEquals(trav:get_layer(), RailInfo.RailLayer.ELEVATED)
+   lu.assertEquals(trav:get_direction(), dirs.north)
+   lu.assertEquals(trav:get_position(), { x = 1, y = -17 })
+
+   -- Down: the ramp is placed facing the other way and ends on the ground
+   lu.assertTrue(trav:can_change_layer())
+   trav:move_change_layer()
+   lu.assertEquals(trav:get_rail_kind(), RailInfo.RailType.RAMP)
+   lu.assertEquals(trav:get_layer(), RailInfo.RailLayer.GROUND)
+   lu.assertEquals(trav:get_direction(), dirs.north)
+   lu.assertEquals(trav:get_placement_direction(), dirs.south)
+
+   trav:move_forward()
+   lu.assertEquals(trav:get_rail_kind(), RailInfo.RailType.STRAIGHT)
+   lu.assertEquals(trav:get_layer(), RailInfo.RailLayer.GROUND)
+   lu.assertEquals(trav:get_direction(), dirs.north)
+end
+
+function mod.TestTraverser_NoRampFromDiagonalEnd()
+   local dirs = defines.direction
+   local trav = Traverser.new(RailInfo.RailType.STRAIGHT, { x = 0, y = 0 }, dirs.northeast, dirs.northeast)
+   lu.assertFalse(trav:can_change_layer())
+   lu.assertError(function()
+      trav:move_change_layer()
+   end)
+end
+
+function mod.TestTraverser_ElevatedTurnsKeepLayer()
+   local dirs = defines.direction
+   local trav = Traverser.new(
+      RailInfo.RailType.STRAIGHT,
+      { x = 1, y = 1 },
+      dirs.north,
+      dirs.north,
+      RailInfo.RailLayer.ELEVATED
+   )
+   trav:move_left()
+   lu.assertEquals(trav:get_layer(), RailInfo.RailLayer.ELEVATED)
+   -- Not a cardinal end any more, so no ramp from here
+   lu.assertFalse(trav:can_change_layer())
+end
+
+function mod.TestTraverser_FlipOnRampChangesLayer()
+   local dirs = defines.direction
+   local trav = Traverser.new(RailInfo.RailType.STRAIGHT, { x = 1, y = 1 }, dirs.north, dirs.north)
+   trav:move_change_layer()
+   lu.assertEquals(trav:get_layer(), RailInfo.RailLayer.ELEVATED)
+   trav:flip_ends()
+   lu.assertEquals(trav:get_layer(), RailInfo.RailLayer.GROUND)
+   lu.assertEquals(trav:get_direction(), dirs.south)
+   trav:flip_ends()
+   lu.assertEquals(trav:get_layer(), RailInfo.RailLayer.ELEVATED)
+end
+
+function mod.TestTraverser_FlipKeepsLayerOnNormalRail()
+   local dirs = defines.direction
+   local trav = Traverser.new(
+      RailInfo.RailType.STRAIGHT,
+      { x = 1, y = 1 },
+      dirs.north,
+      dirs.north,
+      RailInfo.RailLayer.ELEVATED
+   )
+   trav:flip_ends()
+   lu.assertEquals(trav:get_layer(), RailInfo.RailLayer.ELEVATED)
+end
+
+function mod.TestTraverser_RampLayerComesFromTheEnd()
+   local dirs = defines.direction
+   -- A north-facing ramp has its elevated end to the north and its ground end to the south,
+   -- whatever layer the caller passes
+   local top = Traverser.new(RailInfo.RailType.RAMP, { x = 1, y = 0 }, dirs.north, dirs.north)
+   lu.assertEquals(top:get_layer(), RailInfo.RailLayer.ELEVATED)
+   local bottom =
+      Traverser.new(RailInfo.RailType.RAMP, { x = 1, y = 0 }, dirs.north, dirs.south, RailInfo.RailLayer.ELEVATED)
+   lu.assertEquals(bottom:get_layer(), RailInfo.RailLayer.GROUND)
+end
+
+function mod.TestTraverser_CloneKeepsLayer()
+   local dirs = defines.direction
+   local trav = Traverser.new(RailInfo.RailType.STRAIGHT, { x = 1, y = 1 }, dirs.north, dirs.north)
+   trav:move_change_layer()
+   local copy = trav:clone()
+   lu.assertEquals(copy:get_layer(), RailInfo.RailLayer.ELEVATED)
+   trav:flip_ends()
+   lu.assertEquals(copy:get_layer(), RailInfo.RailLayer.ELEVATED)
+end
+
 return mod

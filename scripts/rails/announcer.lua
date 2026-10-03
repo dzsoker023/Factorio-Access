@@ -65,6 +65,32 @@ local function build_signal_station_announcement(info)
    return message:build()
 end
 
+---Whether a rail support stands at either end of a built elevated rail, facing along the track
+---@param rail LuaEntity
+---@return boolean
+local function has_support(rail)
+   for _, rd in ipairs({ defines.rail_direction.front, defines.rail_direction.back }) do
+      local location = rail.get_rail_end(rd).location
+      if location.direction % 2 == 0 then
+         local supports = rail.surface.find_entities_filtered({
+            position = location.position,
+            radius = 0.5,
+            type = "rail-support",
+         })
+         for _, s in ipairs(supports) do
+            if
+               s.position.x == location.position.x
+               and s.position.y == location.position.y
+               and s.direction % 8 == location.direction % 8
+            then
+               return true
+            end
+         end
+      end
+   end
+   return false
+end
+
 ---Build announcement message for a rail
 ---@param description railutils.RailDescription Rail description from describer
 ---@param opts { prefix_rail: boolean?, is_ghost: boolean?, rail_entity: LuaEntity?, cursor_pos: MapPosition? }? Options
@@ -80,6 +106,9 @@ function mod.announce_rail(description, opts)
 
    -- Add "ghost" prefix if this is a ghost rail
    if is_ghost then message:fragment({ "fa.rail-ghost-prefix" }) end
+
+   -- Elevated rails say so; ramps say where they climb in their kind
+   if description.layer == "elevated" then message:fragment({ "fa.rail-elevated-prefix" }) end
 
    -- Add "rail" prefix if requested
    if prefix_rail then message:fragment("rail") end
@@ -103,6 +132,11 @@ function mod.announce_rail(description, opts)
 
          message:list_item(junction_desc)
       end
+   end
+
+   -- On a bridge, the supports are what holds it up: say when one stands at this rail
+   if rail_entity and not is_ghost and description.layer == "elevated" and has_support(rail_entity) then
+      message:list_item({ "fa.rail-on-support" })
    end
 
    -- Add signal/station info if rail entity provided (not for ghosts)

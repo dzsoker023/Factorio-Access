@@ -124,6 +124,13 @@ mod.TOKEN_TYPE = {
    CHAIN = "chain",
    SIGCHAIN = "sigchain",
    CHAINSIG = "chainsig",
+   -- Elevated rails
+   UP = "up",
+   DOWN = "down",
+   ELEV = "elev",
+   SUP = "sup",
+   NOSUP = "nosup",
+   AUTOSUP = "autosup",
 }
 
 ---@class syntrax.Token
@@ -156,6 +163,8 @@ local CHORD_PATTERNS = {
    { pattern = "^s", type = mod.TOKEN_TYPE.S },
    { pattern = "^f", type = mod.TOKEN_TYPE.FLIP },
    { pattern = "^m", type = mod.TOKEN_TYPE.MARK },
+   { pattern = "^u", type = mod.TOKEN_TYPE.UP },
+   { pattern = "^d", type = mod.TOKEN_TYPE.DOWN },
    { pattern = "^;", type = mod.TOKEN_TYPE.RESET },
    { pattern = "^x%d+", type = "x_with_number" }, -- Special: x followed by digits
 }
@@ -327,6 +336,18 @@ local function build_tokens(untyped_tokens)
          tok.type = mod.TOKEN_TYPE.SIGCHAIN
       elseif text == "chainsig" then
          tok.type = mod.TOKEN_TYPE.CHAINSIG
+      elseif text == "up" or text == "u" then
+         tok.type = mod.TOKEN_TYPE.UP
+      elseif text == "down" or text == "d" then
+         tok.type = mod.TOKEN_TYPE.DOWN
+      elseif text == "elev" then
+         tok.type = mod.TOKEN_TYPE.ELEV
+      elseif text == "sup" then
+         tok.type = mod.TOKEN_TYPE.SUP
+      elseif text == "nosup" then
+         tok.type = mod.TOKEN_TYPE.NOSUP
+      elseif text == "autosup" then
+         tok.type = mod.TOKEN_TYPE.AUTOSUP
       elseif string.match(text, IDENT_PATTERN) then
          tok.type = mod.TOKEN_TYPE.IDENTIFIER
       elseif string.match(text, NUMBER_PATTERN) then

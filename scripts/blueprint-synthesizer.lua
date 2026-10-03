@@ -7,8 +7,9 @@ local mod = {}
 ---@param name string Entity prototype name
 ---@param direction defines.direction? Direction of the entity (defaults to north)
 ---@param control_behavior table? Control behavior settings for the entity
+---@param extra_fields table? More blueprint entity fields, e.g. { rail_layer = "elevated" } for a signal on a bridge
 ---@return string blueprint_string The blueprint string ready for import_stack
-function mod.synthesize_simple_blueprint(name, direction, control_behavior)
+function mod.synthesize_simple_blueprint(name, direction, control_behavior, extra_fields)
    local entity = {
       entity_number = 1,
       name = name,
@@ -17,6 +18,11 @@ function mod.synthesize_simple_blueprint(name, direction, control_behavior)
    }
 
    if control_behavior then entity.control_behavior = control_behavior end
+   if extra_fields then
+      for k, v in pairs(extra_fields) do
+         entity[k] = v
+      end
+   end
 
    local bp_data = {
       blueprint = {

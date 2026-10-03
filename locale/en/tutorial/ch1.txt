@@ -14,11 +14,11 @@ To save your game press f1.  Your game also saves automatically every couple of 
 
 Finally, a markdown transcript of this tutorial is available in English in our GitHub.  You can also generate it with the console command /fa-tutorial-transcript.
 
-Before you go further, it is important that we confirm that you have not enabled space age. If you have, you will need to recreate your save.
+This version of the mod supports Space Age, including elevated rails and quality, so if you own Space Age you can keep all three enabled.
 
-If you did not purchase space age, this does not apply to you.
+This tutorial stays on Nauvis and teaches the base game. Space Age adds a lot on top of it, so a few details may differ from what the tutorial says.
 
-If you did, please exit the game, go into the launcher's mod menu, and disable quality, elevated rails, and space age.
+If this is your first factory, you may find it easier to finish the tutorial before you travel to other planets.
 
 You may also want to enable peaceful mode, which stops enemies from attacking until you attack them first. You may wish to do that now as well, but that means remaking your save.
 

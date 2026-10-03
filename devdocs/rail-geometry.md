@@ -11,6 +11,7 @@ Generated from extracting all rail pieces at origin and analyzing their connecti
 - [Direction System](#direction-system)
 - [The Four Rail Types](#the-four-rail-types)
 - [Universal Extension Rule](#universal-extension-rule)
+- [Elevated Rails and Ramps](#elevated-rails-and-ramps)
 - [End Direction Prediction](#end-direction-prediction)
 - [Piece Type Selection](#piece-type-selection)
 - [Chirality Patterns](#chirality-patterns)
@@ -225,11 +226,58 @@ From ANY rail end facing direction D, there are exactly 3 possible extensions:
 
 This is a geometric constraint - rails can only make gentle 22.5° turns. Sharp 90° turns require multiple pieces.
 
+With elevated rails (Space Age or the elevated rails mod), cardinal ends (N, E, S, W) have a fourth extension: a
+rail-ramp to the other layer, with the same goal direction as the straight extension. Non-cardinal ends keep exactly 3.
+The 3 same-layer extensions of an elevated end are the same pieces as on the ground, on the elevated layer. See
+[Elevated Rails and Ramps](#elevated-rails-and-ramps).
+
 **Example:** End facing north (0)
 - Can extend to: north (0), northnortheast (1), northnorthwest (15)
 
 **Example:** End facing eastsoutheast (5)
 - Can extend to: eastsoutheast (5), southeast (6), east (4)
+
+## Elevated Rails and Ramps
+
+Measured with `/elevprobe` (rounds 1-4) and extracted with `/railtable`; the data lives in `railutils/rail-data.lua`.
+
+**Layers.** `defines.rail_layer` is ground or elevated. The layer is part of the prototype type, not an entity field:
+`elevated-straight-rail`, `elevated-half-diagonal-rail`, `elevated-curved-rail-a` and `elevated-curved-rail-b` have
+exactly the geometry of their ground twins (positions, ends, signal locations, extensions), so `rail-data.lua` only
+stores the ground pieces. railutils models a piece as a `RailType` plus a `RailLayer`; `rail-ramp` is a fifth
+`RailType` whose two ends are on different layers.
+
+**Ramps.** 4 placement directions (cardinal), 16 tiles long (as long as 8 straight rails), one end on the ground and
+one elevated. In `rail-data.lua` every cardinal end has a `ramp_up` (from a ground end) and a `ramp_down` (from an
+elevated end) extension with a `goal_layer`. Ramp up and ramp down from the same end share position and goal position;
+their directions are opposite. The `rail-ramp` entry records the `layer` of each end. Signals cannot be placed on a
+ramp. `get_rail_extensions` returns ramps whether or not elevated rails are researched.
+
+**What holds an elevated rail.** An elevated rail can be built (or a ghost revived) only if it connects through built
+track to an anchor, and the distance along the track from the anchor to the far end of the rail is at most the
+anchor's range. Anchors are the elevated end of a ramp (`support_range` 9 in vanilla) and rail supports (11). Read the
+ranges from `LuaEntityPrototype.support_range`, they are prototype values.
+
+- A ramp holds 4 straight rails (8 tiles) or 1 curved-rail-a.
+- A support counts only when it stands exactly at a rail end and faces along the track (direction mod 8 equal to the
+  end's; north and south both work for a north track). One tile off, or at the middle of a rail, it holds nothing.
+  Supports are 8-directional, so they cannot stand at 16-way ends (half-diagonal track, the middle end of a curve).
+- A support holds 5 straight rails (10 tiles) on each side of it, or 2 curved-rail-b.
+- Piece length is the distance between its two ends (curves are about 0.65% longer).
+- Ghosts can be placed without support; reviving needs it. Reviving in passes until nothing more revives builds a whole
+  bridge from ghosts in any order: rails behind a support ahead of the built end revive backwards from it. Built
+  backwards, a ramp and the first support can be 9 rails apart and two supports 10. Built one rail at a time going
+  forwards, the support has to stand at the far end of the next rail, which gives 6 rails per support.
+- A support placed through a single-entity blueprint snaps one tile off the rail end; place it with
+  `create_entity` (as an `entity-ghost`) at the exact position instead.
+
+**Signals.** `create_entity` always puts a signal on the ground layer. A blueprint entity with
+`rail_layer = "elevated"` builds an elevated signal, with or without a support under it. `LuaEntity.rail_layer` is
+readable on built signals only (it errors on ghosts).
+
+**Where it is used.** `railutils/support-planner.lua` (supports for a Syntrax program),
+`scripts/rails/elevated-reach.lua` (reach of built track, for the virtual train), `railutils/rail-describer.lua`
+(descriptions on both layers).
 
 ## End Direction Prediction
 

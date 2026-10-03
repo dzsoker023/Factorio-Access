@@ -40,7 +40,9 @@ local SORT_PRIORITIES = {
    ["legacy-straight-rail"] = -1,
    ["legacy-curved-rail"] = -1,
    ["rail-ramp"] = -1,
-   ["rail-support"] = -1,
+   -- Below the rails it stands under, so moving the cursor along a bridge reads the rail, not the support at every
+   -- rail end. Shift+F still reaches it.
+   ["rail-support"] = -1.5,
 
    -- Vehicles and rolling stock (priority 1)
    ["car"] = 1,
@@ -184,6 +186,29 @@ function mod.get_first_ent_at_tile(pindex)
 
    ent_selection_storage[pindex].ent_index = 1
    return ents[1]
+end
+
+---Get an entity at the cursor tile that matches a predicate, without touching the cycling index. The entity the player
+---has selected (for example by cycling with shift+F) wins if it matches; otherwise the first match in tile order. For
+---the rail planner lock-on: a tile where a bridge crosses ground track has an elevated rail and a ground rail, and the
+---player picks one by cycling to it.
+---@param pindex number The player index
+---@param predicate fun(ent: LuaEntity): boolean
+---@return LuaEntity|nil
+function mod.find_first_ent_at_tile(pindex, predicate)
+   local player = game.get_player(pindex)
+   local c_pos = Viewpoint.get_viewpoint(pindex):get_cursor_pos()
+   local ents = mod.get_ents_on_tile(player.surface, c_pos.x, c_pos.y, pindex)
+   local selected = player.selected
+   if selected and selected.valid and predicate(selected) then
+      for _, ent in ipairs(ents) do
+         if ent == selected then return ent end
+      end
+   end
+   for _, ent in ipairs(ents) do
+      if predicate(ent) then return ent end
+   end
+   return nil
 end
 
 --- Get the next entity at this tile and note its index.

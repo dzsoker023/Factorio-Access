@@ -5,6 +5,8 @@
 
 local BuildHelpers = require("scripts.rails.build-helpers")
 local InventoryUtils = require("scripts.inventory-utils")
+local RailInfo = require("railutils.rail-info")
+local SurfaceHelper = require("scripts.rails.surface-helper")
 local Syntrax = require("syntrax")
 
 local mod = {}
@@ -24,35 +26,47 @@ end
 ---@field direction defines.direction Starting end direction (0-15)
 ---@field rail_type railutils.RailType Starting rail type
 ---@field placement_direction defines.direction Starting rail's placement direction
+---@field layer railutils.RailLayer? Layer of the starting rail, ground if omitted
+---@field start_reach number? Elevated reach left at the starting end (what supports behind it can still hold)
 ---@field planner_description railutils.RailPlannerDescription Rail planner for prototype names
 ---@field build_mode defines.build_mode Build mode for placement
 
----Map generic rail type to actual prototype name using rail planner
+local GROUND_NAME_FIELD = {
+   ["straight-rail"] = "straight_rail_name",
+   ["curved-rail-a"] = "curved_rail_a_name",
+   ["curved-rail-b"] = "curved_rail_b_name",
+   ["half-diagonal-rail"] = "half_diagonal_rail_name",
+   ["rail-ramp"] = "ramp_name",
+}
+
+local ELEVATED_NAME_FIELD = {
+   ["straight-rail"] = "elevated_straight_rail_name",
+   ["curved-rail-a"] = "elevated_curved_rail_a_name",
+   ["curved-rail-b"] = "elevated_curved_rail_b_name",
+   ["half-diagonal-rail"] = "elevated_half_diagonal_rail_name",
+   ["rail-ramp"] = "ramp_name",
+}
+
+---Map generic rail type and layer to actual prototype name using rail planner
 ---@param generic_type string Generic rail type like "straight-rail"
+---@param layer railutils.RailLayer
 ---@param planner_description railutils.RailPlannerDescription
 ---@return string The actual prototype name from the player's rail planner
-local function map_rail_type(generic_type, planner_description)
-   if generic_type == "straight-rail" then
-      return planner_description.straight_rail_name
-   elseif generic_type == "curved-rail-a" then
-      return planner_description.curved_rail_a_name
-   elseif generic_type == "curved-rail-b" then
-      return planner_description.curved_rail_b_name
-   elseif generic_type == "half-diagonal-rail" then
-      return planner_description.half_diagonal_rail_name
-   else
-      error("Unknown rail type: " .. tostring(generic_type))
-   end
+local function map_rail_type(generic_type, layer, planner_description)
+   local fields = layer == RailInfo.RailLayer.ELEVATED and ELEVATED_NAME_FIELD or GROUND_NAME_FIELD
+   local field = fields[generic_type]
+   if not field then error("Unknown rail type: " .. tostring(generic_type)) end
+   return planner_description[field]
 end
 
 ---Convert a syntrax placement to game placement format
 ---@param placement syntrax.vm.Placement
 ---@param planner_description railutils.RailPlannerDescription
----@return {name: string, position: MapPosition, direction: defines.direction}
+---@return {name: string, position: MapPosition, direction: defines.direction, rail_layer: string?}
 local function convert_placement(placement, planner_description)
    if placement.type == "rail" then
       return {
-         name = map_rail_type(placement.rail_type, planner_description),
+         name = map_rail_type(placement.rail_type, placement.layer, planner_description),
          position = placement.position,
          direction = placement.placement_direction,
       }
@@ -61,6 +75,14 @@ local function convert_placement(placement, planner_description)
          name = placement.signal_type,
          position = placement.position,
          direction = placement.direction,
+         rail_layer = placement.layer,
+      }
+   elseif placement.type == "support" then
+      return {
+         name = planner_description.support_name,
+         position = placement.position,
+         direction = placement.direction,
+         exact = true,
       }
    else
       error("Unknown placement type: " .. tostring((placement --[[@as syntrax.vm.Placement]]).type))
@@ -72,7 +94,15 @@ end
 ---@param placement syntrax.vm.Placement
 ---@return string
 local function format_placement_error(group_idx, placement)
-   local entity_type = placement.type == "rail" and placement.rail_type or placement.signal_type
+   local entity_type
+   if placement.type == "rail" then
+      entity_type = placement.layer == RailInfo.RailLayer.ELEVATED and ("elevated " .. placement.rail_type)
+         or placement.rail_type
+   elseif placement.type == "support" then
+      entity_type = "rail-support"
+   else
+      entity_type = placement.signal_type
+   end
    return string.format(
       "Failed to place group %d, %s at (%d, %d)",
       group_idx,
@@ -98,13 +128,29 @@ local function try_alternative(pindex, surface, alternative, planner_description
    for _, syntrax_placement in ipairs(alternative) do
       local placement = convert_placement(syntrax_placement, planner_description)
 
-      -- Check if real entity already exists - counts as success, no ghost needed
-      local existing =
-         BuildHelpers.find_expected_entity(surface, placement.position, placement.name, placement.direction)
+      -- Check if real entity already exists - counts as success, no ghost needed. Supports must stand exactly at the
+      -- rail end, one a tile off does not count.
+      local existing
+      if placement.exact then
+         existing = BuildHelpers.find_exact_entity(surface, placement.position, placement.name, placement.direction)
+      else
+         existing = BuildHelpers.find_expected_entity(
+            surface,
+            placement.position,
+            placement.name,
+            placement.direction,
+            placement.rail_layer
+         )
+      end
       if existing then goto continue end
 
       -- Check if ghost already exists - counts as success, but we didn't create it
-      local ghost = BuildHelpers.find_expected_ghost(surface, placement.position, placement.name, placement.direction)
+      local ghost
+      if placement.exact then
+         ghost = BuildHelpers.find_exact_ghost(surface, placement.position, placement.name, placement.direction)
+      else
+         ghost = BuildHelpers.find_expected_ghost(surface, placement.position, placement.name, placement.direction)
+      end
       if ghost then
          table.insert(all_ghosts, ghost)
          goto continue
@@ -128,6 +174,24 @@ local function try_alternative(pindex, surface, alternative, planner_description
    return all_ghosts, created_ghosts
 end
 
+---Whether a program builds anything elevated: ramps, elevated rails or supports
+---@param placement_groups syntrax.vm.PlacementGroup[]
+---@return boolean
+local function uses_elevated(placement_groups)
+   for _, group in ipairs(placement_groups) do
+      for _, alternative in ipairs(group) do
+         for _, placement in ipairs(alternative) do
+            if placement.type == "support" then return true end
+            if placement.type == "rail" then
+               if placement.rail_type == RailInfo.RailType.RAMP then return true end
+               if placement.layer == RailInfo.RailLayer.ELEVATED then return true end
+            end
+         end
+      end
+   end
+   return false
+end
+
 ---Execute syntrax code and place rails
 ---@param opts syntrax_runner.ExecuteOptions
 ---@return LuaEntity[]|nil entities The placed rails/ghosts, or nil on failure
@@ -136,13 +200,31 @@ function mod.execute(opts)
    local player = game.get_player(opts.pindex)
    if not player then return nil, "Invalid player" end
 
+   -- Supports are planned only when the planner can build elevated rails. Without it, elevated words fail below.
+   local planner = opts.planner_description
+   local run_opts = { initial_layer = opts.layer }
+   if SurfaceHelper.has_elevated(planner) then
+      run_opts.support = {
+         support_range = prototypes.entity[planner.support_name].support_range,
+         ramp_range = prototypes.entity[planner.ramp_name].support_range,
+         start_reach = opts.start_reach,
+      }
+   end
+
    -- Parse and execute syntrax
    local placement_groups, err =
-      Syntrax.execute(opts.source, opts.position, opts.direction, opts.rail_type, opts.placement_direction)
+      Syntrax.execute(opts.source, opts.position, opts.direction, opts.rail_type, opts.placement_direction, run_opts)
    if err then return nil, err.message end
 
    -- Handle empty result
    if not placement_groups or #placement_groups == 0 then return {}, nil end
+
+   if uses_elevated(placement_groups) then
+      if not SurfaceHelper.has_elevated(planner) then return nil, "This rail planner cannot build elevated rails" end
+      if not player.force.rail_planner_allow_elevated_rails then
+         return nil, "Elevated rails are not researched yet"
+      end
+   end
 
    -- Process each placement group, trying alternatives until one works
    local all_ghosts = {}
@@ -192,8 +274,38 @@ function mod.execute(opts)
          return nil, "Insufficient items"
       end
 
-      deductor:commit()
-      return BuildHelpers.revive_ghosts(all_ghosts), nil
+      -- Elevated rails revive only once something holds them, which can take several passes
+      local entities, leftovers = BuildHelpers.revive_ghosts_until_stable(all_ghosts)
+      if #leftovers == 0 then
+         deductor:commit()
+         return entities, nil
+      end
+
+      -- Something did not get held. What was built is held, so keep it and pay only for that; remove the ghosts this
+      -- run made that could not be built, and say so.
+      local created = {}
+      for _, g in ipairs(all_created) do
+         if g.valid then created[g.unit_number] = true end
+      end
+      local removed = 0
+      for _, g in ipairs(leftovers) do
+         if created[g.unit_number] then
+            g.destroy()
+            removed = removed + 1
+         end
+      end
+      local built_names = {}
+      for _, e in ipairs(entities) do
+         table.insert(built_names, e.name)
+      end
+      local built_deductor = InventoryUtils.deductor_for_placements(opts.pindex, built_names, true)
+      if built_deductor then built_deductor:commit() end
+      return entities,
+         string.format(
+            "built %d, but %d could not be built because nothing holds them up, so those were removed",
+            #entities,
+            removed
+         )
    end
 
    -- Force/superforce mode - just return ghosts

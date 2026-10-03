@@ -15,6 +15,16 @@ mod.RailType = {
    CURVE_A = "curved-rail-a",
    CURVE_B = "curved-rail-b",
    HALF_DIAGONAL = "half-diagonal-rail",
+   -- Changes layer: one end on the ground, the other elevated. Only exists with the elevated rails mod.
+   RAMP = "rail-ramp",
+}
+
+---Rail layers. Elevated pieces share the geometry of their ground counterparts, so a piece is described by its
+---RailType plus a layer. Ramp ends each have their own layer.
+---@enum railutils.RailLayer
+mod.RailLayer = {
+   GROUND = "ground",
+   ELEVATED = "elevated",
 }
 
 ---Rail kind/description types (for announcements)
@@ -78,6 +88,12 @@ mod.RailKind = {
    RIGHT_OF_SOUTHWEST = "right-of-southwest",
    LEFT_OF_NORTHWEST = "left-of-northwest",
    RIGHT_OF_NORTHWEST = "right-of-northwest",
+
+   -- Ramps, named by the direction they climb toward (where the elevated end is)
+   RAMP_RISING_NORTH = "ramp-rising-north",
+   RAMP_RISING_EAST = "ramp-rising-east",
+   RAMP_RISING_SOUTH = "ramp-rising-south",
+   RAMP_RISING_WEST = "ramp-rising-west",
 }
 
 ---Junction types (for fork/split detection)
@@ -96,5 +112,7 @@ mod.JunctionKind = {
 ---@field rail_type railutils.RailType Type of rail piece
 ---@field direction defines.direction Placement direction of the rail
 ---@field unit_number number Unique identifier for this rail (always present for rails)
+---@field layer railutils.RailLayer? Layer of the rail: nil for ramps (each end has its own) and for surfaces that
+---predate elevated rails, where it means ground
 
 return mod

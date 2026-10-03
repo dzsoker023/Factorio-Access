@@ -3265,9 +3265,10 @@ EventManager.on_event(
             SpidertronRemote.add_to_autopilot(p, cursor_pos, false)
             return
          elseif stack.prototype.rails then
-            -- Rail planner: check if there's a rail at cursor to lock onto
-            local ent = EntitySelection.get_first_ent_at_tile(pindex)
-            if ent and ent.valid and Consts.RAIL_TYPES_SET[ent.type] then
+            -- Rail planner: check if there's a rail at cursor to lock onto. Look past supports and other entities
+            -- that sort before the rail, or the click falls through to a build attempt.
+            local ent = EntitySelection.find_first_ent_at_tile(pindex, VirtualTrainDriving.is_real_rail)
+            if ent then
                VirtualTrainDriving.lock_on_to_rail(pindex, ent)
                return
             end
@@ -3517,13 +3518,8 @@ EventManager.on_event(
 
          -- Rail planner: lock on with force mode (real or ghost rails)
          if stack.prototype.rails then
-            local ent = EntitySelection.get_first_ent_at_tile(pindex)
-            local is_rail = ent and ent.valid and Consts.RAIL_TYPES_SET[ent.type]
-            local is_ghost_rail = ent
-               and ent.valid
-               and ent.type == "entity-ghost"
-               and Consts.RAIL_TYPES_SET[ent.ghost_type]
-            if is_rail or is_ghost_rail then
+            local ent = EntitySelection.find_first_ent_at_tile(pindex, VirtualTrainDriving.is_rail_entity)
+            if ent then
                VirtualTrainDriving.lock_on_to_rail(pindex, ent, defines.build_mode.forced)
                return
             end
@@ -3591,13 +3587,8 @@ EventManager.on_event(
 
       -- Rail planner: lock on with superforce mode (real or ghost rails)
       if stack.prototype.rails then
-         local ent = EntitySelection.get_first_ent_at_tile(pindex)
-         local is_rail = ent and ent.valid and Consts.RAIL_TYPES_SET[ent.type]
-         local is_ghost_rail = ent
-            and ent.valid
-            and ent.type == "entity-ghost"
-            and Consts.RAIL_TYPES_SET[ent.ghost_type]
-         if is_rail or is_ghost_rail then
+         local ent = EntitySelection.find_first_ent_at_tile(pindex, VirtualTrainDriving.is_rail_entity)
+         if ent then
             VirtualTrainDriving.lock_on_to_rail(pindex, ent, defines.build_mode.superforced)
             return
          end
@@ -4215,9 +4206,9 @@ end
 
 EventManager.on_event("fa-comma", function(event)
    -- Check for virtual train driving
-   local handled, should_read = VirtualTrainDriving.on_kb_descriptive_action_name(event)
+   local handled, should_read, prefix = VirtualTrainDriving.on_kb_descriptive_action_name(event)
    if handled then
-      if should_read then TileReader.read_tile(event.player_index) end
+      if should_read then TileReader.read_tile(event.player_index, prefix) end
       return
    end
 
@@ -4249,9 +4240,9 @@ end, EventManager.EVENT_KIND.WORLD)
 
 EventManager.on_event("fa-m", function(event)
    -- Check for virtual train driving
-   local handled, should_read = VirtualTrainDriving.on_kb_descriptive_action_name(event)
+   local handled, should_read, prefix = VirtualTrainDriving.on_kb_descriptive_action_name(event)
    if handled then
-      if should_read then TileReader.read_tile(event.player_index) end
+      if should_read then TileReader.read_tile(event.player_index, prefix) end
       return
    end
 
@@ -4278,9 +4269,9 @@ end, EventManager.EVENT_KIND.WORLD)
 
 EventManager.on_event("fa-dot", function(event)
    -- Check for virtual train driving
-   local handled, should_read = VirtualTrainDriving.on_kb_descriptive_action_name(event)
+   local handled, should_read, prefix = VirtualTrainDriving.on_kb_descriptive_action_name(event)
    if handled then
-      if should_read then TileReader.read_tile(event.player_index) end
+      if should_read then TileReader.read_tile(event.player_index, prefix) end
       return
    end
 
@@ -4309,6 +4300,15 @@ EventManager.on_event("fa-a-comma", function(event)
    -- Check for virtual train driving
    if VirtualTrainDriving.on_kb_descriptive_action_name(event) then return end
 end, EventManager.EVENT_KIND.WORLD)
+
+-- Virtual train elevated rails: shift+comma ramp to the other layer, control+comma accept the suggested support,
+-- control+shift+comma support at the current end
+for _, input in ipairs({ "fa-s-comma", "fa-c-comma", "fa-cs-comma" }) do
+   EventManager.on_event(input, function(event)
+      local handled, should_read, prefix = VirtualTrainDriving.on_kb_descriptive_action_name(event)
+      if handled and should_read then TileReader.read_tile(event.player_index, prefix) end
+   end, EventManager.EVENT_KIND.WORLD)
+end
 
 EventManager.on_event("fa-slash", function(event)
    -- Check for virtual train driving first
